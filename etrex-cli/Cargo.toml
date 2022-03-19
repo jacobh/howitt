@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 clap = { version = "3.1.6", features = ["derive"] }
 etrex = { path = "../etrex" }
+anyhow = "*"

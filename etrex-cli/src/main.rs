@@ -1,4 +1,4 @@
-use std::{path::PathBuf, fs};
+use std::{fs, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand};
 use etrex::EtrexFile;
@@ -22,7 +22,7 @@ struct Info {
     filepath: PathBuf,
 }
 
-fn main() {
+fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     // You can check for the existence of subcommands, and if found use their
@@ -30,8 +30,10 @@ fn main() {
     match &cli.command {
         Commands::Info(args) => {
             let data = fs::read(&args.filepath).expect("Unable to read file");
-            let file = EtrexFile::new(data);
+            let file = EtrexFile::parse(&data)?;
             dbg!(&file);
         }
     }
+
+    Ok(())
 }
