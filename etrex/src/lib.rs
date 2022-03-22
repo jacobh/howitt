@@ -1,6 +1,9 @@
+use derive_more::Constructor;
 use geo::geodesic_length::GeodesicLength;
 use std::fmt;
 use thiserror::Error;
+
+mod trip;
 
 struct WaypointRef<'a> {
     track: &'a gpx::Track,
@@ -28,6 +31,7 @@ pub struct EtrexParseError {
     gpx_error: gpx::errors::GpxError,
 }
 
+#[derive(Constructor, Clone)]
 pub struct EtrexFile {
     gpx: gpx::Gpx,
 }
@@ -55,6 +59,20 @@ impl EtrexFile {
     }
 }
 
+#[derive(Constructor, Debug)]
+pub struct EtrexFileSet {
+    pub files: Vec<EtrexFile>,
+}
+impl EtrexFileSet {
+    pub fn trips(&self) -> impl Iterator<Item = trip::EtrexTrip> + '_ {
+        self.files
+            .iter()
+            .cloned()
+            .flat_map(|file| file.gpx.tracks)
+            .map(|track| trip::EtrexTrip::new(vec![trip::TripDay::new(track.segments)]))
+    }
+}
+
 impl fmt::Debug for EtrexFile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let distance = self
@@ -63,7 +81,7 @@ impl fmt::Debug for EtrexFile {
             .sum::<f64>()
             .round();
 
-            write!(
+        write!(
             f,
             "EtrexFile: {{ tracks: {}, points: {}, distance: {}m }}",
             self.gpx.tracks.len(),
