@@ -1,28 +1,10 @@
 use derive_more::Constructor;
 use geo::geodesic_length::GeodesicLength;
+use gpx::{TrackSegment, Waypoint, Track};
 use std::fmt;
 use thiserror::Error;
 
 mod trip;
-
-struct WaypointRef<'a> {
-    track: &'a gpx::Track,
-    segment: &'a gpx::TrackSegment,
-    waypoint: &'a gpx::Waypoint,
-}
-impl<'a> WaypointRef<'a> {
-    fn new(
-        track: &'a gpx::Track,
-        segment: &'a gpx::TrackSegment,
-        waypoint: &'a gpx::Waypoint,
-    ) -> WaypointRef<'a> {
-        WaypointRef {
-            track,
-            segment,
-            waypoint,
-        }
-    }
-}
 
 #[derive(Error, Debug)]
 #[error("Data parse failed")]
@@ -40,13 +22,13 @@ impl EtrexFile {
         let gpx = gpx::read(data)?;
         Ok(EtrexFile { gpx })
     }
-    fn waypoints<'a>(&'a self) -> impl Iterator<Item = WaypointRef<'a>> {
+    fn waypoints<'a>(&'a self) -> impl Iterator<Item = (&'a Track, &'a TrackSegment, &'a Waypoint)> {
         self.gpx.tracks.iter().flat_map(|track| {
             track.segments.iter().flat_map(move |segment| {
                 segment
                     .points
                     .iter()
-                    .map(move |waypoint| WaypointRef::new(track, segment, waypoint))
+                    .map(move |waypoint| (track, segment, waypoint))
             })
         })
     }
