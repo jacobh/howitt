@@ -1,3 +1,4 @@
+use geo::geodesic_length::GeodesicLength;
 use std::fmt;
 use thiserror::Error;
 
@@ -45,15 +46,29 @@ impl EtrexFile {
             })
         })
     }
+    fn linestrings(&self) -> impl Iterator<Item = geo::LineString<f64>> + '_ {
+        self.gpx
+            .tracks
+            .iter()
+            .flat_map(|track| &track.segments)
+            .map(|segment| segment.linestring())
+    }
 }
 
 impl fmt::Debug for EtrexFile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
+        let distance = self
+            .linestrings()
+            .map(|linestring| linestring.geodesic_length())
+            .sum::<f64>()
+            .round();
+
+            write!(
             f,
-            "EtrexFile: {{ tracks: {}, points: {} }}",
+            "EtrexFile: {{ tracks: {}, points: {}, distance: {}m }}",
             self.gpx.tracks.len(),
-            self.waypoints().count()
+            self.waypoints().count(),
+            distance
         )
     }
 }
