@@ -2,6 +2,7 @@ use std::{fs, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand};
 use etrex::{EtrexFile, EtrexFileSet};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -48,7 +49,7 @@ fn main() -> Result<(), anyhow::Error> {
                 .collect();
 
             let files: Vec<EtrexFile> = file_paths
-                .into_iter()
+                .into_par_iter()
                 .map(|path| -> Result<_, anyhow::Error> {
                     let data = fs::read(path)?;
                     Ok(EtrexFile::parse(&data)?)
