@@ -8,10 +8,7 @@ mod trip;
 
 #[derive(Error, Debug)]
 #[error("Data parse failed")]
-pub struct EtrexParseError {
-    #[from]
-    gpx_error: gpx::errors::GpxError,
-}
+pub struct EtrexParseError(#[from] gpx::errors::GpxError);
 
 #[derive(Constructor, Clone)]
 pub struct EtrexFile {
