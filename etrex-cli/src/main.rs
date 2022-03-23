@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand};
-use etrex::{EtrexFile, EtrexFileSet};
+use etrex::{trip::detect_trips, EtrexFile};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 #[derive(Parser)]
@@ -55,8 +55,12 @@ fn main() -> Result<(), anyhow::Error> {
                     Ok(EtrexFile::parse(&data)?)
                 })
                 .collect::<Result<_, _>>()?;
-            let trips: Vec<_> = EtrexFileSet::new(files).trips().collect();
+
+            let trips: Vec<_> = detect_trips(files);
             dbg!(&trips.len());
+            for trip in trips {
+                dbg!(trip);
+            }
         }
     }
 

@@ -1,10 +1,10 @@
 use derive_more::Constructor;
 use geo::geodesic_length::GeodesicLength;
-use gpx::{TrackSegment, Waypoint, Track};
+use gpx::{Track, TrackSegment, Waypoint};
 use std::fmt;
 use thiserror::Error;
 
-mod trip;
+pub mod trip;
 
 #[derive(Error, Debug)]
 #[error("Data parse failed")]
@@ -19,7 +19,9 @@ impl EtrexFile {
         let gpx = gpx::read(data)?;
         Ok(EtrexFile { gpx })
     }
-    fn waypoints<'a>(&'a self) -> impl Iterator<Item = (&'a Track, &'a TrackSegment, &'a Waypoint)> {
+    fn waypoints<'a>(
+        &'a self,
+    ) -> impl Iterator<Item = (&'a Track, &'a TrackSegment, &'a Waypoint)> {
         self.gpx.tracks.iter().flat_map(|track| {
             track.segments.iter().flat_map(move |segment| {
                 segment
@@ -37,21 +39,6 @@ impl EtrexFile {
             .map(|segment| segment.linestring())
     }
 }
-
-#[derive(Constructor, Debug)]
-pub struct EtrexFileSet {
-    pub files: Vec<EtrexFile>,
-}
-impl EtrexFileSet {
-    pub fn trips(&self) -> impl Iterator<Item = trip::EtrexTrip> + '_ {
-        self.files
-            .iter()
-            .cloned()
-            .flat_map(|file| file.gpx.tracks)
-            .map(|track| trip::EtrexTrip::new(vec![trip::TripDay::new(track.segments)]))
-    }
-}
-
 impl fmt::Debug for EtrexFile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let distance = self
