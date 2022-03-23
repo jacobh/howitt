@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_more::Constructor;
 use geo::geodesic_length::GeodesicLength;
 use gpx::{Track, TrackSegment, Waypoint};
@@ -10,7 +11,7 @@ pub mod trip;
 #[error("Data parse failed")]
 pub struct EtrexParseError(#[from] gpx::errors::GpxError);
 
-#[derive(Constructor, Clone)]
+#[derive(Constructor, Clone, PartialEq)]
 pub struct EtrexFile {
     gpx: gpx::Gpx,
 }
@@ -18,6 +19,11 @@ impl EtrexFile {
     pub fn parse(data: &[u8]) -> Result<EtrexFile, EtrexParseError> {
         let gpx = gpx::read(data)?;
         Ok(EtrexFile { gpx })
+    }
+    fn start_time(&self) -> Option<DateTime<Utc>> {
+        self.waypoints()
+            .nth(0)
+            .and_then(|(_, _, waypoint)| waypoint.time)
     }
     fn waypoints<'a>(
         &'a self,
@@ -54,5 +60,10 @@ impl fmt::Debug for EtrexFile {
             self.waypoints().count(),
             distance
         )
+    }
+}
+impl PartialOrd for EtrexFile {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.start_time().partial_cmp(&other.start_time())
     }
 }
