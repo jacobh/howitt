@@ -6,6 +6,7 @@ use std::fmt;
 use thiserror::Error;
 
 pub mod trip;
+pub mod gtfs;
 
 #[derive(Error, Debug)]
 #[error("Data parse failed")]

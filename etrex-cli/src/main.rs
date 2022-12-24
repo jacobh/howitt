@@ -1,7 +1,10 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf}, io,
+};
 
 use clap::{Args, Parser, Subcommand};
-use etrex::{trip::detect_trips, EtrexFile};
+use etrex::{gtfs::GtfsZip, trip::detect_trips, EtrexFile};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 #[derive(Parser)]
@@ -17,6 +20,7 @@ enum Commands {
     /// Adds files to myapp
     Info(Info),
     Trips(Trips),
+    Stations(Stations),
 }
 
 #[derive(Args)]
@@ -27,6 +31,20 @@ struct Info {
 #[derive(Args)]
 struct Trips {
     dirpath: PathBuf,
+}
+
+#[derive(Args)]
+struct Stations {
+    ptv_gtfs_dirpath: PathBuf,
+}
+
+fn find_file_paths(dirpath: &Path) -> Vec<PathBuf> {
+    walkdir::WalkDir::new(dirpath)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| entry.path().to_owned())
+        .collect()
 }
 
 fn main() -> Result<(), anyhow::Error> {
@@ -41,12 +59,7 @@ fn main() -> Result<(), anyhow::Error> {
             dbg!(&file);
         }
         Commands::Trips(args) => {
-            let file_paths: Vec<PathBuf> = walkdir::WalkDir::new(&args.dirpath)
-                .into_iter()
-                .filter_map(|e| e.ok())
-                .filter(|entry| entry.file_type().is_file())
-                .map(|entry| entry.path().to_owned())
-                .collect();
+            let file_paths: Vec<PathBuf> = find_file_paths(&args.dirpath);
 
             let files: Vec<EtrexFile> = file_paths
                 .into_par_iter()
@@ -61,6 +74,25 @@ fn main() -> Result<(), anyhow::Error> {
             for trip in trips {
                 dbg!(trip);
             }
+        }
+        Commands::Stations(args) => {
+            let file_paths: Vec<PathBuf> = find_file_paths(&args.ptv_gtfs_dirpath)
+                .into_iter()
+                .filter(|path| path.extension() == Some("zip".as_ref()))
+                .collect();
+
+            let gtfs_zips: Vec<GtfsZip> = file_paths
+                .into_iter()
+                .map(|path| -> Result<_, anyhow::Error> {
+                    let data = fs::read(path)?;
+                    let cursor = io::Cursor::new(data);
+                    Ok(GtfsZip::parse(cursor)?)
+                })
+                .collect::<Result<_, _>>()?;
+
+            let stops = gtfs_zips.into_iter().flat_map(|zip| zip.stops);
+            let railway_stations = stops.filter(|stop| stop.name.contains("Railway Station")).collect::<Vec<_>>();
+            dbg!(railway_stations);
         }
     }
 
