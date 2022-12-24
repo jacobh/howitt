@@ -17,10 +17,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Adds files to myapp
     Info(Info),
     Trips(Trips),
     Stations(Stations),
+    Huts(Huts),
 }
 
 #[derive(Args)]
@@ -36,6 +36,11 @@ struct Trips {
 #[derive(Args)]
 struct Stations {
     ptv_gtfs_dirpath: PathBuf,
+}
+
+#[derive(Args)]
+struct Huts {
+    filepath: PathBuf,
 }
 
 fn find_file_paths(dirpath: &Path) -> Vec<PathBuf> {
@@ -93,6 +98,12 @@ fn main() -> Result<(), anyhow::Error> {
             let checkpoints = gtfs_zips.into_iter().flat_map(|zip| zip.stops).map(Checkpoint::from);
             let railway_stations = checkpoints.filter(|checkpoint| checkpoint.name.contains("Railway Station")).collect::<Vec<_>>();
             dbg!(railway_stations);
+        }
+        Commands::Huts(args) => {
+            let data = fs::read(&args.filepath)?;
+            let file = EtrexFile::parse(&data)?;
+            let huts = file.gpx.waypoints.into_iter().map(Checkpoint::try_from).collect::<Result<Vec<_>, _>>()?;
+            dbg!(huts);
         }
     }
 

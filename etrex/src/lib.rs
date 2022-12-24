@@ -15,7 +15,7 @@ pub struct EtrexParseError(#[from] gpx::errors::GpxError);
 
 #[derive(Constructor, Clone, PartialEq)]
 pub struct EtrexFile {
-    gpx: gpx::Gpx,
+    pub gpx: gpx::Gpx,
 }
 impl EtrexFile {
     pub fn parse(data: &[u8]) -> Result<EtrexFile, EtrexParseError> {
