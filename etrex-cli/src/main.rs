@@ -4,7 +4,7 @@ use std::{
 };
 
 use clap::{Args, Parser, Subcommand};
-use etrex::{gtfs::GtfsZip, trip::detect_trips, EtrexFile};
+use etrex::{gtfs::GtfsZip, trip::detect_trips, EtrexFile, checkpoint::Checkpoint};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 #[derive(Parser)]
@@ -90,8 +90,8 @@ fn main() -> Result<(), anyhow::Error> {
                 })
                 .collect::<Result<_, _>>()?;
 
-            let stops = gtfs_zips.into_iter().flat_map(|zip| zip.stops);
-            let railway_stations = stops.filter(|stop| stop.name.contains("Railway Station")).collect::<Vec<_>>();
+            let checkpoints = gtfs_zips.into_iter().flat_map(|zip| zip.stops).map(Checkpoint::from);
+            let railway_stations = checkpoints.filter(|checkpoint| checkpoint.name.contains("Railway Station")).collect::<Vec<_>>();
             dbg!(railway_stations);
         }
     }

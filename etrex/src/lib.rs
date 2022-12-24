@@ -7,6 +7,7 @@ use thiserror::Error;
 
 pub mod trip;
 pub mod gtfs;
+pub mod checkpoint;
 
 #[derive(Error, Debug)]
 #[error("Data parse failed")]
