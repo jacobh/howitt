@@ -1,0 +1,12 @@
+[package]
+name = "howitt-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "3.1.6", features = ["derive"] }
+howitt = { path = "../howitt" }
+anyhow = "*"
+walkdir = "2"
+rayon = "*"
+gtfs = { path = "../gtfs" }

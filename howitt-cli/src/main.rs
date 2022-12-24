@@ -4,9 +4,10 @@ use std::{
 };
 
 use clap::{Args, Parser, Subcommand};
-use etrex::{checkpoint::Checkpoint, trip::detect_trips, EtrexFile};
 use gtfs::GtfsZip;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
+
+use howitt::{checkpoint::Checkpoint, trip::detect_trips, EtrexFile};
 
 struct Config {
     ptv_gtfs_dirpath: &'static str,
