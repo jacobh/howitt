@@ -2,7 +2,7 @@ use clap::Subcommand;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{dirs::config_dirpath, json::prettyprintln};
+use crate::{dirs::{CONFIG_DIRPATH}, json::prettyprintln};
 
 const AUTH_FILENAME: &'static str = "rwgps_auth.toml";
 
@@ -25,16 +25,29 @@ pub fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             println!("hello")
         }
         Rwgps::Auth => {
-            let auth_filepath = config_dirpath().join(AUTH_FILENAME);
+            let auth_filepath = CONFIG_DIRPATH.join(AUTH_FILENAME);
 
             let auth_config: AuthConfig = match auth_filepath.exists() {
-                true => toml::from_slice(&std::fs::read(auth_filepath)?)?,
-                false => AuthConfig {
-                    email: "".to_string(),
-                    password: "".to_string(),
-                    auth_token: None,
-                },
+                true => toml::from_slice(&std::fs::read(&auth_filepath)?)?,
+                false => {
+                    println!("Initial auth setup");
+                    let email = inquire::Text::new("Email").prompt();
+                    let password = inquire::Password::new("Password")
+                        .without_confirmation()
+                        .prompt();
+
+                    match (email, password) {
+                        (Ok(email), Ok(password)) => AuthConfig {
+                            email,
+                            password,
+                            auth_token: None,
+                        },
+                        _ => anyhow::bail!("Invalid email/password"),
+                    }
+                }
             };
+
+            std::fs::write(auth_filepath, toml::to_vec(&auth_config)?)?;
 
             prettyprintln(json!({
                 "email": auth_config.email,
