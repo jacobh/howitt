@@ -10,8 +10,8 @@ pub struct Checkpoint {
 
 impl From<crate::gtfs::GtfsStop> for Checkpoint {
     fn from(value: GtfsStop) -> Self {
-        let GtfsStop { name, point, ..} = value;
-        Checkpoint { name, point }
+        let GtfsStop { stop_name, stop_lat, stop_lon, ..} = value;
+        Checkpoint { name: stop_name, point: geo::Point::new(stop_lat, stop_lon) }
     }
 }
 

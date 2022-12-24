@@ -14,3 +14,6 @@ chrono = "*"
 kamadak-exif = "0.5.5"
 fitparser = "0.5.1"
 zip = "0.6.3"
+csv = "1.1.6"
+serde = { version = "1", features = ["derive"] }
+
