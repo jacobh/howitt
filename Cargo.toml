@@ -3,5 +3,6 @@
 members = [
     "etrex",
     "etrex-cli",
-    "rwgps"
+    "rwgps",
+    "gtfs"
 ]

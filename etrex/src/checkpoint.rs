@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::gtfs::GtfsStop;
+use gtfs::GtfsStop;
 
 #[derive(Debug)]
 pub struct Checkpoint {
@@ -8,7 +8,7 @@ pub struct Checkpoint {
     pub point: geo::Point<f64>,
 }
 
-impl From<crate::gtfs::GtfsStop> for Checkpoint {
+impl From<GtfsStop> for Checkpoint {
     fn from(value: GtfsStop) -> Self {
         let GtfsStop { stop_name, stop_lat, stop_lon, ..} = value;
         Checkpoint { name: stop_name, point: geo::Point::new(stop_lat, stop_lon) }

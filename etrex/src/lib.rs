@@ -6,7 +6,6 @@ use std::fmt;
 use thiserror::Error;
 
 pub mod trip;
-pub mod gtfs;
 pub mod checkpoint;
 
 #[derive(Error, Debug)]

@@ -11,3 +11,4 @@ etrex = { path = "../etrex" }
 anyhow = "*"
 walkdir = "2"
 rayon = "*"
+gtfs = { path = "../gtfs" }

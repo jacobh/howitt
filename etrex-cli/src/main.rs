@@ -4,7 +4,8 @@ use std::{
 };
 
 use clap::{Args, Parser, Subcommand};
-use etrex::{checkpoint::Checkpoint, gtfs::GtfsZip, trip::detect_trips, EtrexFile};
+use etrex::{checkpoint::Checkpoint, trip::detect_trips, EtrexFile};
+use gtfs::GtfsZip;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 struct Config {
