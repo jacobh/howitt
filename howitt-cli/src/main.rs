@@ -9,6 +9,8 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use howitt::{checkpoint::Checkpoint, trip::detect_trips, EtrexFile};
 
+mod rwgps;
+
 struct Config {
     ptv_gtfs_dirpath: &'static str,
     routes_dirpath: &'static str,
@@ -36,6 +38,8 @@ enum Commands {
     Stations(Stations),
     Huts(Huts),
     Info,
+    #[clap(subcommand)]
+    Rwgps(crate::rwgps::Rwgps),
 }
 
 #[derive(Args)]
@@ -143,6 +147,7 @@ fn main() -> Result<(), anyhow::Error> {
             dbg!(railway_stations.len());
             dbg!(huts.len());
         }
+        Commands::Rwgps(command) => crate::rwgps::handle(command)?
     }
 
     Ok(())
