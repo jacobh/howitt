@@ -7,6 +7,18 @@ use clap::{Args, Parser, Subcommand};
 use etrex::{checkpoint::Checkpoint, gtfs::GtfsZip, trip::detect_trips, EtrexFile};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
+struct Config {
+    ptv_gtfs_dirpath: &'static str,
+    routes_dirpath: &'static str,
+    huts_filepath: &'static str,
+}
+
+const CONFIG: Config = Config {
+    ptv_gtfs_dirpath: "../data/ptv_gtfs",
+    routes_dirpath: "../data/routes",
+    huts_filepath: "../data/HUTS.gpx",
+};
+
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]
@@ -17,14 +29,15 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Info(Info),
+    GpxInfo(GpxInfo),
     Trips(Trips),
     Stations(Stations),
     Huts(Huts),
+    Info,
 }
 
 #[derive(Args)]
-struct Info {
+struct GpxInfo {
     filepath: PathBuf,
 }
 
@@ -90,10 +103,8 @@ fn load_huts(filepath: &Path) -> Result<Vec<Checkpoint>, anyhow::Error> {
 fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
-    // You can check for the existence of subcommands, and if found use their
-    // matches just as you would the top level cmd
     match &cli.command {
-        Commands::Info(args) => {
+        Commands::GpxInfo(args) => {
             let data = fs::read(&args.filepath)?;
             let file = EtrexFile::parse(&data)?;
             dbg!(&file);
@@ -122,6 +133,13 @@ fn main() -> Result<(), anyhow::Error> {
         Commands::Huts(args) => {
             let huts = load_huts(&args.filepath)?;
             dbg!(huts);
+        }
+        Commands::Info => {
+            let railway_stations = load_stations(CONFIG.ptv_gtfs_dirpath.as_ref())?;
+            let huts = load_huts(CONFIG.huts_filepath.as_ref())?;
+
+            dbg!(railway_stations.len());
+            dbg!(huts.len());
         }
     }
 
