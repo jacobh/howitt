@@ -15,6 +15,9 @@ pub enum AuthInfo {
     Token(TokenAuthInfo),
 }
 impl AuthInfo {
+    pub fn from_token(auth_token: String) -> AuthInfo {
+        AuthInfo::Token(TokenAuthInfo { auth_token })
+    }
     fn to_query(&self) -> serde_json::Value {
         match self {
             AuthInfo::Password(info) => serde_json::json!({
@@ -75,12 +78,12 @@ impl RwgpsClient {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct AuthenticatedUserDetailResponse {
     pub user: UserInfo,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UserInfo {
     pub auth_token: String,
     pub id: usize,

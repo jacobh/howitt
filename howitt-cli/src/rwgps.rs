@@ -10,13 +10,7 @@ const CONFIG_FILENAME: &'static str = "rwgps_auth.toml";
 #[derive(Debug, Serialize, Deserialize)]
 struct UserConfig {
     password_info: PasswordAuthInfo,
-    user_info: Option<UserInfo>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct UserInfo {
-    user_id: usize,
-    token_info: TokenAuthInfo,
+    user_info: Option<rwgps::UserInfo>,
 }
 
 #[derive(Subcommand)]
@@ -61,7 +55,15 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
 
     match command {
         Rwgps::Info => {
-            println!("hello")
+            let user_config = get_user_config()?;
+
+            match user_config.user_info {
+                Some(user_info) => {
+                    let resp = client.user_info(&AuthInfo::from_token(user_info.auth_token)).await?;
+                    dbg!(resp);
+                }
+                None => {}
+            }
         }
         Rwgps::Auth => {
             let user_config = get_user_config()?;
@@ -71,12 +73,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .await?;
 
             let updated_user_config = UserConfig {
-                user_info: Some(UserInfo {
-                    user_id: auth_resp.user.id,
-                    token_info: TokenAuthInfo {
-                        auth_token: auth_resp.user.auth_token,
-                    },
-                }),
+                user_info: Some(auth_resp.user),
                 ..user_config
             };
 
