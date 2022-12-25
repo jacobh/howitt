@@ -23,7 +23,7 @@ impl GtfsZip {
             .into_deserialize()
             .collect::<Result<Vec<GtfsStop>, _>>()?;
 
-            Ok(GtfsZip { stops })
+        Ok(GtfsZip { stops })
     }
 }
 

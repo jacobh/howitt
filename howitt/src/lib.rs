@@ -5,8 +5,8 @@ use gpx::{Track, TrackSegment, Waypoint};
 use std::fmt;
 use thiserror::Error;
 
-pub mod trip;
 pub mod checkpoint;
+pub mod trip;
 
 #[derive(Error, Debug)]
 #[error("Data parse failed")]

@@ -10,8 +10,16 @@ pub struct Checkpoint {
 
 impl From<GtfsStop> for Checkpoint {
     fn from(value: GtfsStop) -> Self {
-        let GtfsStop { stop_name, stop_lat, stop_lon, ..} = value;
-        Checkpoint { name: stop_name, point: geo::Point::new(stop_lat, stop_lon) }
+        let GtfsStop {
+            stop_name,
+            stop_lat,
+            stop_lon,
+            ..
+        } = value;
+        Checkpoint {
+            name: stop_name,
+            point: geo::Point::new(stop_lat, stop_lon),
+        }
     }
 }
 
@@ -25,8 +33,11 @@ impl TryFrom<gpx::Waypoint> for Checkpoint {
     type Error = CheckpointError;
     fn try_from(value: gpx::Waypoint) -> Result<Self, Self::Error> {
         match value.name.clone() {
-            Some(name) => Ok(Checkpoint { name, point: value.point() }),
-            None => Err(CheckpointError::MissingName)
+            Some(name) => Ok(Checkpoint {
+                name,
+                point: value.point(),
+            }),
+            None => Err(CheckpointError::MissingName),
         }
     }
 }
