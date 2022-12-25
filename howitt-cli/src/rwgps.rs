@@ -67,28 +67,18 @@ fn persist_user_config(config: &UserConfig) -> Result<(), anyhow::Error> {
 }
 
 pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
-    let client = rwgps::RwgpsClient::new();
-
     match command {
         Rwgps::Info => {
             let user_config = get_user_config()?;
+            let client = rwgps::RwgpsClient::new(user_config.auth_info());
 
-            match user_config.user_info {
-                Some(user_info) => {
-                    let resp = client
-                        .user_info(&AuthInfo::from_token(user_info.auth_token))
-                        .await?;
-                    dbg!(resp);
-                }
-                None => {}
-            }
+            dbg!(client.user_info().await?);
         }
         Rwgps::Auth => {
             let user_config = get_user_config()?;
+            let client = rwgps::RwgpsClient::new(user_config.auth_info());
 
-            let auth_resp = client
-                .user_info(&AuthInfo::from(user_config.password_info.clone()))
-                .await?;
+            let auth_resp = client.user_info().await?;
 
             let updated_user_config = UserConfig {
                 user_info: Some(auth_resp.user),
@@ -105,10 +95,10 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
         }
         Rwgps::Routes(Routes::List) => {
             let user_config = get_user_config()?;
-            let auth_info = user_config.auth_info();
+            let client = rwgps::RwgpsClient::new(user_config.auth_info());
 
             let resp = client
-                .user_routes(&auth_info, user_config.user_info.unwrap().id)
+                .user_routes(user_config.user_info.unwrap().id)
                 .await?;
 
             // println!("{}", serde_json::to_string_pretty(&resp)?);

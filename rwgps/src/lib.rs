@@ -50,26 +50,27 @@ pub struct TokenAuthInfo {
 pub struct RwgpsClient {
     client: reqwest::Client,
     base_url: Url,
+    auth_info: AuthInfo,
 }
 impl RwgpsClient {
-    pub fn new() -> RwgpsClient {
+    pub fn new(auth_info: AuthInfo) -> RwgpsClient {
         RwgpsClient {
             client: reqwest::Client::new(),
             base_url: Url::parse("https://ridewithgps.com").unwrap(),
+            auth_info,
         }
     }
 
     fn get(&self, path: &str) -> Result<RequestBuilder, RwgpsError> {
-        Ok(self.client.get(self.base_url.join(path)?))
+        Ok(self
+            .client
+            .get(self.base_url.join(path)?)
+            .query(&self.auth_info.to_query()))
     }
 
-    pub async fn user_info(
-        &self,
-        auth_info: &AuthInfo,
-    ) -> Result<AuthenticatedUserDetailResponse, RwgpsError> {
+    pub async fn user_info(&self) -> Result<AuthenticatedUserDetailResponse, RwgpsError> {
         let resp: AuthenticatedUserDetailResponse = self
             .get("/users/current.json")?
-            .query(&auth_info.to_query())
             .send()
             .await?
             .json()
@@ -80,12 +81,10 @@ impl RwgpsClient {
 
     pub async fn user_routes(
         &self,
-        auth_info: &AuthInfo,
         user_id: usize,
     ) -> Result<ListResponse<RouteSummary>, RwgpsError> {
         let resp: ListResponse<RouteSummary> = self
             .get(&format!("/users/{}/routes.json", user_id))?
-            .query(&auth_info.to_query())
             .query(&[("limit", "1000")])
             .send()
             .await?
