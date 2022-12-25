@@ -12,3 +12,4 @@ thiserror = "*"
 serde_json = "*"
 url = "*"
 serde = { version = "1", features = ["derive"] }
+derive_more = "*"

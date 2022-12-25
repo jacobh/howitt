@@ -1,5 +1,5 @@
-use reqwest::Url;
-use serde::Deserialize;
+use reqwest::{Url, RequestBuilder};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -7,6 +7,40 @@ use thiserror::Error;
 pub enum RwgpsError {
     Reqwest(#[from] reqwest::Error),
     Url(#[from] url::ParseError),
+}
+
+#[derive(derive_more::From, Debug, Clone, Serialize, Deserialize)]
+pub enum AuthInfo {
+    Password(PasswordAuthInfo),
+    Token(TokenAuthInfo)
+}
+impl AuthInfo {
+    fn to_query(&self) -> serde_json::Value {
+        match self {
+            AuthInfo::Password(info) => serde_json::json!({
+                "email": info.email,
+                "password": info.password,
+                "apikey": "howitt",
+                "version": "2"
+            }),
+            AuthInfo::Token(info) => serde_json::json!({
+                "auth_token": info.auth_token,
+                "apikey": "howitt",
+                "version": "2"
+            })
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PasswordAuthInfo {
+    pub email: String,
+    pub password: String
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenAuthInfo {
+    pub auth_token: String
 }
 
 pub struct RwgpsClient {
@@ -21,16 +55,14 @@ impl RwgpsClient {
         }
     }
 
-    pub async fn auth(&self, email: &str, password: &str) -> Result<AuthenticatedUserDetailResponse, RwgpsError> {
+    fn get(&self, path: &str) -> Result<RequestBuilder, RwgpsError> {
+        Ok(self.client.get(self.base_url.join(path)?))
+    }
+
+    pub async fn user_info(&self, auth_info: &AuthInfo) -> Result<AuthenticatedUserDetailResponse, RwgpsError> {
         let resp: AuthenticatedUserDetailResponse = self
-            .client
-            .get(self.base_url.join("/users/current.json")?)
-            .query(&[
-                ("email", email),
-                ("password", password),
-                ("apikey", "howitt"),
-                ("version", "2"),
-            ])
+            .get("/users/current.json")?
+            .query(&auth_info.to_query())
             .send()
             .await?
             .json()
