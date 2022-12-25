@@ -10,9 +10,11 @@ anyhow = "*"
 walkdir = "2"
 rayon = "*"
 gtfs = { path = "../gtfs" }
+rwgps = { path = "../rwgps" }
 dirs = "*"
 serde = { version = "1", features = ["derive"] }
 toml = "*"
 serde_json = "*"
 inquire = "*"
 lazy_static = "*"
+tokio = { version = "1", features = ["full"] }

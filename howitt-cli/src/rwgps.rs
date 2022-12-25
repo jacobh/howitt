@@ -2,7 +2,7 @@ use clap::Subcommand;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{dirs::{CONFIG_DIRPATH}, json::prettyprintln};
+use crate::{dirs::CONFIG_DIRPATH, json::prettyprintln};
 
 const AUTH_FILENAME: &'static str = "rwgps_auth.toml";
 
@@ -19,7 +19,7 @@ pub enum Rwgps {
     Auth,
 }
 
-pub fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
+pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
     match command {
         Rwgps::Info => {
             println!("hello")
@@ -47,12 +47,21 @@ pub fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 }
             };
 
-            std::fs::write(auth_filepath, toml::to_vec(&auth_config)?)?;
+            let client = rwgps::RwgpsClient::new();
+
+            let auth_token = client
+                .auth(&auth_config.email, &auth_config.password)
+                .await?
+                .auth_token;
+
+            let updated_auth_config = AuthConfig { auth_token: Some(auth_token), ..auth_config };
+
+            std::fs::write(auth_filepath, toml::to_vec(&updated_auth_config)?)?;
 
             prettyprintln(json!({
-                "email": auth_config.email,
+                "email": updated_auth_config.email,
                 "password": "********",
-                "auth_token": auth_config.auth_token,
+                "auth_token": updated_auth_config.auth_token,
             }));
         }
     }

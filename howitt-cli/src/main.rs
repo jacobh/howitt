@@ -9,9 +9,9 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use howitt::{checkpoint::Checkpoint, trip::detect_trips, EtrexFile};
 
-mod rwgps;
 mod dirs;
 mod json;
+mod rwgps;
 
 struct Config {
     ptv_gtfs_dirpath: &'static str,
@@ -108,7 +108,8 @@ fn load_huts(filepath: &Path) -> Result<Vec<Checkpoint>, anyhow::Error> {
         .collect::<Result<Vec<_>, _>>()?)
 }
 
-fn main() -> Result<(), anyhow::Error> {
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     match &cli.command {
@@ -149,7 +150,7 @@ fn main() -> Result<(), anyhow::Error> {
             dbg!(railway_stations.len());
             dbg!(huts.len());
         }
-        Commands::Rwgps(command) => crate::rwgps::handle(command)?
+        Commands::Rwgps(command) => crate::rwgps::handle(command).await?,
     }
 
     Ok(())
