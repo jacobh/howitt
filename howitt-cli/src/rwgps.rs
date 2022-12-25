@@ -1,5 +1,5 @@
 use clap::Subcommand;
-use rwgps::{AuthInfo, PasswordAuthInfo, TokenAuthInfo};
+use rwgps::{AuthInfo, PasswordAuthInfo};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -12,11 +12,27 @@ struct UserConfig {
     password_info: PasswordAuthInfo,
     user_info: Option<rwgps::UserInfo>,
 }
+impl UserConfig {
+    fn auth_info(&self) -> AuthInfo {
+        match &self.user_info {
+            Some(user_info) => AuthInfo::from_token(user_info.auth_token.clone()),
+            None => AuthInfo::Password(self.password_info.clone()),
+        }
+    }
+}
 
 #[derive(Subcommand)]
 pub enum Rwgps {
     Info,
     Auth,
+    #[clap(subcommand)]
+    Routes(Routes),
+}
+
+#[derive(Subcommand)]
+pub enum Routes {
+    List,
+    Sync,
 }
 
 fn get_user_config() -> Result<UserConfig, anyhow::Error> {
@@ -59,7 +75,9 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
 
             match user_config.user_info {
                 Some(user_info) => {
-                    let resp = client.user_info(&AuthInfo::from_token(user_info.auth_token)).await?;
+                    let resp = client
+                        .user_info(&AuthInfo::from_token(user_info.auth_token))
+                        .await?;
                     dbg!(resp);
                 }
                 None => {}
@@ -85,6 +103,19 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 "user_info": updated_user_config.user_info,
             }));
         }
+        Rwgps::Routes(Routes::List) => {
+            let user_config = get_user_config()?;
+            let auth_info = user_config.auth_info();
+
+            let resp = client
+                .user_routes(&auth_info, user_config.user_info.unwrap().id)
+                .await?;
+
+            // println!("{}", serde_json::to_string_pretty(&resp)?);
+
+            dbg!(resp.results.len());
+        }
+        Rwgps::Routes(Routes::Sync) => unimplemented!(),
     }
 
     Ok(())
