@@ -1,4 +1,5 @@
 use reqwest::Url;
+use serde::Deserialize;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -20,8 +21,8 @@ impl RwgpsClient {
         }
     }
 
-    pub async fn auth(&self, email: &str, password: &str) -> Result<AuthResponse, RwgpsError> {
-        let resp: serde_json::Value = self
+    pub async fn auth(&self, email: &str, password: &str) -> Result<AuthenticatedUserDetailResponse, RwgpsError> {
+        let resp: AuthenticatedUserDetailResponse = self
             .client
             .get(self.base_url.join("/users/current.json")?)
             .query(&[
@@ -35,19 +36,17 @@ impl RwgpsClient {
             .json()
             .await?;
 
-        Ok(AuthResponse {
-            auth_token: resp
-                .get("user")
-                .unwrap()
-                .get("auth_token")
-                .unwrap()
-                .as_str()
-                .unwrap()
-                .to_owned(),
-        })
+        Ok(resp)
     }
 }
 
-pub struct AuthResponse {
+#[derive(Deserialize)]
+pub struct AuthenticatedUserDetailResponse {
+    pub user: UserInfo
+}
+
+#[derive(Deserialize)]
+pub struct UserInfo {
     pub auth_token: String,
+    pub id: usize
 }

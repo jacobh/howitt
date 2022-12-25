@@ -10,7 +10,13 @@ const AUTH_FILENAME: &'static str = "rwgps_auth.toml";
 struct AuthConfig {
     email: String,
     password: String,
-    auth_token: Option<String>,
+    auth_profile: Option<AuthProfile>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct AuthProfile {
+    user_id: usize,
+    auth_token: String,
 }
 
 #[derive(Subcommand)]
@@ -40,7 +46,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                         (Ok(email), Ok(password)) => AuthConfig {
                             email,
                             password,
-                            auth_token: None,
+                            auth_profile: None,
                         },
                         _ => anyhow::bail!("Invalid email/password"),
                     }
@@ -49,19 +55,24 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
 
             let client = rwgps::RwgpsClient::new();
 
-            let auth_token = client
+            let auth_resp = client
                 .auth(&auth_config.email, &auth_config.password)
-                .await?
-                .auth_token;
+                .await?;
 
-            let updated_auth_config = AuthConfig { auth_token: Some(auth_token), ..auth_config };
+            let updated_auth_config = AuthConfig {
+                auth_profile: Some(AuthProfile {
+                    auth_token: auth_resp.user.auth_token,
+                    user_id: auth_resp.user.id,
+                }),
+                ..auth_config
+            };
 
             std::fs::write(auth_filepath, toml::to_vec(&updated_auth_config)?)?;
 
             prettyprintln(json!({
                 "email": updated_auth_config.email,
                 "password": "********",
-                "auth_token": updated_auth_config.auth_token,
+                "auth_token": updated_auth_config.auth_profile.map(|x| x.auth_token),
             }));
         }
     }
