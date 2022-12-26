@@ -1,5 +1,5 @@
 use clap::{Args, Subcommand};
-use futures::{prelude::*, StreamExt};
+use futures::{prelude::*, stream::FuturesUnordered};
 use rwgps::credentials::{Credentials, PasswordCredentials};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -123,18 +123,19 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             let user_config = get_user_config()?;
             let client = rwgps::RwgpsClient::new(user_config.credentials());
 
-            let routes = client
+            let route_summaries = client
                 .user_routes(user_config.user_info.unwrap().id)
                 .await?;
 
-            let futs = routes
+            let routes: Vec<Result<rwgps::types::Route, _>> = route_summaries
                 .into_iter()
                 .map(|route| (route, client.clone()))
-                .map(async move |(route, client)| client.route(route.id).await);
+                .map(async move |(route, client)| client.route(route.id).await)
+                .collect::<FuturesUnordered<_>>()
+                .collect()
+                .await;
 
-            let x: Vec<Result<rwgps::types::Route, _>> = futures::stream::iter(futs).buffer_unordered(20).collect::<Vec<_>>().await;
-
-            dbg!(x.len());
+            dbg!(routes.len());
         }
     }
 
