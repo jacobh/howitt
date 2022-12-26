@@ -59,5 +59,16 @@ impl RwgpsClient {
 
         Ok(resp)
     }
+
+    pub async fn route(&self, route_id: usize) -> Result<types::Route, RwgpsError> {
+        let resp: types::RouteResponse = self
+            .get(&format!("/routes/{}.json", route_id))?
+            .send()
+            .await?
+            .json()
+            .await?;
+
+        Ok(resp.route)
+    }
 }
 

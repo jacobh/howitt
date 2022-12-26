@@ -1,4 +1,4 @@
-use clap::Subcommand;
+use clap::{Subcommand, Args};
 use rwgps::credentials::{Credentials, PasswordCredentials};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -33,6 +33,12 @@ pub enum Rwgps {
 pub enum Routes {
     List,
     Sync,
+    Detail(RouteDetailArgs),
+}
+
+#[derive(Args)]
+pub struct RouteDetailArgs {
+    route_id: usize
 }
 
 fn get_user_config() -> Result<UserConfig, anyhow::Error> {
@@ -104,6 +110,13 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             // println!("{}", serde_json::to_string_pretty(&resp)?);
 
             dbg!(resp.results.len());
+        }
+        Rwgps::Routes(Routes::Detail(args)) => {
+            let user_config = get_user_config()?;
+            let client = rwgps::RwgpsClient::new(user_config.credentials());
+
+            let resp = client.route(args.route_id).await?;
+            dbg!(resp);
         }
         Rwgps::Routes(Routes::Sync) => unimplemented!(),
     }

@@ -33,11 +33,11 @@ pub struct RouteSummary {
     pub elevation_loss: f64,
     pub first_lat: f64,
     pub first_lng: f64,
-    pub group_membership_id: i64,
+    pub group_membership_id: usize,
     pub has_course_points: bool,
     pub highlighted_photo_checksum: Value,
-    pub highlighted_photo_id: i64,
-    pub id: i64,
+    pub highlighted_photo_id: usize,
+    pub id: usize,
     pub is_trip: bool,
     pub last_lat: f64,
     pub last_lng: f64,
@@ -56,7 +56,7 @@ pub struct RouteSummary {
     pub track_type: String,
     pub unpaved_pct: i64,
     pub updated_at: String,
-    pub user_id: i64,
+    pub user_id: usize,
     pub visibility: i64,
 }
 
@@ -71,14 +71,14 @@ pub struct RouteResponse {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Route {
-    pub id: i64,
-    pub highlighted_photo_id: i64,
+    pub id: usize,
+    pub highlighted_photo_id: usize,
     pub highlighted_photo_checksum: Value,
     pub distance: f64,
     pub elevation_gain: f64,
     pub elevation_loss: f64,
     pub track_id: String,
-    pub user_id: i64,
+    pub user_id: usize,
     pub pavement_type: Value,
     pub pavement_type_id: Value,
     pub recreation_type_ids: Vec<Value>,
@@ -103,7 +103,7 @@ pub struct Route {
     pub track_type: String,
     pub terrain: String,
     pub difficulty: String,
-    pub unpaved_pct: i64,
+    pub unpaved_pct: f64,
     pub surface: String,
     pub nav_enabled: bool,
     pub rememberable: bool,
@@ -123,7 +123,7 @@ pub struct Point {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct User {
-    pub id: i64,
+    pub id: usize,
     pub created_at: String,
     pub description: Value,
     pub interests: Value,
@@ -134,14 +134,14 @@ pub struct User {
     pub total_trip_duration: i64,
     pub total_trip_elevation_gain: f64,
     pub name: String,
-    pub highlighted_photo_id: i64,
+    pub highlighted_photo_id: usize,
     pub highlighted_photo_checksum: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Metrics {
-    pub id: i64,
-    pub parent_id: i64,
+    pub id: usize,
+    pub parent_id: usize,
     pub parent_type: String,
     pub created_at: String,
     pub updated_at: String,
@@ -165,14 +165,14 @@ pub struct Metrics {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Elevation {
-    pub max: i64,
+    pub max: f64,
     pub min: f64,
     #[serde(rename = "_min")]
     pub min2: f64,
     #[serde(rename = "_max")]
-    pub max2: i64,
-    pub min_i: i64,
-    pub max_i: i64,
+    pub max2: f64,
+    pub min_i: Option<f64>,
+    pub max_i: Option<f64>,
     #[serde(rename = "_avg")]
     pub avg: f64,
     #[serde(rename = "avg")]
@@ -187,8 +187,8 @@ pub struct Grade {
     pub min2: f64,
     #[serde(rename = "_max")]
     pub max2: f64,
-    pub max_i: i64,
-    pub min_i: i64,
+    pub max_i: Option<f64>,
+    pub min_i: Option<f64>,
     #[serde(rename = "_avg")]
     pub avg: f64,
     #[serde(rename = "avg")]
@@ -197,25 +197,25 @@ pub struct Grade {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Hill {
-    pub first_i: i64,
-    pub last_i: i64,
-    pub ele_gain: i64,
-    pub ele_loss: i64,
-    pub distance: i64,
+    pub first_i: f64,
+    pub last_i: f64,
+    pub ele_gain: f64,
+    pub ele_loss: f64,
+    pub distance: f64,
     pub avg_grade: f64,
     pub is_climb: bool,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SegmentMatch {
-    pub id: i64,
+    pub id: usize,
     pub created_at: String,
     pub updated_at: String,
     pub mongo_id: String,
-    pub user_id: i64,
-    pub segment_id: i64,
+    pub user_id: usize,
+    pub segment_id: usize,
     pub parent_type: String,
-    pub parent_id: i64,
+    pub parent_id: usize,
     pub final_time: Value,
     pub visibility: i64,
     pub start_index: i64,
