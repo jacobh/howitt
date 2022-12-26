@@ -1,5 +1,5 @@
 use clap::Subcommand;
-use rwgps::{AuthInfo, PasswordAuthInfo};
+use rwgps::credentials::{Credentials, PasswordCredentials};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -9,14 +9,14 @@ const CONFIG_FILENAME: &'static str = "rwgps_auth.toml";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct UserConfig {
-    password_info: PasswordAuthInfo,
+    password_info: PasswordCredentials,
     user_info: Option<rwgps::types::UserInfo>,
 }
 impl UserConfig {
-    fn auth_info(&self) -> AuthInfo {
+    fn credentials(&self) -> Credentials {
         match &self.user_info {
-            Some(user_info) => AuthInfo::from_token(user_info.auth_token.clone()),
-            None => AuthInfo::Password(self.password_info.clone()),
+            Some(user_info) => Credentials::from_token(user_info.auth_token.clone()),
+            None => Credentials::Password(self.password_info.clone()),
         }
     }
 }
@@ -49,7 +49,7 @@ fn get_user_config() -> Result<UserConfig, anyhow::Error> {
 
             match (email, password) {
                 (Ok(email), Ok(password)) => Ok(UserConfig {
-                    password_info: PasswordAuthInfo { email, password },
+                    password_info: PasswordCredentials { email, password },
                     user_info: None,
                 }),
                 _ => anyhow::bail!("Invalid email/password"),
@@ -70,13 +70,13 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
     match command {
         Rwgps::Info => {
             let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.auth_info());
+            let client = rwgps::RwgpsClient::new(user_config.credentials());
 
             dbg!(client.user_info().await?);
         }
         Rwgps::Auth => {
             let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.auth_info());
+            let client = rwgps::RwgpsClient::new(user_config.credentials());
 
             let auth_resp = client.user_info().await?;
 
@@ -95,7 +95,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
         }
         Rwgps::Routes(Routes::List) => {
             let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.auth_info());
+            let client = rwgps::RwgpsClient::new(user_config.credentials());
 
             let resp = client
                 .user_routes(user_config.user_info.unwrap().id)
