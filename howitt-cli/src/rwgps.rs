@@ -10,7 +10,7 @@ const CONFIG_FILENAME: &'static str = "rwgps_auth.toml";
 #[derive(Debug, Serialize, Deserialize)]
 struct UserConfig {
     password_info: PasswordAuthInfo,
-    user_info: Option<rwgps::UserInfo>,
+    user_info: Option<rwgps::types::UserInfo>,
 }
 impl UserConfig {
     fn auth_info(&self) -> AuthInfo {
