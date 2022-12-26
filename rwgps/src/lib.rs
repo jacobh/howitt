@@ -1,8 +1,8 @@
 use reqwest::{RequestBuilder, Url};
 use thiserror::Error;
 
-pub mod types;
 pub mod credentials;
+pub mod types;
 
 use credentials::Credentials;
 
@@ -13,6 +13,7 @@ pub enum RwgpsError {
     Url(#[from] url::ParseError),
 }
 
+#[derive(Clone)]
 pub struct RwgpsClient {
     client: reqwest::Client,
     base_url: Url,
@@ -48,7 +49,7 @@ impl RwgpsClient {
     pub async fn user_routes(
         &self,
         user_id: usize,
-    ) -> Result<types::ListResponse<types::RouteSummary>, RwgpsError> {
+    ) -> Result<Vec<types::RouteSummary>, RwgpsError> {
         let resp: types::ListResponse<types::RouteSummary> = self
             .get(&format!("/users/{}/routes.json", user_id))?
             .query(&[("limit", "1000")])
@@ -57,7 +58,7 @@ impl RwgpsClient {
             .json()
             .await?;
 
-        Ok(resp)
+        Ok(resp.results)
     }
 
     pub async fn route(&self, route_id: usize) -> Result<types::Route, RwgpsError> {
@@ -71,4 +72,3 @@ impl RwgpsClient {
         Ok(resp.route)
     }
 }
-

@@ -1,4 +1,5 @@
-use clap::{Subcommand, Args};
+use clap::{Args, Subcommand};
+use futures::{prelude::*, StreamExt};
 use rwgps::credentials::{Credentials, PasswordCredentials};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -38,7 +39,7 @@ pub enum Routes {
 
 #[derive(Args)]
 pub struct RouteDetailArgs {
-    route_id: usize
+    route_id: usize,
 }
 
 fn get_user_config() -> Result<UserConfig, anyhow::Error> {
@@ -103,13 +104,13 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             let user_config = get_user_config()?;
             let client = rwgps::RwgpsClient::new(user_config.credentials());
 
-            let resp = client
+            let routes = client
                 .user_routes(user_config.user_info.unwrap().id)
                 .await?;
 
             // println!("{}", serde_json::to_string_pretty(&resp)?);
 
-            dbg!(resp.results.len());
+            dbg!(routes.len());
         }
         Rwgps::Routes(Routes::Detail(args)) => {
             let user_config = get_user_config()?;
@@ -118,7 +119,23 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             let resp = client.route(args.route_id).await?;
             dbg!(resp);
         }
-        Rwgps::Routes(Routes::Sync) => unimplemented!(),
+        Rwgps::Routes(Routes::Sync) => {
+            let user_config = get_user_config()?;
+            let client = rwgps::RwgpsClient::new(user_config.credentials());
+
+            let routes = client
+                .user_routes(user_config.user_info.unwrap().id)
+                .await?;
+
+            let futs = routes
+                .into_iter()
+                .map(|route| (route, client.clone()))
+                .map(async move |(route, client)| client.route(route.id).await);
+
+            let x: Vec<Result<rwgps::types::Route, _>> = futures::stream::iter(futs).buffer_unordered(20).collect::<Vec<_>>().await;
+
+            dbg!(x.len());
+        }
     }
 
     Ok(())
