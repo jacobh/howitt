@@ -114,6 +114,49 @@ pub struct Route {
     pub course_points: Vec<CoursePoint>,
     pub points_of_interest: Vec<Value>,
 }
+impl Route {
+    fn url(&self) -> String {
+        format!("https://ridewithgps.com/routes/{}", self.id)
+    }
+}
+
+impl From<Route> for gpx::Gpx {
+    fn from(value: Route) -> Self {
+        gpx::Gpx {
+            version: gpx::GpxVersion::Gpx11,
+            creator: Some(value.user.name.clone()),
+            metadata: None,
+            waypoints: vec![],
+            tracks: vec![],
+            routes: vec![gpx::Route::from(value)],
+        }
+    }
+}
+
+impl From<Route> for gpx::Route {
+    fn from(value: Route) -> Self {
+        gpx::Route {
+            name: Some(value.name.clone()),
+            comment: None,
+            description: Some(value.description.clone()),
+            source: Some(value.url()),
+            links: vec![gpx::Link { href: value.url(), text: Some(value.name.clone()), _type: None }],
+            number: None,
+            _type: None,
+            points: value
+                .track_points
+                .into_iter()
+                .map(gpx::Waypoint::from)
+                .collect(),
+        }
+    }
+}
+
+impl From<Route> for geo::LineString<f64> {
+    fn from(value: Route) -> Self {
+        geo::LineString::from_iter(value.track_points.into_iter().map(geo::Point::from))
+    }
+}
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Point {
@@ -256,6 +299,18 @@ pub struct TrackPoint {
     pub lat: f64,
     pub color: Option<i64>,
     pub options: Option<i64>,
+}
+
+impl From<TrackPoint> for geo::Point<f64> {
+    fn from(value: TrackPoint) -> Self {
+        geo::Point::new(value.lng, value.lat)
+    }
+}
+
+impl From<TrackPoint> for gpx::Waypoint {
+    fn from(value: TrackPoint) -> Self {
+        gpx::Waypoint::new(geo::Point::from(value))
+    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
