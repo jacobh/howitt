@@ -11,7 +11,10 @@ use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use ::rwgps::types::Route;
-use howitt::{checkpoint::Checkpoint, nearby::nearby_checkpoints, trip::detect_trips, EtrexFile, segment::detect_segments};
+use howitt::{
+    checkpoint::Checkpoint, nearby::nearby_checkpoints, segment::detect_segments,
+    trip::detect_trips, EtrexFile,
+};
 
 use crate::json::prettyprintln;
 
@@ -103,7 +106,7 @@ fn load_stations(ptv_gtfs_dirpath: &Path) -> Result<Vec<Checkpoint>, anyhow::Err
         .sorted_by_key(|stop| stop.stop_id.clone())
         .dedup_by(|stop1, stop2| stop1.stop_id == stop2.stop_id)
         .map(Checkpoint::from);
-    
+
     Ok(checkpoints
         .filter(|checkpoint| checkpoint.name.contains("Railway Station"))
         .collect::<Vec<_>>())
@@ -116,6 +119,10 @@ fn load_huts(filepath: &Path) -> Result<Vec<Checkpoint>, anyhow::Error> {
         .gpx
         .waypoints
         .into_iter()
+        .map(|mut waypoint| {
+            waypoint._type = Some("HUT".to_string());
+            waypoint
+        })
         .map(Checkpoint::try_from)
         .collect::<Result<Vec<_>, _>>()?)
 }
@@ -163,7 +170,11 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Info(args) => {
             let railway_stations = load_stations(CONFIG.ptv_gtfs_dirpath.as_ref())?;
             let huts = load_huts(CONFIG.huts_filepath.as_ref())?;
-            let all_checkpoints = railway_stations.clone().into_iter().chain(huts.clone().into_iter()).collect_vec();
+            let all_checkpoints = railway_stations
+                .clone()
+                .into_iter()
+                .chain(huts.clone().into_iter())
+                .collect_vec();
             let routes: Vec<Route> = load_routes()?;
 
             dbg!(routes.len());
@@ -174,7 +185,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 .into_par_iter()
                 .filter(|route| match args.route_id {
                     Some(route_id) => route.id == route_id,
-                    None => true
+                    None => true,
                 })
                 .map(|route| {
                     let gpx_route = gpx::Route::from(route.clone());

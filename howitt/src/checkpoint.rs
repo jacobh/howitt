@@ -1,12 +1,35 @@
-use serde::{Serialize, Deserialize};
+use std::str::FromStr;
+
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use gtfs::GtfsStop;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub enum CheckpointType {
+    RailwayStation,
+    Hut,
+    Generic,
+}
+
+impl FromStr for CheckpointType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "RAILWAY_STATION" => Ok(CheckpointType::RailwayStation),
+            "HUT" => Ok(CheckpointType::Hut),
+            "GENERIC" => Ok(CheckpointType::Generic),
+            _ => Err(()),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Checkpoint {
     pub name: String,
     pub point: geo::Point<f64>,
+    pub checkpoint_type: CheckpointType,
 }
 
 impl From<GtfsStop> for Checkpoint {
@@ -20,6 +43,7 @@ impl From<GtfsStop> for Checkpoint {
         Checkpoint {
             name: stop_name,
             point: geo::Point::new(stop_lon, stop_lat),
+            checkpoint_type: CheckpointType::RailwayStation,
         }
     }
 }
@@ -37,6 +61,11 @@ impl TryFrom<gpx::Waypoint> for Checkpoint {
             Some(name) => Ok(Checkpoint {
                 name,
                 point: value.point(),
+                checkpoint_type: value
+                    ._type
+                    .unwrap_or("".to_string())
+                    .parse()
+                    .unwrap_or(CheckpointType::Generic),
             }),
             None => Err(CheckpointError::MissingName),
         }

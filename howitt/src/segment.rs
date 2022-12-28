@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{checkpoint::Checkpoint, nearby::nearby_checkpoints};
 
