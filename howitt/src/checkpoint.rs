@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use gtfs::GtfsStop;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Checkpoint {
     pub name: String,
     pub point: geo::Point<f64>,
@@ -18,7 +18,7 @@ impl From<GtfsStop> for Checkpoint {
         } = value;
         Checkpoint {
             name: stop_name,
-            point: geo::Point::new(stop_lat, stop_lon),
+            point: geo::Point::new(stop_lon, stop_lat),
         }
     }
 }
