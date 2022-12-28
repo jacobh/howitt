@@ -4,42 +4,64 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn routes(&self) -> Vec<Route> {
-        vec![]
+    async fn routes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Route>, async_graphql::Error> {
+        let routes: &Vec<rwgps::types::Route> = ctx.data()?;
+        Ok(routes
+            .into_iter()
+            .map(|route| Route(route.clone()))
+            .collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None
     }
-    async fn checkpoints(&self) -> Vec<Checkpoint> {
-        vec![]
+    async fn checkpoints<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Checkpoint>, async_graphql::Error> {
+        let checkpoints: &Vec<howitt::checkpoint::Checkpoint> = ctx.data()?;
+        Ok(checkpoints
+            .into_iter()
+            .map(|checkpoint| Checkpoint(checkpoint.clone()))
+            .collect())
     }
     async fn checkpoint(&self, _ctx: &Context<'_>, _id: usize) -> Option<Checkpoint> {
         None
     }
 }
 
-
-pub struct Route;
+pub struct Route(rwgps::types::Route);
 
 #[Object]
 impl Route {
     async fn id(&self) -> usize {
         1
     }
+    async fn name(&self) -> &str {
+        &self.0.name
+    }
     async fn points(&self) -> Vec<Point> {
-        vec![]
+        self.0
+            .track_points
+            .clone()
+            .into_iter()
+            .map(geo::Point::from)
+            .map(Point::from)
+            .collect()
     }
 }
 
-pub struct Checkpoint;
+pub struct Checkpoint(howitt::checkpoint::Checkpoint);
 
 #[Object]
 impl Checkpoint {
     async fn id(&self) -> usize {
         1
     }
+    async fn name(&self) -> &str {
+        &self.0.name
+    }
     async fn point(&self) -> Point {
-        Point {lat: 0.0, lng: 0.0}
+        Point { lat: 0.0, lng: 0.0 }
     }
 }
 
@@ -58,5 +80,14 @@ impl Segment {
 #[derive(SimpleObject)]
 struct Point {
     lat: f64,
-    lng: f64
+    lng: f64,
+}
+
+impl From<geo::Point<f64>> for Point {
+    fn from(value: geo::Point<f64>) -> Self {
+        Point {
+            lat: value.y(),
+            lng: value.x(),
+        }
+    }
 }

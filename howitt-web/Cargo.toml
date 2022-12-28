@@ -11,3 +11,9 @@ warp = "0.3"
 async-graphql = "5"
 async-graphql-warp = "5"
 http = "*"
+howitt = { path = "../howitt" }
+howitt-fs = { path = "../howitt-fs" }
+rwgps = { path = "../rwgps" }
+anyhow = "*"
+gpx = "*"
+geo = "*"

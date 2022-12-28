@@ -2,6 +2,7 @@ use std::convert::Infallible;
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
+use howitt_fs::{load_huts, load_routes, load_stations};
 use http::StatusCode;
 use warp::{http::Response as HttpResponse, Filter, Rejection};
 
@@ -10,8 +11,15 @@ use crate::graphql::Query;
 mod graphql;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), anyhow::Error> {
+    let routes: Vec<rwgps::types::Route> = load_routes()?;
+    let huts = load_huts()?;
+    let stations = load_stations()?;
+    let all_checkpoints: Vec<_> = huts.into_iter().chain(stations).collect();
+
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
+        .data(routes)
+        .data(all_checkpoints)
         .finish();
 
     println!("GraphiQL IDE: http://localhost:8000");
@@ -48,4 +56,6 @@ async fn main() {
         });
 
     warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+
+    Ok(())
 }
