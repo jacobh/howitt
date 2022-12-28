@@ -4,6 +4,9 @@ members = [
     "howitt",
     "howitt-cli",
     "howitt-fs",
+    "howitt-web",
     "rwgps",
     "gtfs"
 ]
+
+default-members = ['howitt-cli']
