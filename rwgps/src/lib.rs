@@ -1,12 +1,17 @@
+#![allow(incomplete_features)]
+#![feature(async_fn_in_trait)]
+
 use std::sync::Arc;
 
 use reqwest::{RequestBuilder, Url};
 use thiserror::Error;
 
 pub mod credentials;
+mod reqwest_ext;
 pub mod types;
 
 use credentials::Credentials;
+use reqwest_ext::{ResponseExt, SerdeDebugError};
 use tokio::sync::Semaphore;
 
 #[derive(Error, Debug)]
@@ -14,6 +19,7 @@ use tokio::sync::Semaphore;
 pub enum RwgpsError {
     Reqwest(#[from] reqwest::Error),
     Url(#[from] url::ParseError),
+    SerdeDebug(#[from] SerdeDebugError),
 }
 
 #[derive(Clone)]
@@ -47,7 +53,7 @@ impl RwgpsClient {
             .get("/users/current.json")?
             .send()
             .await?
-            .json()
+            .json_debug()
             .await?;
 
         Ok(resp)
@@ -64,7 +70,7 @@ impl RwgpsClient {
             .query(&[("limit", "1000")])
             .send()
             .await?
-            .json()
+            .json_debug()
             .await?;
 
         Ok(resp.results)
@@ -77,7 +83,7 @@ impl RwgpsClient {
             .get(&format!("/routes/{}.json", route_id))?
             .send()
             .await?
-            .json()
+            .json_debug()
             .await?;
 
         Ok(resp.route)

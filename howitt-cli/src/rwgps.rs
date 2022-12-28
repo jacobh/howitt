@@ -73,6 +73,14 @@ fn persist_user_config(config: &UserConfig) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+fn persist_routes(routes: &Vec<rwgps::types::Route>) -> Result<(), anyhow::Error> {
+    let routes_filepath = CONFIG_DIRPATH.join("rwgps_routes.json");
+
+    std::fs::write(routes_filepath, serde_json::to_vec(routes)?)?;
+
+    Ok(())
+}
+
 pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
     match command {
         Rwgps::Info => {
@@ -135,6 +143,9 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .collect()
                 .await;
 
+            let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
+
+            persist_routes(&routes)?;
             dbg!(routes.len());
         }
     }

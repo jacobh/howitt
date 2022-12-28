@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_aux::prelude::deserialize_default_from_empty_object;
 use serde_json::Value;
 
 #[derive(Deserialize, Debug)]
@@ -74,7 +75,7 @@ pub struct Route {
     pub id: usize,
     pub highlighted_photo_id: usize,
     pub highlighted_photo_checksum: Value,
-    pub distance: f64,
+    pub distance: Option<f64>,
     pub elevation_gain: f64,
     pub elevation_loss: f64,
     pub track_id: String,
@@ -86,14 +87,14 @@ pub struct Route {
     pub created_at: String,
     pub updated_at: String,
     pub name: String,
-    pub description: String,
+    pub description: Option<String>,
     pub first_lng: f64,
     pub first_lat: f64,
     pub last_lat: f64,
     pub last_lng: f64,
     pub bounding_box: Vec<Point>,
     pub locality: String,
-    pub postal_code: String,
+    pub postal_code: Option<String>,
     pub administrative_area: String,
     pub country_code: String,
     pub privacy_code: Value,
@@ -107,9 +108,10 @@ pub struct Route {
     pub surface: String,
     pub nav_enabled: bool,
     pub rememberable: bool,
-    pub metrics: Metrics,
+    #[serde(deserialize_with = "deserialize_default_from_empty_object")]
+    pub metrics: Option<Metrics>,
     pub photos: Vec<Value>,
-    pub segment_matches: Vec<SegmentMatch>,
+    pub segment_matches: Option<Vec<SegmentMatch>>,
     pub track_points: Vec<TrackPoint>,
     pub course_points: Vec<CoursePoint>,
     pub points_of_interest: Vec<Value>,
@@ -138,9 +140,13 @@ impl From<Route> for gpx::Route {
         gpx::Route {
             name: Some(value.name.clone()),
             comment: None,
-            description: Some(value.description.clone()),
+            description: value.description.clone(),
             source: Some(value.url()),
-            links: vec![gpx::Link { href: value.url(), text: Some(value.name.clone()), _type: None }],
+            links: vec![gpx::Link {
+                href: value.url(),
+                text: Some(value.name.clone()),
+                _type: None,
+            }],
             number: None,
             _type: None,
             points: value
@@ -188,18 +194,19 @@ pub struct Metrics {
     pub parent_type: String,
     pub created_at: String,
     pub updated_at: String,
-    pub ele: Elevation,
-    pub grade: Grade,
-    pub distance: f64,
+    pub ele: Option<Elevation>,
+    #[serde(deserialize_with = "deserialize_default_from_empty_object")]
+    pub grade: Option<Grade>,
+    pub distance: Option<f64>,
     #[serde(rename = "startElevation")]
-    pub start_elevation: f64,
+    pub start_elevation: Option<f64>,
     #[serde(rename = "endElevation")]
-    pub end_elevation: f64,
+    pub end_elevation: Option<f64>,
     #[serde(rename = "numPoints")]
-    pub num_points: i64,
-    pub ele_gain: f64,
-    pub ele_loss: f64,
-    pub v: i64,
+    pub num_points: Option<i64>,
+    pub ele_gain: Option<f64>,
+    pub ele_loss: Option<f64>,
+    pub v: Option<i64>,
     pub hills: Vec<Hill>,
     pub watts: Option<Value>,
     pub cad: Option<Value>,
@@ -286,13 +293,13 @@ pub struct Segment {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TrackPoint {
     #[serde(rename = "R")]
-    pub r: i64,
+    pub r: Option<i64>,
     #[serde(rename = "S")]
-    pub s: i64,
+    pub s: Option<i64>,
     #[serde(rename = "d")]
-    pub distance: f64,
+    pub distance: Option<f64>,
     #[serde(rename = "e")]
-    pub elevation: f64,
+    pub elevation: Option<f64>,
     #[serde(rename = "x")]
     pub lng: f64,
     #[serde(rename = "y")]
@@ -316,7 +323,7 @@ impl From<TrackPoint> for gpx::Waypoint {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CoursePoint {
     #[serde(rename = "d")]
-    pub distance: f64,
+    pub distance: Option<f64>,
     pub i: i64,
     #[serde(rename = "n")]
     pub note: String,
