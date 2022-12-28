@@ -42,7 +42,7 @@ enum Commands {
     Trips(Trips),
     Stations(Stations),
     Huts(Huts),
-    Info,
+    Info(Info),
     #[clap(subcommand)]
     Rwgps(crate::rwgps::Rwgps),
 }
@@ -65,6 +65,11 @@ struct Stations {
 #[derive(Args)]
 struct Huts {
     filepath: PathBuf,
+}
+
+#[derive(Args)]
+struct Info {
+    route_id: Option<usize>,
 }
 
 fn find_file_paths(dirpath: &Path) -> Vec<PathBuf> {
@@ -151,7 +156,7 @@ async fn main() -> Result<(), anyhow::Error> {
             let huts = load_huts(&args.filepath)?;
             dbg!(huts);
         }
-        Commands::Info => {
+        Commands::Info(args) => {
             let railway_stations = load_stations(CONFIG.ptv_gtfs_dirpath.as_ref())?;
             let huts = load_huts(CONFIG.huts_filepath.as_ref())?;
             let routes: Vec<Route> = load_routes()?;
@@ -162,6 +167,10 @@ async fn main() -> Result<(), anyhow::Error> {
 
             let routes: Vec<_> = routes
                 .into_par_iter()
+                .filter(|route| match args.route_id {
+                    Some(route_id) => route.id == route_id,
+                    None => true
+                })
                 .map(|route| {
                     let gpx_route = gpx::Route::from(route.clone());
                     let nearby_huts: Vec<_> = nearby_checkpoints(&gpx_route, &huts)
