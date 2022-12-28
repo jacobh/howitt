@@ -1,8 +1,9 @@
+use serde::{Serialize, Deserialize};
 use thiserror::Error;
 
 use gtfs::GtfsStop;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Checkpoint {
     pub name: String,
     pub point: geo::Point<f64>,

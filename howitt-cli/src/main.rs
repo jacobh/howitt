@@ -7,10 +7,11 @@ use std::{
 
 use clap::{Args, Parser, Subcommand};
 use gtfs::GtfsZip;
+use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use ::rwgps::types::Route;
-use howitt::{checkpoint::Checkpoint, nearby::nearby_checkpoints, trip::detect_trips, EtrexFile};
+use howitt::{checkpoint::Checkpoint, nearby::nearby_checkpoints, trip::detect_trips, EtrexFile, segment::detect_segments};
 
 use crate::json::prettyprintln;
 
@@ -99,7 +100,10 @@ fn load_stations(ptv_gtfs_dirpath: &Path) -> Result<Vec<Checkpoint>, anyhow::Err
     let checkpoints = gtfs_zips
         .into_iter()
         .flat_map(|zip| zip.stops)
+        .sorted_by_key(|stop| stop.stop_id.clone())
+        .dedup_by(|stop1, stop2| stop1.stop_id == stop2.stop_id)
         .map(Checkpoint::from);
+    
     Ok(checkpoints
         .filter(|checkpoint| checkpoint.name.contains("Railway Station"))
         .collect::<Vec<_>>())
@@ -150,7 +154,7 @@ async fn main() -> Result<(), anyhow::Error> {
         }
         Commands::Stations(args) => {
             let railway_stations = load_stations(&args.ptv_gtfs_dirpath)?;
-            dbg!(railway_stations);
+            dbg!(railway_stations.len());
         }
         Commands::Huts(args) => {
             let huts = load_huts(&args.filepath)?;
@@ -159,6 +163,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Info(args) => {
             let railway_stations = load_stations(CONFIG.ptv_gtfs_dirpath.as_ref())?;
             let huts = load_huts(CONFIG.huts_filepath.as_ref())?;
+            let all_checkpoints = railway_stations.clone().into_iter().chain(huts.clone().into_iter()).collect_vec();
             let routes: Vec<Route> = load_routes()?;
 
             dbg!(routes.len());
@@ -183,11 +188,13 @@ async fn main() -> Result<(), anyhow::Error> {
                             .filter(|checkpoint| checkpoint.distance < 1000.0)
                             .collect();
 
-                    (route, nearby_huts, nearby_railway_stations)
+                    let segments = detect_segments(&gpx_route, &all_checkpoints);
+
+                    (route, nearby_huts, nearby_railway_stations, segments)
                 })
                 .collect();
 
-            for (route, nearby_huts, nearby_railway_stations) in routes {
+            for (route, nearby_huts, nearby_railway_stations, segments) in routes {
                 if nearby_huts.len() > 0 || nearby_railway_stations.len() > 0 {
                     prettyprintln(serde_json::json!({
                         "route_name": route.name,
@@ -203,6 +210,10 @@ async fn main() -> Result<(), anyhow::Error> {
                                 serde_json::json!({"railway_station_name": railway_station.checkpoint.name, "distance": railway_station.distance})
                             })
                             .collect::<Vec<_>>(),
+                        "segments": segments.iter().map(|segment| serde_json::json!({
+                            "start": segment.start,
+                            "end": segment.end,
+                        })).collect_vec(),
                     }))
                 }
             }

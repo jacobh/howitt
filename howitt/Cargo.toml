@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 thiserror = "*"
-gpx = "*"
-geo = "*"
+gpx = { version = "*", features = ["use-serde"] }
+geo = { version = "*", features = ["serde"] }
 derive_more = "*"
 chrono = "*"
 kamadak-exif = "0.5.5"
