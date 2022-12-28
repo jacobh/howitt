@@ -3,6 +3,7 @@
 members = [
     "howitt",
     "howitt-cli",
+    "howitt-fs",
     "rwgps",
     "gtfs"
 ]

@@ -6,6 +6,7 @@ use std::sync::Arc;
 use reqwest::{RequestBuilder, Url};
 use thiserror::Error;
 
+pub mod config;
 pub mod credentials;
 mod reqwest_ext;
 pub mod types;

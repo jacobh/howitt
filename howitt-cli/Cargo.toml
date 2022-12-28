@@ -6,12 +6,10 @@ edition = "2021"
 [dependencies]
 clap = { version = "3.1.6", features = ["derive"] }
 howitt = { path = "../howitt" }
+howitt-fs = { path = "../howitt-fs" }
 anyhow = "*"
-walkdir = "2"
 rayon = "*"
-gtfs = { path = "../gtfs" }
 rwgps = { path = "../rwgps" }
-dirs = "*"
 serde = { version = "1", features = ["derive"] }
 toml = "*"
 serde_json = "*"

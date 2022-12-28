@@ -1,26 +1,10 @@
 use clap::{Args, Subcommand};
 use futures::{prelude::*, stream::FuturesUnordered};
-use rwgps::credentials::{Credentials, PasswordCredentials};
-use serde::{Deserialize, Serialize};
+use howitt_fs::{load_user_config, persist_routes, persist_user_config};
+use rwgps::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
-use crate::{dirs::CONFIG_DIRPATH, json::prettyprintln};
-
-const CONFIG_FILENAME: &'static str = "rwgps_auth.toml";
-
-#[derive(Debug, Serialize, Deserialize)]
-struct UserConfig {
-    password_info: PasswordCredentials,
-    user_info: Option<rwgps::types::UserInfo>,
-}
-impl UserConfig {
-    fn credentials(&self) -> Credentials {
-        match &self.user_info {
-            Some(user_info) => Credentials::from_token(user_info.auth_token.clone()),
-            None => Credentials::Password(self.password_info.clone()),
-        }
-    }
-}
+use crate::json::prettyprintln;
 
 #[derive(Subcommand)]
 pub enum Rwgps {
@@ -43,11 +27,11 @@ pub struct RouteDetailArgs {
 }
 
 fn get_user_config() -> Result<UserConfig, anyhow::Error> {
-    let config_filepath = CONFIG_DIRPATH.join(CONFIG_FILENAME);
+    let config = load_user_config()?;
 
-    match config_filepath.exists() {
-        true => Ok(toml::from_slice(&std::fs::read(&config_filepath)?)?),
-        false => {
+    match config {
+        Some(config) => Ok(config),
+        None => {
             println!("Initial user setup");
             let email = inquire::Text::new("Email").prompt();
             let password = inquire::Password::new("Password")
@@ -63,22 +47,6 @@ fn get_user_config() -> Result<UserConfig, anyhow::Error> {
             }
         }
     }
-}
-
-fn persist_user_config(config: &UserConfig) -> Result<(), anyhow::Error> {
-    let config_filepath = CONFIG_DIRPATH.join(CONFIG_FILENAME);
-
-    std::fs::write(config_filepath, toml::to_vec(config)?)?;
-
-    Ok(())
-}
-
-fn persist_routes(routes: &Vec<rwgps::types::Route>) -> Result<(), anyhow::Error> {
-    let routes_filepath = CONFIG_DIRPATH.join("rwgps_routes.json");
-
-    std::fs::write(routes_filepath, serde_json::to_vec(routes)?)?;
-
-    Ok(())
 }
 
 pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {

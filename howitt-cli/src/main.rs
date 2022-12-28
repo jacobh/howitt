@@ -1,36 +1,19 @@
 #![feature(async_closure)]
 
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand};
-use gtfs::GtfsZip;
+use howitt_fs::{find_file_paths, load_huts, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use ::rwgps::types::Route;
-use howitt::{
-    checkpoint::Checkpoint, nearby::nearby_checkpoints, segment::detect_segments,
-    trip::detect_trips, EtrexFile,
-};
+use howitt::{nearby::nearby_checkpoints, segment::detect_segments, trip::detect_trips, EtrexFile};
 
 use crate::json::prettyprintln;
 
-mod dirs;
 mod json;
 mod rwgps;
-
-struct Config {
-    ptv_gtfs_dirpath: &'static str,
-    huts_filepath: &'static str,
-}
-
-const CONFIG: Config = Config {
-    ptv_gtfs_dirpath: "../data/ptv_gtfs",
-    huts_filepath: "../data/HUTS.gpx",
-};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -76,62 +59,6 @@ struct Info {
     route_id: Option<usize>,
 }
 
-fn find_file_paths(dirpath: &Path) -> Vec<PathBuf> {
-    walkdir::WalkDir::new(dirpath)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|entry| entry.file_type().is_file())
-        .map(|entry| entry.path().to_owned())
-        .collect()
-}
-
-fn load_stations(ptv_gtfs_dirpath: &Path) -> Result<Vec<Checkpoint>, anyhow::Error> {
-    let file_paths: Vec<PathBuf> = find_file_paths(ptv_gtfs_dirpath)
-        .into_iter()
-        .filter(|path| path.extension() == Some("zip".as_ref()))
-        .collect();
-
-    let gtfs_zips: Vec<GtfsZip> = file_paths
-        .into_iter()
-        .map(|path| -> Result<_, anyhow::Error> {
-            let data = fs::read(path)?;
-            let cursor = io::Cursor::new(data);
-            Ok(GtfsZip::parse(cursor)?)
-        })
-        .collect::<Result<_, _>>()?;
-
-    let checkpoints = gtfs_zips
-        .into_iter()
-        .flat_map(|zip| zip.stops)
-        .sorted_by_key(|stop| stop.stop_id.clone())
-        .dedup_by(|stop1, stop2| stop1.stop_id == stop2.stop_id)
-        .map(Checkpoint::from);
-
-    Ok(checkpoints
-        .filter(|checkpoint| checkpoint.name.contains("Railway Station"))
-        .collect::<Vec<_>>())
-}
-
-fn load_huts(filepath: &Path) -> Result<Vec<Checkpoint>, anyhow::Error> {
-    let data = fs::read(filepath)?;
-    let file = EtrexFile::parse(&data)?;
-    Ok(file
-        .gpx
-        .waypoints
-        .into_iter()
-        .map(|mut waypoint| {
-            waypoint._type = Some("HUT".to_string());
-            waypoint
-        })
-        .map(Checkpoint::try_from)
-        .collect::<Result<Vec<_>, _>>()?)
-}
-
-fn load_routes() -> Result<Vec<Route>, anyhow::Error> {
-    let data = fs::read(dirs::CONFIG_DIRPATH.join("rwgps_routes.json"))?;
-    Ok(serde_json::from_slice(&data)?)
-}
-
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
@@ -159,17 +86,17 @@ async fn main() -> Result<(), anyhow::Error> {
                 dbg!(trip);
             }
         }
-        Commands::Stations(args) => {
-            let railway_stations = load_stations(&args.ptv_gtfs_dirpath)?;
+        Commands::Stations(_args) => {
+            let railway_stations = load_stations()?;
             dbg!(railway_stations.len());
         }
-        Commands::Huts(args) => {
-            let huts = load_huts(&args.filepath)?;
+        Commands::Huts(_args) => {
+            let huts = load_huts()?;
             dbg!(huts);
         }
         Commands::Info(args) => {
-            let railway_stations = load_stations(CONFIG.ptv_gtfs_dirpath.as_ref())?;
-            let huts = load_huts(CONFIG.huts_filepath.as_ref())?;
+            let railway_stations = load_stations()?;
+            let huts = load_huts()?;
             let all_checkpoints = railway_stations
                 .clone()
                 .into_iter()
