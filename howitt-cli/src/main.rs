@@ -161,7 +161,7 @@ async fn main() -> Result<(), anyhow::Error> {
             dbg!(huts.len());
 
             let routes: Vec<_> = routes
-                .into_iter()
+                .into_par_iter()
                 .map(|route| {
                     let gpx_route = gpx::Route::from(route.clone());
                     let nearby_huts: Vec<_> = nearby_checkpoints(&gpx_route, &huts)
