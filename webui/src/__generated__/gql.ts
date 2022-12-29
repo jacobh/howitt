@@ -1,6 +1,6 @@
 /* eslint-disable */
-import * as types from './graphql';
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import * as types from "./graphql";
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 
 /**
  * Map of all GraphQL operations in the project.
@@ -13,13 +13,16 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel-plugin for production.
  */
 const documents = {
-    "\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n  }\n": types.StarredRoutesDocument,
+  "\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n  }\n":
+    types.StarredRoutesDocument,
 };
 
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n  }\n"): (typeof documents)["\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n  }\n"];
+export function gql(
+  source: "\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n  }\n"
+): typeof documents["\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n  }\n"];
 
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -32,11 +35,12 @@ export function gql(source: "\n  query starredRoutes {\n    starredRoutes {\n   
  *
  * The query argument is unknown!
  * Please regenerate the types.
-**/
+ **/
 export function gql(source: string): unknown;
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};
 }
 
-export type DocumentType<TDocumentNode extends DocumentNode<any, any>> = TDocumentNode extends DocumentNode<  infer TType,  any>  ? TType  : never;
+export type DocumentType<TDocumentNode extends DocumentNode<any, any>> =
+  TDocumentNode extends DocumentNode<infer TType, any> ? TType : never;

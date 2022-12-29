@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "gql-codegen": "graphql-codegen",
-    "gql-watch": "graphql-codegen -w"
+    "gql-watch": "graphql-codegen -w",
+    "format": "prettier --write src"
   },
   "dependencies": {
     "@apollo/client": "^3.7.3",
