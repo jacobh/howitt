@@ -42,7 +42,11 @@ export function Map({ routes }: MapProps) {
       layers: [
         new TileLayer({
           source: new XYZ({
-            url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            urls: [
+              "https://a.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
+              "https://b.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
+              "https://c.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
+            ],
           }),
         }),
       ],
