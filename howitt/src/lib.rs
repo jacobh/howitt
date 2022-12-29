@@ -6,6 +6,7 @@ use std::fmt;
 use thiserror::Error;
 
 pub mod checkpoint;
+pub mod config;
 pub mod nearby;
 pub mod segment;
 pub mod trip;

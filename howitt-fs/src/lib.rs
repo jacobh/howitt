@@ -7,7 +7,7 @@ use gtfs::GtfsZip;
 use itertools::Itertools;
 // use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use howitt::{checkpoint::Checkpoint, EtrexFile};
+use howitt::{checkpoint::Checkpoint, config::Config, EtrexFile};
 use project_root::get_project_root;
 
 mod dirs;
@@ -22,6 +22,11 @@ pub fn find_file_paths(dirpath: &Path) -> Vec<PathBuf> {
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| entry.path().to_owned())
         .collect()
+}
+
+pub fn load_config() -> Result<Config, anyhow::Error> {
+    let data = fs::read(&get_project_root()?.join("data/config.toml"))?;
+    Ok(toml::from_slice(&data)?)
 }
 
 pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {

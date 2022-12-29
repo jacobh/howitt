@@ -1,4 +1,5 @@
 use async_graphql::*;
+use howitt::config::Config;
 
 pub struct Query;
 
@@ -8,6 +9,19 @@ impl Query {
         let routes: &Vec<rwgps::types::Route> = ctx.data()?;
         Ok(routes
             .into_iter()
+            .map(|route| Route(route.clone()))
+            .collect())
+    }
+    async fn starred_routes<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Route>, async_graphql::Error> {
+        let config: &Config = ctx.data()?;
+        let routes: &Vec<rwgps::types::Route> = ctx.data()?;
+
+        Ok(routes
+            .into_iter()
+            .filter(|route| config.starred_route_ids.contains(&route.id))
             .map(|route| Route(route.clone()))
             .collect())
     }
@@ -38,6 +52,9 @@ impl Route {
     }
     async fn name(&self) -> &str {
         &self.0.name
+    }
+    async fn distance(&self) -> f64 {
+        self.0.distance.unwrap_or(0.0)
     }
     async fn points(&self) -> Vec<Point> {
         self.0

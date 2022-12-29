@@ -78,9 +78,17 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             }));
         }
         Rwgps::Routes(Routes::List) => {
-            let routes: Vec<rwgps::types::Route> = load_routes()?.into_iter().sorted_by_key(|route| route.id).collect_vec();
+            let routes: Vec<rwgps::types::Route> = load_routes()?
+                .into_iter()
+                .sorted_by_key(|route| route.id)
+                .collect_vec();
 
-            let rows = vec![prettytable::row!["id", "name", "distance (km)", "last modified"]]
+            let rows = vec![prettytable::row![
+                "id",
+                "name",
+                "distance (km)",
+                "last modified"
+            ]]
             .into_iter()
             .chain(routes.into_iter().map(|route| {
                 prettytable::row![
@@ -93,7 +101,6 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             .collect_vec();
 
             prettytable::Table::init(rows).printstd()
-
         }
         Rwgps::Routes(Routes::Detail(args)) => {
             let user_config = get_user_config()?;
