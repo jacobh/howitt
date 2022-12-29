@@ -48,7 +48,7 @@ pub struct Route(rwgps::types::Route);
 #[Object]
 impl Route {
     async fn id(&self) -> usize {
-        1
+        self.0.id
     }
     async fn name(&self) -> &str {
         &self.0.name
@@ -56,13 +56,17 @@ impl Route {
     async fn distance(&self) -> f64 {
         self.0.distance.unwrap_or(0.0)
     }
-    async fn points(&self) -> Vec<Point> {
+    async fn geojson(&self) -> String {
+        let linestring = geo::LineString::from(self.0.clone());
+        geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
+    }
+    async fn points(&self) -> Vec<Vec<f64>> {
         self.0
             .track_points
             .clone()
             .into_iter()
             .map(geo::Point::from)
-            .map(Point::from)
+            .map(|point| vec![point.x(), point.y()])
             .collect()
     }
 }

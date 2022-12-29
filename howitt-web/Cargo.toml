@@ -17,3 +17,4 @@ rwgps = { path = "../rwgps" }
 anyhow = "*"
 gpx = "*"
 geo = "*"
+geojson = "*"
