@@ -27,6 +27,11 @@ async fn main() -> Result<(), anyhow::Error> {
 
     println!("GraphiQL IDE: http://localhost:8000");
 
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_methods(vec!["GET", "POST"])
+        .allow_headers(vec!["content-type"]);
+
     let graphql_post = async_graphql_warp::graphql(schema).and_then(
         |(schema, request): (
             Schema<Query, EmptyMutation, EmptySubscription>,
@@ -44,6 +49,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let routes = graphiql
         .or(graphql_post)
+        .with(cors)
         .recover(|err: Rejection| async move {
             if let Some(GraphQLBadRequest(err)) = err.find() {
                 return Ok::<_, Infallible>(warp::reply::with_status(
