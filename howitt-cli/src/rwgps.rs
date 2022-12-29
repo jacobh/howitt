@@ -1,6 +1,7 @@
 use clap::{Args, Subcommand};
 use futures::{prelude::*, stream::FuturesUnordered};
-use howitt_fs::{load_user_config, persist_routes, persist_user_config};
+use howitt_fs::{load_routes, load_user_config, persist_routes, persist_user_config};
+use itertools::Itertools;
 use rwgps::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
@@ -77,16 +78,22 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             }));
         }
         Rwgps::Routes(Routes::List) => {
-            let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.credentials());
+            let routes: Vec<rwgps::types::Route> = load_routes()?.into_iter().sorted_by_key(|route| route.id).collect_vec();
 
-            let routes = client
-                .user_routes(user_config.user_info.unwrap().id)
-                .await?;
+            let rows = vec![prettytable::row!["id", "name", "distance (km)", "last modified"]]
+            .into_iter()
+            .chain(routes.into_iter().map(|route| {
+                prettytable::row![
+                    route.id,
+                    route.name,
+                    route.distance.unwrap_or(0.0) / 1000.0,
+                    route.updated_at,
+                ]
+            }))
+            .collect_vec();
 
-            // println!("{}", serde_json::to_string_pretty(&resp)?);
+            prettytable::Table::init(rows).printstd()
 
-            dbg!(routes.len());
         }
         Rwgps::Routes(Routes::Detail(args)) => {
             let user_config = get_user_config()?;
