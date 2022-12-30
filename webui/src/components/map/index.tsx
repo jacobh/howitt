@@ -6,7 +6,7 @@ import XYZ from "ol/source/XYZ";
 import styled from "styled-components";
 import { useGeographic } from "ol/proj";
 import { Route } from "../../__generated__/graphql";
-import { Collection, Feature, Overlay } from "ol";
+import { Collection, Feature, MapBrowserEvent, MapEvent, Overlay } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
@@ -55,9 +55,12 @@ export function Map({ routes }: MapProps) {
 
     setMap(map);
 
-    map.addEventListener("click", (evt) =>
-      console.log(view.getCenter(), view.getZoom())
-    );
+    map.addEventListener("click", (baseEvt) => {
+      const evt = baseEvt as MapBrowserEvent<any>
+      console.log(evt.coordinate);
+      console.log(map.getFeaturesAtPixel(evt.pixel, { hitTolerance: 5.0 }));
+      // console.log(view.getCenter(), view.getZoom());
+    });
 
     return () => map.setTarget(undefined);
   }, []);
