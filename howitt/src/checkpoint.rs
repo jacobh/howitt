@@ -9,6 +9,7 @@ use gtfs::GtfsStop;
 pub enum CheckpointType {
     RailwayStation,
     Hut,
+    Locality,
     Generic,
 }
 
@@ -19,6 +20,7 @@ impl FromStr for CheckpointType {
         match s {
             "RAILWAY_STATION" => Ok(CheckpointType::RailwayStation),
             "HUT" => Ok(CheckpointType::Hut),
+            "LOCALITY" => Ok(CheckpointType::Locality),
             "GENERIC" => Ok(CheckpointType::Generic),
             _ => Err(()),
         }

@@ -3,7 +3,7 @@
 use std::{fs, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand};
-use howitt_fs::{find_file_paths, load_huts, load_routes, load_stations};
+use howitt_fs::{find_file_paths, load_huts, load_localities, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -29,6 +29,7 @@ enum Commands {
     Trips(Trips),
     Stations(Stations),
     Huts(Huts),
+    Localities,
     Info(Info),
     #[clap(subcommand)]
     Rwgps(crate::rwgps::Rwgps),
@@ -93,6 +94,9 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Huts(_args) => {
             let huts = load_huts()?;
             dbg!(huts);
+        }
+        Commands::Localities => {
+            load_localities()?;
         }
         Commands::Info(args) => {
             let railway_stations = load_stations()?;

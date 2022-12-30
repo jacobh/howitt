@@ -9,6 +9,9 @@ use itertools::Itertools;
 
 use howitt::{checkpoint::Checkpoint, config::Config, EtrexFile};
 use project_root::get_project_root;
+use shapefile::{dbase::FieldValue, record::polygon::GenericPolygon, Point, PolygonRing};
+
+use geo::{centroid::Centroid, LineString, Polygon};
 
 mod dirs;
 mod rwgps;
@@ -69,4 +72,62 @@ pub fn load_huts() -> Result<Vec<Checkpoint>, anyhow::Error> {
         })
         .map(Checkpoint::try_from)
         .collect::<Result<Vec<_>, _>>()?)
+}
+
+pub fn load_localities() -> Result<Vec<Checkpoint>, anyhow::Error> {
+    let mut reader = shapefile::Reader::from_path(
+        &get_project_root()?.join("data/vic_localities/vic_localities.shp"),
+    )?;
+
+    let checkpoints = reader
+        .iter_shapes_and_records()
+        .map(|shape_record| -> Result<Checkpoint, anyhow::Error> {
+            let (shape, record) = shape_record?;
+
+            let name = record
+                .get("LOC_NAME")
+                .map(|x| match x {
+                    FieldValue::Character(x) => x.as_ref(),
+                    _ => None,
+                })
+                .unwrap_or_default()
+                .unwrap()
+                .clone();
+
+            let polygon = convert_polygon(shapefile::Polygon::try_from(shape)?);
+
+            Ok(Checkpoint {
+                id: uuid::Uuid::new_v4(),
+                name,
+                point: polygon.centroid().unwrap(),
+                checkpoint_type: howitt::checkpoint::CheckpointType::Locality,
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(checkpoints)
+}
+
+fn ring_to_linestring(ring: &PolygonRing<Point>) -> LineString<f64> {
+    geo::LineString::from_iter(ring.points().into_iter().map(|point| (point.x, point.y)))
+}
+
+fn convert_polygon(polygon: GenericPolygon<Point>) -> Polygon<f64> {
+    let exterior = polygon
+        .rings()
+        .iter()
+        .find(|ring| match ring {
+            PolygonRing::Outer(_) => true,
+            _ => false,
+        })
+        .unwrap();
+    let interiors = polygon.rings().iter().filter(|ring| match ring {
+        PolygonRing::Inner(_) => true,
+        _ => false,
+    });
+
+    Polygon::new(
+        ring_to_linestring(exterior),
+        interiors.map(ring_to_linestring).collect(),
+    )
 }

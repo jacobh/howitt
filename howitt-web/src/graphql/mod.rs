@@ -76,6 +76,7 @@ impl Route {
 pub enum CheckpointType {
     RailwayStation,
     Hut,
+    Locality,
     Generic,
 }
 

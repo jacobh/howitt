@@ -42,6 +42,7 @@ export type Checkpoint = {
 export enum CheckpointType {
   Generic = "GENERIC",
   Hut = "HUT",
+  Locality = "LOCALITY",
   RailwayStation = "RAILWAY_STATION",
 }
 
