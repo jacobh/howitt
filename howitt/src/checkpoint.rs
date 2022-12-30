@@ -27,6 +27,7 @@ impl FromStr for CheckpointType {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Checkpoint {
+    pub id: uuid::Uuid,
     pub name: String,
     pub point: geo::Point<f64>,
     pub checkpoint_type: CheckpointType,
@@ -41,6 +42,7 @@ impl From<GtfsStop> for Checkpoint {
             ..
         } = value;
         Checkpoint {
+            id: uuid::Uuid::new_v4(),
             name: stop_name,
             point: geo::Point::new(stop_lon, stop_lat),
             checkpoint_type: CheckpointType::RailwayStation,
@@ -59,6 +61,7 @@ impl TryFrom<gpx::Waypoint> for Checkpoint {
     fn try_from(value: gpx::Waypoint) -> Result<Self, Self::Error> {
         match value.name.clone() {
             Some(name) => Ok(Checkpoint {
+                id: uuid::Uuid::new_v4(),
                 name,
                 point: value.point(),
                 checkpoint_type: value

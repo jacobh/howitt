@@ -1,18 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import OlMap from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
 import styled from "styled-components";
 import { useGeographic } from "ol/proj";
-import { Route } from "../../__generated__/graphql";
-import { Collection, Feature, MapBrowserEvent, MapEvent, Overlay } from "ol";
+import { Checkpoint, CheckpointType, Route } from "../../__generated__/graphql";
+import { Feature, MapBrowserEvent } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import GeoJSON from "ol/format/GeoJSON";
-import Style from "ol/style/Style";
-import Stroke from "ol/style/Stroke";
-import { Geometry, LineString, Point } from "ol/geom";
+import { Style, Stroke, Circle } from "ol/style";
+import { LineString, Point } from "ol/geom";
+import Fill from "ol/style/Fill";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -22,10 +21,44 @@ const MapContainer = styled.div`
 
 interface MapProps {
   routes?: Pick<Route, "id" | "points">[];
+  checkpoints?: Pick<Checkpoint, "name" | "point" | "checkpointType">[];
 }
 
-export function Map({ routes }: MapProps) {
+export function Map({ routes, checkpoints }: MapProps) {
   const [map, setMap] = useState<OlMap>();
+  const hutStyle = useMemo<Style>(
+    () =>
+      new Style({
+        image: new Circle({
+          fill: new Fill({
+            color: "rgba(255,255,255,0.4)",
+          }),
+          stroke: new Stroke({
+            color: "#5e8019",
+            width: 1.25,
+          }),
+          radius: 5,
+        }),
+      }),
+    []
+  );
+
+  const stationStyle = useMemo<Style>(
+    () =>
+      new Style({
+        image: new Circle({
+          fill: new Fill({
+            color: "rgba(255,255,255,0.4)",
+          }),
+          stroke: new Stroke({
+            color: "#4b6eaf",
+            width: 1.25,
+          }),
+          radius: 5,
+        }),
+      }),
+    []
+  );
 
   useEffect(() => {
     console.log("initial map render");
@@ -56,7 +89,7 @@ export function Map({ routes }: MapProps) {
     setMap(map);
 
     map.addEventListener("click", (baseEvt) => {
-      const evt = baseEvt as MapBrowserEvent<any>
+      const evt = baseEvt as MapBrowserEvent<any>;
       console.log(evt.coordinate);
       console.log(map.getFeaturesAtPixel(evt.pixel, { hitTolerance: 5.0 }));
       // console.log(view.getCenter(), view.getZoom());
@@ -82,19 +115,40 @@ export function Map({ routes }: MapProps) {
       if (existingLayer === undefined) {
         map.addLayer(
           new VectorLayer({
-            zIndex: 100,
             source: new VectorSource({
               features: [new Feature(new LineString(route.points))],
             }),
             properties: { routeId: route.id },
             style: new Style({
-              stroke: new Stroke({ color: "#FF0000", width: 2 }),
+              stroke: new Stroke({ color: "#a54331", width: 2 }),
             }),
           })
         );
       }
     }
-  }, [routes, map]);
+
+    for (const checkpoint of checkpoints ?? []) {
+      console.log(checkpoint.name);
+      const existingLayer = layers.find(
+        (layer) => layer.getProperties().checkpointName === checkpoint.name
+      );
+
+      if (existingLayer === undefined) {
+        map.addLayer(
+          new VectorLayer({
+            source: new VectorSource({
+              features: [new Feature(new Point(checkpoint.point))],
+            }),
+            properties: { checkpointName: checkpoint.name },
+            style:
+              checkpoint.checkpointType === CheckpointType.Hut
+                ? hutStyle
+                : stationStyle,
+          })
+        );
+      }
+    }
+  }, [routes, checkpoints, map]);
 
   return <MapContainer id="map" />;
 }

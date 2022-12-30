@@ -21,6 +21,12 @@ const STARRED_ROUTES_QUERY = gql(`
       distance
       points
     }
+    checkpoints {
+      id
+      name
+      point
+      checkpointType
+    }
   }
 `);
 
@@ -35,7 +41,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <StyledMain>
-        <Map routes={data?.starredRoutes} />
+        <Map routes={data?.starredRoutes} checkpoints={data?.checkpoints} />
       </StyledMain>
     </>
   );

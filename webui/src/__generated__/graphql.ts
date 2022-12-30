@@ -18,20 +18,32 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  /**
+   * A UUID is a unique 128-bit number, stored as 16 octets. UUIDs are parsed as
+   * Strings within GraphQL. UUIDs are used to assign unique identifiers to
+   * entities without requiring a central allocating authority.
+   *
+   * # References
+   *
+   * * [Wikipedia: Universally Unique Identifier](http://en.wikipedia.org/wiki/Universally_unique_identifier)
+   * * [RFC4122: A Universally Unique IDentifier (UUID) URN Namespace](http://tools.ietf.org/html/rfc4122)
+   */
+  UUID: any;
 };
 
 export type Checkpoint = {
   __typename?: "Checkpoint";
-  id: Scalars["Int"];
+  checkpointType: CheckpointType;
+  id: Scalars["UUID"];
   name: Scalars["String"];
-  point: Point;
+  point: Array<Scalars["Float"]>;
 };
 
-export type Point = {
-  __typename?: "Point";
-  lat: Scalars["Float"];
-  lng: Scalars["Float"];
-};
+export enum CheckpointType {
+  Generic = "GENERIC",
+  Hut = "HUT",
+  RailwayStation = "RAILWAY_STATION",
+}
 
 export type Query = {
   __typename?: "Query";
@@ -70,6 +82,13 @@ export type StarredRoutesQuery = {
     distance: number;
     points: Array<Array<number>>;
   }>;
+  checkpoints: Array<{
+    __typename?: "Checkpoint";
+    id: any;
+    name: string;
+    point: Array<number>;
+    checkpointType: CheckpointType;
+  }>;
 };
 
 export const StarredRoutesDocument = {
@@ -92,6 +111,22 @@ export const StarredRoutesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "checkpoints" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "point" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "checkpointType" },
+                },
               ],
             },
           },

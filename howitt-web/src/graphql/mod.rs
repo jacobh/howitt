@@ -71,18 +71,29 @@ impl Route {
     }
 }
 
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::checkpoint::CheckpointType")]
+pub enum CheckpointType {
+    RailwayStation,
+    Hut,
+    Generic,
+}
+
 pub struct Checkpoint(howitt::checkpoint::Checkpoint);
 
 #[Object]
 impl Checkpoint {
-    async fn id(&self) -> usize {
-        1
+    async fn id(&self) -> &uuid::Uuid {
+        &self.0.id
     }
     async fn name(&self) -> &str {
         &self.0.name
     }
-    async fn point(&self) -> Point {
-        Point { lat: 0.0, lng: 0.0 }
+    async fn point(&self) -> Vec<f64> {
+        vec![self.0.point.x(), self.0.point.y()]
+    }
+    async fn checkpoint_type(&self) -> CheckpointType {
+        CheckpointType::from(self.0.checkpoint_type.clone())
     }
 }
 
