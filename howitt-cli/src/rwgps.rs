@@ -1,6 +1,8 @@
 use clap::{Args, Subcommand};
 use futures::{prelude::*, stream::FuturesUnordered};
-use howitt_fs::{load_routes, load_user_config, persist_routes, persist_user_config};
+use howitt_fs::{
+    load_routes, load_user_config, persist_routes, persist_trips, persist_user_config,
+};
 use itertools::Itertools;
 use rwgps::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
@@ -11,14 +13,15 @@ use crate::json::prettyprintln;
 pub enum Rwgps {
     Info,
     Auth,
+    Sync,
     #[clap(subcommand)]
     Routes(Routes),
+    Trips,
 }
 
 #[derive(Subcommand)]
 pub enum Routes {
     List,
-    Sync,
     Detail(RouteDetailArgs),
 }
 
@@ -77,6 +80,45 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 "user_info": updated_user_config.user_info,
             }));
         }
+        Rwgps::Sync => {
+            let user_config = get_user_config()?;
+            let client = rwgps::RwgpsClient::new(user_config.credentials());
+
+            let route_summaries = client
+                .user_routes(user_config.user_info.as_ref().unwrap().id)
+                .await?;
+
+            let routes: Vec<Result<rwgps::types::Route, _>> = route_summaries
+                .into_iter()
+                .map(|route| (route, client.clone()))
+                .map(async move |(route, client)| client.route(route.id).await)
+                .collect::<FuturesUnordered<_>>()
+                .collect()
+                .await;
+
+            let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
+
+            persist_routes(&routes)?;
+            dbg!(routes.len());
+
+            let trip_summaries = client
+                .user_trips(user_config.user_info.as_ref().unwrap().id)
+                .await?;
+
+            let trips: Vec<Result<rwgps::types::Trip, _>> = trip_summaries
+                .into_iter()
+                .map(|trip| (trip, client.clone()))
+                .map(async move |(trip, client)| client.trip(trip.id).await)
+                .collect::<FuturesUnordered<_>>()
+                .collect()
+                .await;
+
+            let trips: Vec<rwgps::types::Trip> =
+                trips.into_iter().collect::<Result<Vec<_>, _>>()?;
+
+            persist_trips(&trips)?;
+            dbg!(trips.len());
+        }
         Rwgps::Routes(Routes::List) => {
             let routes: Vec<rwgps::types::Route> = load_routes()?
                 .into_iter()
@@ -109,26 +151,8 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             let resp = client.route(args.route_id).await?;
             dbg!(resp);
         }
-        Rwgps::Routes(Routes::Sync) => {
-            let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.credentials());
-
-            let route_summaries = client
-                .user_routes(user_config.user_info.unwrap().id)
-                .await?;
-
-            let routes: Vec<Result<rwgps::types::Route, _>> = route_summaries
-                .into_iter()
-                .map(|route| (route, client.clone()))
-                .map(async move |(route, client)| client.route(route.id).await)
-                .collect::<FuturesUnordered<_>>()
-                .collect()
-                .await;
-
-            let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
-
-            persist_routes(&routes)?;
-            dbg!(routes.len());
+        Rwgps::Trips => {
+            unimplemented!()
         }
     }
 

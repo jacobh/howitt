@@ -65,7 +65,8 @@ impl Route {
             .track_points
             .clone()
             .into_iter()
-            .map(geo::Point::from)
+            .map(geo::Point::try_from)
+            .filter_map(Result::ok)
             .map(|point| vec![point.x(), point.y()])
             .collect()
     }

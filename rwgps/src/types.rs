@@ -16,14 +16,74 @@ pub struct UserInfo {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ListResponse<T> {
     pub results: Vec<T>,
-    pub results_count: i64,
+    pub results_count: usize,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TripSummary {
+    pub id: usize,
+    pub group_membership_id: usize,
+    pub route_id: Value,
+    pub created_at: String,
+    pub gear_id: Option<usize>,
+    pub departed_at: String,
+    pub duration: i64,
+    pub distance: f64,
+    pub elevation_gain: f64,
+    pub elevation_loss: f64,
+    pub visibility: i64,
+    pub description: Option<String>,
+    pub is_gps: bool,
+    pub name: String,
+    pub max_hr: Option<i64>,
+    pub min_hr: Option<i64>,
+    pub avg_hr: Option<i64>,
+    pub max_cad: Value,
+    pub min_cad: Value,
+    pub avg_cad: Value,
+    pub avg_speed: f64,
+    pub max_speed: f64,
+    pub moving_time: i64,
+    pub processed: bool,
+    pub avg_watts: Option<f64>,
+    pub max_watts: Value,
+    pub min_watts: Value,
+    pub is_stationary: bool,
+    pub calories: Option<i64>,
+    pub updated_at: String,
+    pub time_zone: String,
+    pub first_lng: f64,
+    pub first_lat: f64,
+    pub last_lng: f64,
+    pub last_lat: f64,
+    pub user_id: usize,
+    pub deleted_at: Value,
+    pub sw_lng: f64,
+    pub sw_lat: f64,
+    pub ne_lng: f64,
+    pub ne_lat: f64,
+    pub track_id: String,
+    pub postal_code: Option<String>,
+    pub locality: String,
+    pub administrative_area: String,
+    pub country_code: String,
+    pub source_type: Option<String>,
+    pub likes_count: usize,
+    pub track_type: String,
+    pub terrain: String,
+    pub difficulty: String,
+    pub activity_type_id: usize,
+    pub activity_category_id: usize,
+    pub highlighted_photo_id: usize,
+    pub highlighted_photo_checksum: Option<String>,
+    pub utc_offset: i64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RouteSummary {
     pub administrative_area: String,
     pub archived_at: Value,
-    pub best_for_id: Option<i64>,
+    pub best_for_id: Option<usize>,
     pub country_code: String,
     pub created_at: String,
     pub deleted_at: Value,
@@ -42,12 +102,12 @@ pub struct RouteSummary {
     pub is_trip: bool,
     pub last_lat: f64,
     pub last_lng: f64,
-    pub likes_count: i64,
+    pub likes_count: usize,
     pub locality: String,
     pub name: String,
     pub ne_lat: f64,
     pub ne_lng: f64,
-    pub pavement_type_id: Option<i64>,
+    pub pavement_type_id: Option<usize>,
     pub planner_options: Option<i64>,
     pub postal_code: Option<String>,
     pub sw_lat: f64,
@@ -152,7 +212,8 @@ impl From<Route> for gpx::Route {
             points: value
                 .track_points
                 .into_iter()
-                .map(gpx::Waypoint::from)
+                .map(gpx::Waypoint::try_from)
+                .filter_map(Result::ok)
                 .collect(),
         }
     }
@@ -160,8 +221,64 @@ impl From<Route> for gpx::Route {
 
 impl From<Route> for geo::LineString<f64> {
     fn from(value: Route) -> Self {
-        geo::LineString::from_iter(value.track_points.into_iter().map(geo::Point::from))
+        geo::LineString::from_iter(
+            value
+                .track_points
+                .into_iter()
+                .map(geo::Point::try_from)
+                .filter_map(Result::ok),
+        )
     }
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TripResponse {
+    #[serde(rename = "type")]
+    pub type_field: String,
+    pub trip: Trip,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Trip {
+    pub id: usize,
+    pub highlighted_photo_id: usize,
+    pub highlighted_photo_checksum: Value,
+    pub distance: f64,
+    pub elevation_gain: f64,
+    pub elevation_loss: f64,
+    pub track_id: String,
+    pub user_id: usize,
+    pub visibility: i64,
+    pub created_at: String,
+    pub updated_at: String,
+    pub departed_at: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub first_lng: f64,
+    pub first_lat: f64,
+    pub last_lat: f64,
+    pub last_lng: f64,
+    pub bounding_box: Vec<Point>,
+    pub locality: Value,
+    pub postal_code: Value,
+    pub administrative_area: Value,
+    pub country_code: Value,
+    pub is_stationary: bool,
+    pub privacy_code: Value,
+    pub user: User,
+    pub gear: Option<Gear>,
+    pub tag_names: Vec<Value>,
+    pub track_type: String,
+    pub terrain: String,
+    pub difficulty: String,
+    pub metrics: Metrics,
+    pub live_logging: bool,
+    pub live_log: Value,
+    pub rememberable: bool,
+    pub photos: Vec<Value>,
+    pub track_points: Vec<TrackPoint>,
+    pub course_points: Vec<Value>,
+    pub points_of_interest: Vec<Value>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -189,11 +306,11 @@ pub struct User {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Metrics {
-    pub id: usize,
+    pub id: Option<usize>,
     pub parent_id: usize,
     pub parent_type: String,
-    pub created_at: String,
-    pub updated_at: String,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
     pub ele: Option<Elevation>,
     #[serde(deserialize_with = "deserialize_default_from_empty_object")]
     pub grade: Option<Grade>,
@@ -291,6 +408,7 @@ pub struct Segment {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+// #[serde(deny_unknown_fields)]
 pub struct TrackPoint {
     #[serde(rename = "R")]
     pub r: Option<i64>,
@@ -301,22 +419,29 @@ pub struct TrackPoint {
     #[serde(rename = "e")]
     pub elevation: Option<f64>,
     #[serde(rename = "x")]
-    pub lng: f64,
+    pub lng: Option<f64>,
     #[serde(rename = "y")]
-    pub lat: f64,
+    pub lat: Option<f64>,
     pub color: Option<i64>,
     pub options: Option<i64>,
 }
 
-impl From<TrackPoint> for geo::Point<f64> {
-    fn from(value: TrackPoint) -> Self {
-        geo::Point::new(value.lng, value.lat)
+impl TryFrom<TrackPoint> for geo::Point<f64> {
+    type Error = ();
+
+    fn try_from(value: TrackPoint) -> Result<Self, Self::Error> {
+        match (value.lng, value.lat) {
+            (Some(lng), Some(lat)) => Ok(geo::Point::new(lng, lat)),
+            _ => Err(()),
+        }
     }
 }
 
-impl From<TrackPoint> for gpx::Waypoint {
-    fn from(value: TrackPoint) -> Self {
-        gpx::Waypoint::new(geo::Point::from(value))
+impl TryFrom<TrackPoint> for gpx::Waypoint {
+    type Error = ();
+
+    fn try_from(value: TrackPoint) -> Result<Self, Self::Error> {
+        geo::Point::try_from(value).map(gpx::Waypoint::new)
     }
 }
 
@@ -333,4 +458,10 @@ pub struct CoursePoint {
     pub lng: f64,
     #[serde(rename = "y")]
     pub lat: f64,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Gear {
+    pub id: usize,
+    pub name: String,
 }

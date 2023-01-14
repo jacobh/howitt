@@ -35,3 +35,18 @@ pub fn persist_routes(routes: &Vec<rwgps::types::Route>) -> Result<(), anyhow::E
 
     Ok(())
 }
+
+pub fn load_trips() -> Result<Vec<rwgps::types::Trip>, anyhow::Error> {
+    let trips_filepath = CONFIG_DIRPATH.join("rwgps_trips.json");
+
+    let data = std::fs::read(trips_filepath)?;
+    Ok(serde_json::from_slice(&data)?)
+}
+
+pub fn persist_trips(trips: &Vec<rwgps::types::Trip>) -> Result<(), anyhow::Error> {
+    let trips_filepath = CONFIG_DIRPATH.join("rwgps_trips.json");
+
+    std::fs::write(trips_filepath, serde_json::to_vec(trips)?)?;
+
+    Ok(())
+}
