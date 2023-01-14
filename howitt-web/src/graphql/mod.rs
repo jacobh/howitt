@@ -9,7 +9,8 @@ impl Query {
         let routes: &Vec<rwgps::types::Route> = ctx.data()?;
         Ok(routes
             .into_iter()
-            .map(|route| Route(route.clone()))
+            .cloned()
+            .map(|route| Route(route))
             .collect())
     }
     async fn starred_routes<'ctx>(
@@ -22,11 +23,21 @@ impl Query {
         Ok(routes
             .into_iter()
             .filter(|route| config.starred_route_ids.contains(&route.id))
-            .map(|route| Route(route.clone()))
+            .cloned()
+            .map(|route| Route(route))
             .collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None
+    }
+    async fn rides(&self, ctx: &Context<'_>) -> Result<Vec<Ride>, async_graphql::Error> {
+        let trips: &Vec<rwgps::types::Trip> = ctx.data()?;
+
+        Ok(trips
+            .into_iter()
+            .cloned()
+            .map(|trip| Ride(trip))
+            .collect())
     }
     async fn checkpoints<'ctx>(
         &self,
@@ -35,7 +46,8 @@ impl Query {
         let checkpoints: &Vec<howitt::checkpoint::Checkpoint> = ctx.data()?;
         Ok(checkpoints
             .into_iter()
-            .map(|checkpoint| Checkpoint(checkpoint.clone()))
+            .cloned()
+            .map(|checkpoint| Checkpoint(checkpoint))
             .collect())
     }
     async fn checkpoint(&self, _ctx: &Context<'_>, _id: usize) -> Option<Checkpoint> {
@@ -69,6 +81,15 @@ impl Route {
             .filter_map(Result::ok)
             .map(|point| vec![point.x(), point.y()])
             .collect()
+    }
+}
+
+pub struct Ride(rwgps::types::Trip);
+
+#[Object]
+impl Ride {
+    async fn id(&self) -> usize {
+        self.0.id
     }
 }
 

@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use howitt::config::Config;
-use howitt_fs::{load_config, load_huts, load_routes, load_stations};
+use howitt_fs::{load_config, load_huts, load_routes, load_stations, load_trips};
 use http::StatusCode;
 use warp::{http::Response as HttpResponse, Filter, Rejection};
 
@@ -14,6 +14,7 @@ mod graphql;
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let routes: Vec<rwgps::types::Route> = load_routes()?;
+    let trips = load_trips()?;
     let config: Config = load_config()?;
     let huts = load_huts()?;
     let stations = load_stations()?;
@@ -23,6 +24,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .data(config)
         .data(routes)
         .data(all_checkpoints)
+        .data(trips)
         .finish();
 
     println!("GraphiQL IDE: http://localhost:8000");

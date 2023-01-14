@@ -281,6 +281,18 @@ pub struct Trip {
     pub points_of_interest: Vec<Value>,
 }
 
+impl From<Trip> for geo::LineString<f64> {
+    fn from(value: Trip) -> Self {
+        geo::LineString::from_iter(
+            value
+                .track_points
+                .into_iter()
+                .map(geo::Point::try_from)
+                .filter_map(Result::ok),
+        )
+    }
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Point {
     pub lat: f64,
