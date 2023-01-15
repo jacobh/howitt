@@ -13,7 +13,7 @@ pub mod types;
 
 use credentials::Credentials;
 use reqwest_ext::{ResponseExt, SerdeDebugError};
-use tokio::sync::Semaphore;
+use tokio::sync::{Semaphore, SemaphorePermit};
 
 #[derive(Error, Debug)]
 #[error("RWGPS API Error")]
@@ -47,8 +47,12 @@ impl RwgpsClient {
             .query(&self.credentials.to_query()))
     }
 
+    async fn acquire_semaphore_permit(&self) -> SemaphorePermit {
+        self.semaphore.acquire().await.unwrap()
+    }
+
     pub async fn user_info(&self) -> Result<types::AuthenticatedUserDetailResponse, RwgpsError> {
-        let _permit = self.semaphore.acquire().await.unwrap();
+        let _permit = self.acquire_semaphore_permit().await;
 
         let resp: types::AuthenticatedUserDetailResponse = self
             .get("/users/current.json")?
@@ -64,7 +68,7 @@ impl RwgpsClient {
         &self,
         user_id: usize,
     ) -> Result<Vec<types::RouteSummary>, RwgpsError> {
-        let _permit = self.semaphore.acquire().await.unwrap();
+        let _permit = self.acquire_semaphore_permit().await;
 
         let resp: types::ListResponse<types::RouteSummary> = self
             .get(&format!("/users/{}/routes.json", user_id))?
@@ -78,7 +82,7 @@ impl RwgpsClient {
     }
 
     pub async fn user_trips(&self, user_id: usize) -> Result<Vec<types::TripSummary>, RwgpsError> {
-        let _permit = self.semaphore.acquire().await.unwrap();
+        let _permit = self.acquire_semaphore_permit().await;
 
         let resp: types::ListResponse<types::TripSummary> = self
             .get(&format!("/users/{}/trips.json", user_id))?
@@ -92,7 +96,7 @@ impl RwgpsClient {
     }
 
     pub async fn route(&self, route_id: usize) -> Result<types::Route, RwgpsError> {
-        let _permit = self.semaphore.acquire().await.unwrap();
+        let _permit = self.acquire_semaphore_permit().await;
 
         let resp: types::RouteResponse = self
             .get(&format!("/routes/{}.json", route_id))?
@@ -105,7 +109,7 @@ impl RwgpsClient {
     }
 
     pub async fn trip(&self, trip_id: usize) -> Result<types::Trip, RwgpsError> {
-        let _permit = self.semaphore.acquire().await.unwrap();
+        let _permit = self.acquire_semaphore_permit().await;
 
         let resp: types::TripResponse = self
             .get(&format!("/trips/{}.json", trip_id))?

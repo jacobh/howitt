@@ -19,3 +19,4 @@ gpx = "*"
 geo = "*"
 geojson = "*"
 uuid = { version = "1", features = ["v4", "serde"] }
+chrono = "*"

@@ -17,3 +17,4 @@ serde-aux = "*"
 thiserror = "*"
 tokio = { version = "1", features = ["full"] }
 url = "*"
+chrono = { version = "*", features = ["serde"] }

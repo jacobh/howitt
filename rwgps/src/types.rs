@@ -19,14 +19,14 @@ pub struct ListResponse<T> {
     pub results_count: usize,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TripSummary {
     pub id: usize,
     pub group_membership_id: usize,
     pub route_id: Value,
-    pub created_at: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
     pub gear_id: Option<usize>,
-    pub departed_at: String,
+    pub departed_at: chrono::DateTime<chrono::Utc>,
     pub duration: i64,
     pub distance: f64,
     pub elevation_gain: f64,
@@ -50,7 +50,7 @@ pub struct TripSummary {
     pub min_watts: Value,
     pub is_stationary: bool,
     pub calories: Option<i64>,
-    pub updated_at: String,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
     pub time_zone: String,
     pub first_lng: f64,
     pub first_lat: f64,
@@ -79,13 +79,13 @@ pub struct TripSummary {
     pub utc_offset: i64,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RouteSummary {
     pub administrative_area: String,
     pub archived_at: Value,
     pub best_for_id: Option<usize>,
     pub country_code: String,
-    pub created_at: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
     pub deleted_at: Value,
     pub description: Option<String>,
     pub difficulty: String,
@@ -116,21 +116,21 @@ pub struct RouteSummary {
     pub track_id: String,
     pub track_type: String,
     pub unpaved_pct: i64,
-    pub updated_at: String,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
     pub user_id: usize,
     pub visibility: i64,
 }
 
 // route detail
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RouteResponse {
     #[serde(rename = "type")]
     pub type_field: String,
     pub route: Route,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Route {
     pub id: usize,
     pub highlighted_photo_id: usize,
@@ -144,8 +144,8 @@ pub struct Route {
     pub pavement_type_id: Value,
     pub recreation_type_ids: Vec<Value>,
     pub visibility: i64,
-    pub created_at: String,
-    pub updated_at: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
     pub name: String,
     pub description: Option<String>,
     pub first_lng: f64,
@@ -231,14 +231,14 @@ impl From<Route> for geo::LineString<f64> {
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TripResponse {
     #[serde(rename = "type")]
     pub type_field: String,
     pub trip: Trip,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Trip {
     pub id: usize,
     pub highlighted_photo_id: usize,
@@ -249,9 +249,9 @@ pub struct Trip {
     pub track_id: String,
     pub user_id: usize,
     pub visibility: i64,
-    pub created_at: String,
-    pub updated_at: String,
-    pub departed_at: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub departed_at: chrono::DateTime<chrono::Utc>,
     pub name: String,
     pub description: Option<String>,
     pub first_lng: f64,
@@ -299,10 +299,10 @@ pub struct Point {
     pub lng: f64,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct User {
     pub id: usize,
-    pub created_at: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
     pub description: Value,
     pub interests: Value,
     pub locality: String,
@@ -321,8 +321,8 @@ pub struct Metrics {
     pub id: Option<usize>,
     pub parent_id: usize,
     pub parent_type: String,
-    pub created_at: Option<String>,
-    pub updated_at: Option<String>,
+    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
     pub ele: Option<Elevation>,
     #[serde(deserialize_with = "deserialize_default_from_empty_object")]
     pub grade: Option<Grade>,
@@ -385,11 +385,11 @@ pub struct Hill {
     pub is_climb: bool,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SegmentMatch {
     pub id: usize,
-    pub created_at: String,
-    pub updated_at: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
     pub mongo_id: String,
     pub user_id: usize,
     pub segment_id: usize,

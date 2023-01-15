@@ -30,11 +30,14 @@ impl Query {
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None
     }
-    async fn rides(&self, ctx: &Context<'_>) -> Result<Vec<Ride>, async_graphql::Error> {
+    async fn latest_rides(&self, ctx: &Context<'_>) -> Result<Vec<Ride>, async_graphql::Error> {
+        let now = chrono::Utc::now();
+        let thirty_days_ago = now - chrono::Duration::days(30);
         let trips: &Vec<rwgps::types::Trip> = ctx.data()?;
 
         Ok(trips
             .into_iter()
+            .filter(|trip| trip.departed_at > thirty_days_ago)
             .cloned()
             .map(|trip| Ride(trip))
             .collect())
@@ -73,12 +76,8 @@ impl Route {
         geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
     }
     async fn points(&self) -> Vec<Vec<f64>> {
-        self.0
-            .track_points
-            .clone()
+        geo::LineString::from(self.0.clone()).into_points()
             .into_iter()
-            .map(geo::Point::try_from)
-            .filter_map(Result::ok)
             .map(|point| vec![point.x(), point.y()])
             .collect()
     }
@@ -90,6 +89,22 @@ pub struct Ride(rwgps::types::Trip);
 impl Ride {
     async fn id(&self) -> usize {
         self.0.id
+    }
+    async fn name(&self) -> &str {
+        &self.0.name
+    }
+    async fn distance(&self) -> f64 {
+        self.0.distance
+    }
+    async fn geojson(&self) -> String {
+        let linestring = geo::LineString::from(self.0.clone());
+        geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
+    }
+    async fn points(&self) -> Vec<Vec<f64>> {
+        geo::LineString::from(self.0.clone()).into_points()
+            .into_iter()
+            .map(|point| vec![point.x(), point.y()])
+            .collect()
     }
 }
 
