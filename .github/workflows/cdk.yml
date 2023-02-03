@@ -1,0 +1,48 @@
+name: CDK Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+        working-directory: cdk
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        environment: Production
+        steps:
+            - name: Install Rust toolchain
+              uses: dtolnay/rust-toolchain@stable
+            - name: Install Zig toolchain
+              uses: korandoru/setup-zig@v1
+              with:
+                zig-version: 0.10.0
+            - name: Install Cargo Lambda
+              uses: jaxxstorm/action-install-gh-release@v1.9.0
+              with:
+                repo: cargo-lambda/cargo-lambda
+                platform: linux
+                arch: x86_64 # Other valid options for linux: 'aarch64'
+
+            
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - name: CDK Synth
+              uses: scottbrenner/aws-cdk-action@master
+              with:
+                args: synth
+              env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+            - name: CDK Deploy
+              uses: scottbrenner/aws-cdk-action@master
+              with:
+                args: deploy
+              env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
