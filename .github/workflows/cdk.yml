@@ -21,8 +21,10 @@ jobs:
                   target/
                 key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-            - name: Install Ubuntu deps
-              run: apt-get update && apt-get install zstd libzstd-dev
+            - uses: awalsh128/cache-apt-pkgs-action@latest
+              with:
+                packages: zstd libzstd-dev
+                version: 1.0
 
             - name: Install Rust toolchain
               uses: dtolnay/rust-toolchain@nightly
