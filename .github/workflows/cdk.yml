@@ -28,20 +28,20 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
 
-            - name: CDK Synth
-              uses: scottbrenner/aws-cdk-action@master
+            - name: cdk synth
+              uses: youyo/aws-cdk-github-actions@v2
               with:
-                working-directory: cdk
-                args: synth
+                cdk_subcommand: 'synth'
+                working_dir: 'cdk'
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-            - name: CDK Deploy
-              uses: scottbrenner/aws-cdk-action@master
+            - name: cdk deploy
+              uses: youyo/aws-cdk-github-actions@v2
               with:
-                working-directory: cdk
-                args: deploy
+                cdk_subcommand: 'deploy'
+                working_dir: 'cdk'
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
