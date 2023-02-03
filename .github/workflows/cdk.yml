@@ -5,14 +5,15 @@ on:
     branches:
       - main
 
-defaults:
-  run:
-        working-directory: cdk
-
 jobs:
     build:
         runs-on: ubuntu-latest
         environment: Production
+
+        defaults:
+          run:
+            working-directory: cdk
+
         steps:
             - name: Install Rust toolchain
               uses: dtolnay/rust-toolchain@stable
