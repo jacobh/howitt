@@ -21,6 +21,9 @@ jobs:
                   target/
                 key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+            - name: Install Ubuntu deps
+              run: apt-get update && apt-get install zstd libzstd-dev
+
             - name: Install Rust toolchain
               uses: dtolnay/rust-toolchain@nightly
 
