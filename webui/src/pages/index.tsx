@@ -16,12 +16,16 @@ const StyledMain = styled.main`
   margin: 0;
 `;
 
-const STARRED_ROUTES_QUERY = gql(`
-  query starredRoutes {
+const HOME_QUERY = gql(`
+  query homeQuery {
     starredRoutes {
       id
       name
       distance
+      points
+    }
+    latestRides {
+      id
       points
     }
     checkpoints {
@@ -40,7 +44,9 @@ const OverlayContainer = styled.div`
 `;
 
 export default function Home() {
-  const { loading, data } = useQuery(STARRED_ROUTES_QUERY);
+  const [mode] = useState("mode");
+
+  const { loading, data } = useQuery(HOME_QUERY);
   const [inspectedFeatures, setInspectedFeatures] = useState<any[]>([]);
 
   return (
@@ -63,7 +69,11 @@ export default function Home() {
               </Grid2>
             </Grid2>
           </OverlayContainer>
-          <Map routes={data?.starredRoutes} checkpoints={data?.checkpoints} />
+          <Map
+            routes={mode === "routes" ? data?.starredRoutes : undefined}
+            rides={mode === "rides" ? data?.latestRides : undefined}
+            checkpoints={data?.checkpoints}
+          />
         </StyledMain>
       </div>
     </>

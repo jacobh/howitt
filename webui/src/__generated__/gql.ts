@@ -13,16 +13,16 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel-plugin for production.
  */
 const documents = {
-  "\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n    checkpoints {\n      id\n      name\n      point\n      checkpointType\n    }\n  }\n":
-    types.StarredRoutesDocument,
+  "\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n    latestRides {\n      id\n      points\n    }\n    checkpoints {\n      id\n      name\n      point\n      checkpointType\n    }\n  }\n":
+    types.HomeQueryDocument,
 };
 
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n    checkpoints {\n      id\n      name\n      point\n      checkpointType\n    }\n  }\n"
-): typeof documents["\n  query starredRoutes {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n    checkpoints {\n      id\n      name\n      point\n      checkpointType\n    }\n  }\n"];
+  source: "\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n    latestRides {\n      id\n      points\n    }\n    checkpoints {\n      id\n      name\n      point\n      checkpointType\n    }\n  }\n"
+): typeof documents["\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n    latestRides {\n      id\n      points\n    }\n    checkpoints {\n      id\n      name\n      point\n      checkpointType\n    }\n  }\n"];
 
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.

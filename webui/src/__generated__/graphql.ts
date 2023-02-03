@@ -50,6 +50,7 @@ export type Query = {
   __typename?: "Query";
   checkpoint?: Maybe<Checkpoint>;
   checkpoints: Array<Checkpoint>;
+  latestRides: Array<Ride>;
   route?: Maybe<Route>;
   routes: Array<Route>;
   starredRoutes: Array<Route>;
@@ -63,6 +64,15 @@ export type QueryRouteArgs = {
   id: Scalars["Int"];
 };
 
+export type Ride = {
+  __typename?: "Ride";
+  distance: Scalars["Float"];
+  geojson: Scalars["String"];
+  id: Scalars["Int"];
+  name: Scalars["String"];
+  points: Array<Array<Scalars["Float"]>>;
+};
+
 export type Route = {
   __typename?: "Route";
   distance: Scalars["Float"];
@@ -72,15 +82,20 @@ export type Route = {
   points: Array<Array<Scalars["Float"]>>;
 };
 
-export type StarredRoutesQueryVariables = Exact<{ [key: string]: never }>;
+export type HomeQueryQueryVariables = Exact<{ [key: string]: never }>;
 
-export type StarredRoutesQuery = {
+export type HomeQueryQuery = {
   __typename?: "Query";
   starredRoutes: Array<{
     __typename?: "Route";
     id: number;
     name: string;
     distance: number;
+    points: Array<Array<number>>;
+  }>;
+  latestRides: Array<{
+    __typename?: "Ride";
+    id: number;
     points: Array<Array<number>>;
   }>;
   checkpoints: Array<{
@@ -92,13 +107,13 @@ export type StarredRoutesQuery = {
   }>;
 };
 
-export const StarredRoutesDocument = {
+export const HomeQueryDocument = {
   kind: "Document",
   definitions: [
     {
       kind: "OperationDefinition",
       operation: "query",
-      name: { kind: "Name", value: "starredRoutes" },
+      name: { kind: "Name", value: "homeQuery" },
       selectionSet: {
         kind: "SelectionSet",
         selections: [
@@ -111,6 +126,17 @@ export const StarredRoutesDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
+                { kind: "Field", name: { kind: "Name", value: "points" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "latestRides" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },
               ],
             },
@@ -135,4 +161,4 @@ export const StarredRoutesDocument = {
       },
     },
   ],
-} as unknown as DocumentNode<StarredRoutesQuery, StarredRoutesQueryVariables>;
+} as unknown as DocumentNode<HomeQueryQuery, HomeQueryQueryVariables>;

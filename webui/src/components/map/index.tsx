@@ -5,7 +5,12 @@ import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
 import styled from "styled-components";
 import { useGeographic } from "ol/proj";
-import { Checkpoint, CheckpointType, Route } from "../../__generated__/graphql";
+import {
+  Checkpoint,
+  CheckpointType,
+  Route,
+  Ride,
+} from "../../__generated__/graphql";
 import { Feature, MapBrowserEvent } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
@@ -21,10 +26,11 @@ const MapContainer = styled.div`
 
 interface MapProps {
   routes?: Pick<Route, "id" | "points">[];
+  rides?: Pick<Ride, "id" | "points">[];
   checkpoints?: Pick<Checkpoint, "name" | "point" | "checkpointType">[];
 }
 
-export function Map({ routes, checkpoints }: MapProps) {
+export function Map({ routes, rides, checkpoints }: MapProps) {
   const [map, setMap] = useState<OlMap>();
   const hutStyle = useMemo<Style>(
     () =>
