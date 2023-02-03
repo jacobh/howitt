@@ -29,7 +29,7 @@ pub fn find_file_paths(dirpath: &Path) -> Vec<PathBuf> {
 
 pub fn load_config() -> Result<Config, anyhow::Error> {
     let data = fs::read(&get_project_root()?.join("data/config.toml"))?;
-    Ok(toml::from_slice(&data)?)
+    Ok(toml::from_str(&String::from_utf8(data)?)?)
 }
 
 pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {

@@ -7,9 +7,12 @@ use thiserror::Error;
 
 pub mod checkpoint;
 pub mod config;
+pub mod gpx_ext;
 pub mod nearby;
 pub mod segment;
 pub mod trip;
+
+use gpx_ext::WaypointExt;
 
 #[derive(Error, Debug)]
 #[error("Data parse failed")]
@@ -27,7 +30,7 @@ impl EtrexFile {
     fn start_time(&self) -> Option<DateTime<Utc>> {
         self.waypoints()
             .nth(0)
-            .and_then(|(_, _, waypoint)| waypoint.time)
+            .and_then(|(_, _, waypoint)| waypoint.time())
     }
     fn waypoints<'a>(
         &'a self,

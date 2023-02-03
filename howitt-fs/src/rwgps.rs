@@ -8,7 +8,9 @@ pub fn load_user_config() -> Result<Option<UserConfig>, anyhow::Error> {
     let config_filepath = CONFIG_DIRPATH.join(CONFIG_FILENAME);
 
     match config_filepath.exists() {
-        true => Ok(Some(toml::from_slice(&std::fs::read(&config_filepath)?)?)),
+        true => Ok(Some(toml::from_str(&String::from_utf8(std::fs::read(
+            &config_filepath,
+        )?)?)?)),
         false => Ok(None),
     }
 }
@@ -16,7 +18,7 @@ pub fn load_user_config() -> Result<Option<UserConfig>, anyhow::Error> {
 pub fn persist_user_config(config: &UserConfig) -> Result<(), anyhow::Error> {
     let config_filepath = CONFIG_DIRPATH.join(CONFIG_FILENAME);
 
-    std::fs::write(config_filepath, toml::to_vec(config)?)?;
+    std::fs::write(config_filepath, toml::to_string(config)?)?;
 
     Ok(())
 }

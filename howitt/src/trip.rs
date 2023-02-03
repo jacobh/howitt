@@ -6,6 +6,7 @@ use geo::{geodesic_distance::GeodesicDistance, geodesic_length::GeodesicLength};
 use gpx::TrackSegment;
 
 use crate::EtrexFile;
+use crate::gpx_ext::WaypointExt;
 
 #[derive(Constructor)]
 pub struct EtrexTrip {
@@ -16,7 +17,7 @@ impl EtrexTrip {
         if segment
             .points
             .first()
-            .and_then(|point| point.time)
+            .and_then(|point| point.time())
             .unwrap()
             .signed_duration_since(self.end_time().unwrap())
             < Duration::hours(6)
@@ -42,10 +43,10 @@ impl EtrexTrip {
         self.days.last().and_then(|day| day.end_waypoint())
     }
     fn start_time(&self) -> Option<DateTime<Utc>> {
-        self.start_waypoint().and_then(|waypoint| waypoint.time)
+        self.start_waypoint().and_then(|waypoint| waypoint.time())
     }
     fn end_time(&self) -> Option<DateTime<Utc>> {
-        self.end_waypoint().and_then(|waypoint| waypoint.time)
+        self.end_waypoint().and_then(|waypoint| waypoint.time())
     }
 }
 impl fmt::Debug for EtrexTrip {

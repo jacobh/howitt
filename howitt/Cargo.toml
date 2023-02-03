@@ -11,6 +11,7 @@ gpx = { version = "*", features = ["use-serde"] }
 geo = { version = "*", features = ["serde"] }
 derive_more = "*"
 chrono = "*"
+time = "*"
 kamadak-exif = "0.5.5"
 fitparser = "0.5.1"
 serde = { version = "1", features = ["derive"] }
