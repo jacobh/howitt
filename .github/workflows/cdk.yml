@@ -28,6 +28,9 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
 
+            - name: build
+              run: cargo lambda build
+
             - name: cdk synth
               uses: youyo/aws-cdk-github-actions@v2
               with:
