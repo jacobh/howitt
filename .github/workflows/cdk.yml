@@ -10,10 +10,6 @@ jobs:
         runs-on: ubuntu-latest
         environment: Production
 
-        defaults:
-          run:
-            working-directory: cdk
-
         steps:
             - name: Install Rust toolchain
               uses: dtolnay/rust-toolchain@stable
@@ -35,6 +31,7 @@ jobs:
             - name: CDK Synth
               uses: scottbrenner/aws-cdk-action@master
               with:
+                working-directory: cdk
                 args: synth
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -43,6 +40,7 @@ jobs:
             - name: CDK Deploy
               uses: scottbrenner/aws-cdk-action@master
               with:
+                working-directory: cdk
                 args: deploy
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
