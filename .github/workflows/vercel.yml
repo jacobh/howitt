@@ -13,11 +13,11 @@ jobs:
   Deploy-Production:
     runs-on: ubuntu-latest
     environment: Production
-    
+
     defaults:
       run:
-        working-directory: cdk
-    
+        working-directory: webui
+
     steps:
       - uses: actions/checkout@v3
       - name: Install Vercel CLI
