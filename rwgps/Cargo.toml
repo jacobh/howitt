@@ -9,7 +9,7 @@ edition = "2021"
 derive_more = "*"
 geo = "*"
 gpx = "*"
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "native-tls-vendored"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "*"
 serde_path_to_error = "0.1"

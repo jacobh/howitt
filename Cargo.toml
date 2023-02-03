@@ -5,6 +5,7 @@ members = [
     "howitt-cli",
     "howitt-fs",
     "howitt-web",
+    "howitt-web-lambda",
     "rwgps",
     "gtfs"
 ]
