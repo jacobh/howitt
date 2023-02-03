@@ -12,7 +12,7 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     let resp = Response::builder()
         .status(200)
         .header("content-type", "text/html")
-        .body("Hello AWS Lambda HTTP request".into())
+        .body("Hello from Rust".into())
         .map_err(Box::new)?;
     Ok(resp)
 }
