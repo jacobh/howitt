@@ -24,12 +24,12 @@ export class CdkStack extends cdk.Stack {
       manifestPath: PROJECT_ROOT_DIR,
     });
 
+    const webLambdaIntegration = new LambdaIntegration(webLambda)
+
     const api = new RestApi(this, "howitt-api", {
       restApiName: "Howitt API",
     });
 
-    api.root.addMethod("GET", new LambdaIntegration(webLambda, {
-      requestTemplates: { "application/json": '{ "statusCode": "200" }' }
-    }));
+    api.root.addProxy({ defaultIntegration: webLambdaIntegration })
   }
 }

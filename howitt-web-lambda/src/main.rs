@@ -12,8 +12,9 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     let resp = Response::builder()
         .status(200)
         .header("content-type", "text/html")
-        .body("Hello from Rust".into())
+        .body(format!("Hello from Rust {}", event.uri().path()).into())
         .map_err(Box::new)?;
+
     Ok(resp)
 }
 
