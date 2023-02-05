@@ -1,32 +1,14 @@
-use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
-
-/// This is the main body for the function.
-/// Write your code inside it.
-/// There are some code example in the following URLs:
-/// - https://github.com/awslabs/aws-lambda-rust-runtime/tree/main/examples
-async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
-    // Extract some useful information from the request
-
-    // Return something that implements IntoResponse.
-    // It will be serialized to the right response event automatically by the runtime
-    let resp = Response::builder()
-        .status(200)
-        .header("content-type", "text/html")
-        .body(format!("Hello from Rust {}", event.uri().path()).into())
-        .map_err(Box::new)?;
-
-    Ok(resp)
-}
+use warp::Filter;
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        // disable printing the name of the module in every log line.
-        .with_target(false)
-        // disabling time is handy because CloudWatch will add the ingestion time.
-        .without_time()
-        .init();
-
-    run(service_fn(function_handler)).await
+async fn main() {
+    // Your warp routes (filters)
+    let routes = warp::any().map(|| "Hello, World!");
+    // Convert them to a warp service (a tower service implmentation)
+    // using `warp::service()`
+    let warp_service = warp::service(routes);
+    // The warp_lambda::run() function takes care of invoking the aws lambda runtime for you
+    warp_lambda::run(warp_service)
+        .await
+        .expect("An error occured");
 }
