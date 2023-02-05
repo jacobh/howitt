@@ -8,6 +8,7 @@ import {
 } from "aws-cdk-lib/aws-certificatemanager";
 import { HttpApi, HttpMethod, DomainName } from '@aws-cdk/aws-apigatewayv2-alpha'
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
+import { Architecture } from "aws-cdk-lib/aws-lambda";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -31,6 +32,10 @@ export class CdkStack extends cdk.Stack {
 
     const webLambda = new RustFunction(this, "howitt-web-lambda", {
       manifestPath: PROJECT_ROOT_DIR,
+      architecture: Architecture.ARM_64,
+      bundling: {
+        architecture: Architecture.ARM_64
+      }
     });
 
     const webLambdaIntegration = new HttpLambdaIntegration("howitt-web-lambda-integration", webLambda);
