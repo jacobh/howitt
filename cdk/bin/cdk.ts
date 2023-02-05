@@ -7,7 +7,7 @@ const app = new cdk.App();
 new CdkStack(app, 'HowittAPI', {
   env: {
     account: '176170034926',
-    region: 'ap-southeast-4'
+    region: 'ap-southeast-2'
   }
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
