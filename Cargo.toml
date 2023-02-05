@@ -4,6 +4,7 @@ members = [
     "howitt",
     "howitt-cli",
     "howitt-fs",
+    "howitt-graphql",
     "howitt-web",
     "howitt-web-lambda",
     "rwgps",

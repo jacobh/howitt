@@ -6,10 +6,7 @@ use howitt::config::Config;
 use howitt_fs::{load_config, load_huts, load_routes, load_stations, load_trips};
 use http::StatusCode;
 use warp::{http::Response as HttpResponse, Filter, Rejection};
-
-use crate::graphql::Query;
-
-mod graphql;
+use howitt_graphql::Query;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {

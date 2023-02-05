@@ -1250,6 +1250,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "howitt-graphql"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "chrono",
+ "geo",
+ "geojson",
+ "gpx",
+ "howitt",
+ "rwgps",
+ "uuid",
+]
+
+[[package]]
 name = "howitt-web"
 version = "0.0.0"
 dependencies = [
@@ -1262,6 +1277,7 @@ dependencies = [
  "gpx",
  "howitt",
  "howitt-fs",
+ "howitt-graphql",
  "http",
  "rwgps",
  "tokio",
@@ -1273,7 +1289,19 @@ dependencies = [
 name = "howitt-web-lambda"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-warp",
+ "chrono",
+ "geo",
+ "geojson",
+ "gpx",
+ "howitt",
+ "howitt-graphql",
+ "http",
+ "rwgps",
  "tokio",
+ "uuid",
  "warp",
  "warp_lambda",
 ]
