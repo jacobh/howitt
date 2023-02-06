@@ -1,8 +1,9 @@
-use std::convert::Infallible;
+use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{Schema, EmptyMutation, EmptySubscription, http::GraphiQLSource};
 use async_graphql_warp::{GraphQLResponse, GraphQLBadRequest};
-use howitt::{config::Config, checkpoint::Checkpoint};
+use howitt::{config::Config, checkpoint::Checkpoint, repo::CheckpointRepo};
+use howitt_dynamo::SingleTableClient;
 use howitt_graphql::Query;
 use http::StatusCode;
 use warp::{Filter, http::Response as HttpResponse, Rejection};
@@ -18,11 +19,16 @@ async fn main() {
     let stations: Vec<Checkpoint> = vec![];
     let all_checkpoints: Vec<Checkpoint> = vec![];
 
+    let single_table_client = SingleTableClient::new_from_env().await;
+
+    let checkpoint_repo: CheckpointRepo = Arc::new(howitt_dynamo::CheckpointRepo::new(single_table_client));
+
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(config)
         .data(routes)
         .data(all_checkpoints)
         .data(trips)
+        .data(checkpoint_repo)
         .finish();
 
 

@@ -1542,6 +1542,7 @@ name = "howitt"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "derive_more",
  "fitparser",
@@ -1584,9 +1585,11 @@ name = "howitt-dynamo"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "aws-config",
  "aws-sdk-dynamodb",
  "derive_more",
+ "futures",
  "geo",
  "howitt",
  "maplit",
@@ -1663,6 +1666,7 @@ dependencies = [
  "geojson",
  "gpx",
  "howitt",
+ "howitt-dynamo",
  "howitt-graphql",
  "http",
  "rwgps",

@@ -9,6 +9,7 @@ use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
 use howitt::checkpoint::{Checkpoint, CheckpointType};
+use howitt::repo::Repo;
 
 #[derive(Debug, Constructor)]
 pub struct Keys {
@@ -136,5 +137,12 @@ impl CheckpointRepo {
             .cloned()
             .map(CheckpointRepo::deserialize_item)
             .collect::<Result<_, _>>()?)
+    }
+}
+
+#[async_trait::async_trait]
+impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
+    async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
+        self.all().await
     }
 }

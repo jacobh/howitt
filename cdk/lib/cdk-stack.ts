@@ -13,7 +13,13 @@ import {
 } from "@aws-cdk/aws-apigatewayv2-alpha";
 import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import { Architecture } from "aws-cdk-lib/aws-lambda";
-import { Table, Attribute, AttributeType, BillingMode } from "aws-cdk-lib/aws-dynamodb";
+import {
+  Table,
+  Attribute,
+  AttributeType,
+  BillingMode,
+} from "aws-cdk-lib/aws-dynamodb";
+import { Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -52,9 +58,16 @@ export class CdkStack extends cdk.Stack {
       },
       memorySize: 512,
       environment: {
-        "HOWITT_TABLE_NAME": dynamoTable.tableName,
-      }
+        HOWITT_TABLE_NAME: dynamoTable.tableName,
+      },
     });
+
+    webLambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["dynamodb:*"],
+        resources: [dynamoTable.tableArn],
+      })
+    );
 
     const webLambdaIntegration = new HttpLambdaIntegration(
       "howitt-web-lambda-integration",

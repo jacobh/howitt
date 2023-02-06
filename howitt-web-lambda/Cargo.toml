@@ -13,6 +13,7 @@ geojson = "*"
 gpx = "*"
 howitt = { path = "../howitt" }
 howitt-graphql = { path = "../howitt-graphql" }
+howitt-dynamo = { path = "../howitt-dynamo" }
 http = "*"
 rwgps = { path = "../rwgps" }
 tokio = { version = "1", features = ["full"] }

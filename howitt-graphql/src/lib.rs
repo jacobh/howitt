@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use async_graphql::*;
-use howitt::{config::Config, repo::{CheckpointRepo, Repo}};
+use howitt::{
+    config::Config,
+    repo::{CheckpointRepo, Repo},
+};
 
 pub struct Query;
 
@@ -50,9 +53,10 @@ impl Query {
     ) -> Result<Vec<Checkpoint>, async_graphql::Error> {
         let checkpoint_repo: &CheckpointRepo = ctx.data()?;
 
-        Ok(checkpoint_repo.all().await
+        let x = checkpoint_repo.all().await?;
+
+        Ok(x.clone()
             .into_iter()
-            .cloned()
             .map(|checkpoint| Checkpoint(checkpoint))
             .collect())
     }
@@ -79,7 +83,8 @@ impl Route {
         geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
     }
     async fn points(&self) -> Vec<Vec<f64>> {
-        geo::LineString::from(self.0.clone()).into_points()
+        geo::LineString::from(self.0.clone())
+            .into_points()
             .into_iter()
             .map(|point| vec![point.x(), point.y()])
             .collect()
@@ -104,7 +109,8 @@ impl Ride {
         geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
     }
     async fn points(&self) -> Vec<Vec<f64>> {
-        geo::LineString::from(self.0.clone()).into_points()
+        geo::LineString::from(self.0.clone())
+            .into_points()
             .into_iter()
             .map(|point| vec![point.x(), point.y()])
             .collect()
