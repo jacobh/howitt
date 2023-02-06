@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -24,6 +24,19 @@ impl FromStr for CheckpointType {
             "GENERIC" => Ok(CheckpointType::Generic),
             _ => Err(()),
         }
+    }
+}
+
+impl Display for CheckpointType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            CheckpointType::RailwayStation => "RAILWAY_STATION",
+            CheckpointType::Hut => "HUT",
+            CheckpointType::Locality => "LOCALITY",
+            CheckpointType::Generic => "GENERIC",
+        };
+
+        f.write_str(s)
     }
 }
 
