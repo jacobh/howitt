@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use futures::{prelude::*, stream::FuturesUnordered};
 use howitt_dynamo::{CheckpointRepo, SingleTableClient};
-use howitt_fs::load_stations;
+use howitt_fs::load_huts;
 
 #[derive(Subcommand)]
 pub enum Dynamodb {
@@ -15,9 +15,9 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
     
     match command {
         Dynamodb::Sync => {
-            let stations = load_stations()?;
+            let huts = load_huts()?;
 
-            let x: Vec<Result<_, _>> = stations
+            let x: Vec<Result<_, _>> = huts
                 .into_iter()
                 .map(|checkpoint| (checkpoint, checkpoint_repo.clone()))
                 .map(async move |(checkpoint, checkpoint_repo)| {
