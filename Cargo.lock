@@ -1541,6 +1541,7 @@ dependencies = [
 name = "howitt"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "derive_more",
  "fitparser",

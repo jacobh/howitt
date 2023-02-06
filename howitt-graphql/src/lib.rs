@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use async_graphql::*;
-use howitt::config::Config;
+use howitt::{config::Config, repo::{CheckpointRepo, Repo}};
 
 pub struct Query;
 
@@ -46,8 +48,9 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Checkpoint>, async_graphql::Error> {
-        let checkpoints: &Vec<howitt::checkpoint::Checkpoint> = ctx.data()?;
-        Ok(checkpoints
+        let checkpoint_repo: &CheckpointRepo = ctx.data()?;
+
+        Ok(checkpoint_repo.all().await
             .into_iter()
             .cloned()
             .map(|checkpoint| Checkpoint(checkpoint))
