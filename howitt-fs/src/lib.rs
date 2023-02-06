@@ -3,11 +3,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use gtfs::GtfsZip;
+use gtfs::{GtfsZip, GtfsStop};
 use itertools::Itertools;
 // use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use howitt::{checkpoint::Checkpoint, config::Config, EtrexFile};
+use howitt::{checkpoint::{Checkpoint, CheckpointType}, config::Config, EtrexFile};
 use project_root::get_project_root;
 use shapefile::{dbase::FieldValue, record::polygon::GenericPolygon, Point, PolygonRing};
 
@@ -52,7 +52,20 @@ pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {
         .flat_map(|zip| zip.stops)
         .sorted_by_key(|stop| stop.stop_id.clone())
         .dedup_by(|stop1, stop2| stop1.stop_id == stop2.stop_id)
-        .map(Checkpoint::from);
+        .map(|stop| {
+            let GtfsStop {
+                stop_name,
+                stop_lat,
+                stop_lon,
+                ..
+            } = stop;
+            Checkpoint {
+                id: uuid::Uuid::new_v4(),
+                name: stop_name,
+                point: geo::Point::new(stop_lon, stop_lat),
+                checkpoint_type: CheckpointType::RailwayStation,
+            }
+        });
 
     Ok(checkpoints
         .filter(|checkpoint| checkpoint.name.contains("Railway Station"))

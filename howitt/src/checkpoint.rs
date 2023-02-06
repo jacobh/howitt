@@ -3,8 +3,6 @@ use std::{str::FromStr, fmt::Display};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use gtfs::GtfsStop;
-
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum CheckpointType {
     RailwayStation,
@@ -46,23 +44,6 @@ pub struct Checkpoint {
     pub name: String,
     pub point: geo::Point<f64>,
     pub checkpoint_type: CheckpointType,
-}
-
-impl From<GtfsStop> for Checkpoint {
-    fn from(value: GtfsStop) -> Self {
-        let GtfsStop {
-            stop_name,
-            stop_lat,
-            stop_lon,
-            ..
-        } = value;
-        Checkpoint {
-            id: uuid::Uuid::new_v4(),
-            name: stop_name,
-            point: geo::Point::new(stop_lon, stop_lat),
-            checkpoint_type: CheckpointType::RailwayStation,
-        }
-    }
 }
 
 #[derive(Debug, Error)]
