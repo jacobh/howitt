@@ -14,6 +14,7 @@ use crate::json::prettyprintln;
 
 mod json;
 mod rwgps;
+mod dynamodb;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -33,6 +34,8 @@ enum Commands {
     Info(Info),
     #[clap(subcommand)]
     Rwgps(crate::rwgps::Rwgps),
+    #[clap(subcommand)]
+    Dynamodb(crate::dynamodb::Dynamodb),
 }
 
 #[derive(Args)]
@@ -161,6 +164,7 @@ async fn main() -> Result<(), anyhow::Error> {
             }
         }
         Commands::Rwgps(command) => crate::rwgps::handle(command).await?,
+        Commands::Dynamodb(command) => crate::dynamodb::handle(command).await?,
     }
 
     Ok(())

@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 howitt = { path = "../howitt" }
 aws-sdk-dynamodb = "0.24.0"
+aws-config = "0.54.1"
 derive_more = "*"
 anyhow = "*"
 serde = "1"

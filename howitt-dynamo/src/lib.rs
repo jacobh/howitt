@@ -16,12 +16,20 @@ pub struct Keys {
     sk: String,
 }
 
-#[derive(Debug, Constructor)]
+#[derive(Debug, Constructor, Clone)]
 pub struct SingleTableClient {
     client: dynamodb::Client,
     table_name: String,
 }
 impl SingleTableClient {
+    pub async fn new_from_env() -> SingleTableClient {
+        let config = aws_config::load_from_env().await;
+        SingleTableClient {
+            client: dynamodb::Client::new(&config),
+            table_name: std::env::var("HOWITT_TABLE_NAME").unwrap_or("howitt".to_string()),
+        }
+    }
+
     pub async fn get(&self, keys: Keys) -> Result<GetItemOutput, SdkError<GetItemError>> {
         self.client
             .get_item()
@@ -52,7 +60,7 @@ impl SingleTableClient {
     }
 }
 
-#[derive(Debug, Constructor)]
+#[derive(Debug, Constructor, Clone)]
 pub struct CheckpointRepo {
     client: SingleTableClient,
 }

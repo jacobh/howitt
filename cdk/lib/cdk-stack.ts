@@ -13,6 +13,7 @@ import {
 } from "@aws-cdk/aws-apigatewayv2-alpha";
 import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import { Architecture } from "aws-cdk-lib/aws-lambda";
+import { Table, Attribute, AttributeType, BillingMode } from "aws-cdk-lib/aws-dynamodb";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -24,21 +25,22 @@ export class CdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const certificate = new Certificate(
-      this,
-      "howitt-api.haslehurst.net-cert",
-      {
-        domainName: "howitt-api.haslehurst.net",
-        validation: CertificateValidation.fromDns(),
-      }
-    );
+    const dynamoTable = new Table(this, "howitt-dynamodb", {
+      tableName: "howitt",
+      partitionKey: { name: "pk", type: AttributeType.STRING },
+      sortKey: { name: "sk", type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+    });
 
     const domainName = new DomainName(
       this,
       "howitt-api.haslehurst.net-domain-name",
       {
         domainName: "howitt-api.haslehurst.net",
-        certificate,
+        certificate: new Certificate(this, "howitt-api.haslehurst.net-cert", {
+          domainName: "howitt-api.haslehurst.net",
+          validation: CertificateValidation.fromDns(),
+        }),
       }
     );
 
@@ -49,6 +51,9 @@ export class CdkStack extends cdk.Stack {
         architecture: Architecture.ARM_64,
       },
       memorySize: 512,
+      environment: {
+        "HOWITT_TABLE_NAME": dynamoTable.tableName,
+      }
     });
 
     const webLambdaIntegration = new HttpLambdaIntegration(
