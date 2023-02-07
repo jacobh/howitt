@@ -57,8 +57,8 @@ async fn main() {
     });
 
     let routes = warp::path!("graphiql").and(graphiql)
-        .or(warp::path!("graphql").and(graphql_post));
-        // .with(cors)
+        .or(warp::path!("graphql").and(graphql_post))
+        .with(cors);
         // .recover(|err: Rejection| async move {
         //     if let Some(GraphQLBadRequest(err)) = err.find() {
         //         return Ok::<_, Infallible>(warp::reply::with_status(
