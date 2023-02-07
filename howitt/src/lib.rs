@@ -8,14 +8,15 @@ use thiserror::Error;
 
 pub mod checkpoint;
 pub mod config;
+pub mod external_ref;
 pub mod gpx_ext;
 pub mod nearby;
-pub mod segment;
-pub mod trip;
-pub mod repo;
-pub mod serde_ext;
-pub mod route;
 pub mod point;
+pub mod repo;
+pub mod route;
+pub mod segment;
+pub mod serde_ext;
+pub mod trip;
 
 use gpx_ext::WaypointExt;
 
