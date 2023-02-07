@@ -43,7 +43,7 @@ impl Display for CheckpointType {
 pub struct Checkpoint {
     pub id: uuid::Uuid,
     pub name: String,
-    #[serde(with = "crate::serde_ext::point")]
+    #[serde(with = "crate::serde_ext::point_tuple")]
     pub point: geo::Point<f64>,
     pub checkpoint_type: CheckpointType,
 }

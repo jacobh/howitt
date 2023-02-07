@@ -1,4 +1,4 @@
-pub mod point {
+pub mod point_tuple {
     use serde::{Deserialize, Serialize};
 
     pub fn serialize<S>(point: &geo::Point<f64>, serializer: S) -> Result<S::Ok, S::Error>
