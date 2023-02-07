@@ -17,3 +17,5 @@ itertools = "*"
 uuid = { version = "1", features = ["v4", "serde"] }
 anyhow = "*"
 async-trait = "*"
+bincode = "*"
+snap = "1"
