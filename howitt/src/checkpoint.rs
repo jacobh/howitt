@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum CheckpointType {
     RailwayStation,
     Hut,
@@ -42,6 +43,7 @@ impl Display for CheckpointType {
 pub struct Checkpoint {
     pub id: uuid::Uuid,
     pub name: String,
+    #[serde(with = "crate::serde_ext::point")]
     pub point: geo::Point<f64>,
     pub checkpoint_type: CheckpointType,
 }

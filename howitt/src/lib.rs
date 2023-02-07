@@ -13,6 +13,7 @@ pub mod nearby;
 pub mod segment;
 pub mod trip;
 pub mod repo;
+pub mod serde_ext;
 
 use gpx_ext::WaypointExt;
 
