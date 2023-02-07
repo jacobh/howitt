@@ -19,3 +19,4 @@ anyhow = "*"
 async-trait = "*"
 bincode = "*"
 snap = "1"
+ulid = { version = "1", features = ["serde"] }

@@ -10,6 +10,7 @@ use dynamodb::{
 };
 use howitt::checkpoint::Checkpoint;
 use howitt::repo::Repo;
+use howitt::route::Route;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
@@ -106,7 +107,7 @@ pub trait DynamoRepo<T: Send + Sync + Serialize + DeserializeOwned> {
         Ok(())
     }
 
-    async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
+    async fn all(&self) -> Result<Vec<T>, anyhow::Error> {
         let scan_output = self.client().scan().await?;
         let items = scan_output.items().unwrap_or_default();
 
@@ -146,6 +147,34 @@ impl DynamoRepo<Checkpoint> for CheckpointRepo {
 #[async_trait::async_trait]
 impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
     async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
+        DynamoRepo::all(self).await
+    }
+}
+
+#[derive(Debug, Constructor, Clone)]
+pub struct RouteRepo {
+    client: SingleTableClient,
+}
+impl DynamoRepo<Route> for RouteRepo {
+    fn client(&self) -> &SingleTableClient {
+        &self.client
+    }
+
+    fn is_item(keys: &Keys) -> bool {
+        keys.pk.starts_with("ROUTE#")
+    }
+
+    fn keys(item: &Route) -> Keys {
+        Keys::new(
+            format!("ROUTE#{}", item.id),
+            format!("ROUTE#{}", item.id),
+        )
+    }
+}
+
+#[async_trait::async_trait]
+impl Repo<Route, anyhow::Error> for RouteRepo {
+    async fn all(&self) -> Result<Vec<Route>, anyhow::Error> {
         DynamoRepo::all(self).await
     }
 }

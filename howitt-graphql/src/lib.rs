@@ -1,9 +1,7 @@
-use std::sync::Arc;
-
 use async_graphql::*;
 use howitt::{
     config::Config,
-    repo::{CheckpointRepo, Repo},
+    repo::{CheckpointRepo, RouteRepo},
 };
 
 pub struct Query;
@@ -11,26 +9,18 @@ pub struct Query;
 #[Object]
 impl Query {
     async fn routes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Route>, async_graphql::Error> {
-        let routes: &Vec<rwgps::types::Route> = ctx.data()?;
-        Ok(routes
-            .into_iter()
-            .cloned()
-            .map(|route| Route(route))
-            .collect())
+        let route_repo: &RouteRepo = ctx.data()?;
+        let routes = route_repo.all().await?;
+        Ok(routes.into_iter().map(|route| Route(route)).collect())
     }
     async fn starred_routes<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Route>, async_graphql::Error> {
         let config: &Config = ctx.data()?;
-        let routes: &Vec<rwgps::types::Route> = ctx.data()?;
-
-        Ok(routes
-            .into_iter()
-            .filter(|route| config.starred_route_ids.contains(&route.id))
-            .cloned()
-            .map(|route| Route(route))
-            .collect())
+        let route_repo: &RouteRepo = ctx.data()?;
+        let routes = route_repo.all().await?;
+        Ok(routes.into_iter().filter(|route| config.starred_route_ids.contains(&route.id)).map(|route| Route(route)).collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None
@@ -65,27 +55,26 @@ impl Query {
     }
 }
 
-pub struct Route(rwgps::types::Route);
+pub struct Route(howitt::route::Route);
 
 #[Object]
 impl Route {
-    async fn id(&self) -> usize {
-        self.0.id
+    async fn id(&self) -> String {
+        self.0.id.to_string()
     }
     async fn name(&self) -> &str {
         &self.0.name
     }
     async fn distance(&self) -> f64 {
-        self.0.distance.unwrap_or(0.0)
+        self.0.distance
     }
     async fn geojson(&self) -> String {
-        let linestring = geo::LineString::from(self.0.clone());
+        let linestring = geo::LineString::from(self.0.iter_geo_points().collect::<Vec<_>>());
         geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
     }
     async fn points(&self) -> Vec<Vec<f64>> {
-        geo::LineString::from(self.0.clone())
-            .into_points()
-            .into_iter()
+        self.0
+            .iter_geo_points()
             .map(|point| vec![point.x(), point.y()])
             .collect()
     }
