@@ -1543,6 +1543,7 @@ dependencies = [
  "anyhow",
  "clap",
  "futures",
+ "geo",
  "gpx",
  "howitt",
  "howitt-dynamo",
@@ -1557,6 +1558,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "toml",
+ "ulid",
 ]
 
 [[package]]
@@ -1573,6 +1575,7 @@ dependencies = [
  "howitt",
  "serde",
  "serde_dynamo",
+ "tokio",
  "uuid",
 ]
 

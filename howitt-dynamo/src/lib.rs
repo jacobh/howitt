@@ -1,5 +1,6 @@
 #![feature(async_closure)]
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use anyhow::anyhow;
 use aws_sdk_dynamodb as dynamodb;
@@ -15,6 +16,7 @@ use howitt::repo::Repo;
 use howitt::route::Route;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use tokio::sync::{Semaphore, SemaphorePermit};
 
 #[derive(Debug, Constructor, Serialize, Deserialize)]
 pub struct Keys {
@@ -43,6 +45,7 @@ impl Keys {
 #[derive(Debug, Constructor, Clone)]
 pub struct SingleTableClient {
     client: dynamodb::Client,
+    semaphore: Arc<Semaphore>,
     table_name: String,
 }
 impl SingleTableClient {
@@ -50,11 +53,18 @@ impl SingleTableClient {
         let config = aws_config::load_from_env().await;
         SingleTableClient {
             client: dynamodb::Client::new(&config),
+            semaphore: Arc::new(Semaphore::new(20)),
             table_name: std::env::var("HOWITT_TABLE_NAME").unwrap_or("howitt".to_string()),
         }
     }
 
+    async fn acquire_semaphore_permit(&self) -> SemaphorePermit {
+        self.semaphore.acquire().await.unwrap()
+    }
+
     pub async fn get(&self, keys: Keys) -> Result<GetItemOutput, SdkError<GetItemError>> {
+        let _permit = self.acquire_semaphore_permit().await;
+
         self.client
             .get_item()
             .table_name(&self.table_name)
@@ -69,6 +79,8 @@ impl SingleTableClient {
         keys: Keys,
         item: HashMap<String, AttributeValue>,
     ) -> Result<PutItemOutput, SdkError<PutItemError>> {
+        let _permit = self.acquire_semaphore_permit().await;
+
         self.client
             .put_item()
             .table_name(&self.table_name)
@@ -93,6 +105,8 @@ impl SingleTableClient {
     }
 
     pub async fn scan(&self) -> Result<ScanOutput, SdkError<ScanError>> {
+        let _permit = self.acquire_semaphore_permit().await;
+
         self.client.scan().table_name(&self.table_name).send().await
     }
 }
