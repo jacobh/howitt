@@ -1,6 +1,6 @@
 use clap::Subcommand;
 use futures::{prelude::*, stream::FuturesUnordered};
-use howitt_dynamo::{CheckpointRepo, SingleTableClient};
+use howitt_dynamo::{CheckpointRepo, SingleTableClient, DynamoRepo};
 use howitt_fs::load_huts;
 
 #[derive(Subcommand)]

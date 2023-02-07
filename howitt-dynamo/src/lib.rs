@@ -61,11 +61,58 @@ impl SingleTableClient {
     }
 }
 
+#[async_trait::async_trait]
+pub trait DynamoRepo<T: Send + Sync> {
+    fn client(&self) -> &SingleTableClient;
+
+    fn deserialize_item(
+        item: HashMap<String, AttributeValue>,
+    ) -> Result<T, anyhow::Error>;
+
+    fn serialize_item(item: T) -> HashMap<&'static str, AttributeValue>;
+
+    fn is_item(item: &HashMap<String, AttributeValue>) -> bool;
+
+    fn keys(item: &T) -> Keys;
+
+    async fn get(&self, id: String) -> Result<T, anyhow::Error> {
+        let item = self.client().get(Keys::new(id.clone(), id.clone())).await?;
+        Self::deserialize_item(item.item().unwrap().clone())
+    }
+
+    async fn put(&self, item: T) -> Result<(), anyhow::Error> where T: 'async_trait {
+        self.client()
+            .put(
+                Self::keys(&item),
+                Self::serialize_item(item),
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
+        let scan_output = self.client().scan().await?;
+        let items = scan_output.items().unwrap_or_default();
+
+        Ok(items
+            .into_iter()
+            .filter(|item| Self::is_item(item))
+            .cloned()
+            .map(CheckpointRepo::deserialize_item)
+            .collect::<Result<_, _>>()?)
+    }
+}
+
 #[derive(Debug, Constructor, Clone)]
 pub struct CheckpointRepo {
     client: SingleTableClient,
 }
-impl CheckpointRepo {
+impl DynamoRepo<Checkpoint> for CheckpointRepo {
+    fn client(&self) ->  &SingleTableClient {
+        &self.client
+    }
+
     fn deserialize_item(
         item: HashMap<String, AttributeValue>,
     ) -> Result<Checkpoint, anyhow::Error> {
@@ -99,50 +146,24 @@ impl CheckpointRepo {
         }
     }
 
+    fn is_item(item: &HashMap<String,AttributeValue>) -> bool {
+        item.get("pk")
+                    .and_then(|x| x.as_s().ok())
+                    .map(|pk| pk.starts_with("CHECKPOINT#"))
+                    .unwrap_or(false)
+    }
+
     fn keys(item: &Checkpoint) -> Keys {
         Keys::new(
             format!("CHECKPOINT#{}", item.id.hyphenated()),
             format!("CHECKPOINT#{}", item.id.hyphenated()),
         )
     }
-
-    pub async fn get(&self, id: String) -> Result<Checkpoint, anyhow::Error> {
-        let item = self.client.get(Keys::new(id.clone(), id.clone())).await?;
-        CheckpointRepo::deserialize_item(item.item().unwrap().clone())
-    }
-
-    pub async fn put(&self, item: Checkpoint) -> Result<(), anyhow::Error> {
-        self.client
-            .put(
-                CheckpointRepo::keys(&item),
-                CheckpointRepo::serialize_item(item),
-            )
-            .await?;
-
-        Ok(())
-    }
-
-    pub async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
-        let scan_output = self.client.scan().await?;
-        let items = scan_output.items().unwrap_or_default();
-
-        Ok(items
-            .into_iter()
-            .filter(|item| {
-                item.get("pk")
-                    .and_then(|x| x.as_s().ok())
-                    .map(|pk| pk.starts_with("CHECKPOINT#"))
-                    .unwrap_or(false)
-            })
-            .cloned()
-            .map(CheckpointRepo::deserialize_item)
-            .collect::<Result<_, _>>()?)
-    }
 }
 
 #[async_trait::async_trait]
 impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
     async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
-        self.all().await
+        DynamoRepo::all(self).await
     }
 }
