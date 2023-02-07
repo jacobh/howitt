@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::str::FromStr;
 
+use anyhow::anyhow;
 use aws_sdk_dynamodb as dynamodb;
 use derive_more::Constructor;
 use dynamodb::error::{PutItemError, ScanError};
@@ -8,13 +8,33 @@ use dynamodb::output::{PutItemOutput, ScanOutput};
 use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
-use howitt::checkpoint::{Checkpoint, CheckpointType};
+use howitt::checkpoint::Checkpoint;
 use howitt::repo::Repo;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Constructor)]
+#[derive(Debug, Constructor, Serialize, Deserialize)]
 pub struct Keys {
     pk: String,
     sk: String,
+}
+impl Keys {
+    fn from_item(item: &HashMap<String, AttributeValue>) -> Result<Keys, anyhow::Error> {
+        Ok(Keys {
+            pk: item
+                .get("pk")
+                .ok_or(anyhow!("pk missing"))?
+                .as_s()
+                .map_err(|_| anyhow!("pk not string"))?
+                .to_owned(),
+            sk: item
+                .get("sk")
+                .ok_or(anyhow!("sk missing"))?
+                .as_s()
+                .map_err(|_| anyhow!("sk not string"))?
+                .to_owned(),
+        })
+    }
 }
 
 #[derive(Debug, Constructor, Clone)]
@@ -44,12 +64,12 @@ impl SingleTableClient {
     pub async fn put(
         &self,
         keys: Keys,
-        item: HashMap<impl Into<String>, AttributeValue>,
+        item: HashMap<String, AttributeValue>,
     ) -> Result<PutItemOutput, SdkError<PutItemError>> {
         self.client
             .put_item()
             .table_name(&self.table_name)
-            .set_item(Some(item.into_iter().map(|(k, v)| (k.into(), v)).collect()))
+            .set_item(Some(item))
             .item("pk", AttributeValue::S(keys.pk))
             .item("sk", AttributeValue::S(keys.sk))
             .send()
@@ -62,30 +82,25 @@ impl SingleTableClient {
 }
 
 #[async_trait::async_trait]
-pub trait DynamoRepo<T: Send + Sync> {
+pub trait DynamoRepo<T: Send + Sync + Serialize + DeserializeOwned> {
     fn client(&self) -> &SingleTableClient;
 
-    fn deserialize_item(
-        item: HashMap<String, AttributeValue>,
-    ) -> Result<T, anyhow::Error>;
-
-    fn serialize_item(item: T) -> HashMap<&'static str, AttributeValue>;
-
-    fn is_item(item: &HashMap<String, AttributeValue>) -> bool;
+    fn is_item(keys: &Keys) -> bool;
 
     fn keys(item: &T) -> Keys;
 
     async fn get(&self, id: String) -> Result<T, anyhow::Error> {
         let item = self.client().get(Keys::new(id.clone(), id.clone())).await?;
-        Self::deserialize_item(item.item().unwrap().clone())
+        let item = item.item().unwrap().clone();
+        Ok(serde_dynamo::from_item(item)?)
     }
 
-    async fn put(&self, item: T) -> Result<(), anyhow::Error> where T: 'async_trait {
+    async fn put(&self, item: T) -> Result<(), anyhow::Error>
+    where
+        T: 'async_trait,
+    {
         self.client()
-            .put(
-                Self::keys(&item),
-                Self::serialize_item(item),
-            )
+            .put(Self::keys(&item), serde_dynamo::to_item(item)?)
             .await?;
 
         Ok(())
@@ -97,9 +112,12 @@ pub trait DynamoRepo<T: Send + Sync> {
 
         Ok(items
             .into_iter()
-            .filter(|item| Self::is_item(item))
+            .filter(|item| match Keys::from_item(item) {
+                Ok(keys) => Self::is_item(&keys),
+                Err(_) => false,
+            })
             .cloned()
-            .map(CheckpointRepo::deserialize_item)
+            .map(serde_dynamo::from_item)
             .collect::<Result<_, _>>()?)
     }
 }
@@ -109,48 +127,12 @@ pub struct CheckpointRepo {
     client: SingleTableClient,
 }
 impl DynamoRepo<Checkpoint> for CheckpointRepo {
-    fn client(&self) ->  &SingleTableClient {
+    fn client(&self) -> &SingleTableClient {
         &self.client
     }
 
-    fn deserialize_item(
-        item: HashMap<String, AttributeValue>,
-    ) -> Result<Checkpoint, anyhow::Error> {
-        Ok(Checkpoint {
-            id: uuid::Uuid::parse_str(item.get("id").unwrap().as_s().unwrap())?,
-            name: item.get("name").unwrap().as_s().unwrap().to_owned(),
-            point: {
-                let coords: Vec<f64> = item
-                    .get("point")
-                    .unwrap()
-                    .as_ns()
-                    .unwrap()
-                    .into_iter()
-                    .map(|s| s.parse())
-                    .collect::<Result<_, _>>()?;
-                geo::Point::<f64>::new(coords[0], coords[1])
-            },
-            checkpoint_type: CheckpointType::from_str(
-                item.get("checkpoint_type").unwrap().as_s().unwrap(),
-            )
-            .unwrap(),
-        })
-    }
-
-    fn serialize_item(item: Checkpoint) -> HashMap<&'static str, AttributeValue> {
-        maplit::hashmap! {
-            "id" => AttributeValue::S(item.id.hyphenated().to_string()),
-            "name" => AttributeValue::S(item.name.clone()),
-            "point" => AttributeValue::Ns(vec![item.point.x().to_string(), item.point.y().to_string()]),
-            "checkpoint_type" => AttributeValue::S(item.checkpoint_type.to_string())
-        }
-    }
-
-    fn is_item(item: &HashMap<String,AttributeValue>) -> bool {
-        item.get("pk")
-                    .and_then(|x| x.as_s().ok())
-                    .map(|pk| pk.starts_with("CHECKPOINT#"))
-                    .unwrap_or(false)
+    fn is_item(keys: &Keys) -> bool {
+        keys.pk.starts_with("CHECKPOINT#")
     }
 
     fn keys(item: &Checkpoint) -> Keys {
