@@ -1,3 +1,4 @@
+#![feature(async_closure)]
 use std::collections::HashMap;
 
 use anyhow::anyhow;
@@ -8,6 +9,7 @@ use dynamodb::output::{PutItemOutput, ScanOutput};
 use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
+use futures::{prelude::*, stream::FuturesOrdered};
 use howitt::checkpoint::Checkpoint;
 use howitt::repo::Repo;
 use howitt::route::Route;
@@ -77,6 +79,19 @@ impl SingleTableClient {
             .await
     }
 
+    pub async fn put_batch(
+        &self,
+        items: Vec<(Keys, HashMap<String, AttributeValue>)>,
+    ) -> Vec<Result<PutItemOutput, SdkError<PutItemError>>> {
+        items
+            .into_iter()
+            .map(|(keys, item)| (keys, item, self.clone()))
+            .map(async move |(keys, item, client)| client.put(keys, item).await)
+            .collect::<FuturesOrdered<_>>()
+            .collect()
+            .await
+    }
+
     pub async fn scan(&self) -> Result<ScanOutput, SdkError<ScanError>> {
         self.client.scan().table_name(&self.table_name).send().await
     }
@@ -103,6 +118,26 @@ pub trait DynamoRepo<T: Send + Sync + Serialize + DeserializeOwned> {
         self.client()
             .put(Self::keys(&item), serde_dynamo::to_item(item)?)
             .await?;
+
+        Ok(())
+    }
+
+    async fn put_batch(&self, items: Vec<T>) -> Result<(), anyhow::Error>
+    where
+        T: 'async_trait,
+    {
+        let items = items
+            .into_iter()
+            .map(|item| -> Result<_, anyhow::Error> {
+                Ok((Self::keys(&item), serde_dynamo::to_item(item)?))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        self.client()
+            .put_batch(items)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(())
     }
@@ -165,10 +200,7 @@ impl DynamoRepo<Route> for RouteRepo {
     }
 
     fn keys(item: &Route) -> Keys {
-        Keys::new(
-            format!("ROUTE#{}", item.id),
-            format!("ROUTE#{}", item.id),
-        )
+        Keys::new(format!("ROUTE#{}", item.id), format!("ROUTE#{}", item.id))
     }
 }
 
