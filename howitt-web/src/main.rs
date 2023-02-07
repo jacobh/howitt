@@ -4,9 +4,9 @@ use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Sche
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use howitt::config::Config;
 use howitt_fs::{load_config, load_huts, load_routes, load_stations, load_trips};
+use howitt_graphql::Query;
 use http::StatusCode;
 use warp::{http::Response as HttpResponse, Filter, Rejection};
-use howitt_graphql::Query;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {

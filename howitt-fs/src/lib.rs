@@ -3,11 +3,15 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use gtfs::{GtfsZip, GtfsStop};
+use gtfs::{GtfsStop, GtfsZip};
 use itertools::Itertools;
 // use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use howitt::{checkpoint::{Checkpoint, CheckpointType}, config::Config, EtrexFile};
+use howitt::{
+    checkpoint::{Checkpoint, CheckpointType},
+    config::Config,
+    EtrexFile,
+};
 use project_root::get_project_root;
 use shapefile::{dbase::FieldValue, record::polygon::GenericPolygon, Point, PolygonRing};
 

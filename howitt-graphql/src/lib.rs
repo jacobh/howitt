@@ -20,7 +20,11 @@ impl Query {
         let config: &Config = ctx.data()?;
         let route_repo: &RouteRepo = ctx.data()?;
         let routes = route_repo.all().await?;
-        Ok(routes.into_iter().filter(|route| config.starred_route_ids.contains(&route.id)).map(|route| Route(route)).collect())
+        Ok(routes
+            .into_iter()
+            .filter(|route| config.starred_route_ids.contains(&route.id))
+            .map(|route| Route(route))
+            .collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None

@@ -1,12 +1,16 @@
 use std::{convert::Infallible, sync::Arc};
 
-use async_graphql::{Schema, EmptyMutation, EmptySubscription, http::GraphiQLSource};
-use async_graphql_warp::{GraphQLResponse, GraphQLBadRequest};
-use howitt::{config::Config, checkpoint::Checkpoint, repo::{CheckpointRepo, RouteRepo}};
+use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
+use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
+use howitt::{
+    checkpoint::Checkpoint,
+    config::Config,
+    repo::{CheckpointRepo, RouteRepo},
+};
 use howitt_dynamo::SingleTableClient;
 use howitt_graphql::Query;
 use http::StatusCode;
-use warp::{Filter, http::Response as HttpResponse, Rejection};
+use warp::{http::Response as HttpResponse, Filter, Rejection};
 
 #[tokio::main]
 async fn main() {
@@ -21,8 +25,11 @@ async fn main() {
 
     let single_table_client = SingleTableClient::new_from_env().await;
 
-    let checkpoint_repo: CheckpointRepo = Arc::new(howitt_dynamo::CheckpointRepo::new(single_table_client.clone()));
-    let route_repo: RouteRepo = Arc::new(howitt_dynamo::RouteRepo::new(single_table_client.clone()));
+    let checkpoint_repo: CheckpointRepo = Arc::new(howitt_dynamo::CheckpointRepo::new(
+        single_table_client.clone(),
+    ));
+    let route_repo: RouteRepo =
+        Arc::new(howitt_dynamo::RouteRepo::new(single_table_client.clone()));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(config)
@@ -32,7 +39,6 @@ async fn main() {
         .data(checkpoint_repo)
         .data(route_repo)
         .finish();
-
 
     println!("GraphiQL IDE: http://localhost:8000");
 
@@ -56,22 +62,23 @@ async fn main() {
             .body(GraphiQLSource::build().endpoint("/graphql").finish())
     });
 
-    let routes = warp::path!("graphiql").and(graphiql)
+    let routes = warp::path!("graphiql")
+        .and(graphiql)
         .or(warp::path!("graphql").and(graphql_post))
         .with(cors);
-        // .recover(|err: Rejection| async move {
-        //     if let Some(GraphQLBadRequest(err)) = err.find() {
-        //         return Ok::<_, Infallible>(warp::reply::with_status(
-        //             err.to_string(),
-        //             StatusCode::BAD_REQUEST,
-        //         ));
-        //     }
+    // .recover(|err: Rejection| async move {
+    //     if let Some(GraphQLBadRequest(err)) = err.find() {
+    //         return Ok::<_, Infallible>(warp::reply::with_status(
+    //             err.to_string(),
+    //             StatusCode::BAD_REQUEST,
+    //         ));
+    //     }
 
-        //     Ok(warp::reply::with_status(
-        //         "INTERNAL_SERVER_ERROR".to_string(),
-        //         StatusCode::INTERNAL_SERVER_ERROR,
-        //     ))
-        // });
+    //     Ok(warp::reply::with_status(
+    //         "INTERNAL_SERVER_ERROR".to_string(),
+    //         StatusCode::INTERNAL_SERVER_ERROR,
+    //     ))
+    // });
 
     // Convert them to a warp service (a tower service implmentation)
     // using `warp::service()`

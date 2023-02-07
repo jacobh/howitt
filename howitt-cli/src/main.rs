@@ -12,9 +12,9 @@ use howitt::{nearby::nearby_checkpoints, segment::detect_segments, trip::detect_
 
 use crate::json::prettyprintln;
 
+mod dynamodb;
 mod json;
 mod rwgps;
-mod dynamodb;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]

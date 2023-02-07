@@ -7,6 +7,8 @@ pub trait WaypointExt {
 impl WaypointExt for gpx::Waypoint {
     fn time(&self) -> Option<DateTime<Utc>> {
         let time_string = self.time?.format().ok()?;
-        return Some(DateTime::<Utc>::from(DateTime::parse_from_rfc3339(&time_string).ok()?))
+        return Some(DateTime::<Utc>::from(
+            DateTime::parse_from_rfc3339(&time_string).ok()?,
+        ));
     }
 }

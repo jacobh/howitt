@@ -5,8 +5,8 @@ use derive_more::Constructor;
 use geo::{geodesic_distance::GeodesicDistance, geodesic_length::GeodesicLength};
 use gpx::TrackSegment;
 
-use crate::EtrexFile;
 use crate::gpx_ext::WaypointExt;
+use crate::EtrexFile;
 
 #[derive(Constructor)]
 pub struct EtrexTrip {
