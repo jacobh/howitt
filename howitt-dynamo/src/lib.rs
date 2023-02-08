@@ -22,7 +22,7 @@ use tokio::sync::{Semaphore, SemaphorePermit};
 
 pub enum Index {
     Default,
-    Gsi1
+    Gsi1,
 }
 impl Index {
     fn to_index_name(&self) -> Option<String> {
@@ -112,7 +112,7 @@ impl SingleTableClient {
     pub async fn query_pk(
         &self,
         pk: String,
-        index: Index
+        index: Index,
     ) -> Result<Vec<HashMap<String, AttributeValue>>, SdkError<QueryError>> {
         let _permit = self.acquire_semaphore_permit().await;
 
@@ -192,122 +192,9 @@ impl SingleTableClient {
     }
 }
 
-#[async_trait::async_trait]
-pub trait DynamoRepo<T: Send + Sync + Serialize + DeserializeOwned> {
-    fn client(&self) -> &SingleTableClient;
-
-    fn is_item(keys: &Keys) -> bool;
-
-    fn keys(item: &T) -> Keys;
-
-    async fn get(&self, id: String) -> Result<T, anyhow::Error> {
-        let item = self.client().get(Keys::new(id.clone(), id.clone(), id.clone(), id.clone())).await?;
-        let item = item.item().unwrap().clone();
-        Ok(serde_dynamo::from_item(item)?)
-    }
-
-    async fn put(&self, item: T) -> Result<(), anyhow::Error>
-    where
-        T: 'async_trait,
-    {
-        self.client()
-            .put(Self::keys(&item), serde_dynamo::to_item(item)?)
-            .await?;
-
-        Ok(())
-    }
-
-    async fn put_batch(&self, items: Vec<T>) -> Result<(), anyhow::Error>
-    where
-        T: 'async_trait,
-    {
-        let items = items
-            .into_iter()
-            .map(|item| -> Result<_, anyhow::Error> {
-                Ok((Self::keys(&item), serde_dynamo::to_item(item)?))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        self.client()
-            .put_batch(items)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
-
-        Ok(())
-    }
-
-    async fn all(&self) -> Result<Vec<T>, anyhow::Error> {
-        let items = self.client().query_pk("#CHECKPOINT".to_string(), Index::Gsi1).await?;
-
-        dbg!(&items);
-        Ok(items
-            .into_iter()
-            .filter(|item| match Keys::from_item(item) {
-                Ok(keys) => Self::is_item(&keys),
-                Err(_) => false,
-            })
-            .map(serde_dynamo::from_item)
-            .collect::<Result<_, _>>()?)
-    }
+fn format_key<'a>(parts: impl IntoIterator<Item = Option<&'a str>>) -> String {
+    parts.into_iter().filter_map(|x| x).join("#")
 }
-
-#[derive(Debug, Constructor, Clone)]
-pub struct CheckpointRepo {
-    client: SingleTableClient,
-}
-impl DynamoRepo<Checkpoint> for CheckpointRepo {
-    fn client(&self) -> &SingleTableClient {
-        &self.client
-    }
-
-    fn is_item(keys: &Keys) -> bool {
-        keys.pk.starts_with("CHECKPOINT#")
-    }
-
-    fn keys(item: &Checkpoint) -> Keys {
-        Keys::new(
-            format!("CHECKPOINT#{}", item.id.hyphenated()),
-            format!("CHECKPOINT#{}", item.id.hyphenated()),
-            "#CHECKPOINT".to_string(),
-            format!("CHECKPOINT#{}", item.id.hyphenated()),
-        )
-    }
-}
-
-#[async_trait::async_trait]
-impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
-    async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
-        DynamoRepo::all(self).await
-    }
-}
-
-#[derive(Debug, Constructor, Clone)]
-pub struct RouteRepo {
-    client: SingleTableClient,
-}
-impl DynamoRepo<Route> for RouteRepo {
-    fn client(&self) -> &SingleTableClient {
-        &self.client
-    }
-
-    fn is_item(keys: &Keys) -> bool {
-        keys.pk.starts_with("ROUTE#")
-    }
-
-    fn keys(item: &Route) -> Keys {
-        Keys::new(format!("ROUTE#{}", item.id), format!("ROUTE#{}", item.id), "#ROUTE".to_string(), format!("ROUTE#{}", item.id))
-    }
-}
-
-#[async_trait::async_trait]
-impl Repo<Route, anyhow::Error> for RouteRepo {
-    async fn all(&self) -> Result<Vec<Route>, anyhow::Error> {
-        DynamoRepo::all(self).await
-    }
-}
-
-// ..
 
 #[async_trait::async_trait]
 pub trait DynamoModelRepo {
@@ -322,27 +209,32 @@ pub trait DynamoModelRepo {
     fn keys(item: &<Self::Model as Model>::Item) -> Keys {
         let model_name = Self::Model::model_name().to_string();
         let model_id = item.model_id();
-        let item_name = item.item_name().to_string();
+        let item_name = item.item_name();
         let item_id = item.item_id();
 
         Keys {
-            pk: vec![&*model_name, &*model_id].join("#"),
-            sk: vec![Some(&*model_name), Some(&*model_id), Some(&*item_name), item_id.as_deref()]
-                .into_iter()
-                .filter_map(|x| x)
-                .collect::<Vec<_>>()
-                .join("#"),
-            gsi1pk: vec!["", &*model_name, &*item_name].join("#"),
-            gsi1sk: vec![Some(&*model_name), Some(&*model_id), Some(&*item_name), item_id.as_deref()]
-            .into_iter()
-            .filter_map(|x| x)
-            .collect::<Vec<_>>()
-            .join("#"),
+            pk: format_key([Some(&*model_name), Some(&*model_id)]),
+            sk: format_key([
+                Some(&*model_name),
+                Some(&*model_id),
+                item_name.as_deref(),
+                item_id.as_deref(),
+            ]),
+            gsi1pk: format_key([Some(""), Some(&*model_name), item_name.as_deref()]),
+            gsi1sk: format_key([
+                Some(&*model_name),
+                Some(&*model_id),
+                item_name.as_deref(),
+                item_id.as_deref(),
+            ]),
         }
     }
 
     async fn get_model(&self, model_id: String) -> Result<Self::Model, anyhow::Error> {
-        let items = self.client().query_pk(Self::pk(model_id), Index::Default).await?;
+        let items = self
+            .client()
+            .query_pk(Self::pk(model_id), Index::Default)
+            .await?;
 
         let items = items
             .into_iter()
@@ -386,7 +278,10 @@ pub trait DynamoModelRepo {
     }
 
     async fn all(&self) -> Result<Vec<Self::Model>, anyhow::Error> {
-        let items = self.client().scan().await?;
+        let items = self
+            .client()
+            .query_pk(["", Self::Model::model_name()].join("#"), Index::Gsi1)
+            .await?;
 
         let items = items
             .into_iter()
@@ -399,6 +294,25 @@ pub trait DynamoModelRepo {
             .into_iter()
             .map(|(_, items)| Self::Model::from_items(items.collect_vec()))
             .collect::<Result<_, _>>()?)
+    }
+}
+
+#[derive(Debug, Constructor, Clone)]
+pub struct CheckpointRepo {
+    client: SingleTableClient,
+}
+impl DynamoModelRepo for CheckpointRepo {
+    type Model = Checkpoint;
+
+    fn client(&self) -> &SingleTableClient {
+        &self.client
+    }
+}
+
+#[async_trait::async_trait]
+impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
+    async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
+        DynamoModelRepo::all(self).await
     }
 }
 

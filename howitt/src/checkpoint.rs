@@ -1,7 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
+use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+use crate::model::{Item, Model};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -46,6 +49,40 @@ pub struct Checkpoint {
     #[serde(with = "crate::serde_ext::point_tuple")]
     pub point: geo::Point<f64>,
     pub checkpoint_type: CheckpointType,
+}
+
+impl Model for Checkpoint {
+    type Item = Checkpoint;
+
+    fn model_name() -> &'static str {
+        "CHECKPOINT"
+    }
+
+    fn id(&self) -> String {
+        self.id.to_string()
+    }
+
+    fn into_items(self) -> impl Iterator<Item = Self::Item> {
+        vec![self].into_iter()
+    }
+
+    fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error> {
+        items.into_iter().nth(0).ok_or(anyhow!("no items"))
+    }
+}
+
+impl Item for Checkpoint {
+    fn item_name(&self) -> Option<String> {
+        None
+    }
+
+    fn model_id(&self) -> String {
+        self.id.to_string()
+    }
+
+    fn item_id(&self) -> Option<String> {
+        None
+    }
 }
 
 #[derive(Debug, Error)]

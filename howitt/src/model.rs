@@ -10,7 +10,7 @@ pub trait Model: Send + Sync + Sized {
 }
 
 pub trait Item: Send + Sync + Serialize + DeserializeOwned {
-    fn item_name(&self) -> &'static str;
     fn model_id(&self) -> String;
+    fn item_name(&self) -> Option<String>;
     fn item_id(&self) -> Option<String>;
 }

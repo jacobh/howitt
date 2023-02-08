@@ -89,10 +89,10 @@ impl RouteItem {
     }
 }
 impl crate::model::Item for RouteItem {
-    fn item_name(&self) -> &'static str {
+    fn item_name(&self) -> Option<String> {
         match self {
-            RouteItem::Route(_) => "META",
-            RouteItem::PointChunk(_) => "POINT_CHUNK",
+            RouteItem::Route(_) => None,
+            RouteItem::PointChunk(_) => Some("POINT_CHUNK".to_string()),
         }
     }
 

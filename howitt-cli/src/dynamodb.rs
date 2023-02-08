@@ -5,9 +5,7 @@ use howitt::{
     point::ElevationPoint,
     route::{Route, RouteModel, RoutePointChunk},
 };
-use howitt_dynamo::{
-    CheckpointRepo, DynamoModelRepo, DynamoRepo, RouteModelRepo, SingleTableClient,
-};
+use howitt_dynamo::{CheckpointRepo, DynamoModelRepo, RouteModelRepo, SingleTableClient};
 use howitt_fs::{load_huts, load_routes};
 use itertools::Itertools;
 
