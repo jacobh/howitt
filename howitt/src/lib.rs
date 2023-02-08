@@ -1,4 +1,4 @@
-#![feature(async_fn_in_trait)]
+#![feature(return_position_impl_trait_in_trait)]
 use chrono::{DateTime, Utc};
 use derive_more::Constructor;
 use geo::geodesic_length::GeodesicLength;
@@ -17,6 +17,7 @@ pub mod route;
 pub mod segment;
 pub mod serde_ext;
 pub mod trip;
+pub mod model;
 
 use gpx_ext::WaypointExt;
 

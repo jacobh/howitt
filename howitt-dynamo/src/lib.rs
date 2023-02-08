@@ -5,15 +5,16 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use aws_sdk_dynamodb as dynamodb;
 use derive_more::Constructor;
-use dynamodb::error::{PutItemError, ScanError};
+use dynamodb::error::{PutItemError, QueryError, ScanError};
 use dynamodb::output::{PutItemOutput, ScanOutput};
 use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
 use futures::{prelude::*, stream::FuturesOrdered};
 use howitt::checkpoint::Checkpoint;
+use howitt::model::{Model, Item};
 use howitt::repo::Repo;
-use howitt::route::Route;
+use howitt::route::{Route, RouteItem, RouteModel};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, SemaphorePermit};
@@ -72,6 +73,32 @@ impl SingleTableClient {
             .key("sk", AttributeValue::S(keys.sk))
             .send()
             .await
+    }
+
+    pub async fn query_pk(
+        &self,
+        pk: String,
+    ) -> Result<Vec<HashMap<String, AttributeValue>>, SdkError<QueryError>> {
+        let _permit = self.acquire_semaphore_permit().await;
+
+        let outputs = self
+            .client
+            .query()
+            .table_name(&self.table_name)
+            .key_condition_expression("pk = :pk")
+            .expression_attribute_values(":pk", AttributeValue::S(pk))
+            .into_paginator()
+            .send()
+            .collect::<Vec<_>>()
+            .await;
+
+        Ok(outputs
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .filter_map(|output| output.items)
+            .flatten()
+            .collect())
     }
 
     pub async fn put(
@@ -222,5 +249,78 @@ impl DynamoRepo<Route> for RouteRepo {
 impl Repo<Route, anyhow::Error> for RouteRepo {
     async fn all(&self) -> Result<Vec<Route>, anyhow::Error> {
         DynamoRepo::all(self).await
+    }
+}
+
+// ..
+
+#[derive(Debug, Constructor, Clone)]
+pub struct RouteModelRepo {
+    client: SingleTableClient,
+}
+impl RouteModelRepo {
+    fn client(&self) -> &SingleTableClient {
+        &self.client
+    }
+
+    fn keys(item: &RouteItem) -> Keys {
+        let model_name = RouteModel::model_name().to_string();
+        let model_id = item.model_id();
+        let item_name = item.item_name().to_string();
+        let item_id = item.item_id();
+
+        Keys {
+            pk: vec![model_name.clone(), model_id.clone()].join("#"),
+            sk: vec![Some(model_name), Some(model_id), Some(item_name), item_id]
+                .into_iter()
+                .filter_map(|x| x)
+                .collect::<Vec<_>>()
+                .join("#"),
+        }
+    }
+
+    pub async fn get_model(&self, model_id: String) -> Result<RouteModel, anyhow::Error> {
+        let items = self
+            .client()
+            .query_pk(format!("ROUTE#{}", model_id))
+            .await?;
+
+        let items = items
+            .into_iter()
+            .map(serde_dynamo::from_item::<_, RouteItem>)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(RouteModel::from_items(items)?)
+    }
+
+    pub async fn put(&self, model: RouteModel) -> Result<(), anyhow::Error> {
+        model
+            .into_items()
+            .map(|item| (item, self.client().clone()))
+            .map(async move |(item, client)| -> Result<_, anyhow::Error> {
+                Ok(client
+                    .put(Self::keys(&item), serde_dynamo::to_item(item)?)
+                    .await?)
+            })
+            .collect::<FuturesOrdered<_>>()
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(())
+    }
+
+    pub async fn put_batch(&self, models: Vec<RouteModel>) -> Result<(), anyhow::Error> {
+        models
+            .into_iter()
+            .map(|model| (model, self.clone()))
+            .map(async move |(model, repo)| repo.put(model).await)
+            .collect::<FuturesOrdered<_>>()
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(())
     }
 }
