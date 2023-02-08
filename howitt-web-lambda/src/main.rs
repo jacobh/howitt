@@ -28,8 +28,9 @@ async fn main() {
     let checkpoint_repo: CheckpointRepo = Arc::new(howitt_dynamo::CheckpointRepo::new(
         single_table_client.clone(),
     ));
-    let route_repo: RouteModelRepo =
-        Arc::new(howitt_dynamo::RouteModelRepo::new(single_table_client.clone()));
+    let route_repo: RouteModelRepo = Arc::new(howitt_dynamo::RouteModelRepo::new(
+        single_table_client.clone(),
+    ));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(config)

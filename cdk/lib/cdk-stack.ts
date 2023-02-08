@@ -38,6 +38,12 @@ export class CdkStack extends cdk.Stack {
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
 
+    dynamoTable.addGlobalSecondaryIndex({
+      indexName: 'gsi1',
+      partitionKey: { name: "gsi1pk", type: AttributeType.STRING },
+      sortKey: { name: "gsi1sk", type: AttributeType.STRING },
+    })
+
     const domainName = new DomainName(
       this,
       "howitt-api.haslehurst.net-domain-name",
@@ -65,7 +71,7 @@ export class CdkStack extends cdk.Stack {
     webLambda.addToRolePolicy(
       new PolicyStatement({
         actions: ["dynamodb:*"],
-        resources: [dynamoTable.tableArn],
+        resources: [dynamoTable.tableArn, `${dynamoTable.tableArn}/index/*`],
       })
     );
 

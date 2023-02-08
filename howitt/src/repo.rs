@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::sync::Arc;
 
-use crate::{checkpoint::Checkpoint, route::{RouteModel}};
+use crate::{checkpoint::Checkpoint, route::RouteModel};
 
 #[async_trait]
 pub trait Repo<T: Sized, E: Sized>: Send + Sync {
