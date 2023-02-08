@@ -5,7 +5,7 @@ use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use howitt::{
     checkpoint::Checkpoint,
     config::Config,
-    repo::{CheckpointRepo, RouteRepo},
+    repo::{CheckpointRepo, RouteModelRepo},
 };
 use howitt_dynamo::SingleTableClient;
 use howitt_graphql::Query;
@@ -28,8 +28,8 @@ async fn main() {
     let checkpoint_repo: CheckpointRepo = Arc::new(howitt_dynamo::CheckpointRepo::new(
         single_table_client.clone(),
     ));
-    let route_repo: RouteRepo =
-        Arc::new(howitt_dynamo::RouteRepo::new(single_table_client.clone()));
+    let route_repo: RouteModelRepo =
+        Arc::new(howitt_dynamo::RouteModelRepo::new(single_table_client.clone()));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(config)

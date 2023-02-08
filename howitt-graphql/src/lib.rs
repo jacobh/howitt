@@ -1,7 +1,7 @@
 use async_graphql::*;
 use howitt::{
     config::Config,
-    repo::{CheckpointRepo, RouteRepo},
+    repo::{CheckpointRepo, RouteModelRepo},
 };
 
 pub struct Query;
@@ -9,7 +9,7 @@ pub struct Query;
 #[Object]
 impl Query {
     async fn routes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Route>, async_graphql::Error> {
-        let route_repo: &RouteRepo = ctx.data()?;
+        let route_repo: &RouteModelRepo = ctx.data()?;
         let routes = route_repo.all().await?;
         Ok(routes.into_iter().map(|route| Route(route)).collect())
     }
@@ -18,11 +18,11 @@ impl Query {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Route>, async_graphql::Error> {
         let config: &Config = ctx.data()?;
-        let route_repo: &RouteRepo = ctx.data()?;
+        let route_repo: &RouteModelRepo = ctx.data()?;
         let routes = route_repo.all().await?;
         Ok(routes
             .into_iter()
-            .filter(|route| config.starred_route_ids.contains(&route.id))
+            .filter(|route| config.starred_route_ids.contains(&route.route.id))
             .map(|route| Route(route))
             .collect())
     }
@@ -59,18 +59,18 @@ impl Query {
     }
 }
 
-pub struct Route(howitt::route::Route);
+pub struct Route(howitt::route::RouteModel);
 
 #[Object]
 impl Route {
     async fn id(&self) -> String {
-        self.0.id.to_string()
+        self.0.route.id.to_string()
     }
     async fn name(&self) -> &str {
-        &self.0.name
+        &self.0.route.name
     }
     async fn distance(&self) -> f64 {
-        self.0.distance
+        self.0.route.distance
     }
     async fn geojson(&self) -> String {
         let linestring = geo::LineString::from(self.0.iter_geo_points().collect::<Vec<_>>());

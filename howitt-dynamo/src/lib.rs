@@ -6,15 +6,16 @@ use anyhow::anyhow;
 use aws_sdk_dynamodb as dynamodb;
 use derive_more::Constructor;
 use dynamodb::error::{PutItemError, QueryError, ScanError};
-use dynamodb::output::{PutItemOutput, ScanOutput};
+use dynamodb::output::{PutItemOutput};
 use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
 use futures::{prelude::*, stream::FuturesOrdered};
 use howitt::checkpoint::Checkpoint;
-use howitt::model::{Model, Item};
+use howitt::model::{Item, Model};
 use howitt::repo::Repo;
-use howitt::route::{Route, RouteItem, RouteModel};
+use howitt::route::{Route, RouteModel};
+use itertools::Itertools;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, SemaphorePermit};
@@ -131,10 +132,25 @@ impl SingleTableClient {
             .await
     }
 
-    pub async fn scan(&self) -> Result<ScanOutput, SdkError<ScanError>> {
+    pub async fn scan(&self) -> Result<Vec<HashMap<String, AttributeValue>>, SdkError<ScanError>> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        self.client.scan().table_name(&self.table_name).send().await
+        let outputs = self
+            .client
+            .scan()
+            .table_name(&self.table_name)
+            .into_paginator()
+            .send()
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(outputs
+            .into_iter()
+            .filter_map(|output| output.items)
+            .flatten()
+            .collect())
     }
 }
 
@@ -184,8 +200,7 @@ pub trait DynamoRepo<T: Send + Sync + Serialize + DeserializeOwned> {
     }
 
     async fn all(&self) -> Result<Vec<T>, anyhow::Error> {
-        let scan_output = self.client().scan().await?;
-        let items = scan_output.items().unwrap_or_default();
+        let items = self.client().scan().await?;
 
         Ok(items
             .into_iter()
@@ -193,7 +208,6 @@ pub trait DynamoRepo<T: Send + Sync + Serialize + DeserializeOwned> {
                 Ok(keys) => Self::is_item(&keys),
                 Err(_) => false,
             })
-            .cloned()
             .map(serde_dynamo::from_item)
             .collect::<Result<_, _>>()?)
     }
@@ -254,17 +268,18 @@ impl Repo<Route, anyhow::Error> for RouteRepo {
 
 // ..
 
-#[derive(Debug, Constructor, Clone)]
-pub struct RouteModelRepo {
-    client: SingleTableClient,
-}
-impl RouteModelRepo {
-    fn client(&self) -> &SingleTableClient {
-        &self.client
+#[async_trait::async_trait]
+pub trait DynamoModelRepo {
+    type Model: Model;
+
+    fn client(&self) -> &SingleTableClient;
+
+    fn pk(model_id: impl Into<String>) -> String {
+        vec![Self::Model::model_name().to_string(), model_id.into()].join("#")
     }
 
-    fn keys(item: &RouteItem) -> Keys {
-        let model_name = RouteModel::model_name().to_string();
+    fn keys(item: &<Self::Model as Model>::Item) -> Keys {
+        let model_name = Self::Model::model_name().to_string();
         let model_id = item.model_id();
         let item_name = item.item_name().to_string();
         let item_id = item.item_id();
@@ -279,22 +294,21 @@ impl RouteModelRepo {
         }
     }
 
-    pub async fn get_model(&self, model_id: String) -> Result<RouteModel, anyhow::Error> {
-        let items = self
-            .client()
-            .query_pk(format!("ROUTE#{}", model_id))
-            .await?;
+    async fn get_model(&self, model_id: String) -> Result<Self::Model, anyhow::Error> {
+        let items = self.client().query_pk(Self::pk(model_id)).await?;
 
         let items = items
             .into_iter()
-            .map(serde_dynamo::from_item::<_, RouteItem>)
+            .map(serde_dynamo::from_item::<_, <Self::Model as Model>::Item>)
             .collect::<Result<Vec<_>, _>>()?;
-        Ok(RouteModel::from_items(items)?)
+        Ok(Self::Model::from_items(items)?)
     }
 
-    pub async fn put(&self, model: RouteModel) -> Result<(), anyhow::Error> {
-        model
-            .into_items()
+    async fn put(&self, model: Self::Model) -> Result<(), anyhow::Error> {
+        let items = model.into_items().collect::<Vec<_>>();
+
+        items
+            .into_iter()
             .map(|item| (item, self.client().clone()))
             .map(async move |(item, client)| -> Result<_, anyhow::Error> {
                 Ok(client
@@ -310,7 +324,7 @@ impl RouteModelRepo {
         Ok(())
     }
 
-    pub async fn put_batch(&self, models: Vec<RouteModel>) -> Result<(), anyhow::Error> {
+    async fn put_batch(&self, models: Vec<Self::Model>) -> Result<(), anyhow::Error> {
         models
             .into_iter()
             .map(|model| (model, self.clone()))
@@ -322,5 +336,33 @@ impl RouteModelRepo {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(())
+    }
+
+    async fn all(&self) -> Result<Vec<Self::Model>, anyhow::Error> {
+        let items = self.client().scan().await?;
+
+        let items = items.into_iter().map(serde_dynamo::from_item::<_, <Self::Model as Model>::Item>).filter_map(Result::ok);
+
+        let groups = items.group_by(|item| item.model_id());
+        
+        Ok(groups.into_iter().map(|(_, items)| Self::Model::from_items(items.collect_vec())).collect::<Result<_, _>>()?)
+    }
+}
+
+#[derive(Debug, Constructor, Clone)]
+pub struct RouteModelRepo {
+    client: SingleTableClient,
+}
+impl DynamoModelRepo for RouteModelRepo {
+    type Model = RouteModel;
+
+    fn client(&self) -> &SingleTableClient {
+        &self.client
+    }
+}
+#[async_trait::async_trait]
+impl Repo<RouteModel, anyhow::Error> for RouteModelRepo {
+    async fn all(&self) -> Result<Vec<RouteModel>, anyhow::Error> {
+        DynamoModelRepo::all(self).await
     }
 }

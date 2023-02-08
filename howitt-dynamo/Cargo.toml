@@ -18,3 +18,4 @@ serde = "1"
 serde_dynamo = { version = "4", features = ["aws-sdk-dynamodb+0_24"] }
 uuid = "*"
 tokio = "*"
+itertools = "*"

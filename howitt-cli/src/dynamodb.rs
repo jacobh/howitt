@@ -5,7 +5,7 @@ use howitt::{
     point::ElevationPoint,
     route::{Route, RouteModel, RoutePointChunk},
 };
-use howitt_dynamo::{CheckpointRepo, DynamoRepo, RouteModelRepo, RouteRepo, SingleTableClient};
+use howitt_dynamo::{CheckpointRepo, DynamoRepo, RouteModelRepo, SingleTableClient, DynamoModelRepo};
 use howitt_fs::{load_huts, load_routes};
 use itertools::Itertools;
 
@@ -20,7 +20,6 @@ pub enum Dynamodb {
 pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
     let client = SingleTableClient::new_from_env().await;
     let checkpoint_repo = CheckpointRepo::new(client.clone());
-    let route_repo = RouteRepo::new(client.clone());
     let route_model_repo = RouteModelRepo::new(client.clone());
 
     match command {

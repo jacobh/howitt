@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::sync::Arc;
 
-use crate::{checkpoint::Checkpoint, route::Route};
+use crate::{checkpoint::Checkpoint, route::{RouteModel}};
 
 #[async_trait]
 pub trait Repo<T: Sized, E: Sized>: Send + Sync {
@@ -9,4 +9,4 @@ pub trait Repo<T: Sized, E: Sized>: Send + Sync {
 }
 
 pub type CheckpointRepo = Arc<dyn Repo<Checkpoint, anyhow::Error>>;
-pub type RouteRepo = Arc<dyn Repo<Route, anyhow::Error>>;
+pub type RouteModelRepo = Arc<dyn Repo<RouteModel, anyhow::Error>>;
