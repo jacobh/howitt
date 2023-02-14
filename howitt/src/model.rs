@@ -5,7 +5,7 @@ pub trait Model: Send + Sync + Sized {
 
     fn model_name() -> &'static str;
     fn id(&self) -> String;
-    fn into_items(self) -> impl Iterator<Item = Self::Item>;
+    fn into_items(self) -> impl IntoIterator<Item = Self::Item>;
     fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error>;
 }
 

@@ -62,8 +62,8 @@ impl Model for Checkpoint {
         self.id.to_string()
     }
 
-    fn into_items(self) -> impl Iterator<Item = Self::Item> {
-        vec![self].into_iter()
+    fn into_items(self) -> impl IntoIterator<Item = Self::Item> {
+        [self]
     }
 
     fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error> {

@@ -1,11 +1,14 @@
-use clap::Subcommand;
+use anyhow::anyhow;
+use clap::{Args, Subcommand};
 use futures::{prelude::*, stream::FuturesUnordered};
 use howitt::{
     external_ref::{ExternalRef, ExternalSource},
     point::ElevationPoint,
     route::{Route, RouteModel, RoutePointChunk},
 };
-use howitt_dynamo::{CheckpointRepo, DynamoModelRepo, Keys, RouteModelRepo, SingleTableClient};
+use howitt_dynamo::{
+    CheckpointRepo, ConfigRepo, DynamoModelRepo, Keys, RouteModelRepo, SingleTableClient,
+};
 use howitt_fs::{load_huts, load_routes};
 use itertools::Itertools;
 
@@ -13,13 +16,20 @@ use itertools::Itertools;
 pub enum Dynamodb {
     Sync,
     SyncRoutes,
+    SetStarredRoute(SetStarredRoute),
     GetRoute,
     ListCheckpoints,
     DeleteAll,
 }
 
+#[derive(Args)]
+pub struct SetStarredRoute {
+    route_id: String,
+}
+
 pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
     let client = SingleTableClient::new_from_env().await;
+    let config_repo = ConfigRepo::new(client.clone());
     let checkpoint_repo = CheckpointRepo::new(client.clone());
     let route_model_repo = RouteModelRepo::new(client.clone());
 
@@ -93,10 +103,20 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             route_model_repo.put_batch(routes).await?;
         }
+        Dynamodb::SetStarredRoute(SetStarredRoute { route_id }) => {
+            let route_id = ulid::Ulid::from_string(route_id)?;
+            let mut config = config_repo
+                .get_model("SINGLETON".into())
+                .await?
+                .unwrap_or_default();
+            config.starred_route_ids.push(route_id);
+            config_repo.put(config).await?;
+        }
         Dynamodb::GetRoute => {
             let model = route_model_repo
                 .get_model("01GRQGBJ9NNA8354256RQ10DJB".to_string())
-                .await?;
+                .await?
+                .ok_or(anyhow!("route not found"))?;
             dbg!(&model.route.name);
             dbg!(&model.route.external_ref);
             dbg!(model.iter_geo_points().count());

@@ -1,30 +1,20 @@
 use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
-use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
+use async_graphql_warp::{GraphQLResponse};
 use howitt::{
-    checkpoint::Checkpoint,
-    config::Config,
-    repo::{CheckpointRepo, RouteModelRepo},
+    repo::{CheckpointRepo, ConfigRepo, RouteModelRepo},
 };
 use howitt_dynamo::SingleTableClient;
 use howitt_graphql::Query;
-use http::StatusCode;
-use warp::{http::Response as HttpResponse, Filter, Rejection};
+use warp::{http::Response as HttpResponse, Filter};
 
 #[tokio::main]
 async fn main() {
-    let routes: Vec<rwgps::types::Route> = vec![];
-    let trips: Vec<howitt::trip::EtrexTrip> = vec![];
-    let config = Config {
-        starred_route_ids: vec![],
-    };
-    let huts: Vec<Checkpoint> = vec![];
-    let stations: Vec<Checkpoint> = vec![];
-    let all_checkpoints: Vec<Checkpoint> = vec![];
-
     let single_table_client = SingleTableClient::new_from_env().await;
 
+    let config_repo: ConfigRepo =
+        Arc::new(howitt_dynamo::ConfigRepo::new(single_table_client.clone()));
     let checkpoint_repo: CheckpointRepo = Arc::new(howitt_dynamo::CheckpointRepo::new(
         single_table_client.clone(),
     ));
@@ -33,10 +23,7 @@ async fn main() {
     ));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
-        .data(config)
-        .data(routes)
-        .data(all_checkpoints)
-        .data(trips)
+        .data(config_repo)
         .data(checkpoint_repo)
         .data(route_repo)
         .finish();

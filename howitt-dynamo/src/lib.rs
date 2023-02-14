@@ -12,6 +12,7 @@ use dynamodb::{
 };
 use futures::{prelude::*, stream::FuturesOrdered};
 use howitt::checkpoint::Checkpoint;
+use howitt::config::Config;
 use howitt::model::{Item, Model};
 use howitt::repo::Repo;
 use howitt::route::{Route, RouteModel};
@@ -278,21 +279,26 @@ pub trait DynamoModelRepo {
         }
     }
 
-    async fn get_model(&self, model_id: String) -> Result<Self::Model, anyhow::Error> {
+    async fn get_model(&self, model_id: String) -> Result<Option<Self::Model>, anyhow::Error> {
         let items = self
             .client()
             .query_pk(Self::pk(model_id), Index::Default)
             .await?;
 
+        if items.len() == 0 {
+            return Ok(None);
+        }
+
         let items = items
             .into_iter()
             .map(serde_dynamo::from_item::<_, <Self::Model as Model>::Item>)
             .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self::Model::from_items(items)?)
+
+        Ok(Some(Self::Model::from_items(items)?))
     }
 
     async fn put(&self, model: Self::Model) -> Result<(), anyhow::Error> {
-        let items = model.into_items().collect::<Vec<_>>();
+        let items = model.into_items().into_iter().collect::<Vec<_>>();
 
         items
             .into_iter()
@@ -362,6 +368,9 @@ impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
     async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
         DynamoModelRepo::all(self).await
     }
+    async fn get(&self, id: String) -> Result<Option<Checkpoint>, anyhow::Error> {
+        DynamoModelRepo::get_model(self, id).await
+    }
 }
 
 #[derive(Debug, Constructor, Clone)]
@@ -379,5 +388,29 @@ impl DynamoModelRepo for RouteModelRepo {
 impl Repo<RouteModel, anyhow::Error> for RouteModelRepo {
     async fn all(&self) -> Result<Vec<RouteModel>, anyhow::Error> {
         DynamoModelRepo::all(self).await
+    }
+    async fn get(&self, id: String) -> Result<Option<RouteModel>, anyhow::Error> {
+        DynamoModelRepo::get_model(self, id).await
+    }
+}
+
+#[derive(Debug, Constructor, Clone)]
+pub struct ConfigRepo {
+    client: SingleTableClient,
+}
+impl DynamoModelRepo for ConfigRepo {
+    type Model = Config;
+
+    fn client(&self) -> &SingleTableClient {
+        &self.client
+    }
+}
+#[async_trait::async_trait]
+impl Repo<Config, anyhow::Error> for ConfigRepo {
+    async fn all(&self) -> Result<Vec<Config>, anyhow::Error> {
+        DynamoModelRepo::all(self).await
+    }
+    async fn get(&self, id: String) -> Result<Option<Config>, anyhow::Error> {
+        DynamoModelRepo::get_model(self, id).await
     }
 }

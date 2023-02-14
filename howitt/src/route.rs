@@ -46,7 +46,7 @@ impl crate::model::Model for RouteModel {
     }
 
     fn into_items(self) -> impl Iterator<Item = Self::Item> {
-        vec![RouteItem::from(self.route)]
+        [RouteItem::from(self.route)]
             .into_iter()
             .chain(self.point_chunks.into_iter().map(RouteItem::from))
     }

@@ -1,7 +1,9 @@
+#![feature(async_closure)]
 use async_graphql::*;
+use futures::{prelude::*, stream::FuturesUnordered};
 use howitt::{
     config::Config,
-    repo::{CheckpointRepo, RouteModelRepo},
+    repo::{CheckpointRepo, ConfigRepo, RouteModelRepo},
 };
 
 pub struct Query;
@@ -17,13 +19,29 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Route>, async_graphql::Error> {
-        let config: &Config = ctx.data()?;
+        let config_repo: &ConfigRepo = ctx.data()?;
         let route_repo: &RouteModelRepo = ctx.data()?;
-        let routes = route_repo.all().await?;
+
+        let config = config_repo
+            .get("SINGLETON".into())
+            .await?
+            .unwrap_or_default();
+
+        let routes = config
+            .starred_route_ids
+            .iter()
+            .map(|route_id| (route_id, route_repo.clone()))
+            .map(async move |(route_id, route_repo)| route_repo.get(route_id.to_string()).await)
+            .collect::<FuturesUnordered<_>>()
+            .collect::<Vec<_>>()
+            .await;
+
+        let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
+
         Ok(routes
             .into_iter()
-            .filter(|route| config.starred_route_ids.contains(&route.route.id))
-            .map(|route| Route(route))
+            .flatten()
+            .map(Route)
             .collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {

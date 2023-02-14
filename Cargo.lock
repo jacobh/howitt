@@ -1608,6 +1608,7 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "chrono",
+ "futures",
  "geo",
  "geojson",
  "gpx",
