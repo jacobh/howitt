@@ -32,23 +32,27 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             println!("done");
         }
         Dynamodb::SyncRoutes => {
-            // let existing_routes = route_repo.all().await?;
+            let existing_routes = route_model_repo.all().await?;
             let rwgps_routes = load_routes()?;
 
             let routes: Vec<_> = rwgps_routes
                 .into_iter()
-                // .map(|route| {
-                //     let existing_route = existing_routes.iter().find(|existing_route| {
-                //         existing_route
-                //             .external_ref
-                //             .as_ref()
-                //             .map(|ref_| ref_.id == route.id.to_string())
-                //             .unwrap_or(false)
-                //     });
-                //     (route, existing_route)
-                // })
                 .map(|route| {
-                    let id = ulid::Ulid::new();
+                    let existing_route = existing_routes.iter().find(|existing_route| {
+                        existing_route
+                            .route
+                            .external_ref
+                            .as_ref()
+                            .map(|ref_| ref_.id == route.id.to_string())
+                            .unwrap_or(false)
+                    });
+                    (route, existing_route)
+                })
+                .map(|(route, existing_route)| {
+                    let id = match existing_route {
+                        Some(route) => route.route.id,
+                        None => ulid::Ulid::from_datetime(route.created_at.into()),
+                    };
 
                     RouteModel {
                         route: Route {
@@ -117,7 +121,6 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             //     .collect::<FuturesUnordered<_>>()
             //     .collect::<Vec<_>>()
             //     .await;
-
 
             // dbg!(results);
         }
