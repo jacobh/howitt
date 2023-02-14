@@ -5,8 +5,8 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use aws_sdk_dynamodb as dynamodb;
 use derive_more::Constructor;
-use dynamodb::error::{PutItemError, QueryError, ScanError};
-use dynamodb::output::PutItemOutput;
+use dynamodb::error::{DeleteItemError, PutItemError, QueryError, ScanError};
+use dynamodb::output::{DeleteItemOutput, PutItemOutput};
 use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
@@ -43,11 +43,11 @@ impl Index {
 pub struct Keys {
     pk: String,
     sk: String,
-    gsi1pk: String,
-    gsi1sk: String,
+    gsi1pk: Option<String>,
+    gsi1sk: Option<String>,
 }
 impl Keys {
-    fn from_item(item: &HashMap<String, AttributeValue>) -> Result<Keys, anyhow::Error> {
+    pub fn from_item(item: &HashMap<String, AttributeValue>) -> Result<Keys, anyhow::Error> {
         Ok(Keys {
             pk: item
                 .get("pk")
@@ -63,17 +63,20 @@ impl Keys {
                 .to_owned(),
             gsi1pk: item
                 .get("gsi1pk")
-                .ok_or(anyhow!("gsi1pk missing"))?
-                .as_s()
+                .map(|value| value.as_s())
+                .transpose()
                 .map_err(|_| anyhow!("gsi1pk not string"))?
-                .to_owned(),
+                .map(ToOwned::to_owned),
             gsi1sk: item
                 .get("gsi1sk")
-                .ok_or(anyhow!("gsi1sk missing"))?
-                .as_s()
+                .map(|value| value.as_s())
+                .transpose()
                 .map_err(|_| anyhow!("gsi1sk not string"))?
-                .to_owned(),
+                .map(ToOwned::to_owned),
         })
+    }
+    pub fn to_item(&self) -> HashMap<String, AttributeValue> {
+        serde_dynamo::to_item(self).unwrap()
     }
 }
 
@@ -88,7 +91,7 @@ impl SingleTableClient {
         let config = aws_config::load_from_env().await;
         SingleTableClient {
             client: dynamodb::Client::new(&config),
-            semaphore: Arc::new(Semaphore::new(20)),
+            semaphore: Arc::new(Semaphore::new(10)),
             table_name: std::env::var("HOWITT_TABLE_NAME").unwrap_or("howitt".to_string()),
         }
     }
@@ -170,6 +173,18 @@ impl SingleTableClient {
             .await
     }
 
+    pub async fn delete(&self, keys: Keys) -> Result<DeleteItemOutput, SdkError<DeleteItemError>> {
+        let _permit = self.acquire_semaphore_permit().await;
+
+        self.client
+            .delete_item()
+            .table_name(&self.table_name)
+            .key("pk", AttributeValue::S(keys.pk))
+            .key("sk", AttributeValue::S(keys.sk))
+            .send()
+            .await
+    }
+
     pub async fn scan(&self) -> Result<Vec<HashMap<String, AttributeValue>>, SdkError<ScanError>> {
         let _permit = self.acquire_semaphore_permit().await;
 
@@ -177,6 +192,35 @@ impl SingleTableClient {
             .client
             .scan()
             .table_name(&self.table_name)
+            .into_paginator()
+            .send()
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(outputs
+            .into_iter()
+            .filter_map(|output| output.items)
+            .flatten()
+            .collect())
+    }
+
+    pub async fn scan_keys(
+        &self,
+    ) -> Result<Vec<HashMap<String, AttributeValue>>, SdkError<ScanError>> {
+        let _permit = self.acquire_semaphore_permit().await;
+
+        let outputs = self
+            .client
+            .scan()
+            .table_name(&self.table_name)
+            .set_attributes_to_get(Some(vec![
+                String::from("pk"),
+                String::from("sk"),
+                String::from("gsi1pk"),
+                String::from("gsi1sk"),
+            ]))
             .into_paginator()
             .send()
             .collect::<Vec<_>>()
@@ -220,13 +264,17 @@ pub trait DynamoModelRepo {
                 item_name.as_deref(),
                 item_id.as_deref(),
             ]),
-            gsi1pk: format_key([Some(""), Some(&*model_name), item_name.as_deref()]),
-            gsi1sk: format_key([
+            gsi1pk: Some(format_key([
+                Some(""),
+                Some(&*model_name),
+                item_name.as_deref(),
+            ])),
+            gsi1sk: Some(format_key([
                 Some(&*model_name),
                 Some(&*model_id),
                 item_name.as_deref(),
                 item_id.as_deref(),
-            ]),
+            ])),
         }
     }
 

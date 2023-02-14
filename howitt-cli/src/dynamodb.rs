@@ -5,7 +5,7 @@ use howitt::{
     point::ElevationPoint,
     route::{Route, RouteModel, RoutePointChunk},
 };
-use howitt_dynamo::{CheckpointRepo, DynamoModelRepo, RouteModelRepo, SingleTableClient};
+use howitt_dynamo::{CheckpointRepo, DynamoModelRepo, Keys, RouteModelRepo, SingleTableClient};
 use howitt_fs::{load_huts, load_routes};
 use itertools::Itertools;
 
@@ -15,6 +15,7 @@ pub enum Dynamodb {
     SyncRoutes,
     GetRoute,
     ListCheckpoints,
+    DeleteAll,
 }
 
 pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
@@ -99,6 +100,26 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
         Dynamodb::ListCheckpoints => {
             let checkpoints = checkpoint_repo.all().await?;
             dbg!(checkpoints);
+        }
+        Dynamodb::DeleteAll => {
+            let items = client.scan_keys().await?;
+            let keys: Vec<Keys> = items
+                .iter()
+                .map(Keys::from_item)
+                .collect::<Result<Vec<_>, _>>()?;
+            dbg!(keys.len());
+
+            //// DANGEROUS only uncomment when you want to delete everything
+
+            // let results = keys.into_iter()
+            //     .map(|keys| (keys, client.clone()))
+            //     .map(async move |(keys, client)| client.delete(keys).await)
+            //     .collect::<FuturesUnordered<_>>()
+            //     .collect::<Vec<_>>()
+            //     .await;
+
+
+            // dbg!(results);
         }
     }
 
