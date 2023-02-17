@@ -50,7 +50,7 @@ impl Query {
     async fn latest_rides(&self, ctx: &Context<'_>) -> Result<Vec<Ride>, async_graphql::Error> {
         let now = chrono::Utc::now();
         let thirty_days_ago = now - chrono::Duration::days(30);
-        let trips: &Vec<rwgps::types::Trip> = ctx.data()?;
+        let trips: &Vec<rwgps::types::Trip> = &Vec::new();
 
         Ok(trips
             .into_iter()

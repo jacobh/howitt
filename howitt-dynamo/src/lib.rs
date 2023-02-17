@@ -15,9 +15,8 @@ use howitt::checkpoint::Checkpoint;
 use howitt::config::Config;
 use howitt::model::{Item, Model};
 use howitt::repo::Repo;
-use howitt::route::{Route, RouteModel};
+use howitt::route::RouteModel;
 use itertools::Itertools;
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, SemaphorePermit};
 
