@@ -3,7 +3,7 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import type { AppProps } from "next/app";
 
 const client = new ApolloClient({
-  uri: "http://localhost:8000",
+  uri: "https://howitt-api.haslehurst.net/graphql",
   cache: new InMemoryCache(),
 });
 

@@ -44,7 +44,7 @@ const OverlayContainer = styled.div`
 `;
 
 export default function Home() {
-  const [mode] = useState("mode");
+  const [mode] = useState("routes");
 
   const { loading, data } = useQuery(HOME_QUERY);
   const [inspectedFeatures, setInspectedFeatures] = useState<any[]>([]);
