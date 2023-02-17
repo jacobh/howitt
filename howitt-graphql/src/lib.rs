@@ -1,10 +1,14 @@
 #![feature(async_closure)]
 use async_graphql::*;
+use derive_more::From;
 use futures::{prelude::*, stream::FuturesUnordered};
-use howitt::{
-    config::Config,
-    repo::{CheckpointRepo, ConfigRepo, RouteModelRepo},
-};
+use howitt::repo::{CheckpointRepo, ConfigRepo, RouteModelRepo};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, From)]
+pub struct Ulid(ulid::Ulid);
+
+scalar!(Ulid);
 
 pub struct Query;
 
@@ -38,11 +42,7 @@ impl Query {
 
         let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
 
-        Ok(routes
-            .into_iter()
-            .flatten()
-            .map(Route)
-            .collect())
+        Ok(routes.into_iter().flatten().map(Route).collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None
@@ -81,8 +81,8 @@ pub struct Route(howitt::route::RouteModel);
 
 #[Object]
 impl Route {
-    async fn id(&self) -> String {
-        self.0.route.id.to_string()
+    async fn id(&self) -> Ulid {
+        Ulid::from(self.0.route.id)
     }
     async fn name(&self) -> &str {
         &self.0.route.name
@@ -141,8 +141,8 @@ pub struct Checkpoint(howitt::checkpoint::Checkpoint);
 
 #[Object]
 impl Checkpoint {
-    async fn id(&self) -> &uuid::Uuid {
-        &self.0.id
+    async fn id<'a>(&'a self) -> Ulid {
+        Ulid::from(self.0.id)
     }
     async fn name(&self) -> &str {
         &self.0.name

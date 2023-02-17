@@ -7,9 +7,11 @@ use gtfs::{GtfsStop, GtfsZip};
 use itertools::Itertools;
 // use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
+use chrono::prelude::*;
 use howitt::{
     checkpoint::{Checkpoint, CheckpointType},
     config::Config,
+    ulid_ext::generate_ulid,
     EtrexFile,
 };
 use project_root::get_project_root;
@@ -63,11 +65,15 @@ pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {
                 stop_lon,
                 ..
             } = stop;
+            let name = stop_name;
+            let point = geo::Point::new(stop_lon, stop_lat);
+            let checkpoint_type = CheckpointType::RailwayStation;
+
             Checkpoint {
-                id: uuid::Uuid::new_v4(),
-                name: stop_name,
-                point: geo::Point::new(stop_lon, stop_lat),
-                checkpoint_type: CheckpointType::RailwayStation,
+                id: generate_ulid::<Utc, _>(None, (&name, &point, &checkpoint_type)).unwrap(),
+                name,
+                point,
+                checkpoint_type,
             }
         });
 
@@ -114,7 +120,15 @@ pub fn load_localities() -> Result<Vec<Checkpoint>, anyhow::Error> {
             let polygon = convert_polygon(shapefile::Polygon::try_from(shape)?);
 
             Ok(Checkpoint {
-                id: uuid::Uuid::new_v4(),
+                id: generate_ulid::<Utc, _>(
+                    None,
+                    (
+                        &name,
+                        polygon.centroid().unwrap(),
+                        howitt::checkpoint::CheckpointType::Locality,
+                    ),
+                )
+                .unwrap(),
                 name,
                 point: polygon.centroid().unwrap(),
                 checkpoint_type: howitt::checkpoint::CheckpointType::Locality,

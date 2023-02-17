@@ -18,6 +18,7 @@ pub mod route;
 pub mod segment;
 pub mod serde_ext;
 pub mod trip;
+pub mod ulid_ext;
 
 use gpx_ext::WaypointExt;
 

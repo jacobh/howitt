@@ -1,10 +1,8 @@
 use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
-use async_graphql_warp::{GraphQLResponse};
-use howitt::{
-    repo::{CheckpointRepo, ConfigRepo, RouteModelRepo},
-};
+use async_graphql_warp::GraphQLResponse;
+use howitt::repo::{CheckpointRepo, ConfigRepo, RouteModelRepo};
 use howitt_dynamo::SingleTableClient;
 use howitt_graphql::Query;
 use warp::{http::Response as HttpResponse, Filter};

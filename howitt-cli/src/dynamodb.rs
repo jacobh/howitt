@@ -9,12 +9,12 @@ use howitt::{
 use howitt_dynamo::{
     CheckpointRepo, ConfigRepo, DynamoModelRepo, Keys, RouteModelRepo, SingleTableClient,
 };
-use howitt_fs::{load_huts, load_routes};
+use howitt_fs::{load_huts, load_routes, load_stations};
 use itertools::Itertools;
 
 #[derive(Subcommand)]
 pub enum Dynamodb {
-    Sync,
+    SyncCheckpoints,
     SyncRoutes,
     SetStarredRoute(SetStarredRoute),
     GetRoute,
@@ -34,9 +34,11 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
     let route_model_repo = RouteModelRepo::new(client.clone());
 
     match command {
-        Dynamodb::Sync => {
+        Dynamodb::SyncCheckpoints => {
+            let stations = load_stations()?;
             let huts = load_huts()?;
 
+            checkpoint_repo.put_batch(stations).await?;
             checkpoint_repo.put_batch(huts).await?;
 
             println!("done");

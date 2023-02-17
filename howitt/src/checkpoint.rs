@@ -1,10 +1,14 @@
 use std::{fmt::Display, str::FromStr};
 
 use anyhow::anyhow;
+use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::model::{Item, Model};
+use crate::{
+    model::{Item, Model},
+    ulid_ext::generate_ulid,
+};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -44,7 +48,7 @@ impl Display for CheckpointType {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Checkpoint {
-    pub id: uuid::Uuid,
+    pub id: ulid::Ulid,
     pub name: String,
     #[serde(with = "crate::serde_ext::point_tuple")]
     pub point: geo::Point<f64>,
@@ -94,9 +98,21 @@ pub enum CheckpointError {
 impl TryFrom<gpx::Waypoint> for Checkpoint {
     type Error = CheckpointError;
     fn try_from(value: gpx::Waypoint) -> Result<Self, Self::Error> {
+        let waypoint_created_at = value
+            .time
+            .map(|time| time.format())
+            .transpose()
+            .unwrap()
+            .as_deref()
+            .map(DateTime::parse_from_rfc3339)
+            .transpose()
+            .unwrap();
+
+        let id = generate_ulid(waypoint_created_at, &value).unwrap();
+
         match value.name.clone() {
             Some(name) => Ok(Checkpoint {
-                id: uuid::Uuid::new_v4(),
+                id,
                 name,
                 point: value.point(),
                 checkpoint_type: value
