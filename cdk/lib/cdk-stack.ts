@@ -105,7 +105,7 @@ export class CdkStack extends cdk.Stack {
       methods: [HttpMethod.ANY],
     });
 
-    const remixRootDir = [PROJECT_ROOT_DIR, 'webui-remix'].join('/')
+    const remixRootDir = [PROJECT_ROOT_DIR, 'webui'].join('/')
 
     const remixLambda = new NodejsFunction(this, "remix-webui", {
       architecture: Architecture.ARM_64,

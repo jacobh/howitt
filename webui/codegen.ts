@@ -1,10 +1,10 @@
 import { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
-  schema: "http://localhost:8000",
-  documents: ["src/**/*.tsx"],
+  schema: "https://howitt-api.haslehurst.net/graphql",
+  documents: ["app/**/*.tsx"],
   generates: {
-    "./src/__generated__/": {
+    "./app/__generated__/": {
       preset: "client",
       plugins: [],
       presetConfig: {
