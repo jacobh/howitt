@@ -7,17 +7,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "Howitt",
   viewport: "width=device-width,initial-scale=1",
-});
-
-const client = new ApolloClient({
-  uri: "https://howitt-api.haslehurst.net/graphql",
-  cache: new InMemoryCache(),
 });
 
 export default function App() {
@@ -26,14 +20,10 @@ export default function App() {
       <head>
         <Meta />
         <Links />
-        {typeof document === "undefined"
-          ? "__STYLES__"
-          : null}
+        {typeof document === "undefined" ? "__STYLES__" : null}
       </head>
       <body>
-      <ApolloProvider client={client}>
-          <Outlet />
-        </ApolloProvider>
+        <Outlet />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

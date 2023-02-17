@@ -6,7 +6,7 @@ module.exports = {
   // serverBuildPath: "build/index.js",
   // publicPath: "/build/",
   serverDependenciesToBundle: [
-    "@apollo/client",
+    /^@apollo\/client(\/.*)?$/,
     /^ol(\/.*)?/,
     "ts-invariant", 
     "zen-observable-ts"

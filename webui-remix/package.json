@@ -8,7 +8,7 @@
     "typecheck": "tsc",
     "gql-codegen": "graphql-codegen",
     "gql-watch": "graphql-codegen -w",
-    "format": "prettier --write src"
+    "format": "prettier --write app"
   },
   "dependencies": {
     "@apollo/client": "^3.7.3",
