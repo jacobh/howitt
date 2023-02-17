@@ -25,7 +25,7 @@ export default async function handleRequest(
     </ApolloProvider>
   );
 
-  await getDataFromTree(App);
+  // await getDataFromTree(App);
 
   const initialState = client.extract();
 
