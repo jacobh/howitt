@@ -1653,6 +1653,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "howitt-worker-lambda"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "lambda_runtime 0.7.3",
+ "reqwest",
+ "serde",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "http"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1887,7 +1900,7 @@ dependencies = [
  "bytes",
  "http",
  "http-body",
- "lambda_runtime",
+ "lambda_runtime 0.5.1",
  "query_map",
  "serde",
  "serde_json",
@@ -1904,7 +1917,27 @@ dependencies = [
  "bytes",
  "http",
  "hyper",
- "lambda_runtime_api_client",
+ "lambda_runtime_api_client 0.5.0",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
+ "tower",
+ "tracing",
+]
+
+[[package]]
+name = "lambda_runtime"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd32d5799db2155ae4d47116bb3e169b59f531ced4d5762a10c2125bdd2bf134"
+dependencies = [
+ "async-stream",
+ "bytes",
+ "futures",
+ "http",
+ "hyper",
+ "lambda_runtime_api_client 0.7.0",
  "serde",
  "serde_json",
  "tokio",
@@ -1918,6 +1951,18 @@ name = "lambda_runtime_api_client"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e921024b5eb4e2f0800a5d6e25c7ed554562aa62f02cf5f60a48c26c8a678974"
+dependencies = [
+ "http",
+ "hyper",
+ "tokio",
+ "tower-service",
+]
+
+[[package]]
+name = "lambda_runtime_api_client"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7210012be904051520f0dc502140ba599bae3042b65b3737b87727f1aa88a7d6"
 dependencies = [
  "http",
  "hyper",
@@ -2900,6 +2945,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sharded-slab"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "900fba806f70c630b0a382d0d825e17a0f19fcd059a2ade1ff237bcddf446b31"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "signal-hook"
 version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3077,6 +3131,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "thread_local"
+version = "1.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fdd6f064ccff2d6567adcb3873ca630700f00b5ad3f060c25b5dcfd9a4ce152"
+dependencies = [
+ "cfg-if",
+ "once_cell",
 ]
 
 [[package]]
@@ -3336,6 +3400,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "24eb03ba0eab1fd845050058ce5e616558e8f8d8fca633e6b163fe25c797213a"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "tracing-subscriber"
+version = "0.3.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6176eae26dd70d0c919749377897b54a9276bd7061339665dd68777926b5a70"
+dependencies = [
+ "sharded-slab",
+ "thread_local",
+ "tracing-core",
 ]
 
 [[package]]

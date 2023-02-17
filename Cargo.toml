@@ -8,6 +8,7 @@ members = [
     "howitt-graphql",
     "howitt-web",
     "howitt-web-lambda",
+    "howitt-worker-lambda",
     "rwgps",
     "gtfs"
 ]

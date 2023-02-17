@@ -22,6 +22,8 @@ import {
 import { Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
+import { Rule, Schedule } from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -139,5 +141,27 @@ export class CdkStack extends cdk.Stack {
       integration: remixLambdaIntegration,
       methods: [HttpMethod.ANY],
     });
+
+    const warmerDomains = [webUIDomainName.name, apiDomainName.name];
+
+    const warmerSchedule = new Rule(this, 'Rule', {
+      schedule: Schedule.expression('cron(0/15 * * * ? *)')
+    });
+
+    const warmerLambda = new RustFunction(this, 'howitt-worker-lambda', {
+      binaryName: 'warmer',
+      manifestPath: PROJECT_ROOT_DIR,
+      architecture: Architecture.ARM_64,
+      bundling: {
+        architecture: Architecture.ARM_64,
+      },
+      memorySize: 128,
+      timeout: Duration.seconds(30),
+      environment: {
+        TARGET_DOMAINS: warmerDomains.join(',')
+      },
+    });
+
+    warmerSchedule.addTarget(new targets.LambdaFunction(warmerLambda));
   }
 }
