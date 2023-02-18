@@ -47,6 +47,10 @@ jobs:
             - name: Install esbuild
               run: npm install -g esbuild
 
+            - name: Install WebUI
+              working-directory: webui
+              run: npm install
+
             - name: install cdk
               working-directory: cdk
               run: npm install
