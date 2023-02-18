@@ -5,7 +5,7 @@ use crate::credentials::{Credentials, PasswordCredentials};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserConfig {
     pub password_info: PasswordCredentials,
-    pub user_info: Option<rwgps_types::UserInfo>,
+    pub user_info: Option<crate::UserInfo>,
 }
 impl UserConfig {
     pub fn credentials(&self) -> Credentials {

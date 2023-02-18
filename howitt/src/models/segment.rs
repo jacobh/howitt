@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{models::checkpoint::Checkpoint};
+use crate::models::checkpoint::Checkpoint;
 
 crate::model_id!(SegmentId, "SEGMENT");
 

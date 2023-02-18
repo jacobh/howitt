@@ -2,6 +2,10 @@ use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_default_from_empty_object;
 use serde_json::Value;
 
+pub mod client;
+pub mod config;
+pub mod credentials;
+
 #[derive(Deserialize, Debug)]
 pub struct AuthenticatedUserDetailResponse {
     pub user: UserInfo,

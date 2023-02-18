@@ -4,7 +4,7 @@ use howitt_fs::{
     load_routes, load_user_config, persist_routes, persist_trips, persist_user_config,
 };
 use itertools::Itertools;
-use rwgps::{config::UserConfig, credentials::PasswordCredentials};
+use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
 use crate::json::prettyprintln;
@@ -113,8 +113,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .collect()
                 .await;
 
-            let trips: Vec<rwgps_types::Trip> =
-                trips.into_iter().collect::<Result<Vec<_>, _>>()?;
+            let trips: Vec<rwgps_types::Trip> = trips.into_iter().collect::<Result<Vec<_>, _>>()?;
 
             persist_trips(&trips)?;
             dbg!(trips.len());

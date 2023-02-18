@@ -7,8 +7,8 @@ use howitt_fs::{load_huts, load_localities, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use rwgps_types::Route;
 use howitt::services::{detect_segments::detect_segments, nearby::nearby_checkpoints};
+use rwgps_types::Route;
 
 use crate::json::prettyprintln;
 

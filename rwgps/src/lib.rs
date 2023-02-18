@@ -4,13 +4,11 @@
 use std::sync::Arc;
 
 use reqwest::{RequestBuilder, Url};
+use rwgps_types::credentials::Credentials;
 use thiserror::Error;
 
-pub mod config;
-pub mod credentials;
 mod reqwest_ext;
 
-use credentials::Credentials;
 use reqwest_ext::{ResponseExt, SerdeDebugError};
 use tokio::sync::{Semaphore, SemaphorePermit};
 
@@ -50,7 +48,9 @@ impl RwgpsClient {
         self.semaphore.acquire().await.unwrap()
     }
 
-    pub async fn user_info(&self) -> Result<rwgps_types::AuthenticatedUserDetailResponse, RwgpsError> {
+    pub async fn user_info(
+        &self,
+    ) -> Result<rwgps_types::AuthenticatedUserDetailResponse, RwgpsError> {
         let _permit = self.acquire_semaphore_permit().await;
 
         let resp: rwgps_types::AuthenticatedUserDetailResponse = self
@@ -80,7 +80,10 @@ impl RwgpsClient {
         Ok(resp.results)
     }
 
-    pub async fn user_trips(&self, user_id: usize) -> Result<Vec<rwgps_types::TripSummary>, RwgpsError> {
+    pub async fn user_trips(
+        &self,
+        user_id: usize,
+    ) -> Result<Vec<rwgps_types::TripSummary>, RwgpsError> {
         let _permit = self.acquire_semaphore_permit().await;
 
         let resp: rwgps_types::ListResponse<rwgps_types::TripSummary> = self

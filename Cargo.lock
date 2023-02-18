@@ -1512,10 +1512,12 @@ dependencies = [
  "bincode",
  "chrono",
  "derive_more",
+ "futures",
  "geo",
  "gpx",
  "itertools",
  "md5",
+ "rwgps_types",
  "serde",
  "snap",
  "thiserror",
@@ -2749,7 +2751,9 @@ dependencies = [
 name = "rwgps_types"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
  "chrono",
+ "derive_more",
  "geo",
  "gpx",
  "serde",

@@ -21,3 +21,5 @@ bincode = "*"
 snap = "1"
 ulid = { version = "1", features = ["serde"] }
 md5 = "*"
+rwgps_types = { path = "../rwgps-types" }
+futures = "*"
