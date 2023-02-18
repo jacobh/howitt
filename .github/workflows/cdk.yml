@@ -42,7 +42,7 @@ jobs:
               with:
                 repo: cargo-lambda/cargo-lambda
                 platform: linux
-                arch: x86_64 # Other valid options for linux: 'aarch64'
+                arch: aarch64
 
             - name: install cdk
               working-directory: cdk
