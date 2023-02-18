@@ -111,7 +111,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
         Dynamodb::SetStarredRoute(SetStarredRoute { route_id }) => {
             let route_id = ulid::Ulid::from_string(route_id)?;
             let mut config = config_repo.get_model(ConfigId).await?.unwrap_or_default();
-            config.starred_route_ids.push(route_id);
+            config.starred_route_ids.push(RouteId::from(route_id));
             config_repo.put(config).await?;
         }
         Dynamodb::GetRoute => {

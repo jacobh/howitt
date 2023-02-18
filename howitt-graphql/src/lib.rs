@@ -37,7 +37,7 @@ impl Query {
             .starred_route_ids
             .iter()
             .map(|route_id| (route_id, route_repo.clone()))
-            .map(async move |(route_id, route_repo)| route_repo.get(RouteId::from(*route_id)).await)
+            .map(async move |(route_id, route_repo)| route_repo.get(*route_id).await)
             .collect::<FuturesUnordered<_>>()
             .collect::<Vec<_>>()
             .await;

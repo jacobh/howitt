@@ -20,14 +20,14 @@ pub trait Item: Send + Sync + Serialize + DeserializeOwned {
     fn item_id(&self) -> Option<String>;
 }
 
-pub trait ModelId: Send + Sync + std::fmt::Display + PartialEq {
+pub trait ModelId: Send + Sync + std::fmt::Display + PartialEq + Copy + Clone {
     fn model_name() -> &'static str;
 }
 
 #[macro_export]
 macro_rules! model_id {
     ($type_name:ident, $model_name:expr) => {
-        #[derive(Debug, derive_more::From, derive_more::Into, PartialEq, Clone)]
+        #[derive(Debug, derive_more::From, derive_more::Into, PartialEq, Clone, Copy)]
         pub struct $type_name(ulid::Ulid);
 
         impl $type_name {

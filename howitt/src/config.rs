@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::{Item, Model, ModelId};
+use crate::{model::{Item, Model, ModelId}, route::RouteId};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub struct ConfigId;
 
 impl std::fmt::Display for ConfigId {
@@ -19,7 +19,7 @@ impl ModelId for ConfigId {
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct Config {
-    pub starred_route_ids: Vec<ulid::Ulid>,
+    pub starred_route_ids: Vec<RouteId>,
 }
 impl Model for Config {
     type Id = ConfigId;
