@@ -7,12 +7,17 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import styled from "styled-components";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "Howitt",
   viewport: "width=device-width,initial-scale=1",
 });
+
+const StyledBody = styled.body`
+  margin: 0;
+`
 
 export default function App() {
   return (
@@ -22,12 +27,12 @@ export default function App() {
         <Links />
         {typeof document === "undefined" ? "__STYLES__" : null}
       </head>
-      <body>
+      <StyledBody>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
-      </body>
+      </StyledBody>
     </html>
   );
 }
