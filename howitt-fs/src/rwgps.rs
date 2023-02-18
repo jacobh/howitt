@@ -1,4 +1,5 @@
-use rwgps::{config::UserConfig, types::Route};
+use rwgps::{config::UserConfig};
+use rwgps_types::Route;
 
 use crate::dirs::CONFIG_DIRPATH;
 
@@ -30,7 +31,7 @@ pub fn load_routes() -> Result<Vec<Route>, anyhow::Error> {
     Ok(serde_json::from_slice(&data)?)
 }
 
-pub fn persist_routes(routes: &Vec<rwgps::types::Route>) -> Result<(), anyhow::Error> {
+pub fn persist_routes(routes: &Vec<rwgps_types::Route>) -> Result<(), anyhow::Error> {
     let routes_filepath = CONFIG_DIRPATH.join("rwgps_routes.json");
 
     std::fs::write(routes_filepath, serde_json::to_vec(routes)?)?;
@@ -38,14 +39,14 @@ pub fn persist_routes(routes: &Vec<rwgps::types::Route>) -> Result<(), anyhow::E
     Ok(())
 }
 
-pub fn load_trips() -> Result<Vec<rwgps::types::Trip>, anyhow::Error> {
+pub fn load_trips() -> Result<Vec<rwgps_types::Trip>, anyhow::Error> {
     let trips_filepath = CONFIG_DIRPATH.join("rwgps_trips.json");
 
     let data = std::fs::read(trips_filepath)?;
     Ok(serde_json::from_slice(&data)?)
 }
 
-pub fn persist_trips(trips: &Vec<rwgps::types::Trip>) -> Result<(), anyhow::Error> {
+pub fn persist_trips(trips: &Vec<rwgps_types::Trip>) -> Result<(), anyhow::Error> {
     let trips_filepath = CONFIG_DIRPATH.join("rwgps_trips.json");
 
     std::fs::write(trips_filepath, serde_json::to_vec(trips)?)?;

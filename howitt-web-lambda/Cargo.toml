@@ -15,7 +15,6 @@ howitt = { path = "../howitt" }
 howitt-graphql = { path = "../howitt-graphql" }
 howitt-dynamo = { path = "../howitt-dynamo" }
 http = "*"
-rwgps = { path = "../rwgps" }
 tokio = { version = "1", features = ["full"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 warp = "0.3"

@@ -10,5 +10,6 @@ members = [
     "howitt-web-lambda",
     "howitt-worker-lambda",
     "rwgps",
+    "rwgps-types",
     "gtfs"
 ]

@@ -88,7 +88,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .user_routes(user_config.user_info.as_ref().unwrap().id)
                 .await?;
 
-            let routes: Vec<Result<rwgps::types::Route, _>> = route_summaries
+            let routes: Vec<Result<rwgps_types::Route, _>> = route_summaries
                 .into_iter()
                 .map(|route| (route, client.clone()))
                 .map(async move |(route, client)| client.route(route.id).await)
@@ -105,7 +105,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .user_trips(user_config.user_info.as_ref().unwrap().id)
                 .await?;
 
-            let trips: Vec<Result<rwgps::types::Trip, _>> = trip_summaries
+            let trips: Vec<Result<rwgps_types::Trip, _>> = trip_summaries
                 .into_iter()
                 .map(|trip| (trip, client.clone()))
                 .map(async move |(trip, client)| client.trip(trip.id).await)
@@ -113,14 +113,14 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .collect()
                 .await;
 
-            let trips: Vec<rwgps::types::Trip> =
+            let trips: Vec<rwgps_types::Trip> =
                 trips.into_iter().collect::<Result<Vec<_>, _>>()?;
 
             persist_trips(&trips)?;
             dbg!(trips.len());
         }
         Rwgps::Routes(Routes::List) => {
-            let routes: Vec<rwgps::types::Route> = load_routes()?
+            let routes: Vec<rwgps_types::Route> = load_routes()?
                 .into_iter()
                 .sorted_by_key(|route| route.id)
                 .collect_vec();

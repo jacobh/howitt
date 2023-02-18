@@ -1542,6 +1542,7 @@ dependencies = [
  "prettytable-rs",
  "rayon",
  "rwgps",
+ "rwgps_types",
  "serde",
  "serde_json",
  "tokio",
@@ -1583,6 +1584,7 @@ dependencies = [
  "lazy_static",
  "project-root",
  "rwgps",
+ "rwgps_types",
  "serde",
  "serde_json",
  "shapefile",
@@ -1605,7 +1607,7 @@ dependencies = [
  "gpx",
  "howitt",
  "polyline",
- "rwgps",
+ "rwgps_types",
  "serde",
  "ulid",
  "uuid",
@@ -1627,6 +1629,7 @@ dependencies = [
  "howitt-graphql",
  "http",
  "rwgps",
+ "rwgps_types",
  "tokio",
  "uuid",
  "warp",
@@ -1647,7 +1650,6 @@ dependencies = [
  "howitt-dynamo",
  "howitt-graphql",
  "http",
- "rwgps",
  "tokio",
  "uuid",
  "warp",
@@ -2734,13 +2736,25 @@ dependencies = [
  "geo",
  "gpx",
  "reqwest",
+ "rwgps_types",
  "serde",
- "serde-aux",
  "serde_json",
  "serde_path_to_error",
  "thiserror",
  "tokio",
  "url",
+]
+
+[[package]]
+name = "rwgps_types"
+version = "0.0.0"
+dependencies = [
+ "chrono",
+ "geo",
+ "gpx",
+ "serde",
+ "serde-aux",
+ "serde_json",
 ]
 
 [[package]]

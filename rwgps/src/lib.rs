@@ -9,7 +9,6 @@ use thiserror::Error;
 pub mod config;
 pub mod credentials;
 mod reqwest_ext;
-pub mod types;
 
 use credentials::Credentials;
 use reqwest_ext::{ResponseExt, SerdeDebugError};
@@ -51,10 +50,10 @@ impl RwgpsClient {
         self.semaphore.acquire().await.unwrap()
     }
 
-    pub async fn user_info(&self) -> Result<types::AuthenticatedUserDetailResponse, RwgpsError> {
+    pub async fn user_info(&self) -> Result<rwgps_types::AuthenticatedUserDetailResponse, RwgpsError> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        let resp: types::AuthenticatedUserDetailResponse = self
+        let resp: rwgps_types::AuthenticatedUserDetailResponse = self
             .get("/users/current.json")?
             .send()
             .await?
@@ -67,10 +66,10 @@ impl RwgpsClient {
     pub async fn user_routes(
         &self,
         user_id: usize,
-    ) -> Result<Vec<types::RouteSummary>, RwgpsError> {
+    ) -> Result<Vec<rwgps_types::RouteSummary>, RwgpsError> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        let resp: types::ListResponse<types::RouteSummary> = self
+        let resp: rwgps_types::ListResponse<rwgps_types::RouteSummary> = self
             .get(&format!("/users/{}/routes.json", user_id))?
             .query(&[("limit", "1000")])
             .send()
@@ -81,10 +80,10 @@ impl RwgpsClient {
         Ok(resp.results)
     }
 
-    pub async fn user_trips(&self, user_id: usize) -> Result<Vec<types::TripSummary>, RwgpsError> {
+    pub async fn user_trips(&self, user_id: usize) -> Result<Vec<rwgps_types::TripSummary>, RwgpsError> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        let resp: types::ListResponse<types::TripSummary> = self
+        let resp: rwgps_types::ListResponse<rwgps_types::TripSummary> = self
             .get(&format!("/users/{}/trips.json", user_id))?
             .query(&[("limit", "5000")])
             .send()
@@ -95,10 +94,10 @@ impl RwgpsClient {
         Ok(resp.results)
     }
 
-    pub async fn route(&self, route_id: usize) -> Result<types::Route, RwgpsError> {
+    pub async fn route(&self, route_id: usize) -> Result<rwgps_types::Route, RwgpsError> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        let resp: types::RouteResponse = self
+        let resp: rwgps_types::RouteResponse = self
             .get(&format!("/routes/{}.json", route_id))?
             .send()
             .await?
@@ -108,10 +107,10 @@ impl RwgpsClient {
         Ok(resp.route)
     }
 
-    pub async fn trip(&self, trip_id: usize) -> Result<types::Trip, RwgpsError> {
+    pub async fn trip(&self, trip_id: usize) -> Result<rwgps_types::Trip, RwgpsError> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        let resp: types::TripResponse = self
+        let resp: rwgps_types::TripResponse = self
             .get(&format!("/trips/{}.json", trip_id))?
             .send()
             .await?

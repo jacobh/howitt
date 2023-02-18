@@ -10,7 +10,7 @@ use warp::{http::Response as HttpResponse, Filter, Rejection};
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let routes: Vec<rwgps::types::Route> = load_routes()?;
+    let routes: Vec<rwgps_types::Route> = load_routes()?;
     let trips = load_trips()?;
     let config: Config = load_config()?;
     let huts = load_huts()?;

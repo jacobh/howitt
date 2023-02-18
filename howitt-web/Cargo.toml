@@ -15,6 +15,7 @@ howitt = { path = "../howitt" }
 howitt-fs = { path = "../howitt-fs" }
 howitt-graphql = { path = "../howitt-graphql" }
 rwgps = { path = "../rwgps" }
+rwgps_types = { path = "../rwgps-types" }
 anyhow = "*"
 gpx = "*"
 geo = "*"

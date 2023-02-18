@@ -40,7 +40,7 @@ impl Query {
     async fn latest_rides(&self) -> Result<Vec<Ride>, async_graphql::Error> {
         let now = chrono::Utc::now();
         let thirty_days_ago = now - chrono::Duration::days(30);
-        let trips: &Vec<rwgps::types::Trip> = &Vec::new();
+        let trips: &Vec<rwgps_types::Trip> = &Vec::new();
 
         Ok(trips
             .into_iter()
@@ -101,7 +101,7 @@ impl Route {
     }
 }
 
-pub struct Ride(rwgps::types::Trip);
+pub struct Ride(rwgps_types::Trip);
 
 #[Object]
 impl Ride {

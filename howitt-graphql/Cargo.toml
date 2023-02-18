@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 async-graphql = { version = "5", features = ["uuid"] }
 howitt = { path = "../howitt" }
-rwgps = { path = "../rwgps" }
+rwgps_types = { path = "../rwgps-types" }
 anyhow = "*"
 gpx = "*"
 geo = "*"

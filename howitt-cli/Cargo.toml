@@ -11,6 +11,7 @@ howitt-dynamo = { path = "../howitt-dynamo" }
 anyhow = "*"
 rayon = "*"
 rwgps = { path = "../rwgps" }
+rwgps_types = { path = "../rwgps-types" }
 serde = { version = "1", features = ["derive"] }
 toml = "*"
 serde_json = "*"
