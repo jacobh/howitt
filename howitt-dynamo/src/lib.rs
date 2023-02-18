@@ -11,11 +11,11 @@ use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
 use futures::{prelude::*, stream::FuturesOrdered};
-use howitt::checkpoint::Checkpoint;
-use howitt::config::Config;
+use howitt::checkpoint::{Checkpoint, CheckpointId};
+use howitt::config::{Config, ConfigId};
 use howitt::model::{Item, Model};
 use howitt::repo::Repo;
-use howitt::route::RouteModel;
+use howitt::route::{RouteId, RouteModel};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, SemaphorePermit};
@@ -246,21 +246,16 @@ pub trait DynamoModelRepo {
 
     fn client(&self) -> &SingleTableClient;
 
-    fn pk(model_id: impl Into<String>) -> String {
-        vec![Self::Model::model_name().to_string(), model_id.into()].join("#")
-    }
-
     fn keys(item: &<Self::Model as Model>::Item) -> Keys {
         let model_name = Self::Model::model_name().to_string();
-        let model_id = item.model_id();
+        let model_id = item.model_id().to_string();
         let item_name = item.item_name();
         let item_id = item.item_id();
 
         Keys {
-            pk: format_key([Some(&*model_name), Some(&*model_id)]),
+            pk: model_id.to_string(),
             sk: format_key([
-                Some(&*model_name),
-                Some(&*model_id),
+                Some(model_id.as_str()),
                 item_name.as_deref(),
                 item_id.as_deref(),
             ]),
@@ -270,7 +265,6 @@ pub trait DynamoModelRepo {
                 item_name.as_deref(),
             ])),
             gsi1sk: Some(format_key([
-                Some(&*model_name),
                 Some(&*model_id),
                 item_name.as_deref(),
                 item_id.as_deref(),
@@ -278,10 +272,13 @@ pub trait DynamoModelRepo {
         }
     }
 
-    async fn get_model(&self, model_id: String) -> Result<Option<Self::Model>, anyhow::Error> {
+    async fn get_model(
+        &self,
+        model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
+    ) -> Result<Option<Self::Model>, anyhow::Error> {
         let items = self
             .client()
-            .query_pk(Self::pk(model_id), Index::Default)
+            .query_pk(model_id.to_string(), Index::Default)
             .await?;
 
         if items.len() == 0 {
@@ -367,7 +364,7 @@ impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
     async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
         DynamoModelRepo::all(self).await
     }
-    async fn get(&self, id: String) -> Result<Option<Checkpoint>, anyhow::Error> {
+    async fn get(&self, id: CheckpointId) -> Result<Option<Checkpoint>, anyhow::Error> {
         DynamoModelRepo::get_model(self, id).await
     }
 }
@@ -388,7 +385,7 @@ impl Repo<RouteModel, anyhow::Error> for RouteModelRepo {
     async fn all(&self) -> Result<Vec<RouteModel>, anyhow::Error> {
         DynamoModelRepo::all(self).await
     }
-    async fn get(&self, id: String) -> Result<Option<RouteModel>, anyhow::Error> {
+    async fn get(&self, id: RouteId) -> Result<Option<RouteModel>, anyhow::Error> {
         DynamoModelRepo::get_model(self, id).await
     }
 }
@@ -409,7 +406,7 @@ impl Repo<Config, anyhow::Error> for ConfigRepo {
     async fn all(&self) -> Result<Vec<Config>, anyhow::Error> {
         DynamoModelRepo::all(self).await
     }
-    async fn get(&self, id: String) -> Result<Option<Config>, anyhow::Error> {
+    async fn get(&self, id: ConfigId) -> Result<Option<Config>, anyhow::Error> {
         DynamoModelRepo::get_model(self, id).await
     }
 }

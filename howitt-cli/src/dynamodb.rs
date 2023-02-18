@@ -1,10 +1,13 @@
+use std::str::FromStr;
+
 use anyhow::anyhow;
 use clap::{Args, Subcommand};
 use futures::{prelude::*, stream::FuturesUnordered};
 use howitt::{
+    config::ConfigId,
     external_ref::{ExternalRef, ExternalSource},
     point::ElevationPoint,
-    route::{Route, RouteModel, RoutePointChunk},
+    route::{Route, RouteId, RouteModel, RoutePointChunk},
 };
 use howitt_dynamo::{
     CheckpointRepo, ConfigRepo, DynamoModelRepo, Keys, RouteModelRepo, SingleTableClient,
@@ -107,16 +110,15 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
         }
         Dynamodb::SetStarredRoute(SetStarredRoute { route_id }) => {
             let route_id = ulid::Ulid::from_string(route_id)?;
-            let mut config = config_repo
-                .get_model("SINGLETON".into())
-                .await?
-                .unwrap_or_default();
+            let mut config = config_repo.get_model(ConfigId).await?.unwrap_or_default();
             config.starred_route_ids.push(route_id);
             config_repo.put(config).await?;
         }
         Dynamodb::GetRoute => {
             let model = route_model_repo
-                .get_model("01GRQGBJ9NNA8354256RQ10DJB".to_string())
+                .get_model(RouteId::from(
+                    ulid::Ulid::from_str("01GRQGBJ9NNA8354256RQ10DJB").unwrap(),
+                ))
                 .await?
                 .ok_or(anyhow!("route not found"))?;
             dbg!(&model.route.name);

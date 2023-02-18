@@ -1,29 +1,50 @@
 use serde::{de::DeserializeOwned, Serialize};
 
 pub trait Model: Send + Sync + Sized {
-    type Item: Item;
+    type Id: ModelId;
+    type Item: Item<Id = Self::Id>;
 
-    fn model_name() -> &'static str;
-    fn id(&self) -> String;
+    fn model_name() -> &'static str {
+        Self::Id::model_name()
+    }
+    fn id(&self) -> Self::Id;
     fn into_items(self) -> impl IntoIterator<Item = Self::Item>;
     fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error>;
 }
 
 pub trait Item: Send + Sync + Serialize + DeserializeOwned {
-    fn model_id(&self) -> String;
+    type Id: ModelId;
+
+    fn model_id(&self) -> Self::Id;
     fn item_name(&self) -> Option<String>;
     fn item_id(&self) -> Option<String>;
+}
+
+pub trait ModelId: Send + Sync + std::fmt::Display + PartialEq {
+    fn model_name() -> &'static str;
 }
 
 #[macro_export]
 macro_rules! model_id {
     ($type_name:ident, $model_name:expr) => {
-        #[derive(Debug, derive_more::From, derive_more::Into)]
+        #[derive(Debug, derive_more::From, derive_more::Into, PartialEq, Clone)]
         pub struct $type_name(ulid::Ulid);
 
         impl $type_name {
-            fn new() -> $type_name {
+            pub fn new() -> $type_name {
                 $type_name(ulid::Ulid::new())
+            }
+        }
+
+        impl crate::model::ModelId for $type_name {
+            fn model_name() -> &'static str {
+                $model_name
+            }
+        }
+
+        impl std::fmt::Display for $type_name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}#{}", $model_name, self.0)
             }
         }
 
@@ -32,9 +53,7 @@ macro_rules! model_id {
             where
                 S: serde::Serializer,
             {
-                [String::from($model_name), self.0.to_string()]
-                    .join("#")
-                    .serialize(serializer)
+                self.to_string().serialize(serializer)
             }
         }
 

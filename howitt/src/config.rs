@@ -1,24 +1,36 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::{Item, Model};
+use crate::model::{Item, Model, ModelId};
+
+#[derive(PartialEq)]
+pub struct ConfigId;
+
+impl std::fmt::Display for ConfigId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "CONFIG#SINGLETON")
+    }
+}
+
+impl ModelId for ConfigId {
+    fn model_name() -> &'static str {
+        "CONFIG"
+    }
+}
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct Config {
     pub starred_route_ids: Vec<ulid::Ulid>,
 }
 impl Model for Config {
+    type Id = ConfigId;
     type Item = Config;
 
-    fn model_name() -> &'static str {
-        return "CONFIG";
-    }
-
-    fn id(&self) -> String {
-        return String::from("SINGLETON");
+    fn id(&self) -> ConfigId {
+        ConfigId
     }
 
     fn into_items(self) -> impl IntoIterator<Item = Self::Item> {
-        return [self];
+        [self]
     }
 
     fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error> {
@@ -33,15 +45,17 @@ impl Model for Config {
 }
 
 impl Item for Config {
-    fn model_id(&self) -> String {
-        return String::from("SINGLETON");
+    type Id = ConfigId;
+
+    fn model_id(&self) -> ConfigId {
+        ConfigId
     }
 
     fn item_name(&self) -> Option<String> {
-        return None;
+        None
     }
 
     fn item_id(&self) -> Option<String> {
-        return None;
+        None
     }
 }

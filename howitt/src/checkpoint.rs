@@ -46,6 +46,8 @@ impl Display for CheckpointType {
     }
 }
 
+crate::model_id!(CheckpointId, "CHECKPOINT");
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Checkpoint {
     pub id: ulid::Ulid,
@@ -56,14 +58,11 @@ pub struct Checkpoint {
 }
 
 impl Model for Checkpoint {
+    type Id = CheckpointId;
     type Item = Checkpoint;
 
-    fn model_name() -> &'static str {
-        "CHECKPOINT"
-    }
-
-    fn id(&self) -> String {
-        self.id.to_string()
+    fn id(&self) -> CheckpointId {
+        CheckpointId::from(self.id)
     }
 
     fn into_items(self) -> impl IntoIterator<Item = Self::Item> {
@@ -76,12 +75,14 @@ impl Model for Checkpoint {
 }
 
 impl Item for Checkpoint {
+    type Id = CheckpointId;
+
     fn item_name(&self) -> Option<String> {
         None
     }
 
-    fn model_id(&self) -> String {
-        self.id.to_string()
+    fn model_id(&self) -> CheckpointId {
+        CheckpointId::from(self.id)
     }
 
     fn item_id(&self) -> Option<String> {

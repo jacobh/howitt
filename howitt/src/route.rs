@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{external_ref::ExternalRef, point::ElevationPoint};
 
+crate::model_id!(RouteId, "ROUTE");
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Route {
     pub id: ulid::Ulid,
@@ -35,14 +37,11 @@ impl RouteModel {
 }
 
 impl crate::model::Model for RouteModel {
+    type Id = RouteId;
     type Item = RouteItem;
 
-    fn model_name() -> &'static str {
-        "ROUTE"
-    }
-
-    fn id(&self) -> String {
-        self.route.id.to_string()
+    fn id(&self) -> RouteId {
+        RouteId::from(self.route.id)
     }
 
     fn into_items(self) -> impl Iterator<Item = Self::Item> {
@@ -89,6 +88,8 @@ impl RouteItem {
     }
 }
 impl crate::model::Item for RouteItem {
+    type Id = RouteId;
+
     fn item_name(&self) -> Option<String> {
         match self {
             RouteItem::Route(_) => None,
@@ -96,10 +97,10 @@ impl crate::model::Item for RouteItem {
         }
     }
 
-    fn model_id(&self) -> String {
+    fn model_id(&self) -> RouteId {
         match self {
-            RouteItem::Route(route) => route.id.to_string(),
-            RouteItem::PointChunk(chunk) => chunk.route_id.to_string(),
+            RouteItem::Route(route) => RouteId::from(route.id),
+            RouteItem::PointChunk(chunk) => RouteId::from(chunk.route_id),
         }
     }
 

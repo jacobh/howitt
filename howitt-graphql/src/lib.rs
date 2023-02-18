@@ -3,7 +3,11 @@ use async_graphql::*;
 use derive_more::From;
 use futures::{prelude::*, stream::FuturesUnordered};
 use geo::{CoordsIter, SimplifyVW};
-use howitt::repo::{CheckpointRepo, ConfigRepo, RouteModelRepo};
+use howitt::{
+    config::ConfigId,
+    repo::{CheckpointRepo, ConfigRepo, RouteModelRepo},
+    route::RouteId,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, From)]
@@ -27,16 +31,13 @@ impl Query {
         let config_repo: &ConfigRepo = ctx.data()?;
         let route_repo: &RouteModelRepo = ctx.data()?;
 
-        let config = config_repo
-            .get("SINGLETON".into())
-            .await?
-            .unwrap_or_default();
+        let config = config_repo.get(ConfigId).await?.unwrap_or_default();
 
         let routes = config
             .starred_route_ids
             .iter()
             .map(|route_id| (route_id, route_repo.clone()))
-            .map(async move |(route_id, route_repo)| route_repo.get(route_id.to_string()).await)
+            .map(async move |(route_id, route_repo)| route_repo.get(RouteId::from(*route_id)).await)
             .collect::<FuturesUnordered<_>>()
             .collect::<Vec<_>>()
             .await;
