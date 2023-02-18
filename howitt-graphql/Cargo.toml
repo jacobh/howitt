@@ -19,3 +19,4 @@ futures = "*"
 ulid = "*"
 serde = { version = "*", features = ["derive"] }
 derive_more = "*"
+polyline = "*"

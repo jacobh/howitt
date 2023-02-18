@@ -1603,6 +1603,7 @@ dependencies = [
  "geojson",
  "gpx",
  "howitt",
+ "polyline",
  "rwgps",
  "serde",
  "ulid",
@@ -2374,6 +2375,15 @@ name = "pkg-config"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ac9a59f73473f1b8d852421e59e64809f025994837ef743615c6d0c5b305160"
+
+[[package]]
+name = "polyline"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4fb271c371b801041a8eaa6046cf694f84dd21817610f5ba962efd273f47779"
+dependencies = [
+ "geo-types",
+]
 
 [[package]]
 name = "ppv-lite86"

@@ -2,6 +2,7 @@
 use async_graphql::*;
 use derive_more::From;
 use futures::{prelude::*, stream::FuturesUnordered};
+use geo::{CoordsIter, SimplifyVW};
 use howitt::repo::{CheckpointRepo, ConfigRepo, RouteModelRepo};
 use serde::{Deserialize, Serialize};
 
@@ -99,6 +100,15 @@ impl Route {
             .iter_geo_points()
             .map(|point| vec![point.x(), point.y()])
             .collect()
+    }
+    async fn polyline(&self) -> String {
+        polyline::encode_coordinates(
+            self.0
+                .iter_geo_points()
+                .flat_map(|point| point.coords_iter()),
+            5,
+        )
+        .unwrap()
     }
 }
 
