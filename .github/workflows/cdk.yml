@@ -7,7 +7,7 @@ on:
 
 jobs:
     build:
-        runs-on: buildjet-8vcpu-ubuntu-2204-arm
+        runs-on: buildjet-16vcpu-ubuntu-2204-arm
         environment: Production
 
         steps:
@@ -43,6 +43,9 @@ jobs:
                 repo: cargo-lambda/cargo-lambda
                 platform: linux
                 arch: aarch64
+
+            - name: Install esbuild
+              run: npm install -g esbuild
 
             - name: install cdk
               working-directory: cdk
