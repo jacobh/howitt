@@ -11,7 +11,9 @@ use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
 use futures::{prelude::*, stream::FuturesOrdered};
-use howitt::models::{checkpoint::Checkpoint, config::Config, route::RouteModel, Item, Model};
+use howitt::models::{
+    checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Item, Model,
+};
 use howitt::repos::Repo;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -402,5 +404,6 @@ macro_rules! impl_repo {
 }
 
 impl_repo!(CheckpointRepo, Checkpoint);
+impl_repo!(RideRepo, RideModel);
 impl_repo!(RouteModelRepo, RouteModel);
 impl_repo!(ConfigRepo, Config);
