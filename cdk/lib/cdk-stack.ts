@@ -24,6 +24,11 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
+import {
+  CloudFrontWebDistribution,
+  Distribution,
+} from "aws-cdk-lib/aws-cloudfront";
+import { HttpOrigin, OriginGroup } from "aws-cdk-lib/aws-cloudfront-origins";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -43,10 +48,10 @@ export class CdkStack extends cdk.Stack {
     });
 
     dynamoTable.addGlobalSecondaryIndex({
-      indexName: 'gsi1',
+      indexName: "gsi1",
       partitionKey: { name: "gsi1pk", type: AttributeType.STRING },
       sortKey: { name: "gsi1sk", type: AttributeType.STRING },
-    })
+    });
 
     const apiDomainName = new DomainName(
       this,
@@ -59,7 +64,7 @@ export class CdkStack extends cdk.Stack {
         }),
       }
     );
-    
+
     const webUIDomainName = new DomainName(
       this,
       "howitt.haslehurst.net-domain-name",
@@ -107,7 +112,7 @@ export class CdkStack extends cdk.Stack {
       methods: [HttpMethod.ANY],
     });
 
-    const remixRootDir = [PROJECT_ROOT_DIR, 'webui'].join('/')
+    const remixRootDir = [PROJECT_ROOT_DIR, "webui"].join("/");
 
     const remixLambda = new NodejsFunction(this, "remix-webui", {
       architecture: Architecture.ARM_64,
@@ -117,20 +122,22 @@ export class CdkStack extends cdk.Stack {
       bundling: {
         commandHooks: {
           beforeInstall: () => [],
-          beforeBundling: (inputDir, outputDir) => [`cd ${remixRootDir} && npm run build && cp -R ${remixRootDir}/public ${outputDir}`],
+          beforeBundling: (inputDir, outputDir) => [
+            `cd ${remixRootDir} && npm run build && cp -R ${remixRootDir}/public ${outputDir}`,
+          ],
           afterBundling: (_, outputDir) => [],
-        }
+        },
       },
 
-      handler: 'handler',
-      entry: [remixRootDir, 'lambdaExpressServer.ts'].join('/')
+      handler: "handler",
+      entry: [remixRootDir, "lambdaExpressServer.ts"].join("/"),
     });
-  
+
     const remixLambdaIntegration = new HttpLambdaIntegration(
       "howitt-remix-lambda-integration",
       remixLambda
     );
-  
+
     const remixApi = new HttpApi(this, "howitt-webui-api", {
       // disableExecuteApiEndpoint: true,
       defaultDomainMapping: { domainName: webUIDomainName },
@@ -144,12 +151,12 @@ export class CdkStack extends cdk.Stack {
 
     const warmerDomains = [webUIDomainName.name, apiDomainName.name];
 
-    const warmerSchedule = new Rule(this, 'Rule', {
-      schedule: Schedule.expression('cron(0/15 * * * ? *)')
+    const warmerSchedule = new Rule(this, "Rule", {
+      schedule: Schedule.expression("cron(0/15 * * * ? *)"),
     });
 
-    const warmerLambda = new RustFunction(this, 'howitt-worker-lambda', {
-      binaryName: 'warmer',
+    const warmerLambda = new RustFunction(this, "howitt-worker-lambda", {
+      binaryName: "warmer",
       manifestPath: PROJECT_ROOT_DIR,
       architecture: Architecture.ARM_64,
       bundling: {
@@ -158,7 +165,7 @@ export class CdkStack extends cdk.Stack {
       memorySize: 128,
       timeout: Duration.seconds(30),
       environment: {
-        TARGET_DOMAINS: warmerDomains.join(',')
+        TARGET_DOMAINS: warmerDomains.join(","),
       },
     });
 
