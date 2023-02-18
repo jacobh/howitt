@@ -1,7 +1,6 @@
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::{models::checkpoint::Checkpoint, services::nearby::nearby_checkpoints};
+use crate::{models::checkpoint::Checkpoint};
 
 crate::model_id!(SegmentId, "SEGMENT");
 
