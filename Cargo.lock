@@ -1576,6 +1576,7 @@ dependencies = [
  "chrono",
  "dirs",
  "geo",
+ "gpx",
  "gtfs",
  "howitt",
  "itertools",

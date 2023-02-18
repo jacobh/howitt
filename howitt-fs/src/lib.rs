@@ -12,7 +12,6 @@ use howitt::{
     checkpoint::{Checkpoint, CheckpointType},
     config::Config,
     ulid_ext::generate_ulid,
-    EtrexFile,
 };
 use project_root::get_project_root;
 use shapefile::{dbase::FieldValue, record::polygon::GenericPolygon, Point, PolygonRing};
@@ -84,9 +83,9 @@ pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {
 
 pub fn load_huts() -> Result<Vec<Checkpoint>, anyhow::Error> {
     let data = fs::read(&get_project_root()?.join("data/HUTS.gpx"))?;
-    let file = EtrexFile::parse(&data)?;
-    Ok(file
-        .gpx
+    let gpx = gpx::read(&*data)?;
+
+    Ok(gpx
         .waypoints
         .into_iter()
         .map(|mut waypoint| {

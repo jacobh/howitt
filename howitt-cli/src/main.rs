@@ -8,7 +8,7 @@ use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use ::rwgps::types::Route;
-use howitt::{nearby::nearby_checkpoints, segment::detect_segments, trip::detect_trips, EtrexFile};
+use howitt::{nearby::nearby_checkpoints, segment::detect_segments};
 
 use crate::json::prettyprintln;
 
@@ -26,8 +26,6 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    GpxInfo(GpxInfo),
-    Trips(Trips),
     Stations(Stations),
     Huts(Huts),
     Localities,
@@ -41,11 +39,6 @@ enum Commands {
 #[derive(Args)]
 struct GpxInfo {
     filepath: PathBuf,
-}
-
-#[derive(Args)]
-struct Trips {
-    dirpath: PathBuf,
 }
 
 #[derive(Args)]
@@ -68,28 +61,6 @@ async fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::GpxInfo(args) => {
-            let data = fs::read(&args.filepath)?;
-            let file = EtrexFile::parse(&data)?;
-            dbg!(&file);
-        }
-        Commands::Trips(args) => {
-            let file_paths: Vec<PathBuf> = find_file_paths(&args.dirpath);
-
-            let files: Vec<EtrexFile> = file_paths
-                .into_par_iter()
-                .map(|path| -> Result<_, anyhow::Error> {
-                    let data = fs::read(path)?;
-                    Ok(EtrexFile::parse(&data)?)
-                })
-                .collect::<Result<_, _>>()?;
-
-            let trips: Vec<_> = detect_trips(files);
-            dbg!(&trips.len());
-            for trip in trips {
-                dbg!(trip);
-            }
-        }
         Commands::Stations(_args) => {
             let railway_stations = load_stations()?;
             dbg!(railway_stations.len());
