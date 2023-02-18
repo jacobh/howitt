@@ -11,11 +11,11 @@ use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
 use futures::{prelude::*, stream::FuturesOrdered};
-use howitt::checkpoint::{Checkpoint, CheckpointId};
-use howitt::config::{Config, ConfigId};
+use howitt::checkpoint::Checkpoint;
+use howitt::config::Config;
 use howitt::model::{Item, Model};
 use howitt::repo::Repo;
-use howitt::route::{RouteId, RouteModel};
+use howitt::route::RouteModel;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, SemaphorePermit};
@@ -241,7 +241,7 @@ fn format_key<'a>(parts: impl IntoIterator<Item = Option<&'a str>>) -> String {
 }
 
 #[async_trait::async_trait]
-pub trait DynamoModelRepo {
+pub trait DynamoModelRepo: Send + Sync {
     type Model: Model;
 
     fn client(&self) -> &SingleTableClient;
@@ -291,6 +291,28 @@ pub trait DynamoModelRepo {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Some(Self::Model::from_items(items)?))
+    }
+
+    async fn get_batch(
+        &self,
+        model_ids: Vec<<<Self as DynamoModelRepo>::Model as Model>::Id>,
+    ) -> Result<Vec<Self::Model>, anyhow::Error> {
+        let results = model_ids
+            .into_iter()
+            .map(|id| (id, self.clone()))
+            .map(async move |(id, repo)| repo.get_model(id).await)
+            .collect::<FuturesOrdered<_>>()
+            .collect::<Vec<_>>()
+            .await;
+
+        let items = results
+            .into_iter()
+            .map(Result::transpose)
+            .flatten()
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(items)
+        // results.
     }
 
     async fn put(&self, model: Self::Model) -> Result<(), anyhow::Error> {
@@ -347,66 +369,41 @@ pub trait DynamoModelRepo {
     }
 }
 
-#[derive(Debug, Constructor, Clone)]
-pub struct CheckpointRepo {
-    client: SingleTableClient,
-}
-impl DynamoModelRepo for CheckpointRepo {
-    type Model = Checkpoint;
+macro_rules! impl_repo {
+    ($repo_type:ident, $model_type:ident) => {
+        #[derive(Debug, Constructor, Clone)]
+        pub struct $repo_type {
+            client: SingleTableClient,
+        }
+        impl DynamoModelRepo for $repo_type {
+            type Model = $model_type;
 
-    fn client(&self) -> &SingleTableClient {
-        &self.client
-    }
-}
+            fn client(&self) -> &SingleTableClient {
+                &self.client
+            }
+        }
 
-#[async_trait::async_trait]
-impl Repo<Checkpoint, anyhow::Error> for CheckpointRepo {
-    async fn all(&self) -> Result<Vec<Checkpoint>, anyhow::Error> {
-        DynamoModelRepo::all(self).await
-    }
-    async fn get(&self, id: CheckpointId) -> Result<Option<Checkpoint>, anyhow::Error> {
-        DynamoModelRepo::get_model(self, id).await
-    }
-}
-
-#[derive(Debug, Constructor, Clone)]
-pub struct RouteModelRepo {
-    client: SingleTableClient,
-}
-impl DynamoModelRepo for RouteModelRepo {
-    type Model = RouteModel;
-
-    fn client(&self) -> &SingleTableClient {
-        &self.client
-    }
-}
-#[async_trait::async_trait]
-impl Repo<RouteModel, anyhow::Error> for RouteModelRepo {
-    async fn all(&self) -> Result<Vec<RouteModel>, anyhow::Error> {
-        DynamoModelRepo::all(self).await
-    }
-    async fn get(&self, id: RouteId) -> Result<Option<RouteModel>, anyhow::Error> {
-        DynamoModelRepo::get_model(self, id).await
-    }
+        #[async_trait::async_trait]
+        impl Repo<$model_type, anyhow::Error> for $repo_type {
+            async fn all(&self) -> Result<Vec<$model_type>, anyhow::Error> {
+                DynamoModelRepo::all(self).await
+            }
+            async fn get(
+                &self,
+                id: <$model_type as Model>::Id,
+            ) -> Result<Option<$model_type>, anyhow::Error> {
+                DynamoModelRepo::get_model(self, id).await
+            }
+            async fn get_batch(
+                &self,
+                ids: Vec<<$model_type as Model>::Id>,
+            ) -> Result<Vec<$model_type>, anyhow::Error> {
+                DynamoModelRepo::get_batch(self, ids).await
+            }
+        }
+    };
 }
 
-#[derive(Debug, Constructor, Clone)]
-pub struct ConfigRepo {
-    client: SingleTableClient,
-}
-impl DynamoModelRepo for ConfigRepo {
-    type Model = Config;
-
-    fn client(&self) -> &SingleTableClient {
-        &self.client
-    }
-}
-#[async_trait::async_trait]
-impl Repo<Config, anyhow::Error> for ConfigRepo {
-    async fn all(&self) -> Result<Vec<Config>, anyhow::Error> {
-        DynamoModelRepo::all(self).await
-    }
-    async fn get(&self, id: ConfigId) -> Result<Option<Config>, anyhow::Error> {
-        DynamoModelRepo::get_model(self, id).await
-    }
-}
+impl_repo!(CheckpointRepo, Checkpoint);
+impl_repo!(RouteModelRepo, RouteModel);
+impl_repo!(ConfigRepo, Config);

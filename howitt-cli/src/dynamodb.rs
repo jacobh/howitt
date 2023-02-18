@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use clap::{Args, Subcommand};
 use futures::{prelude::*, stream::FuturesUnordered};
 use howitt::{
-    config::ConfigId,
+    config::{Config, ConfigId},
     external_ref::{ExternalRef, ExternalSource},
     point::ElevationPoint,
     route::{Route, RouteId, RouteModel, RoutePointChunk},
@@ -20,6 +20,7 @@ pub enum Dynamodb {
     SyncCheckpoints,
     SyncRoutes,
     SetStarredRoute(SetStarredRoute),
+    ListStarredRoutes,
     GetRoute,
     ListCheckpoints,
     DeleteAll,
@@ -124,6 +125,15 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             dbg!(&model.route.name);
             dbg!(&model.route.external_ref);
             dbg!(model.iter_geo_points().count());
+        }
+        Dynamodb::ListStarredRoutes => {
+            let config = config_repo.get_model(ConfigId).await?.unwrap();
+
+            let routes = route_model_repo.get_batch(config.starred_route_ids).await?;
+
+            for route in routes {
+                dbg!(route.route.name);
+            }
         }
         Dynamodb::ListCheckpoints => {
             let checkpoints = checkpoint_repo.all().await?;

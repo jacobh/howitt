@@ -33,18 +33,10 @@ impl Query {
 
         let config = config_repo.get(ConfigId).await?.unwrap_or_default();
 
-        let routes = config
-            .starred_route_ids
-            .iter()
-            .map(|route_id| (route_id, route_repo.clone()))
-            .map(async move |(route_id, route_repo)| route_repo.get(*route_id).await)
-            .collect::<FuturesUnordered<_>>()
-            .collect::<Vec<_>>()
-            .await;
+        let routes = route_repo.get_batch(config
+            .starred_route_ids).await?;
 
-        let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
-
-        Ok(routes.into_iter().flatten().map(Route).collect())
+        Ok(routes.into_iter().map(Route).collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None

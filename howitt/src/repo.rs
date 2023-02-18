@@ -7,6 +7,7 @@ use crate::{checkpoint::Checkpoint, config::Config, model::Model, route::RouteMo
 pub trait Repo<T: Model + Sized, E: Sized>: Send + Sync {
     async fn all(&self) -> Result<Vec<T>, E>;
     async fn get(&self, id: T::Id) -> Result<Option<T>, E>;
+    async fn get_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T>, E>;
 }
 
 pub type ConfigRepo = Arc<dyn Repo<Config, anyhow::Error>>;
