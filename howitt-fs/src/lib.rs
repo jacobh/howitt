@@ -8,10 +8,10 @@ use itertools::Itertools;
 // use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use chrono::prelude::*;
-use howitt::{
+use howitt::ext::ulid::generate_ulid;
+use howitt::models::{
     checkpoint::{Checkpoint, CheckpointType},
     config::Config,
-    ulid_ext::generate_ulid,
 };
 use project_root::get_project_root;
 use shapefile::{dbase::FieldValue, record::polygon::GenericPolygon, Point, PolygonRing};
@@ -124,13 +124,13 @@ pub fn load_localities() -> Result<Vec<Checkpoint>, anyhow::Error> {
                     (
                         &name,
                         polygon.centroid().unwrap(),
-                        howitt::checkpoint::CheckpointType::Locality,
+                        howitt::models::checkpoint::CheckpointType::Locality,
                     ),
                 )
                 .unwrap(),
                 name,
                 point: polygon.centroid().unwrap(),
-                checkpoint_type: howitt::checkpoint::CheckpointType::Locality,
+                checkpoint_type: howitt::models::checkpoint::CheckpointType::Locality,
             })
         })
         .collect::<Result<Vec<_>, _>>()?;

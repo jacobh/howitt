@@ -2,7 +2,7 @@ use std::convert::Infallible;
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
-use howitt::config::Config;
+use howitt::models::config::Config;
 use howitt_fs::{load_config, load_huts, load_routes, load_stations, load_trips};
 use howitt_graphql::Query;
 use http::StatusCode;

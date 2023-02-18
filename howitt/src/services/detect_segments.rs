@@ -1,17 +1,11 @@
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
 
-use crate::{checkpoint::Checkpoint, nearby::nearby_checkpoints};
+use crate::models::{
+    checkpoint::Checkpoint,
+    segment::{Segment, SegmentId},
+};
 
-crate::model_id!(SegmentId, "SEGMENT");
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Segment {
-    pub id: SegmentId,
-    pub start: Checkpoint,
-    pub end: Checkpoint,
-    pub route: gpx::Route,
-}
+use super::nearby::nearby_checkpoints;
 
 pub fn detect_segments(route: &gpx::Route, checkpoints: &[Checkpoint]) -> Vec<Segment> {
     nearby_checkpoints(route, checkpoints)

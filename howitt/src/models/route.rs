@@ -3,7 +3,7 @@ use derive_more::From;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::{external_ref::ExternalRef, point::ElevationPoint};
+use crate::models::{external_ref::ExternalRef, point::ElevationPoint};
 
 crate::model_id!(RouteId, "ROUTE");
 
@@ -36,7 +36,7 @@ impl RouteModel {
     }
 }
 
-impl crate::model::Model for RouteModel {
+impl crate::models::Model for RouteModel {
     type Id = RouteId;
     type Item = RouteItem;
 
@@ -87,7 +87,7 @@ impl RouteItem {
         }
     }
 }
-impl crate::model::Item for RouteItem {
+impl crate::models::Item for RouteItem {
     type Id = RouteId;
 
     fn item_name(&self) -> Option<String> {

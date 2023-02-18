@@ -2,9 +2,8 @@ use std::str::FromStr;
 
 use anyhow::anyhow;
 use clap::{Args, Subcommand};
-use futures::{prelude::*, stream::FuturesUnordered};
-use howitt::{
-    config::{Config, ConfigId},
+use howitt::models::{
+    config::ConfigId,
     external_ref::{ExternalRef, ExternalSource},
     point::ElevationPoint,
     route::{Route, RouteId, RouteModel, RoutePointChunk},

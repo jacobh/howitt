@@ -1,5 +1,12 @@
 use serde::{de::DeserializeOwned, Serialize};
 
+pub mod checkpoint;
+pub mod config;
+pub mod external_ref;
+pub mod point;
+pub mod route;
+pub mod segment;
+
 pub trait Model: Send + Sync + Sized {
     type Id: ModelId;
     type Item: Item<Id = Self::Id>;
@@ -36,7 +43,7 @@ macro_rules! model_id {
             }
         }
 
-        impl crate::model::ModelId for $type_name {
+        impl crate::models::ModelId for $type_name {
             fn model_name() -> &'static str {
                 $model_name
             }

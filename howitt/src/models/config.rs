@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    model::{Item, Model, ModelId},
-    route::RouteId,
-};
+use crate::models::{route::RouteId, Item, Model, ModelId};
 
 #[derive(PartialEq, Copy, Clone)]
 pub struct ConfigId;

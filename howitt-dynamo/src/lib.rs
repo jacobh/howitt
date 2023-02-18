@@ -11,11 +11,8 @@ use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
 use futures::{prelude::*, stream::FuturesOrdered};
-use howitt::checkpoint::Checkpoint;
-use howitt::config::Config;
-use howitt::model::{Item, Model};
-use howitt::repo::Repo;
-use howitt::route::RouteModel;
+use howitt::models::{checkpoint::Checkpoint, config::Config, route::RouteModel, Item, Model};
+use howitt::repos::Repo;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Semaphore, SemaphorePermit};

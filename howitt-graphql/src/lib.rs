@@ -1,13 +1,10 @@
 #![feature(async_closure)]
 use async_graphql::*;
 use derive_more::From;
-use futures::{prelude::*, stream::FuturesUnordered};
-use geo::{CoordsIter, SimplifyVW};
-use howitt::{
-    config::ConfigId,
-    repo::{CheckpointRepo, ConfigRepo, RouteModelRepo},
-    route::RouteId,
-};
+use geo::CoordsIter;
+use howitt::models::config::ConfigId;
+use howitt::models::route::RouteModel;
+use howitt::repos::{CheckpointRepo, ConfigRepo, RouteModelRepo};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, From)]
@@ -33,15 +30,14 @@ impl Query {
 
         let config = config_repo.get(ConfigId).await?.unwrap_or_default();
 
-        let routes = route_repo.get_batch(config
-            .starred_route_ids).await?;
+        let routes = route_repo.get_batch(config.starred_route_ids).await?;
 
         Ok(routes.into_iter().map(Route).collect())
     }
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None
     }
-    async fn latest_rides(&self, ctx: &Context<'_>) -> Result<Vec<Ride>, async_graphql::Error> {
+    async fn latest_rides(&self) -> Result<Vec<Ride>, async_graphql::Error> {
         let now = chrono::Utc::now();
         let thirty_days_ago = now - chrono::Duration::days(30);
         let trips: &Vec<rwgps::types::Trip> = &Vec::new();
@@ -71,7 +67,7 @@ impl Query {
     }
 }
 
-pub struct Route(howitt::route::RouteModel);
+pub struct Route(RouteModel);
 
 #[Object]
 impl Route {
@@ -132,7 +128,7 @@ impl Ride {
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
-#[graphql(remote = "howitt::checkpoint::CheckpointType")]
+#[graphql(remote = "howitt::models::checkpoint::CheckpointType")]
 pub enum CheckpointType {
     RailwayStation,
     Hut,
@@ -140,7 +136,7 @@ pub enum CheckpointType {
     Generic,
 }
 
-pub struct Checkpoint(howitt::checkpoint::Checkpoint);
+pub struct Checkpoint(howitt::models::checkpoint::Checkpoint);
 
 #[Object]
 impl Checkpoint {

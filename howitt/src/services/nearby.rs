@@ -1,6 +1,6 @@
 use geo::algorithm::haversine_distance::HaversineDistance;
 
-use crate::checkpoint::Checkpoint;
+use crate::models::checkpoint::Checkpoint;
 #[derive(Debug, Clone)]
 pub struct NearbyCheckpoint<'checkpoint> {
     pub point_idx: usize,

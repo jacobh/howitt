@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
-    model::{Item, Model},
-    ulid_ext::generate_ulid,
+    ext::ulid::generate_ulid,
+    models::{Item, Model},
 };
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -52,7 +52,7 @@ crate::model_id!(CheckpointId, "CHECKPOINT");
 pub struct Checkpoint {
     pub id: ulid::Ulid,
     pub name: String,
-    #[serde(with = "crate::serde_ext::point_tuple")]
+    #[serde(with = "crate::ext::serde::point_tuple")]
     pub point: geo::Point<f64>,
     pub checkpoint_type: CheckpointType,
 }

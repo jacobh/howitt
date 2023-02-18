@@ -1,14 +1,14 @@
 #![feature(async_closure)]
 
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
-use howitt_fs::{find_file_paths, load_huts, load_localities, load_routes, load_stations};
+use howitt_fs::{load_huts, load_localities, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use ::rwgps::types::Route;
-use howitt::{nearby::nearby_checkpoints, segment::detect_segments};
+use howitt::services::{detect_segments::detect_segments, nearby::nearby_checkpoints};
 
 use crate::json::prettyprintln;
 
