@@ -383,7 +383,9 @@ macro_rules! impl_repo {
         }
 
         #[async_trait::async_trait]
-        impl Repo<$model_type, anyhow::Error> for $repo_type {
+        impl Repo<$model_type> for $repo_type {
+            type Error = anyhow::Error;
+
             async fn all(&self) -> Result<Vec<$model_type>, anyhow::Error> {
                 DynamoModelRepo::all(self).await
             }
