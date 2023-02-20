@@ -10,7 +10,8 @@ use dynamodb::output::{DeleteItemOutput, PutItemOutput};
 use dynamodb::{
     error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
 };
-use futures::{prelude::*, stream::FuturesOrdered};
+use futures::prelude::*;
+use howitt::ext::futures::FuturesIteratorExt;
 use howitt::models::{
     checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Item, Model,
 };
@@ -167,8 +168,7 @@ impl SingleTableClient {
             .into_iter()
             .map(|(keys, item)| (keys, item, self.clone()))
             .map(async move |(keys, item, client)| client.put(keys, item).await)
-            .collect::<FuturesOrdered<_>>()
-            .collect()
+            .collect_futures_ordered()
             .await
     }
 
@@ -300,8 +300,7 @@ pub trait DynamoModelRepo: Send + Sync {
             .into_iter()
             .map(|id| (id, self.clone()))
             .map(async move |(id, repo)| repo.get_model(id).await)
-            .collect::<FuturesOrdered<_>>()
-            .collect::<Vec<_>>()
+            .collect_futures_ordered()
             .await;
 
         let items = results
@@ -325,8 +324,7 @@ pub trait DynamoModelRepo: Send + Sync {
                     .put(Self::keys(&item), serde_dynamo::to_item(item)?)
                     .await?)
             })
-            .collect::<FuturesOrdered<_>>()
-            .collect::<Vec<_>>()
+            .collect_futures_ordered()
             .await
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
@@ -339,8 +337,7 @@ pub trait DynamoModelRepo: Send + Sync {
             .into_iter()
             .map(|model| (model, self.clone()))
             .map(async move |(model, repo)| repo.put(model).await)
-            .collect::<FuturesOrdered<_>>()
-            .collect::<Vec<_>>()
+            .collect_futures_ordered()
             .await
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;

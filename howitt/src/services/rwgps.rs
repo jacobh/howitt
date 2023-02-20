@@ -1,8 +1,7 @@
 use std::{error::Error, marker::PhantomData};
 
-use futures::{prelude::*, stream::FuturesUnordered};
-
 use crate::{
+    ext::futures::FuturesIteratorExt,
     models::{ride::RideModel, route::RouteModel},
     repos::Repo,
 };
@@ -47,8 +46,7 @@ where
             .into_iter()
             .map(|route| (route, client.clone()))
             .map(async move |(route, client)| client.route(route.id).await)
-            .collect::<FuturesUnordered<_>>()
-            .collect()
+            .collect_futures_ordered()
             .await;
 
         let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
@@ -62,8 +60,7 @@ where
             .into_iter()
             .map(|trip| (trip, client.clone()))
             .map(async move |(trip, client)| client.trip(trip.id).await)
-            .collect::<FuturesUnordered<_>>()
-            .collect()
+            .collect_futures_ordered()
             .await;
 
         let trips: Vec<rwgps_types::Trip> = trips.into_iter().collect::<Result<Vec<_>, _>>()?;

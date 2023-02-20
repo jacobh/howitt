@@ -1,5 +1,5 @@
 use clap::{Args, Subcommand};
-use futures::{prelude::*, stream::FuturesUnordered};
+use howitt::ext::futures::FuturesIteratorExt;
 use howitt_fs::{
     load_routes, load_user_config, persist_routes, persist_trips, persist_user_config,
 };
@@ -92,8 +92,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .into_iter()
                 .map(|route| (route, client.clone()))
                 .map(async move |(route, client)| client.route(route.id).await)
-                .collect::<FuturesUnordered<_>>()
-                .collect()
+                .collect_futures_ordered()
                 .await;
 
             let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
@@ -109,8 +108,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 .into_iter()
                 .map(|trip| (trip, client.clone()))
                 .map(async move |(trip, client)| client.trip(trip.id).await)
-                .collect::<FuturesUnordered<_>>()
-                .collect()
+                .collect_futures_ordered()
                 .await;
 
             let trips: Vec<rwgps_types::Trip> = trips.into_iter().collect::<Result<Vec<_>, _>>()?;

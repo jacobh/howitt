@@ -1,5 +1,6 @@
 #![feature(async_closure)]
 use futures::{prelude::*, stream::FuturesUnordered};
+use howitt::ext::futures::FuturesIteratorExt;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 
 use serde::{Deserialize, Serialize};
@@ -26,8 +27,7 @@ async fn function_handler(_args: LambdaEvent<Request>) -> Result<Response, Error
         .into_iter()
         .map(|url| (url, client.clone()))
         .map(async move |(url, client)| client.get(url).send().await)
-        .collect::<FuturesUnordered<_>>()
-        .collect::<Vec<_>>()
+        .collect_futures_ordered()
         .await;
 
     dbg!(&resps);
