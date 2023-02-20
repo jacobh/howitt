@@ -19,7 +19,7 @@ impl<C: rwgps_types::client::RwgpsClient<E>, E: Error + Send + Sync + 'static> R
         RwgpsSyncService { route_repo, ride_repo, rwgps_client, rwgps_error: PhantomData }
     }
 
-    pub async fn fetch_data(&self, rwgps_user_id: usize) -> Result<(Vec<rwgps_types::Route>, Vec<rwgps_types::Trip>), anyhow::Error> {
+    async fn fetch_data(&self, rwgps_user_id: usize) -> Result<(Vec<rwgps_types::Route>, Vec<rwgps_types::Trip>), anyhow::Error> {
         let client = self.rwgps_client.clone();
 
         let route_summaries = self.rwgps_client
@@ -57,5 +57,22 @@ impl<C: rwgps_types::client::RwgpsClient<E>, E: Error + Send + Sync + 'static> R
             dbg!(trips.len());
 
             Ok((routes, trips))
+    }
+
+    async fn persist_routes(&self, routes: Vec<rwgps_types::Route>) -> Result<(), anyhow::Error> {
+        unimplemented!()
+    }
+
+    async fn persist_trips(&self, trips: Vec<rwgps_types::Trip>) -> Result<(), anyhow::Error> {
+        unimplemented!()
+    }
+
+    pub async fn sync(&self) -> Result<(), anyhow::Error> {
+        let rwgps_user_id = 1;
+        let (routes, trips) = self.fetch_data(rwgps_user_id).await?;
+        self.persist_routes(routes).await?;
+        self.persist_trips(trips).await?;
+
+        Ok(())
     }
 }
