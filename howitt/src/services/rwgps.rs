@@ -9,20 +9,20 @@ use crate::{
 pub struct RwgpsSyncService<
     RouteRepo: Repo<RouteModel>,
     RideRepo: Repo<RideModel>,
-    RwgpsClient: rwgps_types::client::RwgpsClient<RwgpsClientError>,
-    RwgpsClientError: Error,
+    RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
+    RwgpsClientError: Into<anyhow::Error>,
 > {
-    route_repo: RouteRepo,
-    ride_repo: RideRepo,
-    rwgps_client: RwgpsClient,
-    rwgps_error: PhantomData<RwgpsClientError>,
+    pub route_repo: RouteRepo,
+    pub ride_repo: RideRepo,
+    pub rwgps_client: RwgpsClient,
+    pub rwgps_error: PhantomData<RwgpsClientError>,
 }
 
 impl<R1, R2, C, E> RwgpsSyncService<R1, R2, C, E>
 where
     R1: Repo<RouteModel>,
     R2: Repo<RideModel>,
-    C: rwgps_types::client::RwgpsClient<E>,
+    C: rwgps_types::client::RwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
 {
     pub fn new(route_repo: R1, ride_repo: R2, rwgps_client: C) -> RwgpsSyncService<R1, R2, C, E> {
@@ -79,8 +79,7 @@ where
         unimplemented!()
     }
 
-    pub async fn sync(&self) -> Result<(), anyhow::Error> {
-        let rwgps_user_id = 1;
+    pub async fn sync(&self, rwgps_user_id: usize) -> Result<(), anyhow::Error> {
         let (routes, trips) = self.fetch_data(rwgps_user_id).await?;
         self.persist_routes(routes).await?;
         self.persist_trips(trips).await?;

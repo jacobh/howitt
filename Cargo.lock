@@ -2735,6 +2735,7 @@ checksum = "5583e89e108996506031660fe09baa5011b9dd0341b89029313006d1fb508d70"
 name = "rwgps"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "derive_more",
  "geo",

@@ -123,3 +123,34 @@ impl RwgpsClient {
         Ok(resp.trip)
     }
 }
+
+#[async_trait::async_trait]
+impl rwgps_types::client::RwgpsClient for RwgpsClient {
+    type Error = RwgpsError;
+
+    async fn user_info(&self) -> Result<rwgps_types::AuthenticatedUserDetailResponse, RwgpsError> {
+        self.user_info().await
+    }
+
+    async fn user_routes(
+        &self,
+        user_id: usize,
+    ) -> Result<Vec<rwgps_types::RouteSummary>, RwgpsError> {
+        self.user_routes(user_id).await
+    }
+
+    async fn user_trips(
+        &self,
+        user_id: usize,
+    ) -> Result<Vec<rwgps_types::TripSummary>, RwgpsError> {
+        self.user_trips(user_id).await
+    }
+
+    async fn route(&self, route_id: usize) -> Result<rwgps_types::Route, RwgpsError> {
+        self.route(route_id).await
+    }
+
+    async fn trip(&self, trip_id: usize) -> Result<rwgps_types::Trip, RwgpsError> {
+        self.trip(trip_id).await
+    }
+}

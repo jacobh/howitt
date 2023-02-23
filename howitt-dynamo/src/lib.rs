@@ -405,4 +405,5 @@ macro_rules! impl_repo {
 impl_repo!(CheckpointRepo, Checkpoint);
 impl_repo!(RideRepo, RideModel);
 impl_repo!(RouteModelRepo, RouteModel);
+impl_repo!(RideModelRepo, RideModel);
 impl_repo!(ConfigRepo, Config);

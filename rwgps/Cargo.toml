@@ -18,3 +18,4 @@ tokio = { version = "1", features = ["full"] }
 url = "*"
 chrono = { version = "*", features = ["serde"] }
 rwgps_types = { path = "../rwgps-types" }
+async-trait = "*"

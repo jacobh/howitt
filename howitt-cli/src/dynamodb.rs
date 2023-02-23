@@ -2,22 +2,28 @@ use std::str::FromStr;
 
 use anyhow::anyhow;
 use clap::{Args, Subcommand};
-use howitt::models::{
-    config::ConfigId,
-    external_ref::{ExternalRef, ExternalSource},
-    point::ElevationPoint,
-    route::{Route, RouteId, RouteModel, RoutePointChunk},
+use howitt::{
+    models::{
+        config::ConfigId,
+        external_ref::{ExternalRef, ExternalSource},
+        point::ElevationPoint,
+        route::{Route, RouteId, RouteModel, RoutePointChunk},
+    },
+    services::rwgps::RwgpsSyncService,
 };
 use howitt_dynamo::{
-    CheckpointRepo, ConfigRepo, DynamoModelRepo, Keys, RouteModelRepo, SingleTableClient,
+    CheckpointRepo, ConfigRepo, DynamoModelRepo, Keys, RideModelRepo, RouteModelRepo,
+    SingleTableClient,
 };
-use howitt_fs::{load_huts, load_routes, load_stations};
+use howitt_fs::{load_huts, load_routes, load_stations, load_user_config};
 use itertools::Itertools;
+use rwgps::RwgpsClient;
 
 #[derive(Subcommand)]
 pub enum Dynamodb {
     SyncCheckpoints,
     SyncRoutes,
+    SyncRwgps,
     SetStarredRoute(SetStarredRoute),
     ListStarredRoutes,
     GetRoute,
@@ -35,6 +41,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
     let config_repo = ConfigRepo::new(client.clone());
     let checkpoint_repo = CheckpointRepo::new(client.clone());
     let route_model_repo = RouteModelRepo::new(client.clone());
+    let ride_model_repo = RideModelRepo::new(client.clone());
 
     match command {
         Dynamodb::SyncCheckpoints => {
@@ -107,6 +114,19 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
                 .collect();
 
             route_model_repo.put_batch(routes).await?;
+        }
+        Dynamodb::SyncRwgps => {
+            let config = load_user_config()?.unwrap();
+            let rwgps_client = RwgpsClient::new(config.credentials());
+
+            let service = RwgpsSyncService {
+                route_repo: route_model_repo,
+                ride_repo: ride_model_repo,
+                rwgps_client: rwgps_client,
+                rwgps_error: std::marker::PhantomData,
+            };
+
+            service.sync(config.user_info.unwrap().id).await?;
         }
         Dynamodb::SetStarredRoute(SetStarredRoute { route_id }) => {
             let route_id = ulid::Ulid::from_string(route_id)?;
