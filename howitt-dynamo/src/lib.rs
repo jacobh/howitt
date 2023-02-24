@@ -12,8 +12,9 @@ use dynamodb::{
 };
 use futures::prelude::*;
 use howitt::ext::futures::FuturesIteratorExt;
+use howitt::models::ItemCow;
 use howitt::models::{
-    checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Item, Model,
+    checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Model,
 };
 use howitt::repos::Repo;
 use itertools::Itertools;
@@ -245,7 +246,7 @@ pub trait DynamoModelRepo: Send + Sync {
 
     fn client(&self) -> &SingleTableClient;
 
-    fn keys(item: &<Self::Model as Model>::Item) -> Keys {
+    fn keys(item: &ItemCow<'_, Self::Model>) -> Keys {
         let model_name = Self::Model::model_name().to_string();
         let model_id = item.model_id().to_string();
         let item_name = item.item_name();
@@ -286,7 +287,7 @@ pub trait DynamoModelRepo: Send + Sync {
 
         let items = items
             .into_iter()
-            .map(serde_dynamo::from_item::<_, <Self::Model as Model>::Item>)
+            .map(serde_dynamo::from_item::<_, ItemCow<'static, Self::Model>>)
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Some(Self::Model::from_items(items)?))
@@ -353,7 +354,7 @@ pub trait DynamoModelRepo: Send + Sync {
 
         let items = items
             .into_iter()
-            .map(serde_dynamo::from_item::<_, <Self::Model as Model>::Item>)
+            .map(serde_dynamo::from_item::<_, ItemCow<'static, Self::Model>>)
             .filter_map(Result::ok);
 
         let groups = items.group_by(|item| item.model_id());

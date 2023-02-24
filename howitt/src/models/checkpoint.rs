@@ -5,10 +5,9 @@ use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{
-    ext::ulid::generate_ulid,
-    models::{Item, Model},
-};
+use crate::{ext::ulid::generate_ulid, models::Model};
+
+use super::IndexModel;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -57,36 +56,11 @@ pub struct Checkpoint {
     pub checkpoint_type: CheckpointType,
 }
 
-impl Model for Checkpoint {
+impl IndexModel for Checkpoint {
     type Id = CheckpointId;
-    type Item = Checkpoint;
 
     fn id(&self) -> CheckpointId {
         CheckpointId::from(self.id)
-    }
-
-    fn into_items(self) -> impl IntoIterator<Item = Self::Item> {
-        [self]
-    }
-
-    fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error> {
-        items.into_iter().nth(0).ok_or(anyhow!("no items"))
-    }
-}
-
-impl Item for Checkpoint {
-    type Id = CheckpointId;
-
-    fn item_name(&self) -> Option<String> {
-        None
-    }
-
-    fn model_id(&self) -> CheckpointId {
-        CheckpointId::from(self.id)
-    }
-
-    fn item_id(&self) -> Option<String> {
-        None
     }
 }
 

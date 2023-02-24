@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::{route::RouteId, Item, Model, ModelId};
+use crate::models::{route::RouteId, IndexModel, ModelId};
 
 #[derive(PartialEq, Copy, Clone)]
 pub struct ConfigId;
@@ -17,45 +17,15 @@ impl ModelId for ConfigId {
     }
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 pub struct Config {
     pub starred_route_ids: Vec<RouteId>,
 }
-impl Model for Config {
+
+impl IndexModel for Config {
     type Id = ConfigId;
-    type Item = Config;
 
     fn id(&self) -> ConfigId {
         ConfigId
-    }
-
-    fn into_items(self) -> impl IntoIterator<Item = Self::Item> {
-        [self]
-    }
-
-    fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error> {
-        if items.len() != 1 {
-            return Err(anyhow::anyhow!("Expected exactly 1 config item"));
-        }
-        return items
-            .into_iter()
-            .next()
-            .ok_or(anyhow::anyhow!("Expected exactly 1 config item"));
-    }
-}
-
-impl Item for Config {
-    type Id = ConfigId;
-
-    fn model_id(&self) -> ConfigId {
-        ConfigId
-    }
-
-    fn item_name(&self) -> Option<String> {
-        None
-    }
-
-    fn item_id(&self) -> Option<String> {
-        None
     }
 }
