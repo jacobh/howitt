@@ -25,6 +25,7 @@ import { Duration } from "aws-cdk-lib";
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import {
+  CachePolicy,
   CloudFrontWebDistribution,
   Distribution,
   OriginProtocolPolicy,
@@ -212,13 +213,23 @@ export class CdkStack extends cdk.Stack {
       }
     );
 
+    const origin = new LoadBalancerV2Origin(webuiService.loadBalancer, {
+      protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
+    });
+
     const webuiCloudfront = new Distribution(this, "howitt-webui-cloudfront", {
       defaultBehavior: {
-        origin: new LoadBalancerV2Origin(webuiService.loadBalancer, {
-          protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
-        }),
+        origin,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: CachePolicy.CACHING_DISABLED
       },
+      additionalBehaviors: {
+        'build/*': {
+          origin,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: CachePolicy.CACHING_OPTIMIZED
+        }
+      }
     });
   }
 }
