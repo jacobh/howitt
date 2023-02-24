@@ -17,9 +17,10 @@ pub struct Query;
 #[Object]
 impl Query {
     async fn routes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Route>, async_graphql::Error> {
-        let route_repo: &RouteModelRepo = ctx.data()?;
-        let routes = route_repo.all().await?;
-        Ok(routes.into_iter().map(|route| Route(route)).collect())
+        // let route_repo: &RouteModelRepo = ctx.data()?;
+        // let routes = route_repo.all_indexes().await?;
+        Ok(vec![])
+        // Ok(routes.into_iter().map(|route| Route(route)).collect())
     }
     async fn starred_routes<'ctx>(
         &self,
@@ -55,9 +56,9 @@ impl Query {
     ) -> Result<Vec<Checkpoint>, async_graphql::Error> {
         let checkpoint_repo: &CheckpointRepo = ctx.data()?;
 
-        let x = checkpoint_repo.all().await?;
+        let checkpoints = checkpoint_repo.all_indexes().await?;
 
-        Ok(x.clone()
+        Ok(checkpoints
             .into_iter()
             .map(|checkpoint| Checkpoint(checkpoint))
             .collect())

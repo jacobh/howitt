@@ -54,7 +54,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             println!("done");
         }
         Dynamodb::SyncRoutes => {
-            let existing_routes = route_model_repo.all().await?;
+            let existing_routes = route_model_repo.all_indexes().await?;
             let rwgps_routes = load_routes()?;
 
             let routes: Vec<_> = rwgps_routes
@@ -62,7 +62,6 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
                 .map(|route| {
                     let existing_route = existing_routes.iter().find(|existing_route| {
                         existing_route
-                            .route
                             .external_ref
                             .as_ref()
                             .map(|ref_| ref_.id == route.id.to_string())
@@ -72,7 +71,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
                 })
                 .map(|(route, existing_route)| {
                     let id = match existing_route {
-                        Some(route) => route.route.id,
+                        Some(route) => route.id,
                         None => ulid::Ulid::from_datetime(route.created_at.into()),
                     };
 
@@ -155,7 +154,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             }
         }
         Dynamodb::ListCheckpoints => {
-            let checkpoints = checkpoint_repo.all().await?;
+            let checkpoints = checkpoint_repo.all_indexes().await?;
             dbg!(checkpoints);
         }
         Dynamodb::DeleteAll => {

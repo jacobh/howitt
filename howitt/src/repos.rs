@@ -9,8 +9,9 @@ use crate::models::{
 pub trait Repo<T: Model + Sized>: Send + Sync {
     type Error: Into<anyhow::Error>;
 
-    async fn all(&self) -> Result<Vec<T>, Self::Error>;
+    async fn all_indexes(&self) -> Result<Vec<T::IndexItem>, Self::Error>;
     async fn get(&self, id: T::Id) -> Result<Option<T>, Self::Error>;
+    async fn get_index(&self, id: T::Id) -> Result<Option<T::IndexItem>, Self::Error>;
     async fn get_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T>, Self::Error>;
 }
 

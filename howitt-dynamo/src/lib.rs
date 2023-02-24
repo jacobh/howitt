@@ -8,11 +8,11 @@ use derive_more::Constructor;
 use dynamodb::error::{DeleteItemError, PutItemError, QueryError, ScanError};
 use dynamodb::output::{DeleteItemOutput, PutItemOutput};
 use dynamodb::{
-    error::GetItemError, model::AttributeValue, output::GetItemOutput, types::SdkError,
+    error::GetItemError, model::AttributeValue, types::SdkError,
 };
 use futures::prelude::*;
 use howitt::ext::futures::FuturesIteratorExt;
-use howitt::models::ItemCow;
+use howitt::models::{ItemCow, ModelId};
 use howitt::models::{
     checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Model,
 };
@@ -48,6 +48,17 @@ pub struct Keys {
     gsi1sk: Option<String>,
 }
 impl Keys {
+    pub fn new_pk_sk(pk: String, sk: String) -> Keys {
+        Keys {
+            pk,
+            sk,
+            gsi1pk: None,
+            gsi1sk: None,
+        }
+    }
+    pub fn from_model_id<ID>(id: ID) -> Keys where ID: ModelId {
+        Keys::new_pk_sk(id.to_string(), id.to_string())
+    }
     pub fn from_item(item: &HashMap<String, AttributeValue>) -> Result<Keys, anyhow::Error> {
         Ok(Keys {
             pk: item
@@ -101,16 +112,18 @@ impl SingleTableClient {
         self.semaphore.acquire().await.unwrap()
     }
 
-    pub async fn get(&self, keys: Keys) -> Result<GetItemOutput, SdkError<GetItemError>> {
+    pub async fn get(&self, keys: Keys) -> Result<Option<HashMap<String, AttributeValue>>, SdkError<GetItemError>> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        self.client
+        let output = self.client
             .get_item()
             .table_name(&self.table_name)
             .key("pk", AttributeValue::S(keys.pk))
             .key("sk", AttributeValue::S(keys.sk))
             .send()
-            .await
+            .await?;
+
+        Ok(output.item)
     }
 
     pub async fn query_pk(
@@ -293,6 +306,20 @@ pub trait DynamoModelRepo: Send + Sync {
         Ok(Some(Self::Model::from_items(items)?))
     }
 
+    async fn get_index(
+        &self,
+        model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
+    ) -> Result<Option<<<Self as DynamoModelRepo>::Model as Model>::IndexItem>, anyhow::Error> {
+        let item = self.client().get(Keys::from_model_id(model_id)).await?;
+
+        match item {
+            Some(item) => {
+                Ok(Some(serde_dynamo::from_item(item)?))
+            }
+            None => Ok(None)
+        }
+    }
+
     async fn get_batch(
         &self,
         model_ids: Vec<<<Self as DynamoModelRepo>::Model as Model>::Id>,
@@ -346,23 +373,13 @@ pub trait DynamoModelRepo: Send + Sync {
         Ok(())
     }
 
-    async fn all(&self) -> Result<Vec<Self::Model>, anyhow::Error> {
+    async fn all_indexes(&self) -> Result<Vec<<Self::Model as Model>::IndexItem>, anyhow::Error> {
         let items = self
             .client()
             .query_pk(["", Self::Model::model_name()].join("#"), Index::Gsi1)
             .await?;
 
-        let items = items
-            .into_iter()
-            .map(serde_dynamo::from_item::<_, ItemCow<'static, Self::Model>>)
-            .filter_map(Result::ok);
-
-        let groups = items.group_by(|item| item.model_id());
-
-        Ok(groups
-            .into_iter()
-            .map(|(_, items)| Self::Model::from_items(items.collect_vec()))
-            .collect::<Result<_, _>>()?)
+        Ok(items.into_iter().map(serde_dynamo::from_item).collect::<Result<Vec<_>, _>>()?)
     }
 }
 
@@ -384,14 +401,20 @@ macro_rules! impl_repo {
         impl Repo<$model_type> for $repo_type {
             type Error = anyhow::Error;
 
-            async fn all(&self) -> Result<Vec<$model_type>, anyhow::Error> {
-                DynamoModelRepo::all(self).await
+            async fn all_indexes(&self) -> Result<Vec<<$model_type as Model>::IndexItem>, anyhow::Error> {
+                unimplemented!()
             }
             async fn get(
                 &self,
                 id: <$model_type as Model>::Id,
             ) -> Result<Option<$model_type>, anyhow::Error> {
                 DynamoModelRepo::get_model(self, id).await
+            }
+            async fn get_index(
+                &self,
+                id: <$model_type as Model>::Id,
+            ) -> Result<Option<<$model_type as Model>::IndexItem>, anyhow::Error> {
+                DynamoModelRepo::get_index(self, id).await
             }
             async fn get_batch(
                 &self,
