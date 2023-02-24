@@ -402,7 +402,7 @@ macro_rules! impl_repo {
             type Error = anyhow::Error;
 
             async fn all_indexes(&self) -> Result<Vec<<$model_type as Model>::IndexItem>, anyhow::Error> {
-                unimplemented!()
+                DynamoModelRepo::all_indexes(self).await
             }
             async fn get(
                 &self,
