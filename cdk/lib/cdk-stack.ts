@@ -27,8 +27,22 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import {
   CloudFrontWebDistribution,
   Distribution,
+  OriginProtocolPolicy,
+  ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
-import { HttpOrigin, OriginGroup } from "aws-cdk-lib/aws-cloudfront-origins";
+import {
+  HttpOrigin,
+  LoadBalancerV2Origin,
+  OriginGroup,
+} from "aws-cdk-lib/aws-cloudfront-origins";
+import { ApplicationLoadBalancedFargateService } from "aws-cdk-lib/aws-ecs-patterns";
+import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
+import {
+  Cluster,
+  ContainerImage,
+  CpuArchitecture,
+  OperatingSystemFamily,
+} from "aws-cdk-lib/aws-ecs";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -170,5 +184,41 @@ export class CdkStack extends cdk.Stack {
     });
 
     warmerSchedule.addTarget(new targets.LambdaFunction(warmerLambda));
+
+    const cluster = new Cluster(this, "howitt-cluster");
+
+    const webuiImage = new DockerImageAsset(this, "webuiDockerImage", {
+      directory: path.join(PROJECT_ROOT_DIR, "webui"),
+    });
+
+    const webuiContainerImage = ContainerImage.fromDockerImageAsset(webuiImage);
+
+    const webuiService = new ApplicationLoadBalancedFargateService(
+      this,
+      "webuiALBFargateService",
+      {
+        memoryLimitMiB: 512,
+        desiredCount: 1,
+        cpu: 256,
+        cluster,
+        listenerPort: 80,
+        runtimePlatform: {
+          operatingSystemFamily: OperatingSystemFamily.LINUX,
+          cpuArchitecture: CpuArchitecture.ARM64,
+        },
+        taskImageOptions: {
+          image: webuiContainerImage,
+        },
+      }
+    );
+
+    const webuiCloudfront = new Distribution(this, "howitt-webui-cloudfront", {
+      defaultBehavior: {
+        origin: new LoadBalancerV2Origin(webuiService.loadBalancer, {
+          protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
+        }),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+    });
   }
 }
