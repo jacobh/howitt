@@ -82,9 +82,7 @@ export function Map({ routes, rides, checkpoints }: MapProps) {
         new TileLayer({
           source: new XYZ({
             urls: [
-              "https://a.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
-              "https://b.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
-              "https://c.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
+              "https://d2o31mmlexa59r.cloudfront.net/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
             ],
           }),
         }),

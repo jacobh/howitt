@@ -26,6 +26,7 @@ import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import {
   CachePolicy,
+  CacheQueryStringBehavior,
   CloudFrontWebDistribution,
   Distribution,
   OriginProtocolPolicy,
@@ -231,5 +232,20 @@ export class CdkStack extends cdk.Stack {
         }
       }
     });
+
+    const tileCloudfront = new Distribution(this, "howitt-tiles-cloudfront", {
+      defaultBehavior: {
+        origin: new HttpOrigin("tile.thunderforest.com", {
+          
+        }),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: new CachePolicy(this, "tiles-cachepolicy", {
+          minTtl: Duration.seconds(1),
+          maxTtl: Duration.days(365),
+          defaultTtl: Duration.days(1),
+          queryStringBehavior: CacheQueryStringBehavior.allowList('apikey'),
+        })
+      },
+    })
   }
 }
