@@ -129,43 +129,6 @@ export class CdkStack extends cdk.Stack {
       methods: [HttpMethod.ANY],
     });
 
-    const remixRootDir = [PROJECT_ROOT_DIR, "webui"].join("/");
-
-    const remixLambda = new NodejsFunction(this, "remix-webui", {
-      architecture: Architecture.ARM_64,
-      memorySize: 1024,
-      timeout: Duration.seconds(10),
-
-      bundling: {
-        commandHooks: {
-          beforeInstall: () => [],
-          beforeBundling: (inputDir, outputDir) => [
-            `cd ${remixRootDir} && npm run build && cp -R ${remixRootDir}/public ${outputDir}`,
-          ],
-          afterBundling: (_, outputDir) => [],
-        },
-      },
-
-      handler: "handler",
-      entry: [remixRootDir, "lambdaExpressServer.ts"].join("/"),
-    });
-
-    const remixLambdaIntegration = new HttpLambdaIntegration(
-      "howitt-remix-lambda-integration",
-      remixLambda
-    );
-
-    const remixApi = new HttpApi(this, "howitt-webui-api", {
-      // disableExecuteApiEndpoint: true,
-      defaultDomainMapping: { domainName: webUIDomainName },
-    });
-
-    remixApi.addRoutes({
-      path: "/{proxy+}",
-      integration: remixLambdaIntegration,
-      methods: [HttpMethod.ANY],
-    });
-
     const warmerDomains = [webUIDomainName.name, apiDomainName.name];
 
     const warmerSchedule = new Rule(this, "Rule", {
@@ -253,6 +216,50 @@ export class CdkStack extends cdk.Stack {
           queryStringBehavior: CacheQueryStringBehavior.allowList("apikey"),
         }),
       },
+    });
+  }
+}
+
+// not in use
+class webuiLambdaDeployment extends Construct {
+  constructor(scope: Construct, domainName: DomainName) {
+    super(scope, "webui-lambda-deployment")
+
+    const remixRootDir = [PROJECT_ROOT_DIR, "webui"].join("/");
+
+    const remixLambda = new NodejsFunction(this, "remix-webui", {
+      architecture: Architecture.ARM_64,
+      memorySize: 1024,
+      timeout: Duration.seconds(10),
+
+      bundling: {
+        commandHooks: {
+          beforeInstall: () => [],
+          beforeBundling: (inputDir, outputDir) => [
+            `cd ${remixRootDir} && npm run build && cp -R ${remixRootDir}/public ${outputDir}`,
+          ],
+          afterBundling: (_, outputDir) => [],
+        },
+      },
+
+      handler: "handler",
+      entry: [remixRootDir, "lambdaExpressServer.ts"].join("/"),
+    });
+
+    const remixLambdaIntegration = new HttpLambdaIntegration(
+      "howitt-remix-lambda-integration",
+      remixLambda
+    );
+
+    const remixApi = new HttpApi(this, "howitt-webui-api", {
+      // disableExecuteApiEndpoint: true,
+      defaultDomainMapping: { domainName },
+    });
+
+    remixApi.addRoutes({
+      path: "/{proxy+}",
+      integration: remixLambdaIntegration,
+      methods: [HttpMethod.ANY],
     });
   }
 }
