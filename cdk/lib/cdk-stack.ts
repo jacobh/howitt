@@ -129,28 +129,6 @@ export class CdkStack extends cdk.Stack {
       methods: [HttpMethod.ANY],
     });
 
-    const warmerDomains = [webUIDomainName.name, apiDomainName.name];
-
-    const warmerSchedule = new Rule(this, "Rule", {
-      schedule: Schedule.expression("cron(0/15 * * * ? *)"),
-    });
-
-    const warmerLambda = new RustFunction(this, "howitt-worker-lambda", {
-      binaryName: "warmer",
-      manifestPath: PROJECT_ROOT_DIR,
-      architecture: Architecture.ARM_64,
-      bundling: {
-        architecture: Architecture.ARM_64,
-      },
-      memorySize: 128,
-      timeout: Duration.seconds(30),
-      environment: {
-        TARGET_DOMAINS: warmerDomains.join(","),
-      },
-    });
-
-    warmerSchedule.addTarget(new targets.LambdaFunction(warmerLambda));
-
     const cluster = new Cluster(this, "howitt-cluster");
 
     const webuiImage = new DockerImageAsset(this, "webuiDockerImage", {
