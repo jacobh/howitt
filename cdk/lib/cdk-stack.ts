@@ -29,6 +29,7 @@ import {
   CacheQueryStringBehavior,
   CloudFrontWebDistribution,
   Distribution,
+  HttpVersion,
   OriginProtocolPolicy,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
@@ -219,33 +220,39 @@ export class CdkStack extends cdk.Stack {
     });
 
     const webuiCloudfront = new Distribution(this, "howitt-webui-cloudfront", {
+      domainNames: [webUIDomainName.name],
+      certificate: Certificate.fromCertificateArn(
+        this,
+        "howitt-webui-cloudfront-cert",
+        "arn:aws:acm:us-east-1:176170034926:certificate/4cbfff19-ce4b-4653-bd7c-3a4167092fe6"
+      ),
+      httpVersion: HttpVersion.HTTP2_AND_3,
       defaultBehavior: {
         origin,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: CachePolicy.CACHING_DISABLED
+        cachePolicy: CachePolicy.CACHING_DISABLED,
       },
       additionalBehaviors: {
-        'build/*': {
+        "build/*": {
           origin,
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: CachePolicy.CACHING_OPTIMIZED
-        }
-      }
+          cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+        },
+      },
     });
 
     const tileCloudfront = new Distribution(this, "howitt-tiles-cloudfront", {
+      httpVersion: HttpVersion.HTTP2_AND_3,
       defaultBehavior: {
-        origin: new HttpOrigin("tile.thunderforest.com", {
-          
-        }),
+        origin: new HttpOrigin("tile.thunderforest.com", {}),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: new CachePolicy(this, "tiles-cachepolicy", {
           minTtl: Duration.seconds(1),
           maxTtl: Duration.days(365),
           defaultTtl: Duration.days(1),
-          queryStringBehavior: CacheQueryStringBehavior.allowList('apikey'),
-        })
+          queryStringBehavior: CacheQueryStringBehavior.allowList("apikey"),
+        }),
       },
-    })
+    });
   }
 }
