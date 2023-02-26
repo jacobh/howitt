@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::ElevationPoint};
 
-use super::IndexItem;
+use super::{point::PointChunk, IndexItem};
 
 crate::model_id!(RouteId, "ROUTE");
 
@@ -26,16 +26,9 @@ impl IndexItem for Route {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RoutePointChunk {
-    pub route_id: ulid::Ulid,
-    pub idx: usize,
-    pub points: Vec<ElevationPoint>,
-}
-
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct RouteModel {
     pub route: Route,
-    pub point_chunks: Vec<RoutePointChunk>,
+    pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
 }
 impl RouteModel {
     pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
@@ -79,10 +72,10 @@ impl crate::models::Model for RouteModel {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, From)]
 #[serde(tag = "item")]
 pub enum RouteItem {
-    PointChunk(RoutePointChunk),
+    PointChunk(PointChunk<RouteId, ElevationPoint>),
 }
 impl RouteItem {
-    fn into_point_chunk(self) -> Option<RoutePointChunk> {
+    fn into_point_chunk(self) -> Option<PointChunk<RouteId, ElevationPoint>> {
         match self {
             RouteItem::PointChunk(chunk) => Some(chunk),
             _ => None,
@@ -100,7 +93,7 @@ impl crate::models::OtherItem for RouteItem {
 
     fn model_id(&self) -> RouteId {
         match self {
-            RouteItem::PointChunk(chunk) => RouteId::from(chunk.route_id),
+            RouteItem::PointChunk(chunk) => RouteId::from(chunk.model_id),
         }
     }
 

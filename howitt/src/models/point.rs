@@ -1,5 +1,8 @@
 use chrono::{DateTime, TimeZone, Utc};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+
+use super::ModelId;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ElevationPoint {
@@ -65,5 +68,30 @@ impl<'de> Deserialize<'de> for TemporalElevationPoint {
             point: geo::Point::new(x, y),
             elevation,
         })
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct PointChunk<ID, P> {
+    pub model_id: ID,
+    pub idx: usize,
+    pub points: Vec<P>,
+}
+impl<ID, P> PointChunk<ID, P>
+where
+    ID: ModelId,
+{
+    pub fn new_chunks(model_id: ID, points: impl IntoIterator<Item = P>) -> Vec<PointChunk<ID, P>> {
+        points
+            .into_iter()
+            .chunks(2500)
+            .into_iter()
+            .enumerate()
+            .map(|(idx, points)| PointChunk {
+                model_id,
+                idx,
+                points: points.collect(),
+            })
+            .collect()
     }
 }

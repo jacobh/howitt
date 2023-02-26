@@ -8,9 +8,9 @@ use crate::{
     ext::iter::ResultIterExt,
     models::{
         external_ref::{ExternalRef, ExternalSource},
-        point::ElevationPoint,
+        point::{ElevationPoint, PointChunk},
         ride::RideModel,
-        route::{Route, RouteModel, RoutePointChunk},
+        route::{Route, RouteId, RouteModel},
     },
     repos::Repo,
 };
@@ -103,28 +103,22 @@ where
                     updated_at: route.updated_at,
                 }),
             },
-            point_chunks: route
-                .track_points
-                .into_iter()
-                .filter_map(|track_point| {
-                    match (
-                        geo::Point::try_from(track_point.clone()),
-                        track_point.elevation,
-                    ) {
-                        (Ok(point), Some(elevation)) => Some((point, elevation)),
-                        _ => None,
-                    }
-                })
-                .map(|(point, elevation)| ElevationPoint { point, elevation })
-                .chunks(2500)
-                .into_iter()
-                .enumerate()
-                .map(|(idx, points)| RoutePointChunk {
-                    route_id: id,
-                    idx,
-                    points: points.collect(),
-                })
-                .collect(),
+            point_chunks: PointChunk::new_chunks(
+                RouteId::from(id),
+                route
+                    .track_points
+                    .into_iter()
+                    .filter_map(|track_point| {
+                        match (
+                            geo::Point::try_from(track_point.clone()),
+                            track_point.elevation,
+                        ) {
+                            (Ok(point), Some(elevation)) => Some((point, elevation)),
+                            _ => None,
+                        }
+                    })
+                    .map(|(point, elevation)| ElevationPoint { point, elevation }),
+            ),
         };
 
         self.route_repo.put(model).await?;
@@ -148,9 +142,7 @@ where
 
         dbg!(&results);
 
-        results
-            .into_iter()
-            .collect_result_vec()?;
+        results.into_iter().collect_result_vec()?;
 
         Ok(())
     }
