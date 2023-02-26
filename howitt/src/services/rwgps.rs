@@ -1,5 +1,7 @@
 use std::{error::Error, marker::PhantomData};
 
+use anyhow::anyhow;
+use chrono::Utc;
 use itertools::Itertools;
 use rwgps_types::{RouteSummary, TripSummary};
 
@@ -8,8 +10,8 @@ use crate::{
     ext::iter::ResultIterExt,
     models::{
         external_ref::{ExternalRef, ExternalRefItemMap, ExternalRefMatch, ExternalSource},
-        point::{ElevationPoint, PointChunk},
-        ride::{Ride, RideModel},
+        point::{ElevationPoint, PointChunk, TemporalElevationPoint},
+        ride::{Ride, RideId, RideModel},
         route::{Route, RouteId, RouteModel},
     },
     repos::Repo,
@@ -144,6 +146,71 @@ where
         Ok(())
     }
 
+    async fn sync_ride(
+        &self,
+        trip_id: usize,
+        existing_ride: Option<Ride>,
+    ) -> Result<(), anyhow::Error> {
+        let ride = self.rwgps_client.trip(trip_id).await?;
+
+        let id = match existing_ride {
+            Some(ride) => ride.id,
+            None => RideId::from(ulid::Ulid::from_datetime(ride.created_at.into())),
+        };
+
+        let points = ride
+            .track_points
+            .into_iter()
+            .filter_map(|track_point| {
+                match (
+                    geo::Point::try_from(track_point.clone()),
+                    track_point.elevation,
+                ) {
+                    (Ok(point), Some(elevation)) => Some((point, elevation)),
+                    _ => None,
+                }
+            })
+            .map(|(point, elevation)| TemporalElevationPoint {
+                datetime: todo!(),
+                point,
+                elevation,
+            })
+            .collect_vec();
+
+        let started_at = points
+            .iter()
+            .map(|point| point.datetime)
+            .min()
+            .ok_or(anyhow!("no points"))?;
+
+        let finished_at = points
+            .iter()
+            .map(|point| point.datetime)
+            .max()
+            .ok_or(anyhow!("no points"))?;
+
+        let model = RideModel {
+            ride: Ride {
+                id,
+                name: ride.name,
+                distance: ride.distance,
+                started_at,
+                finished_at,
+                external_ref: Some(ExternalRef {
+                    id: ride.id.to_string(),
+                    source: ExternalSource::Rwgps,
+                    updated_at: ride.updated_at,
+                    sync_version: Some(SYNC_VERSION),
+                }),
+            },
+            point_chunks: PointChunk::new_chunks(id, points),
+        };
+
+        self.ride_repo.put(model).await?;
+
+        Ok(())
+    }
+
     pub async fn sync(&self, rwgps_user_id: usize) -> Result<(), anyhow::Error> {
         let route_sync_candidates = self.detect_route_sync_candidates(rwgps_user_id).await?;
         let ride_sync_candidates = self.detect_ride_sync_candidates(rwgps_user_id).await?;
@@ -156,6 +223,19 @@ where
             .map(|candidate| (candidate, self.clone()))
             .map(async move |((summary, existing_route), sync_service)| {
                 sync_service.sync_route(summary.id, existing_route).await
+            })
+            .collect_futures_ordered()
+            .await;
+
+        dbg!(&results);
+
+        results.into_iter().collect_result_vec()?;
+
+        let results = ride_sync_candidates
+            .into_iter()
+            .map(|candidate| (candidate, self.clone()))
+            .map(async move |((summary, existing_route), sync_service)| {
+                sync_service.sync_ride(summary.id, existing_route).await
             })
             .collect_futures_ordered()
             .await;
