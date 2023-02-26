@@ -80,6 +80,7 @@ export function Map({ routes, rides, checkpoints }: MapProps) {
       target: "map",
       layers: [
         new TileLayer({
+          preload: Infinity,
           source: new XYZ({
             urls: [
               "https://d2o31mmlexa59r.cloudfront.net/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
