@@ -14,3 +14,4 @@ gpx = "*"
 serde_json = "*"
 derive_more = "*"
 async-trait = "*"
+serde_with = { version = "*", features = ["chrono"] }

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_default_from_empty_object;
 use serde_json::Value;
@@ -423,6 +424,7 @@ pub struct Segment {
     pub to_param: String,
 }
 
+#[serde_with::serde_as]
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 // #[serde(deny_unknown_fields)]
 pub struct TrackPoint {
@@ -438,6 +440,9 @@ pub struct TrackPoint {
     pub lng: Option<f64>,
     #[serde(rename = "y")]
     pub lat: Option<f64>,
+    #[serde(rename = "t")]
+    #[serde_as(as = "Option<serde_with::TimestampSecondsWithFrac<f64>>")]
+    pub datetime: Option<DateTime<Utc>>,
     pub color: Option<i64>,
     pub options: Option<i64>,
 }

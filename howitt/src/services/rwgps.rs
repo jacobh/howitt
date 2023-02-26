@@ -165,15 +165,15 @@ where
                 match (
                     geo::Point::try_from(track_point.clone()),
                     track_point.elevation,
+                    track_point.datetime,
                 ) {
-                    (Ok(point), Some(elevation)) => Some((point, elevation)),
+                    (Ok(point), Some(elevation), Some(datetime)) => Some(TemporalElevationPoint {
+                        datetime,
+                        point,
+                        elevation,
+                    }),
                     _ => None,
                 }
-            })
-            .map(|(point, elevation)| TemporalElevationPoint {
-                datetime: todo!(),
-                point,
-                elevation,
             })
             .collect_vec();
 
