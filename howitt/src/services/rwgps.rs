@@ -15,6 +15,8 @@ use crate::{
     repos::Repo,
 };
 
+const SYNC_VERSION: usize = 2;
+
 pub struct RwgpsSyncService<
     RouteRepo: Repo<RouteModel>,
     RideRepo: Repo<RideModel>,
@@ -63,6 +65,7 @@ where
                     })
                     .find(|(_, external_ref)| {
                         external_ref.source == ExternalSource::Rwgps
+                            && Some(SYNC_VERSION) == external_ref.sync_version
                             && external_ref.id == summary.id.to_string()
                     });
 
@@ -99,6 +102,7 @@ where
                 distance: route.distance.unwrap_or(0.0),
                 external_ref: Some(ExternalRef {
                     source: ExternalSource::Rwgps,
+                    sync_version: Some(SYNC_VERSION),
                     id: route.id.to_string(),
                     updated_at: route.updated_at,
                 }),

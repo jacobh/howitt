@@ -11,4 +11,5 @@ pub struct ExternalRef {
     pub id: String,
     pub source: ExternalSource,
     pub updated_at: DateTime<Utc>,
+    pub sync_version: Option<usize>,
 }
