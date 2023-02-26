@@ -5,9 +5,7 @@ use clap::{Args, Subcommand};
 use howitt::{
     models::{
         config::ConfigId,
-        external_ref::{ExternalRef, ExternalSource},
-        point::ElevationPoint,
-        route::{Route, RouteId, RouteModel, RoutePointChunk},
+        route::{Route, RouteId, RouteModel},
     },
     services::rwgps::RwgpsSyncService,
 };
@@ -22,7 +20,6 @@ use rwgps::RwgpsClient;
 #[derive(Subcommand)]
 pub enum Dynamodb {
     SyncCheckpoints,
-    SyncRoutes,
     SyncRwgps,
     SetStarredRoute(SetStarredRoute),
     ListStarredRoutes,
@@ -53,67 +50,6 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             checkpoint_repo.put_batch(huts).await?;
 
             println!("done");
-        }
-        Dynamodb::SyncRoutes => {
-            let existing_routes = route_model_repo.all_indexes().await?;
-            let rwgps_routes = load_routes()?;
-
-            let routes: Vec<_> = rwgps_routes
-                .into_iter()
-                .map(|route| {
-                    let existing_route = existing_routes.iter().find(|existing_route| {
-                        existing_route
-                            .external_ref
-                            .as_ref()
-                            .map(|ref_| ref_.id == route.id.to_string())
-                            .unwrap_or(false)
-                    });
-                    (route, existing_route)
-                })
-                .map(|(route, existing_route)| {
-                    let id = match existing_route {
-                        Some(route) => route.id,
-                        None => ulid::Ulid::from_datetime(route.created_at.into()),
-                    };
-
-                    RouteModel {
-                        route: Route {
-                            id,
-                            name: route.name,
-                            distance: route.distance.unwrap_or(0.0),
-                            external_ref: Some(ExternalRef {
-                                source: ExternalSource::Rwgps,
-                                id: route.id.to_string(),
-                                updated_at: route.updated_at,
-                            }),
-                        },
-                        point_chunks: route
-                            .track_points
-                            .into_iter()
-                            .filter_map(|track_point| {
-                                match (
-                                    geo::Point::try_from(track_point.clone()),
-                                    track_point.elevation,
-                                ) {
-                                    (Ok(point), Some(elevation)) => Some((point, elevation)),
-                                    _ => None,
-                                }
-                            })
-                            .map(|(point, elevation)| ElevationPoint { point, elevation })
-                            .chunks(2500)
-                            .into_iter()
-                            .enumerate()
-                            .map(|(idx, points)| RoutePointChunk {
-                                route_id: id,
-                                idx,
-                                points: points.collect(),
-                            })
-                            .collect(),
-                    }
-                })
-                .collect();
-
-            route_model_repo.put_batch(routes).await?;
         }
         Dynamodb::SyncRwgps => {
             let config = load_user_config()?.unwrap();
