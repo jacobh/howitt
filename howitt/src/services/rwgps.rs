@@ -7,7 +7,7 @@ use crate::{
     ext::futures::FuturesIteratorExt,
     ext::iter::ResultIterExt,
     models::{
-        external_ref::{self, ExternalRef, ExternalRefItemMap, ExternalRefMatch, ExternalSource},
+        external_ref::{ExternalRef, ExternalRefItemMap, ExternalRefMatch, ExternalSource},
         point::{ElevationPoint, PointChunk},
         ride::{Ride, RideModel},
         route::{Route, RouteId, RouteModel},
@@ -52,18 +52,12 @@ where
         let existing_routes = self.route_repo.all_indexes().await?;
         let route_summaries = self.rwgps_client.user_routes(rwgps_user_id).await?;
 
-        let existing_external_refs =
-            ExternalRefItemMap::new(existing_routes.into_iter().filter_map(|route| {
-                match &route.external_ref {
-                    Some(external_ref) => Some((external_ref.clone(), route)),
-                    None => None,
-                }
-            }));
+        let existing_routes = ExternalRefItemMap::from_externally_reffed(existing_routes);
 
         Ok(route_summaries
             .into_iter()
             .filter_map(|summary| {
-                match existing_external_refs.match_ref(ExternalRef {
+                match existing_routes.match_ref(ExternalRef {
                     id: summary.id.to_string(),
                     source: ExternalSource::Rwgps,
                     updated_at: summary.updated_at,
@@ -84,18 +78,12 @@ where
         let existing_rides = self.ride_repo.all_indexes().await?;
         let trip_summaries = self.rwgps_client.user_trips(rwgps_user_id).await?;
 
-        let existing_external_refs =
-            ExternalRefItemMap::new(existing_rides.into_iter().filter_map(|ride| {
-                match &ride.external_ref {
-                    Some(external_ref) => Some((external_ref.clone(), ride)),
-                    None => None,
-                }
-            }));
+        let existing_rides = ExternalRefItemMap::from_externally_reffed(existing_rides);
 
         Ok(trip_summaries
             .into_iter()
             .filter_map(|summary| {
-                match existing_external_refs.match_ref(ExternalRef {
+                match existing_rides.match_ref(ExternalRef {
                     id: summary.id.to_string(),
                     source: ExternalSource::Rwgps,
                     updated_at: summary.updated_at,
@@ -158,8 +146,10 @@ where
 
     pub async fn sync(&self, rwgps_user_id: usize) -> Result<(), anyhow::Error> {
         let route_sync_candidates = self.detect_route_sync_candidates(rwgps_user_id).await?;
+        let ride_sync_candidates = self.detect_ride_sync_candidates(rwgps_user_id).await?;
 
         dbg!(&route_sync_candidates);
+        dbg!(&ride_sync_candidates);
 
         let results = route_sync_candidates
             .into_iter()

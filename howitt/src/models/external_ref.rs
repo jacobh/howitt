@@ -3,6 +3,10 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+pub trait ExternallySourced {
+    fn external_ref(&self) -> Option<&ExternalRef>;
+}
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub enum ExternalSource {
     Rwgps,
@@ -41,6 +45,16 @@ impl<T> ExternalRefItemMap<T> {
                 })
                 .collect(),
         )
+    }
+    pub fn from_externally_reffed(items: impl IntoIterator<Item = T>) -> ExternalRefItemMap<T>
+    where
+        T: ExternallySourced,
+    {
+        ExternalRefItemMap::new(items.into_iter().filter_map(|item| {
+            item.external_ref()
+                .cloned()
+                .map(|external_ref| (external_ref, item))
+        }))
     }
     pub fn match_ref(
         &self,

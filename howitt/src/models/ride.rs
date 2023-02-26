@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
 
-use super::{point::PointChunk, IndexModel};
+use super::{external_ref::ExternallySourced, point::PointChunk, IndexModel};
 
 crate::model_id!(RideId, "RIDE");
 
@@ -23,6 +23,12 @@ impl IndexModel for Ride {
 
     fn id(&self) -> Self::Id {
         self.id
+    }
+}
+
+impl ExternallySourced for Ride {
+    fn external_ref(&self) -> Option<&ExternalRef> {
+        self.external_ref.as_ref()
     }
 }
 

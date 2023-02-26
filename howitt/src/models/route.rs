@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::ElevationPoint};
 
-use super::{point::PointChunk, IndexItem};
+use super::{external_ref::ExternallySourced, point::PointChunk, IndexItem};
 
 crate::model_id!(RouteId, "ROUTE");
 
@@ -22,6 +22,12 @@ impl IndexItem for Route {
 
     fn model_id(&self) -> Self::Id {
         RouteId::from(self.id)
+    }
+}
+
+impl ExternallySourced for Route {
+    fn external_ref(&self) -> Option<&ExternalRef> {
+        self.external_ref.as_ref()
     }
 }
 
