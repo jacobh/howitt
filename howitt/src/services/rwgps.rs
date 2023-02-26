@@ -1,15 +1,15 @@
 use std::{error::Error, marker::PhantomData};
 
 use itertools::Itertools;
-use rwgps_types::RouteSummary;
+use rwgps_types::{RouteSummary, TripSummary};
 
 use crate::{
     ext::futures::FuturesIteratorExt,
     ext::iter::ResultIterExt,
     models::{
-        external_ref::{ExternalRef, ExternalSource},
+        external_ref::{self, ExternalRef, ExternalRefItemMap, ExternalRefMatch, ExternalSource},
         point::{ElevationPoint, PointChunk},
-        ride::RideModel,
+        ride::{Ride, RideModel},
         route::{Route, RouteId, RouteModel},
     },
     repos::Repo,
@@ -52,32 +52,58 @@ where
         let existing_routes = self.route_repo.all_indexes().await?;
         let route_summaries = self.rwgps_client.user_routes(rwgps_user_id).await?;
 
+        let existing_external_refs =
+            ExternalRefItemMap::new(existing_routes.into_iter().filter_map(|route| {
+                match &route.external_ref {
+                    Some(external_ref) => Some((external_ref.clone(), route)),
+                    None => None,
+                }
+            }));
+
         Ok(route_summaries
             .into_iter()
             .filter_map(|summary| {
-                let existing_route = existing_routes
-                    .iter()
-                    .filter_map(|route| {
-                        route
-                            .external_ref
-                            .as_ref()
-                            .map(|external_ref| (route, external_ref))
-                    })
-                    .find(|(_, external_ref)| {
-                        external_ref.source == ExternalSource::Rwgps
-                            && Some(SYNC_VERSION) == external_ref.sync_version
-                            && external_ref.id == summary.id.to_string()
-                    });
+                match existing_external_refs.match_ref(ExternalRef {
+                    id: summary.id.to_string(),
+                    source: ExternalSource::Rwgps,
+                    updated_at: summary.updated_at,
+                    sync_version: Some(SYNC_VERSION),
+                }) {
+                    ExternalRefMatch::Fresh(_) => None,
+                    ExternalRefMatch::Stale(route) => Some((summary, Some(route.clone()))),
+                    ExternalRefMatch::NotFound => Some((summary, None)),
+                }
+            })
+            .collect_vec())
+    }
 
-                match existing_route {
-                    Some((route, external_ref)) => {
-                        if &&summary.updated_at > &&external_ref.updated_at {
-                            Some((summary, Some(route.clone())))
-                        } else {
-                            None
-                        }
-                    }
-                    None => Some((summary, None)),
+    async fn detect_ride_sync_candidates(
+        &self,
+        rwgps_user_id: usize,
+    ) -> Result<Vec<(TripSummary, Option<Ride>)>, anyhow::Error> {
+        let existing_rides = self.ride_repo.all_indexes().await?;
+        let trip_summaries = self.rwgps_client.user_trips(rwgps_user_id).await?;
+
+        let existing_external_refs =
+            ExternalRefItemMap::new(existing_rides.into_iter().filter_map(|ride| {
+                match &ride.external_ref {
+                    Some(external_ref) => Some((external_ref.clone(), ride)),
+                    None => None,
+                }
+            }));
+
+        Ok(trip_summaries
+            .into_iter()
+            .filter_map(|summary| {
+                match existing_external_refs.match_ref(ExternalRef {
+                    id: summary.id.to_string(),
+                    source: ExternalSource::Rwgps,
+                    updated_at: summary.updated_at,
+                    sync_version: Some(SYNC_VERSION),
+                }) {
+                    ExternalRefMatch::Fresh(_) => None,
+                    ExternalRefMatch::Stale(ride) => Some((summary, Some(ride.clone()))),
+                    ExternalRefMatch::NotFound => Some((summary, None)),
                 }
             })
             .collect_vec())
