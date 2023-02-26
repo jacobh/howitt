@@ -7,15 +7,13 @@ use aws_sdk_dynamodb as dynamodb;
 use derive_more::Constructor;
 use dynamodb::error::{DeleteItemError, PutItemError, QueryError, ScanError};
 use dynamodb::output::{DeleteItemOutput, PutItemOutput};
-use dynamodb::{
-    error::GetItemError, model::AttributeValue, types::SdkError,
-};
+use dynamodb::{error::GetItemError, model::AttributeValue, types::SdkError};
 use futures::prelude::*;
 use howitt::ext::futures::FuturesIteratorExt;
-use howitt::models::{ItemCow, ModelId};
 use howitt::models::{
     checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Model,
 };
+use howitt::models::{ItemCow, ModelId};
 use howitt::repos::Repo;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -56,7 +54,10 @@ impl Keys {
             gsi1sk: None,
         }
     }
-    pub fn from_model_id<ID>(id: ID) -> Keys where ID: ModelId {
+    pub fn from_model_id<ID>(id: ID) -> Keys
+    where
+        ID: ModelId,
+    {
         Keys::new_pk_sk(id.to_string(), id.to_string())
     }
     pub fn from_item(item: &HashMap<String, AttributeValue>) -> Result<Keys, anyhow::Error> {
@@ -112,10 +113,14 @@ impl SingleTableClient {
         self.semaphore.acquire().await.unwrap()
     }
 
-    pub async fn get(&self, keys: Keys) -> Result<Option<HashMap<String, AttributeValue>>, SdkError<GetItemError>> {
+    pub async fn get(
+        &self,
+        keys: Keys,
+    ) -> Result<Option<HashMap<String, AttributeValue>>, SdkError<GetItemError>> {
         let _permit = self.acquire_semaphore_permit().await;
 
-        let output = self.client
+        let output = self
+            .client
             .get_item()
             .table_name(&self.table_name)
             .key("pk", AttributeValue::S(keys.pk))
@@ -253,6 +258,16 @@ fn format_key<'a>(parts: impl IntoIterator<Item = Option<&'a str>>) -> String {
     parts.into_iter().filter_map(|x| x).join("#")
 }
 
+#[derive(Debug, thiserror::Error)]
+#[error("Dynamo Repo Error")]
+pub enum DynamoRepoError {
+    AwsQueryError(#[from] SdkError<QueryError>),
+    AwsGetItemError(#[from] SdkError<GetItemError>),
+    AwsPutItemError(#[from] SdkError<PutItemError>),
+    SerdeDynamo(#[from] serde_dynamo::Error),
+    ModelFromItems(anyhow::Error),
+}
+
 #[async_trait::async_trait]
 pub trait DynamoModelRepo: Send + Sync {
     type Model: Model;
@@ -288,7 +303,7 @@ pub trait DynamoModelRepo: Send + Sync {
     async fn get_model(
         &self,
         model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
-    ) -> Result<Option<Self::Model>, anyhow::Error> {
+    ) -> Result<Option<Self::Model>, DynamoRepoError> {
         let items = self
             .client()
             .query_pk(model_id.to_string(), Index::Default)
@@ -303,27 +318,28 @@ pub trait DynamoModelRepo: Send + Sync {
             .map(serde_dynamo::from_item::<_, ItemCow<'static, Self::Model>>)
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(Some(Self::Model::from_items(items)?))
+        Ok(Some(
+            Self::Model::from_items(items).map_err(DynamoRepoError::ModelFromItems)?,
+        ))
     }
 
     async fn get_index(
         &self,
         model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
-    ) -> Result<Option<<<Self as DynamoModelRepo>::Model as Model>::IndexItem>, anyhow::Error> {
+    ) -> Result<Option<<<Self as DynamoModelRepo>::Model as Model>::IndexItem>, DynamoRepoError>
+    {
         let item = self.client().get(Keys::from_model_id(model_id)).await?;
 
         match item {
-            Some(item) => {
-                Ok(Some(serde_dynamo::from_item(item)?))
-            }
-            None => Ok(None)
+            Some(item) => Ok(Some(serde_dynamo::from_item(item)?)),
+            None => Ok(None),
         }
     }
 
     async fn get_batch(
         &self,
         model_ids: Vec<<<Self as DynamoModelRepo>::Model as Model>::Id>,
-    ) -> Result<Vec<Self::Model>, anyhow::Error> {
+    ) -> Result<Vec<Self::Model>, DynamoRepoError> {
         let results = model_ids
             .into_iter()
             .map(|id| (id, self.clone()))
@@ -341,13 +357,13 @@ pub trait DynamoModelRepo: Send + Sync {
         // results.
     }
 
-    async fn put(&self, model: Self::Model) -> Result<(), anyhow::Error> {
+    async fn put(&self, model: Self::Model) -> Result<(), DynamoRepoError> {
         let items = model.into_items().into_iter().collect::<Vec<_>>();
 
         items
             .into_iter()
             .map(|item| (item, self.client().clone()))
-            .map(async move |(item, client)| -> Result<_, anyhow::Error> {
+            .map(async move |(item, client)| -> Result<_, DynamoRepoError> {
                 Ok(client
                     .put(Self::keys(&item), serde_dynamo::to_item(item)?)
                     .await?)
@@ -360,7 +376,7 @@ pub trait DynamoModelRepo: Send + Sync {
         Ok(())
     }
 
-    async fn put_batch(&self, models: Vec<Self::Model>) -> Result<(), anyhow::Error> {
+    async fn put_batch(&self, models: Vec<Self::Model>) -> Result<(), DynamoRepoError> {
         models
             .into_iter()
             .map(|model| (model, self.clone()))
@@ -373,13 +389,16 @@ pub trait DynamoModelRepo: Send + Sync {
         Ok(())
     }
 
-    async fn all_indexes(&self) -> Result<Vec<<Self::Model as Model>::IndexItem>, anyhow::Error> {
+    async fn all_indexes(&self) -> Result<Vec<<Self::Model as Model>::IndexItem>, DynamoRepoError> {
         let items = self
             .client()
             .query_pk(["", Self::Model::model_name()].join("#"), Index::Gsi1)
             .await?;
 
-        Ok(items.into_iter().map(serde_dynamo::from_item).collect::<Result<Vec<_>, _>>()?)
+        Ok(items
+            .into_iter()
+            .map(serde_dynamo::from_item)
+            .collect::<Result<Vec<_>, _>>()?)
     }
 }
 
@@ -399,28 +418,33 @@ macro_rules! impl_repo {
 
         #[async_trait::async_trait]
         impl Repo<$model_type> for $repo_type {
-            type Error = anyhow::Error;
+            type Error = DynamoRepoError;
 
-            async fn all_indexes(&self) -> Result<Vec<<$model_type as Model>::IndexItem>, anyhow::Error> {
+            async fn all_indexes(
+                &self,
+            ) -> Result<Vec<<$model_type as Model>::IndexItem>, DynamoRepoError> {
                 DynamoModelRepo::all_indexes(self).await
             }
             async fn get(
                 &self,
                 id: <$model_type as Model>::Id,
-            ) -> Result<Option<$model_type>, anyhow::Error> {
+            ) -> Result<Option<$model_type>, DynamoRepoError> {
                 DynamoModelRepo::get_model(self, id).await
             }
             async fn get_index(
                 &self,
                 id: <$model_type as Model>::Id,
-            ) -> Result<Option<<$model_type as Model>::IndexItem>, anyhow::Error> {
+            ) -> Result<Option<<$model_type as Model>::IndexItem>, DynamoRepoError> {
                 DynamoModelRepo::get_index(self, id).await
             }
             async fn get_batch(
                 &self,
                 ids: Vec<<$model_type as Model>::Id>,
-            ) -> Result<Vec<$model_type>, anyhow::Error> {
+            ) -> Result<Vec<$model_type>, DynamoRepoError> {
                 DynamoModelRepo::get_batch(self, ids).await
+            }
+            async fn put(&self, model: $model_type) -> Result<(), DynamoRepoError> {
+                DynamoModelRepo::put(self, model).await
             }
         }
     };

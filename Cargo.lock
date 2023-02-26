@@ -1568,6 +1568,7 @@ dependencies = [
  "itertools",
  "serde",
  "serde_dynamo",
+ "thiserror",
  "tokio",
  "uuid",
 ]
