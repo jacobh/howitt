@@ -26,6 +26,7 @@ pub enum Dynamodb {
     SyncRwgps,
     SetStarredRoute(SetStarredRoute),
     ListStarredRoutes,
+    ListRoutes,
     GetRoute,
     ListCheckpoints,
     DeleteAll,
@@ -152,6 +153,10 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             for route in routes {
                 dbg!(route.route.name);
             }
+        }
+        Dynamodb::ListRoutes => {
+            let routes = route_model_repo.all_indexes().await?;
+            dbg!(routes);
         }
         Dynamodb::ListCheckpoints => {
             let checkpoints = checkpoint_repo.all_indexes().await?;

@@ -1,8 +1,17 @@
 use std::{error::Error, marker::PhantomData};
 
+use itertools::Itertools;
+use rwgps_types::RouteSummary;
+
 use crate::{
     ext::futures::FuturesIteratorExt,
-    models::{ride::RideModel, route::RouteModel},
+    ext::iter::ResultIterExt,
+    models::{
+        external_ref::{ExternalRef, ExternalSource},
+        point::ElevationPoint,
+        ride::RideModel,
+        route::{Route, RouteModel, RoutePointChunk},
+    },
     repos::Repo,
 };
 
@@ -34,55 +43,114 @@ where
         }
     }
 
-    async fn fetch_data(
+    async fn detect_route_sync_candidates(
         &self,
         rwgps_user_id: usize,
-    ) -> Result<(Vec<rwgps_types::Route>, Vec<rwgps_types::Trip>), anyhow::Error> {
-        let client = self.rwgps_client.clone();
-
+    ) -> Result<Vec<(RouteSummary, Option<Route>)>, anyhow::Error> {
+        let existing_routes = self.route_repo.all_indexes().await?;
         let route_summaries = self.rwgps_client.user_routes(rwgps_user_id).await?;
 
-        let routes: Vec<Result<rwgps_types::Route, _>> = route_summaries
+        Ok(route_summaries
             .into_iter()
-            .map(|route| (route, client.clone()))
-            .map(async move |(route, client)| client.route(route.id).await)
-            .collect_futures_ordered()
-            .await;
+            .filter_map(|summary| {
+                let existing_route = existing_routes
+                    .iter()
+                    .filter_map(|route| {
+                        route
+                            .external_ref
+                            .as_ref()
+                            .map(|external_ref| (route, external_ref))
+                    })
+                    .find(|(_, external_ref)| {
+                        external_ref.source == ExternalSource::Rwgps
+                            && external_ref.id == summary.id.to_string()
+                    });
 
-        let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
-
-        // persist_routes(&routes)?;
-        dbg!(routes.len());
-
-        let trip_summaries = client.user_trips(rwgps_user_id).await?;
-
-        let trips: Vec<Result<rwgps_types::Trip, _>> = trip_summaries
-            .into_iter()
-            .map(|trip| (trip, client.clone()))
-            .map(async move |(trip, client)| client.trip(trip.id).await)
-            .collect_futures_ordered()
-            .await;
-
-        let trips: Vec<rwgps_types::Trip> = trips.into_iter().collect::<Result<Vec<_>, _>>()?;
-
-        // persist_trips(&trips)?;
-        dbg!(trips.len());
-
-        Ok((routes, trips))
+                match existing_route {
+                    Some((route, external_ref)) => {
+                        if &&summary.updated_at > &&external_ref.updated_at {
+                            Some((summary, Some(route.clone())))
+                        } else {
+                            None
+                        }
+                    }
+                    None => Some((summary, None)),
+                }
+            })
+            .collect_vec())
     }
 
-    async fn persist_routes(&self, routes: Vec<rwgps_types::Route>) -> Result<(), anyhow::Error> {
-        unimplemented!()
-    }
+    async fn sync_route(
+        &self,
+        route_id: usize,
+        existing_route: Option<Route>,
+    ) -> Result<(), anyhow::Error> {
+        let route = self.rwgps_client.route(route_id).await?;
 
-    async fn persist_trips(&self, trips: Vec<rwgps_types::Trip>) -> Result<(), anyhow::Error> {
-        unimplemented!()
+        let id = match existing_route {
+            Some(route) => route.id,
+            None => ulid::Ulid::from_datetime(route.created_at.into()),
+        };
+
+        let model = RouteModel {
+            route: Route {
+                id,
+                name: route.name,
+                distance: route.distance.unwrap_or(0.0),
+                external_ref: Some(ExternalRef {
+                    source: ExternalSource::Rwgps,
+                    id: route.id.to_string(),
+                    updated_at: route.updated_at,
+                }),
+            },
+            point_chunks: route
+                .track_points
+                .into_iter()
+                .filter_map(|track_point| {
+                    match (
+                        geo::Point::try_from(track_point.clone()),
+                        track_point.elevation,
+                    ) {
+                        (Ok(point), Some(elevation)) => Some((point, elevation)),
+                        _ => None,
+                    }
+                })
+                .map(|(point, elevation)| ElevationPoint { point, elevation })
+                .chunks(2500)
+                .into_iter()
+                .enumerate()
+                .map(|(idx, points)| RoutePointChunk {
+                    route_id: id,
+                    idx,
+                    points: points.collect(),
+                })
+                .collect(),
+        };
+
+        self.route_repo.put(model).await?;
+
+        Ok(())
     }
 
     pub async fn sync(&self, rwgps_user_id: usize) -> Result<(), anyhow::Error> {
-        let (routes, trips) = self.fetch_data(rwgps_user_id).await?;
-        self.persist_routes(routes).await?;
-        self.persist_trips(trips).await?;
+        let route_sync_candidates = self.detect_route_sync_candidates(rwgps_user_id).await?;
+
+        dbg!(&route_sync_candidates);
+
+        let results = route_sync_candidates
+            .into_iter()
+            .map(|candidate| (candidate, self.clone()))
+            .map(async move |((summary, existing_route), sync_service)| {
+                sync_service.sync_route(summary.id, existing_route).await
+            })
+            .collect_futures_ordered()
+            .await;
+
+        dbg!(&results);
+
+        results
+            .into_iter()
+            .collect_result_vec()?;
 
         Ok(())
     }
