@@ -40,10 +40,10 @@ impl Index {
 
 #[derive(Debug, Constructor, Serialize, Deserialize)]
 pub struct Keys {
-    pk: String,
-    sk: String,
-    gsi1pk: Option<String>,
-    gsi1sk: Option<String>,
+    pub pk: String,
+    pub sk: String,
+    pub gsi1pk: Option<String>,
+    pub gsi1sk: Option<String>,
 }
 impl Keys {
     pub fn new_pk_sk(pk: String, sk: String) -> Keys {
