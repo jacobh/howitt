@@ -8,41 +8,30 @@ pub trait ExternallySourced {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub enum ExternalSource {
-    Rwgps,
+pub enum ExternalId {
+    Rwgps(RwgpsId),
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
+pub enum RwgpsId {
+    Route(usize),
+    Trip(usize),
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ExternalRef {
-    pub id: String,
-    pub source: ExternalSource,
+    pub id: ExternalId,
     pub updated_at: DateTime<Utc>,
     pub sync_version: Option<usize>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
-struct ExternalRefKey {
-    id: String,
-    source: ExternalSource,
-}
-impl From<ExternalRef> for ExternalRefKey {
-    fn from(ExternalRef { id, source, .. }: ExternalRef) -> Self {
-        ExternalRefKey { id, source }
-    }
-}
-
-pub struct ExternalRefItemMap<T>(HashMap<ExternalRefKey, (ExternalRef, T)>);
+pub struct ExternalRefItemMap<T>(HashMap<ExternalId, (ExternalRef, T)>);
 impl<T> ExternalRefItemMap<T> {
     pub fn new(items: impl IntoIterator<Item = (ExternalRef, T)>) -> ExternalRefItemMap<T> {
         ExternalRefItemMap(
             items
                 .into_iter()
-                .map(|(external_ref, item)| {
-                    (
-                        ExternalRefKey::from(external_ref.clone()),
-                        (external_ref, item),
-                    )
-                })
+                .map(|(external_ref, item)| (external_ref.id.clone(), (external_ref, item)))
                 .collect(),
         )
     }
@@ -60,12 +49,11 @@ impl<T> ExternalRefItemMap<T> {
         &self,
         ExternalRef {
             id,
-            source,
             updated_at,
             sync_version,
         }: ExternalRef,
     ) -> ExternalRefMatch<'_, T> {
-        match self.0.get(&ExternalRefKey { source, id }) {
+        match self.0.get(&id) {
             Some((external_ref, item)) => {
                 if external_ref.sync_version == sync_version
                     && external_ref.updated_at == updated_at

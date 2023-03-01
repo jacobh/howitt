@@ -1,7 +1,6 @@
 use std::{error::Error, marker::PhantomData};
 
 use anyhow::anyhow;
-use chrono::Utc;
 use itertools::Itertools;
 use rwgps_types::{RouteSummary, TripSummary};
 
@@ -9,7 +8,7 @@ use crate::{
     ext::futures::FuturesIteratorExt,
     ext::iter::ResultIterExt,
     models::{
-        external_ref::{ExternalRef, ExternalRefItemMap, ExternalRefMatch, ExternalSource},
+        external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         point::{ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
         route::{Route, RouteId, RouteModel},
@@ -60,8 +59,7 @@ where
             .into_iter()
             .filter_map(|summary| {
                 match existing_routes.match_ref(ExternalRef {
-                    id: summary.id.to_string(),
-                    source: ExternalSource::Rwgps,
+                    id: ExternalId::Rwgps(RwgpsId::Route(summary.id)),
                     updated_at: summary.updated_at,
                     sync_version: Some(SYNC_VERSION),
                 }) {
@@ -86,8 +84,7 @@ where
             .into_iter()
             .filter_map(|summary| {
                 match existing_rides.match_ref(ExternalRef {
-                    id: summary.id.to_string(),
-                    source: ExternalSource::Rwgps,
+                    id: ExternalId::Rwgps(RwgpsId::Trip(summary.id)),
                     updated_at: summary.updated_at,
                     sync_version: Some(SYNC_VERSION),
                 }) {
@@ -117,9 +114,8 @@ where
                 name: route.name,
                 distance: route.distance.unwrap_or(0.0),
                 external_ref: Some(ExternalRef {
-                    source: ExternalSource::Rwgps,
+                    id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
                     sync_version: Some(SYNC_VERSION),
-                    id: route.id.to_string(),
                     updated_at: route.updated_at,
                 }),
             },
@@ -197,8 +193,7 @@ where
                 started_at,
                 finished_at,
                 external_ref: Some(ExternalRef {
-                    id: ride.id.to_string(),
-                    source: ExternalSource::Rwgps,
+                    id: ExternalId::Rwgps(RwgpsId::Trip(ride.id)),
                     updated_at: ride.updated_at,
                     sync_version: Some(SYNC_VERSION),
                 }),
