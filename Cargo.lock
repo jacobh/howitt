@@ -1630,7 +1630,7 @@ dependencies = [
  "geojson",
  "gpx",
  "howitt",
- "howitt-fs",
+ "howitt-dynamo",
  "howitt-graphql",
  "http",
  "rwgps",

@@ -12,7 +12,7 @@ async-graphql = { version = "5", features = ["uuid"] }
 async-graphql-warp = "5"
 http = "*"
 howitt = { path = "../howitt" }
-howitt-fs = { path = "../howitt-fs" }
+howitt-dynamo = { path = "../howitt-dynamo" }
 howitt-graphql = { path = "../howitt-graphql" }
 rwgps = { path = "../rwgps" }
 rwgps_types = { path = "../rwgps-types" }

@@ -2,15 +2,20 @@
 use async_graphql::*;
 use derive_more::From;
 use geo::CoordsIter;
+use howitt::models::checkpoint::CheckpointId;
 use howitt::models::config::ConfigId;
-use howitt::models::route::RouteModel;
-use howitt::repos::{CheckpointRepo, ConfigRepo, RouteModelRepo};
+use howitt::models::ride::RideId;
+use howitt::models::route::{RouteId, RouteModel};
+use howitt::models::Model;
+use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, From)]
-pub struct Ulid(ulid::Ulid);
+pub struct ModelId<ID: howitt::models::ModelId>(ID);
 
-scalar!(Ulid);
+scalar!(ModelId<CheckpointId>, "CheckpointId");
+scalar!(ModelId<RideId>, "RideId");
+scalar!(ModelId<RouteId>, "RouteId");
 
 pub struct Query;
 
@@ -38,17 +43,11 @@ impl Query {
     async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
         None
     }
-    async fn latest_rides(&self) -> Result<Vec<Ride>, async_graphql::Error> {
-        let now = chrono::Utc::now();
-        let thirty_days_ago = now - chrono::Duration::days(30);
-        let trips: &Vec<rwgps_types::Trip> = &Vec::new();
+    async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
+        let ride_repo: &RideModelRepo = ctx.data()?;
+        let rides = ride_repo.all_indexes().await?;
 
-        Ok(trips
-            .into_iter()
-            .filter(|trip| trip.departed_at > thirty_days_ago)
-            .cloned()
-            .map(|trip| Ride(trip))
-            .collect())
+        Ok(rides.into_iter().map(|ride| Ride(ride)).collect())
     }
     async fn checkpoints<'ctx>(
         &self,
@@ -72,8 +71,8 @@ pub struct Route(RouteModel);
 
 #[Object]
 impl Route {
-    async fn id(&self) -> Ulid {
-        Ulid::from(self.0.route.id)
+    async fn id(&self) -> ModelId<RouteId> {
+        ModelId::from(self.0.id())
     }
     async fn name(&self) -> &str {
         &self.0.route.name
@@ -102,12 +101,12 @@ impl Route {
     }
 }
 
-pub struct Ride(rwgps_types::Trip);
+pub struct Ride(howitt::models::ride::Ride);
 
 #[Object]
 impl Ride {
-    async fn id(&self) -> usize {
-        self.0.id
+    async fn id(&self) -> ModelId<RideId> {
+        ModelId::from(self.0.id)
     }
     async fn name(&self) -> &str {
         &self.0.name
@@ -115,16 +114,31 @@ impl Ride {
     async fn distance(&self) -> f64 {
         self.0.distance
     }
-    async fn geojson(&self) -> String {
-        let linestring = geo::LineString::from(self.0.clone());
-        geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
+    async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
+        let ride_repo: &RideModelRepo = ctx.data()?;
+        let ride_model = ride_repo
+            .get(self.0.id)
+            .await?
+            .ok_or(anyhow::anyhow!("couldnt load model"))?;
+
+        let linestring = geo::LineString::from_iter(ride_model.iter_geo_points());
+
+        Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
     }
-    async fn points(&self) -> Vec<Vec<f64>> {
-        geo::LineString::from(self.0.clone())
-            .into_points()
-            .into_iter()
+    async fn points<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
+        let ride_repo: &RideModelRepo = ctx.data()?;
+        let ride_model = ride_repo
+            .get(self.0.id)
+            .await?
+            .ok_or(anyhow::anyhow!("couldnt load model"))?;
+
+        Ok(ride_model
+            .iter_geo_points()
             .map(|point| vec![point.x(), point.y()])
-            .collect()
+            .collect())
     }
 }
 
@@ -141,8 +155,8 @@ pub struct Checkpoint(howitt::models::checkpoint::Checkpoint);
 
 #[Object]
 impl Checkpoint {
-    async fn id<'a>(&'a self) -> Ulid {
-        Ulid::from(self.0.id)
+    async fn id<'a>(&'a self) -> ModelId<CheckpointId> {
+        ModelId::from(self.0.id())
     }
     async fn name(&self) -> &str {
         &self.0.name
