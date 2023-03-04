@@ -1,20 +1,15 @@
 use std::str::FromStr;
 
-use anyhow::anyhow;
 use clap::{Args, Subcommand};
 use howitt::{
-    models::{
-        config::ConfigId,
-        route::{Route, RouteId, RouteModel},
-    },
+    models::{config::ConfigId, route::RouteId},
+    repos::Repo,
     services::rwgps::RwgpsSyncService,
 };
 use howitt_dynamo::{
-    CheckpointRepo, ConfigRepo, DynamoModelRepo, Keys, RideModelRepo, RouteModelRepo,
-    SingleTableClient,
+    CheckpointRepo, ConfigRepo, Keys, RideModelRepo, RouteModelRepo, SingleTableClient,
 };
-use howitt_fs::{load_huts, load_routes, load_stations, load_user_config};
-use itertools::Itertools;
+use howitt_fs::{load_huts, load_stations, load_user_config};
 use rwgps::RwgpsClient;
 
 #[derive(Subcommand)]
@@ -66,23 +61,22 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
         }
         Dynamodb::SetStarredRoute(SetStarredRoute { route_id }) => {
             let route_id = ulid::Ulid::from_string(route_id)?;
-            let mut config = config_repo.get_model(ConfigId).await?.unwrap_or_default();
+            let mut config = config_repo.get(ConfigId).await?;
             config.starred_route_ids.push(RouteId::from(route_id));
             config_repo.put(config).await?;
         }
         Dynamodb::GetRoute => {
             let model = route_model_repo
-                .get_model(RouteId::from(
+                .get(RouteId::from(
                     ulid::Ulid::from_str("01GRQGBJ9NNA8354256RQ10DJB").unwrap(),
                 ))
-                .await?
-                .ok_or(anyhow!("route not found"))?;
+                .await?;
             dbg!(&model.route.name);
             dbg!(&model.route.external_ref);
             dbg!(model.iter_geo_points().count());
         }
         Dynamodb::ListStarredRoutes => {
-            let config = config_repo.get_model(ConfigId).await?.unwrap();
+            let config = config_repo.get(ConfigId).await?;
 
             let routes = route_model_repo.get_batch(config.starred_route_ids).await?;
 

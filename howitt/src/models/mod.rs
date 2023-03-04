@@ -12,7 +12,7 @@ pub mod ride;
 pub mod route;
 pub mod segment;
 
-pub trait Model: Send + Sync + Sized {
+pub trait Model: Send + Sync + Sized + 'static {
     type Id: ModelId;
     type IndexItem: IndexItem<Id = Self::Id>;
     type OtherItem: OtherItem<Id = Self::Id>;
@@ -201,7 +201,7 @@ where
     }
 }
 
-pub trait ModelId: Send + Sync + std::fmt::Display + PartialEq + Copy + Clone {
+pub trait ModelId: Send + Sync + std::fmt::Display + PartialEq + Copy + Clone + 'static {
     fn model_name() -> &'static str;
 }
 

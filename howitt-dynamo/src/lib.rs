@@ -266,6 +266,7 @@ pub enum DynamoRepoError {
     AwsPutItemError(#[from] SdkError<PutItemError>),
     SerdeDynamo(#[from] serde_dynamo::Error),
     ModelFromItems(anyhow::Error),
+    NotFound,
 }
 
 #[async_trait::async_trait]
@@ -303,14 +304,14 @@ pub trait DynamoModelRepo: Send + Sync {
     async fn get_model(
         &self,
         model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
-    ) -> Result<Option<Self::Model>, DynamoRepoError> {
+    ) -> Result<Self::Model, DynamoRepoError> {
         let items = self
             .client()
             .query_pk(model_id.to_string(), Index::Default)
             .await?;
 
         if items.len() == 0 {
-            return Ok(None);
+            return Err(DynamoRepoError::NotFound);
         }
 
         let items = items
@@ -318,43 +319,19 @@ pub trait DynamoModelRepo: Send + Sync {
             .map(serde_dynamo::from_item::<_, ItemCow<'static, Self::Model>>)
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(Some(
-            Self::Model::from_items(items).map_err(DynamoRepoError::ModelFromItems)?,
-        ))
+        Ok(Self::Model::from_items(items).map_err(DynamoRepoError::ModelFromItems)?)
     }
 
     async fn get_index(
         &self,
         model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
-    ) -> Result<Option<<<Self as DynamoModelRepo>::Model as Model>::IndexItem>, DynamoRepoError>
-    {
+    ) -> Result<<<Self as DynamoModelRepo>::Model as Model>::IndexItem, DynamoRepoError> {
         let item = self.client().get(Keys::from_model_id(model_id)).await?;
 
         match item {
-            Some(item) => Ok(Some(serde_dynamo::from_item(item)?)),
-            None => Ok(None),
+            Some(item) => Ok(serde_dynamo::from_item(item)?),
+            None => Err(DynamoRepoError::NotFound),
         }
-    }
-
-    async fn get_batch(
-        &self,
-        model_ids: Vec<<<Self as DynamoModelRepo>::Model as Model>::Id>,
-    ) -> Result<Vec<Self::Model>, DynamoRepoError> {
-        let results = model_ids
-            .into_iter()
-            .map(|id| (id, self.clone()))
-            .map(async move |(id, repo)| repo.get_model(id).await)
-            .collect_futures_ordered()
-            .await;
-
-        let items = results
-            .into_iter()
-            .map(Result::transpose)
-            .flatten()
-            .collect::<Result<Vec<_>, _>>()?;
-
-        Ok(items)
-        // results.
     }
 
     async fn put(&self, model: Self::Model) -> Result<(), DynamoRepoError> {
@@ -368,19 +345,6 @@ pub trait DynamoModelRepo: Send + Sync {
                     .put(Self::keys(&item), serde_dynamo::to_item(item)?)
                     .await?)
             })
-            .collect_futures_ordered()
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
-
-        Ok(())
-    }
-
-    async fn put_batch(&self, models: Vec<Self::Model>) -> Result<(), DynamoRepoError> {
-        models
-            .into_iter()
-            .map(|model| (model, self.clone()))
-            .map(async move |(model, repo)| repo.put(model).await)
             .collect_futures_ordered()
             .await
             .into_iter()
@@ -428,20 +392,14 @@ macro_rules! impl_repo {
             async fn get(
                 &self,
                 id: <$model_type as Model>::Id,
-            ) -> Result<Option<$model_type>, DynamoRepoError> {
+            ) -> Result<$model_type, DynamoRepoError> {
                 DynamoModelRepo::get_model(self, id).await
             }
             async fn get_index(
                 &self,
                 id: <$model_type as Model>::Id,
-            ) -> Result<Option<<$model_type as Model>::IndexItem>, DynamoRepoError> {
+            ) -> Result<<$model_type as Model>::IndexItem, DynamoRepoError> {
                 DynamoModelRepo::get_index(self, id).await
-            }
-            async fn get_batch(
-                &self,
-                ids: Vec<<$model_type as Model>::Id>,
-            ) -> Result<Vec<$model_type>, DynamoRepoError> {
-                DynamoModelRepo::get_batch(self, ids).await
             }
             async fn put(&self, model: $model_type) -> Result<(), DynamoRepoError> {
                 DynamoModelRepo::put(self, model).await

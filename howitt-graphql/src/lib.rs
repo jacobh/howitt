@@ -6,7 +6,7 @@ use geo::CoordsIter;
 use howitt::models::checkpoint::CheckpointId;
 use howitt::models::config::ConfigId;
 use howitt::models::ride::RideId;
-use howitt::models::route::{RouteId, RouteModel};
+use howitt::models::route::{RouteId};
 use howitt::models::Model;
 use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
 use itertools::Itertools;
@@ -36,9 +36,9 @@ impl Query {
         let config_repo: &ConfigRepo = ctx.data()?;
         let route_repo: &RouteModelRepo = ctx.data()?;
 
-        let config = config_repo.get(ConfigId).await?.unwrap_or_default();
+        let config = config_repo.get(ConfigId).await?;
 
-        let routes = route_repo.get_batch(config.starred_route_ids).await?;
+        let routes = route_repo.get_index_batch(config.starred_route_ids).await?;
 
         Ok(routes.into_iter().map(Route).collect())
     }
@@ -73,37 +73,48 @@ impl Query {
     }
 }
 
-pub struct Route(RouteModel);
+pub struct Route(howitt::models::route::Route);
 
 #[Object]
 impl Route {
     async fn id(&self) -> ModelId<RouteId> {
-        ModelId::from(self.0.id())
+        ModelId::from(RouteId::from(self.0.id))
     }
     async fn name(&self) -> &str {
-        &self.0.route.name
+        &self.0.name
     }
     async fn distance(&self) -> f64 {
-        self.0.route.distance
+        self.0.distance
     }
-    async fn geojson(&self) -> String {
-        let linestring = geo::LineString::from(self.0.iter_geo_points().collect::<Vec<_>>());
-        geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string()
+    async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
+        let route_repo: &RouteModelRepo = ctx.data()?;
+        let route_model = route_repo.get(self.0.id.into()).await?;
+
+        let linestring = geo::LineString::from(route_model.iter_geo_points().collect::<Vec<_>>());
+        Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
     }
-    async fn points(&self) -> Vec<Vec<f64>> {
-        self.0
+    async fn points<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
+        let route_repo: &RouteModelRepo = ctx.data()?;
+        let route_model = route_repo.get(self.0.id.into()).await?;
+
+        Ok(route_model
             .iter_geo_points()
             .map(|point| vec![point.x(), point.y()])
-            .collect()
+            .collect())
     }
-    async fn polyline(&self) -> String {
-        polyline::encode_coordinates(
-            self.0
+    async fn polyline<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
+        let route_repo: &RouteModelRepo = ctx.data()?;
+        let route_model = route_repo.get(self.0.id.into()).await?;
+
+        Ok(polyline::encode_coordinates(
+            route_model
                 .iter_geo_points()
                 .flat_map(|point| point.coords_iter()),
             5,
-        )
-        .unwrap()
+        )?)
     }
 }
 
@@ -128,10 +139,7 @@ impl Ride {
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let ride_repo: &RideModelRepo = ctx.data()?;
-        let ride_model = ride_repo
-            .get(self.0.id)
-            .await?
-            .ok_or(anyhow::anyhow!("couldnt load model"))?;
+        let ride_model = ride_repo.get(self.0.id).await?;
 
         let linestring = geo::LineString::from_iter(ride_model.iter_geo_points());
 
@@ -142,10 +150,7 @@ impl Ride {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let ride_repo: &RideModelRepo = ctx.data()?;
-        let ride_model = ride_repo
-            .get(self.0.id)
-            .await?
-            .ok_or(anyhow::anyhow!("couldnt load model"))?;
+        let ride_model = ride_repo.get(self.0.id).await?;
 
         Ok(ride_model
             .iter_geo_points()
