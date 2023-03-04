@@ -1,5 +1,6 @@
 #![feature(async_closure)]
 use async_graphql::*;
+use chrono::{DateTime, Utc};
 use derive_more::From;
 use geo::CoordsIter;
 use howitt::models::checkpoint::CheckpointId;
@@ -8,6 +9,7 @@ use howitt::models::ride::RideId;
 use howitt::models::route::{RouteId, RouteModel};
 use howitt::models::Model;
 use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, From)]
@@ -47,7 +49,11 @@ impl Query {
         let ride_repo: &RideModelRepo = ctx.data()?;
         let rides = ride_repo.all_indexes().await?;
 
-        Ok(rides.into_iter().map(|ride| Ride(ride)).collect())
+        Ok(rides
+            .into_iter()
+            .sorted_by_key(|ride| ride.started_at)
+            .map(|ride| Ride(ride))
+            .collect())
     }
     async fn checkpoints<'ctx>(
         &self,
@@ -113,6 +119,12 @@ impl Ride {
     }
     async fn distance(&self) -> f64 {
         self.0.distance
+    }
+    async fn started_at(&self) -> DateTime<Utc> {
+        self.0.started_at
+    }
+    async fn finished_at(&self) -> DateTime<Utc> {
+        self.0.finished_at
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let ride_repo: &RideModelRepo = ctx.data()?;

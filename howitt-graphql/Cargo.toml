@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-graphql = { version = "5", features = ["uuid"] }
+async-graphql = { version = "5", features = ["uuid", "chrono"] }
 howitt = { path = "../howitt" }
 rwgps_types = { path = "../rwgps-types" }
 anyhow = "*"
@@ -20,3 +20,4 @@ ulid = "*"
 serde = { version = "*", features = ["derive"] }
 derive_more = "*"
 polyline = "*"
+itertools = "*"
