@@ -23,10 +23,6 @@ const HOME_QUERY = gql(`
       distance
       points
     }
-    latestRides {
-      id
-      points
-    }
     checkpoints {
       id
       name
@@ -66,7 +62,6 @@ export default function Index() {
           </OverlayContainer>
           <Map
             routes={mode === "routes" ? data?.starredRoutes : undefined}
-            rides={mode === "rides" ? data?.latestRides : undefined}
             checkpoints={data?.checkpoints}
           />
         </StyledMain>
