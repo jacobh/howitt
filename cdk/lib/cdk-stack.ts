@@ -36,17 +36,7 @@ import {
 } from "aws-cdk-lib/aws-cloudfront";
 import {
   HttpOrigin,
-  LoadBalancerV2Origin,
-  OriginGroup,
 } from "aws-cdk-lib/aws-cloudfront-origins";
-import { ApplicationLoadBalancedFargateService } from "aws-cdk-lib/aws-ecs-patterns";
-import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
-import {
-  Cluster,
-  ContainerImage,
-  CpuArchitecture,
-  OperatingSystemFamily,
-} from "aws-cdk-lib/aws-ecs";
 import { experimental } from "aws-cdk-lib/aws-cloudfront";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
@@ -131,36 +121,10 @@ export class CdkStack extends cdk.Stack {
       methods: [HttpMethod.ANY],
     });
 
-    const cluster = new Cluster(this, "howitt-cluster");
+    const webuiApi = new webuiLambdaDeployment(this);
 
-    const webuiImage = new DockerImageAsset(this, "webuiDockerImage", {
-      directory: path.join(PROJECT_ROOT_DIR, "webui"),
-    });
-
-    const webuiContainerImage = ContainerImage.fromDockerImageAsset(webuiImage);
-
-    const webuiService = new ApplicationLoadBalancedFargateService(
-      this,
-      "webuiALBFargateService",
-      {
-        memoryLimitMiB: 512,
-        desiredCount: 1,
-        cpu: 256,
-        cluster,
-        listenerPort: 80,
-        runtimePlatform: {
-          operatingSystemFamily: OperatingSystemFamily.LINUX,
-          cpuArchitecture: CpuArchitecture.ARM64,
-        },
-        taskImageOptions: {
-          image: webuiContainerImage,
-        },
-      }
-    );
-
-    const origin = new LoadBalancerV2Origin(webuiService.loadBalancer, {
-      protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
-    });
+    // taken from deployed webuiApi
+    const origin = new HttpOrigin("6qrdtonstb.execute-api.ap-southeast-2.amazonaws.com")
 
     const webuiCloudfront = new Distribution(this, "howitt-webui-cloudfront", {
       domainNames: [webUIDomainName.name],
@@ -218,7 +182,9 @@ export class CdkStack extends cdk.Stack {
 
 // not in use
 class webuiLambdaDeployment extends Construct {
-  constructor(scope: Construct, domainName: DomainName) {
+  public httpApi: HttpApi
+
+  constructor(scope: Construct) {
     super(scope, "webui-lambda-deployment")
 
     const remixRootDir = [PROJECT_ROOT_DIR, "webui"].join("/");
@@ -247,12 +213,13 @@ class webuiLambdaDeployment extends Construct {
       remixLambda
     );
 
-    const remixApi = new HttpApi(this, "howitt-webui-api", {
+    this.httpApi = new HttpApi(this, "howitt-webui-api", {
       // disableExecuteApiEndpoint: true,
-      defaultDomainMapping: { domainName },
+      createDefaultStage: true,
+      // defaultDomainMapping: { domainName },
     });
 
-    remixApi.addRoutes({
+    this.httpApi.addRoutes({
       path: "/{proxy+}",
       integration: remixLambdaIntegration,
       methods: [HttpMethod.ANY],
