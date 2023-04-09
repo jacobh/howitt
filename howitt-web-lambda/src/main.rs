@@ -35,7 +35,7 @@ async fn main() {
     let cors = warp::cors()
         .allow_any_origin()
         .allow_methods(vec!["GET", "POST"])
-        .allow_headers(vec!["content-type"]);
+        .allow_headers(vec!["content-type", "authorization"]);
 
     let graphql_post = async_graphql_warp::graphql(schema).and_then(
         |(schema, request): (
