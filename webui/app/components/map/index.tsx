@@ -20,8 +20,7 @@ import Fill from "ol/style/Fill";
 
 const MapContainer = styled.div`
   width: 100%;
-  height: 100%;
-  position: fixed;
+  height: 100vh;
 `;
 
 interface MapProps {
@@ -72,8 +71,8 @@ export function Map({ routes, rides, checkpoints }: MapProps) {
     useGeographic();
 
     const view = new View({
-      center: [147.19193300372723, -37.416399197237276],
-      zoom: 7.6,
+      center: [146, -37],
+      zoom: 7.5,
     });
 
     const map = new OlMap({
