@@ -40,7 +40,7 @@ async fn main() {
     let auth_header_filter =
         warp::header::optional::<String>("authorization").map(|auth_header: Option<String>| {
             auth_header
-                .as_ref()
+                .as_deref()
                 .and_then(|s| Credentials::parse_auth_header_value(s).ok())
         });
 
