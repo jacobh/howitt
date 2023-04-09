@@ -1,4 +1,7 @@
 #![feature(async_closure)]
+
+pub mod credentials;
+
 use async_graphql::*;
 use chrono::{DateTime, Utc};
 use derive_more::From;
@@ -6,7 +9,7 @@ use geo::CoordsIter;
 use howitt::models::checkpoint::CheckpointId;
 use howitt::models::config::ConfigId;
 use howitt::models::ride::RideId;
-use howitt::models::route::{RouteId};
+use howitt::models::route::RouteId;
 use howitt::models::Model;
 use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
 use itertools::Itertools;
