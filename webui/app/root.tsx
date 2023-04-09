@@ -17,7 +17,7 @@ export const meta: MetaFunction = () => ({
 
 const StyledBody = styled.body`
   margin: 0;
-`
+`;
 
 export default function App() {
   return (
