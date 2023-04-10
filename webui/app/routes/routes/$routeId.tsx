@@ -8,12 +8,15 @@ import { Map } from "../../components/map";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
- route(id: $routeId) {
-	id
-name
-distance
-points
-}
+  route(id: $routeId) {
+    id
+    name
+    distance
+    points
+  }
+  viewer {
+    role
+  }
 }
 `);
 
@@ -39,6 +42,21 @@ export default function Route() {
               <h2>{data.route.name}</h2>
               <hr />
               {formatDistance(data.route.distance)}
+            </>
+          ) : (
+            <></>
+          )}
+          {data?.viewer.role === "SUPER_USER" ? (
+            <>
+              <h3>Segment Creator</h3>
+              <p>Name</p>
+              <input type="text" />
+              <p>Start KM</p>
+              <input type="range" />
+              <p>End KM</p>
+              <input type="range" />
+              <br />
+              <button>Create</button>
             </>
           ) : (
             <></>

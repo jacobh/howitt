@@ -127,6 +127,7 @@ export type RouteQueryQuery = {
     distance: number;
     points: Array<Array<number>>;
   } | null;
+  viewer: { __typename?: "Viewer"; role: Role };
 };
 
 export const HomeQueryDocument = {
@@ -219,6 +220,16 @@ export const RouteQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "role" } },
               ],
             },
           },
