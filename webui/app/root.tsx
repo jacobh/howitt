@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -17,6 +17,13 @@ export const meta: MetaFunction = () => ({
 
 const StyledBody = styled.body`
   margin: 0;
+  font-family: "Hanken Grotesk", sans-serif;
+`;
+
+const StyledMain = styled.main`
+  width: 100%;
+  height: 100%;
+  margin: 0;
 `;
 
 export default function App() {
@@ -28,7 +35,9 @@ export default function App() {
         {typeof document === "undefined" ? "__STYLES__" : null}
       </head>
       <StyledBody>
-        <Outlet />
+        <StyledMain>
+          <Outlet />
+        </StyledMain>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
@@ -36,3 +45,18 @@ export default function App() {
     </html>
   );
 }
+
+export const links: LinksFunction = () => {
+  return [
+    { rel: "preconnect", href: "https://fonts.googleapis.com" },
+    {
+      rel: "preconnect",
+      href: "https://fonts.gstatic.com",
+      crossOrigin: "anonymous",
+    },
+    {
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Hanken+Grotesk&display=swap",
+    },
+  ];
+};

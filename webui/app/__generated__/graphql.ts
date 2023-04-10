@@ -19,6 +19,12 @@ export type Scalars = {
   Int: number;
   Float: number;
   CheckpointId: any;
+  /**
+   * Implement the DateTime<Utc> scalar
+   *
+   * The input/output is a string in RFC3339 format.
+   */
+  DateTime: any;
   RideId: any;
   RouteId: any;
 };
@@ -46,6 +52,7 @@ export type Query = {
   route?: Maybe<Route>;
   routes: Array<Route>;
   starredRoutes: Array<Route>;
+  viewer: Viewer;
 };
 
 export type QueryCheckpointArgs = {
@@ -53,17 +60,24 @@ export type QueryCheckpointArgs = {
 };
 
 export type QueryRouteArgs = {
-  id: Scalars["Int"];
+  id: Scalars["RouteId"];
 };
 
 export type Ride = {
   __typename?: "Ride";
   distance: Scalars["Float"];
+  finishedAt: Scalars["DateTime"];
   geojson: Scalars["String"];
   id: Scalars["RideId"];
   name: Scalars["String"];
   points: Array<Array<Scalars["Float"]>>;
+  startedAt: Scalars["DateTime"];
 };
+
+export enum Role {
+  Public = "PUBLIC",
+  SuperUser = "SUPER_USER",
+}
 
 export type Route = {
   __typename?: "Route";
@@ -73,6 +87,11 @@ export type Route = {
   name: Scalars["String"];
   points: Array<Array<Scalars["Float"]>>;
   polyline: Scalars["String"];
+};
+
+export type Viewer = {
+  __typename?: "Viewer";
+  role: Role;
 };
 
 export type HomeQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -93,6 +112,21 @@ export type HomeQueryQuery = {
     point: Array<number>;
     checkpointType: CheckpointType;
   }>;
+};
+
+export type RouteQueryQueryVariables = Exact<{
+  routeId: Scalars["RouteId"];
+}>;
+
+export type RouteQueryQuery = {
+  __typename?: "Query";
+  route?: {
+    __typename?: "Route";
+    id: any;
+    name: string;
+    distance: number;
+    points: Array<Array<number>>;
+  } | null;
 };
 
 export const HomeQueryDocument = {
@@ -139,3 +173,57 @@ export const HomeQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<HomeQueryQuery, HomeQueryQueryVariables>;
+export const RouteQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "RouteQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "routeId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "RouteId" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "route" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "routeId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "distance" } },
+                { kind: "Field", name: { kind: "Name", value: "points" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RouteQueryQuery, RouteQueryQueryVariables>;
