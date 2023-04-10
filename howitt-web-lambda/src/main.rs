@@ -4,7 +4,11 @@ use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Sche
 use async_graphql_warp::GraphQLResponse;
 use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
 use howitt_dynamo::SingleTableClient;
-use howitt_graphql::{credentials::Credentials, Query};
+use howitt_graphql::{
+    context::{RequestData, SchemaData},
+    credentials::Credentials,
+    Query,
+};
 use warp::{http::Response as HttpResponse, Filter};
 
 #[tokio::main]
@@ -24,10 +28,12 @@ async fn main() {
     ));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
-        .data(config_repo)
-        .data(checkpoint_repo)
-        .data(route_repo)
-        .data(ride_repo)
+        .data(SchemaData {
+            config_repo,
+            checkpoint_repo,
+            route_repo,
+            ride_repo,
+        })
         .finish();
 
     println!("GraphiQL IDE: http://localhost:8000");
@@ -52,7 +58,7 @@ async fn main() {
                 Schema<Query, EmptyMutation, EmptySubscription>,
                 async_graphql::Request,
             )| async move {
-                request = request.data(credentials);
+                request = request.data(RequestData { credentials });
                 Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
             },
         );

@@ -1,10 +1,12 @@
 #![feature(async_closure)]
 
+pub mod context;
 pub mod credentials;
 pub mod roles;
 
 use async_graphql::*;
 use chrono::{DateTime, Utc};
+use context::SchemaData;
 use derive_more::From;
 use geo::CoordsIter;
 use howitt::models::checkpoint::CheckpointId;
@@ -12,7 +14,6 @@ use howitt::models::config::ConfigId;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::Model;
-use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
 use itertools::Itertools;
 use roles::Role;
 use serde::{Deserialize, Serialize};
@@ -32,7 +33,7 @@ impl Query {
         Viewer
     }
 
-    async fn routes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Route>, async_graphql::Error> {
+    async fn routes<'ctx>(&self) -> Result<Vec<Route>, async_graphql::Error> {
         // let route_repo: &RouteModelRepo = ctx.data()?;
         // let routes = route_repo.all_indexes().await?;
         Ok(vec![])
@@ -42,8 +43,11 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Route>, async_graphql::Error> {
-        let config_repo: &ConfigRepo = ctx.data()?;
-        let route_repo: &RouteModelRepo = ctx.data()?;
+        let SchemaData {
+            config_repo,
+            route_repo,
+            ..
+        } = ctx.data()?;
 
         let config = config_repo.get(ConfigId).await?;
 
@@ -55,7 +59,7 @@ impl Query {
         None
     }
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
-        let ride_repo: &RideModelRepo = ctx.data()?;
+        let SchemaData { ride_repo, .. } = ctx.data()?;
         let rides = ride_repo.all_indexes().await?;
 
         Ok(rides
@@ -68,7 +72,9 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Checkpoint>, async_graphql::Error> {
-        let checkpoint_repo: &CheckpointRepo = ctx.data()?;
+        let SchemaData {
+            checkpoint_repo, ..
+        } = ctx.data()?;
 
         let checkpoints = checkpoint_repo.all_indexes().await?;
 
@@ -86,10 +92,7 @@ pub struct Viewer;
 
 #[Object]
 impl Viewer {
-    async fn role<'ctx>(
-        &self,
-        ctx: &Context<'ctx>,
-    ) -> Result<Role, async_graphql::Error> {
+    async fn role<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Role, async_graphql::Error> {
         Role::from_context(ctx).await
     }
 }
@@ -108,7 +111,7 @@ impl Route {
         self.0.distance
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
-        let route_repo: &RouteModelRepo = ctx.data()?;
+        let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = route_repo.get(self.0.id.into()).await?;
 
         let linestring = geo::LineString::from(route_model.iter_geo_points().collect::<Vec<_>>());
@@ -118,7 +121,7 @@ impl Route {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
-        let route_repo: &RouteModelRepo = ctx.data()?;
+        let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = route_repo.get(self.0.id.into()).await?;
 
         Ok(route_model
@@ -127,7 +130,7 @@ impl Route {
             .collect())
     }
     async fn polyline<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
-        let route_repo: &RouteModelRepo = ctx.data()?;
+        let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = route_repo.get(self.0.id.into()).await?;
 
         Ok(polyline::encode_coordinates(
@@ -159,7 +162,7 @@ impl Ride {
         self.0.finished_at
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
-        let ride_repo: &RideModelRepo = ctx.data()?;
+        let SchemaData { ride_repo, .. } = ctx.data()?;
         let ride_model = ride_repo.get(self.0.id).await?;
 
         let linestring = geo::LineString::from_iter(ride_model.iter_geo_points());
@@ -170,7 +173,7 @@ impl Ride {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
-        let ride_repo: &RideModelRepo = ctx.data()?;
+        let SchemaData { ride_repo, .. } = ctx.data()?;
         let ride_model = ride_repo.get(self.0.id).await?;
 
         Ok(ride_model

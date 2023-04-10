@@ -20,7 +20,7 @@ impl ModelId for ConfigId {
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Config {
     pub starred_route_ids: Vec<RouteId>,
-    #[serde(default="Vec::new")]
+    #[serde(default = "Vec::new")]
     pub api_keys: Vec<String>,
 }
 
