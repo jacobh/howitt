@@ -52,9 +52,7 @@ async fn main() {
                 Schema<Query, EmptyMutation, EmptySubscription>,
                 async_graphql::Request,
             )| async move {
-                if let Some(credentials) = credentials {
-                    request = request.data(credentials);
-                }
+                request = request.data(credentials);
                 Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
             },
         );

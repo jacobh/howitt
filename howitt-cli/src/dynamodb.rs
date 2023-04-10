@@ -17,6 +17,7 @@ pub enum Dynamodb {
     SyncCheckpoints,
     SyncRwgps,
     SetStarredRoute(SetStarredRoute),
+    ShowConfig,
     ListStarredRoutes,
     ListRoutes,
     GetRoute,
@@ -37,6 +38,10 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
     let ride_model_repo = RideModelRepo::new(client.clone());
 
     match command {
+        Dynamodb::ShowConfig => {
+            let config = config_repo.get(ConfigId).await?;
+            dbg!(config);
+        }
         Dynamodb::SyncCheckpoints => {
             let stations = load_stations()?;
             let huts = load_huts()?;

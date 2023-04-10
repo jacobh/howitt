@@ -1,6 +1,7 @@
 #![feature(async_closure)]
 
 pub mod credentials;
+pub mod roles;
 
 use async_graphql::*;
 use chrono::{DateTime, Utc};
@@ -13,6 +14,7 @@ use howitt::models::route::RouteId;
 use howitt::models::Model;
 use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
 use itertools::Itertools;
+use roles::Role;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, From)]
@@ -26,6 +28,10 @@ pub struct Query;
 
 #[Object]
 impl Query {
+    async fn viewer(&self) -> Viewer {
+        Viewer
+    }
+
     async fn routes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Route>, async_graphql::Error> {
         // let route_repo: &RouteModelRepo = ctx.data()?;
         // let routes = route_repo.all_indexes().await?;
@@ -73,6 +79,18 @@ impl Query {
     }
     async fn checkpoint(&self, _ctx: &Context<'_>, _id: usize) -> Option<Checkpoint> {
         None
+    }
+}
+
+pub struct Viewer;
+
+#[Object]
+impl Viewer {
+    async fn role<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Role, async_graphql::Error> {
+        Role::from_context(ctx).await
     }
 }
 
