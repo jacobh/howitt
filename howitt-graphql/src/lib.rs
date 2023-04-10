@@ -9,11 +9,11 @@ use chrono::{DateTime, Utc};
 use context::SchemaData;
 use derive_more::From;
 use geo::CoordsIter;
-use howitt::models::checkpoint::CheckpointId;
 use howitt::models::config::ConfigId;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::Model;
+use howitt::models::{checkpoint::CheckpointId, ModelRef};
 use itertools::Itertools;
 use roles::Role;
 use serde::{Deserialize, Serialize};
@@ -53,10 +53,22 @@ impl Query {
 
         let routes = route_repo.get_index_batch(config.starred_route_ids).await?;
 
-        Ok(routes.into_iter().map(Route).collect())
+        Ok(routes
+            .into_iter()
+            .map(ModelRef::from_index)
+            .map(Route)
+            .collect())
     }
-    async fn route(&self, _ctx: &Context<'_>, _id: usize) -> Option<Route> {
-        None
+    async fn route<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        id: ModelId<RouteId>,
+    ) -> Result<Option<Route>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+
+        let route = route_repo.get(id.0).await?;
+
+        Ok(Some(Route(ModelRef::from_model(route))))
     }
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
         let SchemaData { ride_repo, .. } = ctx.data()?;
@@ -97,22 +109,22 @@ impl Viewer {
     }
 }
 
-pub struct Route(howitt::models::route::Route);
+pub struct Route(ModelRef<howitt::models::route::RouteModel>);
 
 #[Object]
 impl Route {
     async fn id(&self) -> ModelId<RouteId> {
-        ModelId::from(RouteId::from(self.0.id))
+        ModelId(self.0.id())
     }
     async fn name(&self) -> &str {
-        &self.0.name
+        &self.0.as_index().name
     }
     async fn distance(&self) -> f64 {
-        self.0.distance
+        self.0.as_index().distance
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id.into()).await?;
+        let route_model = route_repo.get(self.0.id().into()).await?;
 
         let linestring = geo::LineString::from(route_model.iter_geo_points().collect::<Vec<_>>());
         Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
@@ -122,7 +134,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id.into()).await?;
+        let route_model = route_repo.get(self.0.id().into()).await?;
 
         Ok(route_model
             .iter_geo_points()
@@ -131,7 +143,7 @@ impl Route {
     }
     async fn polyline<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id.into()).await?;
+        let route_model = route_repo.get(self.0.id().into()).await?;
 
         Ok(polyline::encode_coordinates(
             route_model

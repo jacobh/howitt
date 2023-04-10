@@ -22,6 +22,8 @@ pub trait Model: Send + Sync + Sized + 'static {
     }
     fn id(&self) -> Self::Id;
 
+    fn as_index(&self) -> &Self::IndexItem;
+
     fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>);
 
     fn from_parts(
@@ -81,6 +83,10 @@ where
         self.id()
     }
 
+    fn as_index(&self) -> &Self::IndexItem {
+        &self
+    }
+
     fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>) {
         (self, vec![])
     }
@@ -105,6 +111,35 @@ pub trait OtherItem: 'static + Send + Sync + Clone + Serialize + DeserializeOwne
     fn model_id(&self) -> Self::Id;
     fn item_name(&self) -> String;
     fn item_id(&self) -> String;
+}
+
+pub enum ModelRef<M: Model> {
+    Model(M),
+    Index(M::IndexItem),
+}
+
+impl<M> ModelRef<M>
+where
+    M: Model,
+{
+    pub fn from_model(model: M) -> ModelRef<M> {
+        ModelRef::Model(model)
+    }
+    pub fn from_index(index: M::IndexItem) -> ModelRef<M> {
+        ModelRef::Index(index)
+    }
+    pub fn id(&self) -> M::Id {
+        match self {
+            ModelRef::Model(model) => model.id(),
+            ModelRef::Index(index) => index.model_id(),
+        }
+    }
+    pub fn as_index(&self) -> &M::IndexItem {
+        match self {
+            ModelRef::Model(model) => model.as_index(),
+            ModelRef::Index(index) => &index,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]

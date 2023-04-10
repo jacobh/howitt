@@ -54,6 +54,10 @@ impl crate::models::Model for RouteModel {
         RouteId::from(self.route.id)
     }
 
+    fn as_index(&self) -> &Self::IndexItem {
+        &self.route
+    }
+
     fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>) {
         (
             self.route,

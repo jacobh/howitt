@@ -55,6 +55,10 @@ impl crate::models::Model for RideModel {
         self.ride.id
     }
 
+    fn as_index(&self) -> &Self::IndexItem {
+        &self.ride
+    }
+
     fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>) {
         (
             self.ride,
