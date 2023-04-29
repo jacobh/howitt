@@ -111,7 +111,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 .collect();
 
             for (route, nearby_huts, nearby_railway_stations, segments) in routes {
-                if nearby_huts.len() > 0 || nearby_railway_stations.len() > 0 {
+                if !nearby_huts.is_empty() || !nearby_railway_stations.is_empty() {
                     prettyprintln(serde_json::json!({
                         "route_name": route.name,
                         "huts": nearby_huts

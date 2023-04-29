@@ -70,7 +70,7 @@ impl RwgpsClient {
         let _permit = self.acquire_semaphore_permit().await;
 
         let resp: rwgps_types::ListResponse<rwgps_types::RouteSummary> = self
-            .get(&format!("/users/{}/routes.json", user_id))?
+            .get(&format!("/users/{user_id}/routes.json"))?
             .query(&[("limit", "1000")])
             .send()
             .await?
@@ -87,7 +87,7 @@ impl RwgpsClient {
         let _permit = self.acquire_semaphore_permit().await;
 
         let resp: rwgps_types::ListResponse<rwgps_types::TripSummary> = self
-            .get(&format!("/users/{}/trips.json", user_id))?
+            .get(&format!("/users/{user_id}/trips.json"))?
             .query(&[("limit", "5000")])
             .send()
             .await?
@@ -101,7 +101,7 @@ impl RwgpsClient {
         let _permit = self.acquire_semaphore_permit().await;
 
         let resp: rwgps_types::RouteResponse = self
-            .get(&format!("/routes/{}.json", route_id))?
+            .get(&format!("/routes/{route_id}.json"))?
             .send()
             .await?
             .json_debug()
@@ -114,7 +114,7 @@ impl RwgpsClient {
         let _permit = self.acquire_semaphore_permit().await;
 
         let resp: rwgps_types::TripResponse = self
-            .get(&format!("/trips/{}.json", trip_id))?
+            .get(&format!("/trips/{trip_id}.json"))?
             .send()
             .await?
             .json_debug()

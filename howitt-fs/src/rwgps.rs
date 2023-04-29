@@ -3,7 +3,7 @@ use rwgps_types::Route;
 
 use crate::dirs::CONFIG_DIRPATH;
 
-const CONFIG_FILENAME: &'static str = "rwgps_auth.toml";
+const CONFIG_FILENAME: &str = "rwgps_auth.toml";
 
 pub fn load_user_config() -> Result<Option<UserConfig>, anyhow::Error> {
     let config_filepath = CONFIG_DIRPATH.join(CONFIG_FILENAME);

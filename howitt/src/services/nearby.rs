@@ -9,12 +9,12 @@ pub struct NearbyCheckpoint<'checkpoint> {
     pub checkpoint: &'checkpoint Checkpoint,
 }
 
-pub fn nearby_checkpoints<'r, 'c>(
-    route: &'r gpx::Route,
+pub fn nearby_checkpoints<'c>(
+    route: &gpx::Route,
     checkpoints: &'c [Checkpoint],
 ) -> Vec<NearbyCheckpoint<'c>> {
     checkpoints
-        .into_iter()
+        .iter()
         .filter_map(|checkpoint| {
             let closest_point = route
                 .linestring()

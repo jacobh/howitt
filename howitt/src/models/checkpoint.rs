@@ -1,11 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
-use anyhow::anyhow;
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{ext::ulid::generate_ulid, models::Model};
+use crate::ext::ulid::generate_ulid;
 
 use super::IndexModel;
 

@@ -1,6 +1,4 @@
-use anyhow::anyhow;
 use derive_more::From;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::ElevationPoint};
@@ -41,7 +39,7 @@ impl RouteModel {
         self.point_chunks
             .iter()
             .flat_map(|chunk| chunk.points.iter())
-            .map(|point| point.point.clone())
+            .map(|point| point.point)
     }
 }
 
@@ -88,7 +86,6 @@ impl RouteItem {
     fn into_point_chunk(self) -> Option<PointChunk<RouteId, ElevationPoint>> {
         match self {
             RouteItem::PointChunk(chunk) => Some(chunk),
-            _ => None,
         }
     }
 }
@@ -103,7 +100,7 @@ impl crate::models::OtherItem for RouteItem {
 
     fn model_id(&self) -> RouteId {
         match self {
-            RouteItem::PointChunk(chunk) => RouteId::from(chunk.model_id),
+            RouteItem::PointChunk(chunk) => chunk.model_id,
         }
     }
 

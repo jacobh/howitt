@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-const APP_NAME: &'static str = "howitt";
+const APP_NAME: &str = "howitt";
 
 lazy_static::lazy_static! {
     pub static ref CONFIG_DIRPATH: PathBuf = {

@@ -21,6 +21,7 @@ serde = { version = "*", features = ["derive"] }
 derive_more = "*"
 polyline = "*"
 itertools = "*"
+thiserror = "*"
 
 [dev-dependencies]
 test-case = "3.1.0"

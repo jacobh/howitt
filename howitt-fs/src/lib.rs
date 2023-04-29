@@ -33,7 +33,7 @@ pub fn find_file_paths(dirpath: &Path) -> Vec<PathBuf> {
 }
 
 pub fn load_config() -> Result<Config, anyhow::Error> {
-    let data = fs::read(&get_project_root()?.join("data/config.toml"))?;
+    let data = fs::read(get_project_root()?.join("data/config.toml"))?;
     Ok(toml::from_str(&String::from_utf8(data)?)?)
 }
 
@@ -82,7 +82,7 @@ pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {
 }
 
 pub fn load_huts() -> Result<Vec<Checkpoint>, anyhow::Error> {
-    let data = fs::read(&get_project_root()?.join("data/HUTS.gpx"))?;
+    let data = fs::read(get_project_root()?.join("data/HUTS.gpx"))?;
     let gpx = gpx::read(&*data)?;
 
     Ok(gpx
@@ -98,7 +98,7 @@ pub fn load_huts() -> Result<Vec<Checkpoint>, anyhow::Error> {
 
 pub fn load_localities() -> Result<Vec<Checkpoint>, anyhow::Error> {
     let mut reader = shapefile::Reader::from_path(
-        &get_project_root()?.join("data/vic_localities/vic_localities.shp"),
+        get_project_root()?.join("data/vic_localities/vic_localities.shp"),
     )?;
 
     let checkpoints = reader
@@ -139,22 +139,19 @@ pub fn load_localities() -> Result<Vec<Checkpoint>, anyhow::Error> {
 }
 
 fn ring_to_linestring(ring: &PolygonRing<Point>) -> LineString<f64> {
-    geo::LineString::from_iter(ring.points().into_iter().map(|point| (point.x, point.y)))
+    geo::LineString::from_iter(ring.points().iter().map(|point| (point.x, point.y)))
 }
 
 fn convert_polygon(polygon: GenericPolygon<Point>) -> Polygon<f64> {
     let exterior = polygon
         .rings()
         .iter()
-        .find(|ring| match ring {
-            PolygonRing::Outer(_) => true,
-            _ => false,
-        })
+        .find(|ring| matches!(ring, PolygonRing::Outer(_)))
         .unwrap();
-    let interiors = polygon.rings().iter().filter(|ring| match ring {
-        PolygonRing::Inner(_) => true,
-        _ => false,
-    });
+    let interiors = polygon
+        .rings()
+        .iter()
+        .filter(|ring| matches!(ring, PolygonRing::Inner(_)));
 
     Polygon::new(
         ring_to_linestring(exterior),

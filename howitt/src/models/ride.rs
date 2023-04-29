@@ -42,7 +42,7 @@ impl RideModel {
         self.point_chunks
             .iter()
             .flat_map(|chunk| chunk.points.iter())
-            .map(|point| point.point.clone())
+            .map(|point| point.point)
     }
 }
 
@@ -111,7 +111,6 @@ impl RideItem {
     fn into_point_chunk(self) -> Option<PointChunk<RideId, TemporalElevationPoint>> {
         match self {
             RideItem::PointChunk(chunk) => Some(chunk),
-            _ => None,
         }
     }
 }
@@ -126,7 +125,7 @@ impl crate::models::OtherItem for RideItem {
 
     fn model_id(&self) -> RideId {
         match self {
-            RideItem::PointChunk(chunk) => RideId::from(chunk.model_id),
+            RideItem::PointChunk(chunk) => chunk.model_id,
         }
     }
 

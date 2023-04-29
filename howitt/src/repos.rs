@@ -19,7 +19,7 @@ pub trait Repo<T: Model>: Send + Sync {
     async fn get_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T>, Self::Error> {
         Ok(ids
             .into_iter()
-            .map(|id| (id, self.clone()))
+            .map(|id| (id, self))
             .map(async move |(id, self)| self.get(id).await)
             .collect_futures_ordered()
             .await
@@ -30,7 +30,7 @@ pub trait Repo<T: Model>: Send + Sync {
     async fn get_index_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T::IndexItem>, Self::Error> {
         Ok(ids
             .into_iter()
-            .map(|id| (id, self.clone()))
+            .map(|id| (id, self))
             .map(async move |(id, self)| self.get_index(id).await)
             .collect_futures_ordered()
             .await
@@ -41,7 +41,7 @@ pub trait Repo<T: Model>: Send + Sync {
     async fn put_batch(&self, models: Vec<T>) -> Result<(), Self::Error> {
         models
             .into_iter()
-            .map(|model| (model, self.clone()))
+            .map(|model| (model, self))
             .map(async move |(model, self)| self.put(model).await)
             .collect_futures_ordered()
             .await

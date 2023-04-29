@@ -77,7 +77,7 @@ impl Query {
         Ok(rides
             .into_iter()
             .sorted_by_key(|ride| ride.started_at)
-            .map(|ride| Ride(ride))
+            .map(Ride)
             .collect())
     }
     async fn checkpoints<'ctx>(
@@ -90,10 +90,7 @@ impl Query {
 
         let checkpoints = checkpoint_repo.all_indexes().await?;
 
-        Ok(checkpoints
-            .into_iter()
-            .map(|checkpoint| Checkpoint(checkpoint))
-            .collect())
+        Ok(checkpoints.into_iter().map(Checkpoint).collect())
     }
     async fn checkpoint(&self, _ctx: &Context<'_>, _id: usize) -> Option<Checkpoint> {
         None
@@ -124,7 +121,7 @@ impl Route {
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id().into()).await?;
+        let route_model = route_repo.get(self.0.id()).await?;
 
         let linestring = geo::LineString::from(route_model.iter_geo_points().collect::<Vec<_>>());
         Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
@@ -134,7 +131,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id().into()).await?;
+        let route_model = route_repo.get(self.0.id()).await?;
 
         Ok(route_model
             .iter_geo_points()
@@ -143,7 +140,7 @@ impl Route {
     }
     async fn polyline<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id().into()).await?;
+        let route_model = route_repo.get(self.0.id()).await?;
 
         Ok(polyline::encode_coordinates(
             route_model

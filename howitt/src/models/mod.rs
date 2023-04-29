@@ -84,7 +84,7 @@ where
     }
 
     fn as_index(&self) -> &Self::IndexItem {
-        &self
+        self
     }
 
     fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>) {
@@ -137,7 +137,7 @@ where
     pub fn as_index(&self) -> &M::IndexItem {
         match self {
             ModelRef::Model(model) => model.as_index(),
-            ModelRef::Index(index) => &index,
+            ModelRef::Index(index) => index,
         }
     }
 }
@@ -151,6 +151,11 @@ where
     Index(Cow<'a, M::IndexItem>),
     Other(Cow<'a, M::OtherItem>),
 }
+
+type GroupedItemCows<'a, M> = (
+    Cow<'a, <M as Model>::IndexItem>,
+    Vec<Cow<'a, <M as Model>::OtherItem>>,
+);
 
 impl<'a, M> ItemCow<'a, M>
 where
@@ -173,7 +178,7 @@ where
 
     fn group_items(
         items: impl IntoIterator<Item = Self>,
-    ) -> Result<(Cow<'a, M::IndexItem>, Vec<Cow<'a, M::OtherItem>>), anyhow::Error> {
+    ) -> Result<GroupedItemCows<'a, M>, anyhow::Error> {
         let (indexes, others) =
             items
                 .into_iter()
@@ -243,7 +248,7 @@ pub trait ModelId: Send + Sync + std::fmt::Display + PartialEq + Copy + Clone + 
 #[macro_export]
 macro_rules! model_id {
     ($type_name:ident, $model_name:expr) => {
-        #[derive(Debug, derive_more::From, derive_more::Into, PartialEq, Clone, Copy)]
+        #[derive(Debug, Default, derive_more::From, derive_more::Into, PartialEq, Clone, Copy)]
         pub struct $type_name(ulid::Ulid);
 
         impl $type_name {
@@ -252,7 +257,7 @@ macro_rules! model_id {
             }
         }
 
-        impl crate::models::ModelId for $type_name {
+        impl $crate::models::ModelId for $type_name {
             fn model_name() -> &'static str {
                 $model_name
             }

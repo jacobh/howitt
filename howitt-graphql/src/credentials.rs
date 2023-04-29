@@ -1,13 +1,18 @@
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+#[error("Couldn't parse auth header")]
+pub struct AuthHeaderParseError {}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum Credentials {
     Key(String),
 }
 impl Credentials {
-    pub fn parse_auth_header_value(value: &str) -> Result<Credentials, ()> {
+    pub fn parse_auth_header_value(value: &str) -> Result<Credentials, AuthHeaderParseError> {
         if value.to_lowercase().starts_with("key ") {
-            return Ok(Credentials::Key(value[4..].to_string()));
+            Ok(Credentials::Key(value[4..].to_string()))
+        } else {
+            Err(AuthHeaderParseError {})
         }
-        return Err(());
     }
 }
 
@@ -18,9 +23,12 @@ mod tests {
 
     #[test_case("Key Asdf1", Ok(Credentials::Key(String::from("Asdf1"))) ; "Parses API Key")]
     #[test_case("key Asdf1", Ok(Credentials::Key(String::from("Asdf1"))) ; "case insensitive")]
-    #[test_case("asdf", Err(()) ; "Fails for missing prefix")]
-    #[test_case("NotKey asdf", Err(()) ; "Fails for unknown prefix")]
-    fn parse_auth_header_value_works(input: &'static str, expected: Result<Credentials, ()>) {
+    #[test_case("asdf", Err(AuthHeaderParseError {}) ; "Fails for missing prefix")]
+    #[test_case("NotKey asdf", Err(AuthHeaderParseError {}) ; "Fails for unknown prefix")]
+    fn parse_auth_header_value_works(
+        input: &'static str,
+        expected: Result<Credentials, AuthHeaderParseError>,
+    ) {
         let result = Credentials::parse_auth_header_value(input);
         assert_eq!(expected, result);
     }

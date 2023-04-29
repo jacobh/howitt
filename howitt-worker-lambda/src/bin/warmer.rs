@@ -1,5 +1,4 @@
 #![feature(async_closure)]
-use futures::{prelude::*, stream::FuturesUnordered};
 use howitt::ext::futures::FuturesIteratorExt;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 
@@ -19,7 +18,7 @@ async fn function_handler(_args: LambdaEvent<Request>) -> Result<Response, Error
     let target_domains = std::env::var("TARGET_DOMAINS").unwrap();
     let target_urls = target_domains
         .split(',')
-        .map(|domain| format!("https://{}", domain));
+        .map(|domain| format!("https://{domain}"));
 
     let client = reqwest::Client::new();
 

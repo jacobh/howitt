@@ -255,7 +255,7 @@ impl SingleTableClient {
 }
 
 fn format_key<'a>(parts: impl IntoIterator<Item = Option<&'a str>>) -> String {
-    parts.into_iter().filter_map(|x| x).join("#")
+    parts.into_iter().flatten().join("#")
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -310,7 +310,7 @@ pub trait DynamoModelRepo: Send + Sync {
             .query_pk(model_id.to_string(), Index::Default)
             .await?;
 
-        if items.len() == 0 {
+        if items.is_empty() {
             return Err(DynamoRepoError::NotFound);
         }
 

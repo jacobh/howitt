@@ -1617,6 +1617,7 @@ dependencies = [
  "rwgps_types",
  "serde",
  "test-case",
+ "thiserror",
  "ulid",
  "uuid",
 ]
