@@ -10,10 +10,9 @@ use super::nearby::nearby_points_of_interest;
 pub fn detect_segments(route: &gpx::Route, pois: &[PointOfInterest]) -> Vec<Segment> {
     let points = route.linestring().into_points();
 
-    nearby_points_of_interest(&points, pois)
+    nearby_points_of_interest(&points, pois, 500.0)
         .into_iter()
         .sorted_by_key(|cp| cp.point_idx)
-        .filter(|cp| cp.distance < 500.0)
         .combinations(2)
         .map(|pair| (pair[0].clone(), pair[1].clone()))
         .map(|(cp1, cp2)| Segment {

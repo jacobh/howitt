@@ -7,7 +7,10 @@ use howitt_fs::{load_huts, load_localities, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use howitt::services::{detect_segments::detect_segments, nearby::{nearby_points_of_interest, NearbyPointOfInterest}};
+use howitt::services::{
+    detect_segments::detect_segments,
+    nearby::{nearby_points_of_interest, NearbyPointOfInterest},
+};
 use rwgps_types::Route;
 
 use crate::json::prettyprintln;
@@ -96,15 +99,13 @@ async fn main() -> Result<(), anyhow::Error> {
                     let gpx_route = gpx::Route::from(route.clone());
                     let points = gpx_route.linestring().into_points();
 
-                    let nearby_huts: Vec<_> = nearby_points_of_interest(&points, &huts)
+                    let nearby_huts: Vec<_> = nearby_points_of_interest(&points, &huts, 1000.0)
                         .into_iter()
-                        .filter(|poi| poi.distance < 1000.0)
                         .map(NearbyPointOfInterest::into_owned)
                         .collect();
                     let nearby_railway_stations: Vec<_> =
-                        nearby_points_of_interest(&points, &railway_stations)
+                        nearby_points_of_interest(&points, &railway_stations, 1000.0)
                             .into_iter()
-                            .filter(|poi| poi.distance < 1000.0)
                             .map(NearbyPointOfInterest::into_owned)
                             .collect();
 

@@ -32,6 +32,7 @@ where
 pub fn nearby_points_of_interest<'a, 'b, P>(
     route: &'a [P],
     pois: &'b [PointOfInterest],
+    max_distance_m: f64,
 ) -> Vec<NearbyPointOfInterest<'a, 'b, P>>
 where
     P: Point,
@@ -49,7 +50,8 @@ where
                         point.as_geo_point().haversine_distance(&poi.point),
                     )
                 })
-                .min_by_key(|(_, _, distance)| (distance * 10000.0) as i64);
+                .filter(|(_, _, distance)| *distance > max_distance_m)
+                .min_by_key(|(_, _, distance)| ordered_float::OrderedFloat(*distance));
 
             closest_point.map(
                 |(point_idx, closest_point, distance)| NearbyPointOfInterest {
