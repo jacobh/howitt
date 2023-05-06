@@ -7,7 +7,7 @@ use howitt::{
     services::rwgps::RwgpsSyncService,
 };
 use howitt_dynamo::{
-    PointOfInterestRepo, ConfigRepo, Keys, RideModelRepo, RouteModelRepo, SingleTableClient,
+    ConfigRepo, Keys, PointOfInterestRepo, RideModelRepo, RouteModelRepo, SingleTableClient,
 };
 use howitt_fs::{load_huts, load_stations, load_user_config};
 use rwgps::RwgpsClient;

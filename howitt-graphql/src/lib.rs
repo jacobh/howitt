@@ -84,9 +84,7 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<PointOfInterest>, async_graphql::Error> {
-        let SchemaData {
-            poi_repo, ..
-        } = ctx.data()?;
+        let SchemaData { poi_repo, .. } = ctx.data()?;
 
         let pois = poi_repo.all_indexes().await?;
 
