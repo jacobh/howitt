@@ -5,6 +5,7 @@ use itertools::Itertools;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 pub mod config;
+pub mod cuesheet;
 pub mod external_ref;
 pub mod point;
 pub mod point_of_interest;
