@@ -4,10 +4,10 @@ use anyhow::anyhow;
 use itertools::Itertools;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-pub mod checkpoint;
 pub mod config;
 pub mod external_ref;
 pub mod point;
+pub mod point_of_interest;
 pub mod ride;
 pub mod route;
 pub mod segment;

@@ -11,7 +11,7 @@ use dynamodb::{error::GetItemError, model::AttributeValue, types::SdkError};
 use futures::prelude::*;
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::models::{
-    checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Model,
+    config::Config, point_of_interest::PointOfInterest, ride::RideModel, route::RouteModel, Model,
 };
 use howitt::models::{ItemCow, ModelId};
 use howitt::repos::Repo;
@@ -408,7 +408,7 @@ macro_rules! impl_repo {
     };
 }
 
-impl_repo!(CheckpointRepo, Checkpoint);
+impl_repo!(PointOfInterestRepo, PointOfInterest);
 impl_repo!(RideRepo, RideModel);
 impl_repo!(RouteModelRepo, RouteModel);
 impl_repo!(RideModelRepo, RideModel);

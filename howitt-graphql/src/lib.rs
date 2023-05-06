@@ -13,7 +13,7 @@ use howitt::models::config::ConfigId;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::Model;
-use howitt::models::{checkpoint::CheckpointId, ModelRef};
+use howitt::models::{point_of_interest::PointOfInterestId, ModelRef};
 use itertools::Itertools;
 use roles::Role;
 use serde::{Deserialize, Serialize};
@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, From)]
 pub struct ModelId<ID: howitt::models::ModelId>(ID);
 
-scalar!(ModelId<CheckpointId>, "CheckpointId");
+scalar!(ModelId<PointOfInterestId>, "PointOfInterestId");
 scalar!(ModelId<RideId>, "RideId");
 scalar!(ModelId<RouteId>, "RouteId");
 
@@ -80,19 +80,19 @@ impl Query {
             .map(Ride)
             .collect())
     }
-    async fn checkpoints<'ctx>(
+    async fn points_of_interest<'ctx>(
         &self,
         ctx: &Context<'ctx>,
-    ) -> Result<Vec<Checkpoint>, async_graphql::Error> {
+    ) -> Result<Vec<PointOfInterest>, async_graphql::Error> {
         let SchemaData {
-            checkpoint_repo, ..
+            poi_repo, ..
         } = ctx.data()?;
 
-        let checkpoints = checkpoint_repo.all_indexes().await?;
+        let pois = poi_repo.all_indexes().await?;
 
-        Ok(checkpoints.into_iter().map(Checkpoint).collect())
+        Ok(pois.into_iter().map(PointOfInterest).collect())
     }
-    async fn checkpoint(&self, _ctx: &Context<'_>, _id: usize) -> Option<Checkpoint> {
+    async fn point_of_interest(&self, _ctx: &Context<'_>, _id: usize) -> Option<PointOfInterest> {
         None
     }
 }
@@ -193,19 +193,19 @@ impl Ride {
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
-#[graphql(remote = "howitt::models::checkpoint::CheckpointType")]
-pub enum CheckpointType {
+#[graphql(remote = "howitt::models::point_of_interest::PointOfInterestType")]
+pub enum PointOfInterestType {
     RailwayStation,
     Hut,
     Locality,
     Generic,
 }
 
-pub struct Checkpoint(howitt::models::checkpoint::Checkpoint);
+pub struct PointOfInterest(howitt::models::point_of_interest::PointOfInterest);
 
 #[Object]
-impl Checkpoint {
-    async fn id<'a>(&'a self) -> ModelId<CheckpointId> {
+impl PointOfInterest {
+    async fn id<'a>(&'a self) -> ModelId<PointOfInterestId> {
         ModelId::from(self.0.id())
     }
     async fn name(&self) -> &str {
@@ -214,8 +214,8 @@ impl Checkpoint {
     async fn point(&self) -> Vec<f64> {
         vec![self.0.point.x(), self.0.point.y()]
     }
-    async fn checkpoint_type(&self) -> CheckpointType {
-        CheckpointType::from(self.0.checkpoint_type.clone())
+    async fn point_of_interest_type(&self) -> PointOfInterestType {
+        PointOfInterestType::from(self.0.point_of_interest_type.clone())
     }
 }
 

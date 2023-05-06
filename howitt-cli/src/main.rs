@@ -7,7 +7,7 @@ use howitt_fs::{load_huts, load_localities, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use howitt::services::{detect_segments::detect_segments, nearby::nearby_checkpoints};
+use howitt::services::{detect_segments::detect_segments, nearby::nearby_points_of_interest};
 use rwgps_types::Route;
 
 use crate::json::prettyprintln;
@@ -75,7 +75,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Info(args) => {
             let railway_stations = load_stations()?;
             let huts = load_huts()?;
-            let all_checkpoints = railway_stations
+            let all_pois = railway_stations
                 .clone()
                 .into_iter()
                 .chain(huts.clone().into_iter())
@@ -94,17 +94,17 @@ async fn main() -> Result<(), anyhow::Error> {
                 })
                 .map(|route| {
                     let gpx_route = gpx::Route::from(route.clone());
-                    let nearby_huts: Vec<_> = nearby_checkpoints(&gpx_route, &huts)
+                    let nearby_huts: Vec<_> = nearby_points_of_interest(&gpx_route, &huts)
                         .into_iter()
-                        .filter(|checkpoint| checkpoint.distance < 1000.0)
+                        .filter(|poi| poi.distance < 1000.0)
                         .collect();
                     let nearby_railway_stations: Vec<_> =
-                        nearby_checkpoints(&gpx_route, &railway_stations)
+                        nearby_points_of_interest(&gpx_route, &railway_stations)
                             .into_iter()
-                            .filter(|checkpoint| checkpoint.distance < 1000.0)
+                            .filter(|poi| poi.distance < 1000.0)
                             .collect();
 
-                    let segments = detect_segments(&gpx_route, &all_checkpoints);
+                    let segments = detect_segments(&gpx_route, &all_pois);
 
                     (route, nearby_huts, nearby_railway_stations, segments)
                 })
@@ -117,13 +117,13 @@ async fn main() -> Result<(), anyhow::Error> {
                         "huts": nearby_huts
                             .iter()
                             .map(|hut| {
-                                serde_json::json!({"hut_name": hut.checkpoint.name, "distance": hut.distance})
+                                serde_json::json!({"hut_name": hut.point_of_interest.name, "distance": hut.distance})
                             })
                             .collect::<Vec<_>>(),
                         "railway_stations": nearby_railway_stations
                             .iter()
                             .map(|railway_station| {
-                                serde_json::json!({"railway_station_name": railway_station.checkpoint.name, "distance": railway_station.distance})
+                                serde_json::json!({"railway_station_name": railway_station.point_of_interest.name, "distance": railway_station.distance})
                             })
                             .collect::<Vec<_>>(),
                         "segments": segments.iter().map(|segment| serde_json::json!({

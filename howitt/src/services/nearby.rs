@@ -1,34 +1,34 @@
+use crate::models::point_of_interest::PointOfInterest;
 use geo::algorithm::haversine_distance::HaversineDistance;
 
-use crate::models::checkpoint::Checkpoint;
 #[derive(Debug, Clone)]
-pub struct NearbyCheckpoint<'checkpoint> {
+pub struct NearbyPointOfInterest<'poi> {
     pub point_idx: usize,
     pub closest_point: geo::Point<f64>,
     pub distance: f64,
-    pub checkpoint: &'checkpoint Checkpoint,
+    pub point_of_interest: &'poi PointOfInterest,
 }
 
-pub fn nearby_checkpoints<'c>(
+pub fn nearby_points_of_interest<'c>(
     route: &gpx::Route,
-    checkpoints: &'c [Checkpoint],
-) -> Vec<NearbyCheckpoint<'c>> {
-    checkpoints
+    pois: &'c [PointOfInterest],
+) -> Vec<NearbyPointOfInterest<'c>> {
+    pois
         .iter()
-        .filter_map(|checkpoint| {
+        .filter_map(|poi| {
             let closest_point = route
                 .linestring()
                 .into_iter()
                 .map(geo::Point::from)
                 .enumerate()
-                .map(|(i, point)| (i, point, point.haversine_distance(&checkpoint.point)))
+                .map(|(i, point)| (i, point, point.haversine_distance(&poi.point)))
                 .min_by_key(|(_, _, distance)| (distance * 10000.0) as i64);
 
-            closest_point.map(|(point_idx, closest_point, distance)| NearbyCheckpoint {
+            closest_point.map(|(point_idx, closest_point, distance)| NearbyPointOfInterest {
                 point_idx,
                 closest_point,
                 distance,
-                checkpoint,
+                point_of_interest: poi,
             })
         })
         .collect()

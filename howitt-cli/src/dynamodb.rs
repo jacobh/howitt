@@ -7,21 +7,21 @@ use howitt::{
     services::rwgps::RwgpsSyncService,
 };
 use howitt_dynamo::{
-    CheckpointRepo, ConfigRepo, Keys, RideModelRepo, RouteModelRepo, SingleTableClient,
+    PointOfInterestRepo, ConfigRepo, Keys, RideModelRepo, RouteModelRepo, SingleTableClient,
 };
 use howitt_fs::{load_huts, load_stations, load_user_config};
 use rwgps::RwgpsClient;
 
 #[derive(Subcommand)]
 pub enum Dynamodb {
-    SyncCheckpoints,
+    SyncPOIs,
     SyncRwgps,
     SetStarredRoute(SetStarredRoute),
     ShowConfig,
     ListStarredRoutes,
     ListRoutes,
     GetRoute,
-    ListCheckpoints,
+    ListPOIs,
     DeleteAll,
 }
 
@@ -33,7 +33,7 @@ pub struct SetStarredRoute {
 pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
     let client = SingleTableClient::new_from_env().await;
     let config_repo = ConfigRepo::new(client.clone());
-    let checkpoint_repo = CheckpointRepo::new(client.clone());
+    let point_of_interest_repo = PointOfInterestRepo::new(client.clone());
     let route_model_repo = RouteModelRepo::new(client.clone());
     let ride_model_repo = RideModelRepo::new(client.clone());
 
@@ -42,12 +42,12 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             let config = config_repo.get(ConfigId).await?;
             dbg!(config);
         }
-        Dynamodb::SyncCheckpoints => {
+        Dynamodb::SyncPOIs => {
             let stations = load_stations()?;
             let huts = load_huts()?;
 
-            checkpoint_repo.put_batch(stations).await?;
-            checkpoint_repo.put_batch(huts).await?;
+            point_of_interest_repo.put_batch(stations).await?;
+            point_of_interest_repo.put_batch(huts).await?;
 
             println!("done");
         }
@@ -93,9 +93,9 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             let routes = route_model_repo.all_indexes().await?;
             dbg!(routes);
         }
-        Dynamodb::ListCheckpoints => {
-            let checkpoints = checkpoint_repo.all_indexes().await?;
-            dbg!(checkpoints);
+        Dynamodb::ListPOIs => {
+            let pois = point_of_interest_repo.all_indexes().await?;
+            dbg!(pois);
         }
         Dynamodb::DeleteAll => {
             let items = client.scan_keys().await?;

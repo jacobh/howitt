@@ -15,11 +15,11 @@ const HOME_QUERY = gql(`
       distance
       points
     }
-    checkpoints {
+    pointsOfInterest {
       id
       name
       point
-      checkpointType
+      pointOfInterestType
     }
   }
 `);
@@ -55,7 +55,7 @@ export default function Index() {
       <Grid2 xs={8}>
         <Map
           routes={mode === "routes" ? data?.starredRoutes : undefined}
-          checkpoints={data?.checkpoints}
+          checkpoints={data?.pointsOfInterest}
         />
       </Grid2>
     </Grid2>

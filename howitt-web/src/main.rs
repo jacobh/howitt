@@ -2,7 +2,7 @@ use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
-use howitt::repos::{CheckpointRepo, ConfigRepo, RideModelRepo, RouteModelRepo};
+use howitt::repos::{ConfigRepo, PointOfInterestRepo, RideModelRepo, RouteModelRepo};
 use howitt_dynamo::SingleTableClient;
 use howitt_graphql::Query;
 use http::StatusCode;
@@ -14,7 +14,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let config_repo: ConfigRepo =
         Arc::new(howitt_dynamo::ConfigRepo::new(single_table_client.clone()));
-    let checkpoint_repo: CheckpointRepo = Arc::new(howitt_dynamo::CheckpointRepo::new(
+    let poi_repo: PointOfInterestRepo = Arc::new(howitt_dynamo::PointOfInterestRepo::new(
         single_table_client.clone(),
     ));
     let route_repo: RouteModelRepo = Arc::new(howitt_dynamo::RouteModelRepo::new(
@@ -26,7 +26,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(config_repo)
-        .data(checkpoint_repo)
+        .data(poi_repo)
         .data(route_repo)
         .data(ride_repo)
         .finish();

@@ -18,26 +18,26 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  CheckpointId: any;
   /**
    * Implement the DateTime<Utc> scalar
    *
    * The input/output is a string in RFC3339 format.
    */
   DateTime: any;
+  PointOfInterestId: any;
   RideId: any;
   RouteId: any;
 };
 
-export type Checkpoint = {
-  __typename?: "Checkpoint";
-  checkpointType: CheckpointType;
-  id: Scalars["CheckpointId"];
+export type PointOfInterest = {
+  __typename?: "PointOfInterest";
+  id: Scalars["PointOfInterestId"];
   name: Scalars["String"];
   point: Array<Scalars["Float"]>;
+  pointOfInterestType: PointOfInterestType;
 };
 
-export enum CheckpointType {
+export enum PointOfInterestType {
   Generic = "GENERIC",
   Hut = "HUT",
   Locality = "LOCALITY",
@@ -46,8 +46,8 @@ export enum CheckpointType {
 
 export type Query = {
   __typename?: "Query";
-  checkpoint?: Maybe<Checkpoint>;
-  checkpoints: Array<Checkpoint>;
+  pointOfInterest?: Maybe<PointOfInterest>;
+  pointsOfInterest: Array<PointOfInterest>;
   rides: Array<Ride>;
   route?: Maybe<Route>;
   routes: Array<Route>;
@@ -55,7 +55,7 @@ export type Query = {
   viewer: Viewer;
 };
 
-export type QueryCheckpointArgs = {
+export type QueryPointOfInterestArgs = {
   id: Scalars["Int"];
 };
 
@@ -105,12 +105,12 @@ export type HomeQueryQuery = {
     distance: number;
     points: Array<Array<number>>;
   }>;
-  checkpoints: Array<{
-    __typename?: "Checkpoint";
+  pointsOfInterest: Array<{
+    __typename?: "PointOfInterest";
     id: any;
     name: string;
     point: Array<number>;
-    checkpointType: CheckpointType;
+    pointOfInterestType: PointOfInterestType;
   }>;
 };
 
@@ -155,7 +155,7 @@ export const HomeQueryDocument = {
           },
           {
             kind: "Field",
-            name: { kind: "Name", value: "checkpoints" },
+            name: { kind: "Name", value: "pointsOfInterest" },
             selectionSet: {
               kind: "SelectionSet",
               selections: [
@@ -164,7 +164,7 @@ export const HomeQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "point" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "checkpointType" },
+                  name: { kind: "Name", value: "pointOfInterestType" },
                 },
               ],
             },

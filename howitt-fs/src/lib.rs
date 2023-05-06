@@ -10,8 +10,8 @@ use itertools::Itertools;
 use chrono::prelude::*;
 use howitt::ext::ulid::generate_ulid;
 use howitt::models::{
-    checkpoint::{Checkpoint, CheckpointType},
     config::Config,
+    point_of_interest::{PointOfInterest, PointOfInterestType},
 };
 use project_root::get_project_root;
 use shapefile::{dbase::FieldValue, record::polygon::GenericPolygon, Point, PolygonRing};
@@ -37,7 +37,7 @@ pub fn load_config() -> Result<Config, anyhow::Error> {
     Ok(toml::from_str(&String::from_utf8(data)?)?)
 }
 
-pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {
+pub fn load_stations() -> Result<Vec<PointOfInterest>, anyhow::Error> {
     let file_paths: Vec<PathBuf> = find_file_paths(&get_project_root()?.join("data/ptv_gtfs"))
         .into_iter()
         .filter(|path| path.extension() == Some("zip".as_ref()))
@@ -52,7 +52,7 @@ pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {
         })
         .collect::<Result<_, _>>()?;
 
-    let checkpoints = gtfs_zips
+    let pois = gtfs_zips
         .into_iter()
         .flat_map(|zip| zip.stops)
         .sorted_by_key(|stop| stop.stop_id.clone())
@@ -66,22 +66,22 @@ pub fn load_stations() -> Result<Vec<Checkpoint>, anyhow::Error> {
             } = stop;
             let name = stop_name;
             let point = geo::Point::new(stop_lon, stop_lat);
-            let checkpoint_type = CheckpointType::RailwayStation;
+            let poi_type = PointOfInterestType::RailwayStation;
 
-            Checkpoint {
-                id: generate_ulid::<Utc, _>(None, (&name, &point, &checkpoint_type)).unwrap(),
+            PointOfInterest {
+                id: generate_ulid::<Utc, _>(None, (&name, &point, &poi_type)).unwrap(),
                 name,
                 point,
-                checkpoint_type,
+                point_of_interest_type: poi_type,
             }
         });
 
-    Ok(checkpoints
-        .filter(|checkpoint| checkpoint.name.contains("Railway Station"))
+    Ok(pois
+        .filter(|poi| poi.name.contains("Railway Station"))
         .collect::<Vec<_>>())
 }
 
-pub fn load_huts() -> Result<Vec<Checkpoint>, anyhow::Error> {
+pub fn load_huts() -> Result<Vec<PointOfInterest>, anyhow::Error> {
     let data = fs::read(get_project_root()?.join("data/HUTS.gpx"))?;
     let gpx = gpx::read(&*data)?;
 
@@ -92,18 +92,18 @@ pub fn load_huts() -> Result<Vec<Checkpoint>, anyhow::Error> {
             waypoint._type = Some("HUT".to_string());
             waypoint
         })
-        .map(Checkpoint::try_from)
+        .map(PointOfInterest::try_from)
         .collect::<Result<Vec<_>, _>>()?)
 }
 
-pub fn load_localities() -> Result<Vec<Checkpoint>, anyhow::Error> {
+pub fn load_localities() -> Result<Vec<PointOfInterest>, anyhow::Error> {
     let mut reader = shapefile::Reader::from_path(
         get_project_root()?.join("data/vic_localities/vic_localities.shp"),
     )?;
 
-    let checkpoints = reader
+    let pois = reader
         .iter_shapes_and_records()
-        .map(|shape_record| -> Result<Checkpoint, anyhow::Error> {
+        .map(|shape_record| -> Result<PointOfInterest, anyhow::Error> {
             let (shape, record) = shape_record?;
 
             let name = record
@@ -118,24 +118,25 @@ pub fn load_localities() -> Result<Vec<Checkpoint>, anyhow::Error> {
 
             let polygon = convert_polygon(shapefile::Polygon::try_from(shape)?);
 
-            Ok(Checkpoint {
+            Ok(PointOfInterest {
                 id: generate_ulid::<Utc, _>(
                     None,
                     (
                         &name,
                         polygon.centroid().unwrap(),
-                        howitt::models::checkpoint::CheckpointType::Locality,
+                        howitt::models::point_of_interest::PointOfInterestType::Locality,
                     ),
                 )
                 .unwrap(),
                 name,
                 point: polygon.centroid().unwrap(),
-                checkpoint_type: howitt::models::checkpoint::CheckpointType::Locality,
+                point_of_interest_type:
+                    howitt::models::point_of_interest::PointOfInterestType::Locality,
             })
         })
         .collect::<Result<Vec<_>, _>>()?;
 
-    Ok(checkpoints)
+    Ok(pois)
 }
 
 fn ring_to_linestring(ring: &PolygonRing<Point>) -> LineString<f64> {

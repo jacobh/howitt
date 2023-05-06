@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::ext::iter::ResultIterExt;
 use crate::models::{
-    checkpoint::Checkpoint, config::Config, ride::RideModel, route::RouteModel, Model,
+    config::Config, point_of_interest::PointOfInterest, ride::RideModel, route::RouteModel, Model,
 };
 
 #[async_trait]
@@ -90,6 +90,6 @@ where
 }
 
 pub type ConfigRepo = Arc<dyn AnyhowRepo<Config>>;
-pub type CheckpointRepo = Arc<dyn AnyhowRepo<Checkpoint>>;
+pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<PointOfInterest>>;
 pub type RouteModelRepo = Arc<dyn AnyhowRepo<RouteModel>>;
 pub type RideModelRepo = Arc<dyn AnyhowRepo<RideModel>>;

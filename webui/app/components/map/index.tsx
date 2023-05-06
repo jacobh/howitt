@@ -6,10 +6,10 @@ import XYZ from "ol/source/XYZ";
 import styled from "styled-components";
 import { useGeographic } from "ol/proj";
 import {
-  Checkpoint,
-  CheckpointType,
   Route,
   Ride,
+  PointOfInterest,
+  PointOfInterestType,
 } from "../../__generated__/graphql";
 import { Feature, MapBrowserEvent } from "ol";
 import VectorLayer from "ol/layer/Vector";
@@ -26,7 +26,10 @@ const MapContainer = styled.div`
 interface MapProps {
   routes?: Pick<Route, "id" | "points">[];
   rides?: Pick<Ride, "id" | "points">[];
-  checkpoints?: Pick<Checkpoint, "name" | "point" | "checkpointType">[];
+  checkpoints?: Pick<
+    PointOfInterest,
+    "name" | "point" | "pointOfInterestType"
+  >[];
 }
 
 export function Map({ routes, rides, checkpoints }: MapProps) {
@@ -145,7 +148,7 @@ export function Map({ routes, rides, checkpoints }: MapProps) {
             }),
             properties: { checkpointName: checkpoint.name },
             style:
-              checkpoint.checkpointType === CheckpointType.Hut
+              checkpoint.pointOfInterestType === PointOfInterestType.Hut
                 ? hutStyle
                 : stationStyle,
           })
