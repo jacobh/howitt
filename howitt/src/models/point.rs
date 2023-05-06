@@ -4,6 +4,16 @@ use serde::{Deserialize, Serialize};
 
 use super::ModelId;
 
+pub trait Point: std::fmt::Debug + ToOwned {
+    fn as_geo_point(&self) -> &geo::Point;
+}
+
+impl Point for geo::Point {
+    fn as_geo_point(&self) -> &geo::Point {
+        self
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct ElevationPoint {
     pub point: geo::Point,
@@ -29,6 +39,12 @@ impl<'de> Deserialize<'de> for ElevationPoint {
             point: geo::Point::new(x, y),
             elevation,
         })
+    }
+}
+
+impl Point for ElevationPoint {
+    fn as_geo_point(&self) -> &geo::Point {
+        &self.point
     }
 }
 
@@ -68,6 +84,12 @@ impl<'de> Deserialize<'de> for TemporalElevationPoint {
             point: geo::Point::new(x, y),
             elevation,
         })
+    }
+}
+
+impl Point for TemporalElevationPoint {
+    fn as_geo_point(&self) -> &geo::Point {
+        &self.point
     }
 }
 
