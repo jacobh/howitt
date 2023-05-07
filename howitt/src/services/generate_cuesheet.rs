@@ -4,7 +4,6 @@ use crate::models::{
     cuesheet::{Cue, CueStop, Cuesheet},
     point::ElevationPoint,
     point_of_interest::PointOfInterest,
-    segment_summary::SegmentSummary,
 };
 
 use super::{
@@ -51,36 +50,23 @@ pub fn generate_cuesheet<P>(route: &[ElevationPoint], pois: &[PointOfInterest]) 
     });
 
     let cues = summarized_partitioned_points
-        .scan::<Option<(_, Option<NearbyPointOfInterest<_>>, SegmentSummary)>, _, _>(
-            None,
-            |prev_segment, (points, poi, summary)| {
-                let prev_poi = prev_segment.as_ref().and_then(|(_, poi, _)| poi.as_ref());
+        .scan::<Option<NearbyPointOfInterest<_>>, _, _>(None, |prev_poi, (_, poi, summary)| {
+            let cue = Cue {
+                origin: match prev_poi {
+                    Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
+                    None => CueStop::Start,
+                },
+                destination: match &poi {
+                    Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
+                    None => CueStop::End,
+                },
+                summary,
+            };
 
-                let cue = Cue {
-                    origin: match prev_poi {
-                        Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
-                        None => CueStop::Start,
-                    },
-                    destination: match &poi {
-                        Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
-                        None => CueStop::End,
-                    },
-                    distance_m: summary.distance_m,
-                    vertical_ascent_m: summary
-                        .elevation
-                        .as_ref()
-                        .map(|elev| elev.elevation_ascent_m),
-                    vertical_descent_m: summary
-                        .elevation
-                        .as_ref()
-                        .map(|elev| elev.elevation_descent_m),
-                };
+            *prev_poi = poi;
 
-                *prev_segment = Some((points, poi, summary));
-
-                Some(cue)
-            },
-        )
+            Some(cue)
+        })
         .collect_vec();
 
     Cuesheet { cues }

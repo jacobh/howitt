@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::point_of_interest::PointOfInterest;
+use super::{point_of_interest::PointOfInterest, segment_summary::SegmentSummary};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Cuesheet {
@@ -18,7 +18,5 @@ pub enum CueStop {
 pub struct Cue {
     pub origin: CueStop,
     pub destination: CueStop,
-    pub distance_m: f64,
-    pub vertical_ascent_m: Option<f64>,
-    pub vertical_descent_m: Option<f64>,
+    pub summary: SegmentSummary,
 }
