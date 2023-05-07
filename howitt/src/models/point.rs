@@ -6,11 +6,29 @@ use super::ModelId;
 
 pub trait Point {
     fn as_geo_point(&self) -> &geo::Point;
+    fn elevation_meters(&self) -> Option<&f64>;
 }
 
 impl Point for geo::Point {
     fn as_geo_point(&self) -> &geo::Point {
         self
+    }
+
+    fn elevation_meters(&self) -> Option<&f64> {
+        None
+    }
+}
+
+impl<'a, T> Point for &'a T
+where
+    T: Point,
+{
+    fn as_geo_point(&self) -> &geo::Point {
+        T::as_geo_point(&self)
+    }
+
+    fn elevation_meters(&self) -> Option<&f64> {
+        T::elevation_meters(&self)
     }
 }
 
@@ -45,6 +63,10 @@ impl<'de> Deserialize<'de> for ElevationPoint {
 impl Point for ElevationPoint {
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
+    }
+
+    fn elevation_meters(&self) -> Option<&f64> {
+        Some(&self.elevation)
     }
 }
 
@@ -90,6 +112,10 @@ impl<'de> Deserialize<'de> for TemporalElevationPoint {
 impl Point for TemporalElevationPoint {
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
+    }
+
+    fn elevation_meters(&self) -> Option<&f64> {
+        Some(&self.elevation)
     }
 }
 

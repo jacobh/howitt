@@ -12,6 +12,7 @@ pub mod point_of_interest;
 pub mod ride;
 pub mod route;
 pub mod segment;
+pub mod segment_summary;
 
 pub trait Model: Send + Sync + Sized + 'static {
     type Id: ModelId;
