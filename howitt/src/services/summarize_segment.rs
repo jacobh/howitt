@@ -1,22 +1,28 @@
 use geo::GeodesicDistance;
-use itertools::Itertools;
 
 use crate::models::{point::Point, segment_summary::SegmentSummary};
 
 pub fn summarize_segment<P: Point>(points: &[P]) -> SegmentSummary {
     points
         .iter()
-        .tuple_windows()
-        .map(|(p1, p2)| {
-            (
-                p1.as_geo_point().geodesic_distance(p2.as_geo_point()),
-                match (p1.elevation_meters(), p2.elevation_meters()) {
+        .scan::<Option<&P>, _, _>(None, |prev_point, point| match prev_point {
+            Some(prev_point) => {
+                let distance = prev_point
+                    .as_geo_point()
+                    .geodesic_distance(point.as_geo_point());
+
+                let elevation = match (prev_point.elevation_meters(), point.elevation_meters()) {
                     (Some(e1), Some(e2)) => Some(e2 - e1),
                     _ => None,
-                },
-            )
+                };
+
+                *prev_point = point;
+
+                Some((distance, elevation))
+            }
+            None => None,
         })
-        .fold(
+        .fold::<SegmentSummary, _>(
             SegmentSummary::default(),
             |mut summary, (distance, elevation)| {
                 summary.distance_m += distance;
