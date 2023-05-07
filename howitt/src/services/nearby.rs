@@ -6,7 +6,7 @@ use geo::algorithm::haversine_distance::HaversineDistance;
 #[derive(Debug, Clone)]
 pub struct NearbyPointOfInterest<'point, 'poi, P>
 where
-    P: Point,
+    P: Point + std::fmt::Debug + ToOwned,
     <P as ToOwned>::Owned: std::fmt::Debug,
 {
     pub point_idx: usize,
@@ -17,7 +17,7 @@ where
 
 impl<'point, 'poi, P> NearbyPointOfInterest<'point, 'poi, P>
 where
-    P: Point,
+    P: Point + std::fmt::Debug + ToOwned,
     <P as ToOwned>::Owned: std::fmt::Debug,
 {
     pub fn into_owned(self) -> NearbyPointOfInterest<'static, 'static, P> {
@@ -35,7 +35,7 @@ pub fn nearby_points_of_interest<'a, 'b, P>(
     max_distance_m: f64,
 ) -> Vec<NearbyPointOfInterest<'a, 'b, P>>
 where
-    P: Point,
+    P: Point + std::fmt::Debug + ToOwned,
     <P as ToOwned>::Owned: std::fmt::Debug,
 {
     pois.iter()

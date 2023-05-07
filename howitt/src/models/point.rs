@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ModelId;
 
-pub trait Point: std::fmt::Debug + ToOwned {
+pub trait Point {
     fn as_geo_point(&self) -> &geo::Point;
 }
 
