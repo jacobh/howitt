@@ -4,12 +4,13 @@ use clap::{Args, Subcommand};
 use howitt::{
     models::{config::ConfigId, route::RouteId},
     repos::Repo,
-    services::rwgps::RwgpsSyncService,
+    services::{generate_cuesheet::generate_cuesheet, rwgps::RwgpsSyncService},
 };
 use howitt_dynamo::{
     ConfigRepo, Keys, PointOfInterestRepo, RideModelRepo, RouteModelRepo, SingleTableClient,
 };
 use howitt_fs::{load_huts, load_stations, load_user_config};
+use itertools::Itertools;
 use rwgps::RwgpsClient;
 
 #[derive(Subcommand)]
@@ -21,12 +22,18 @@ pub enum Dynamodb {
     ListStarredRoutes,
     ListRoutes,
     GetRoute,
+    GenerateCuesheet(GenerateCuesheet),
     ListPOIs,
     DeleteAll,
 }
 
 #[derive(Args)]
 pub struct SetStarredRoute {
+    route_id: String,
+}
+
+#[derive(Args)]
+pub struct GenerateCuesheet {
     route_id: String,
 }
 
@@ -79,6 +86,18 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             dbg!(&model.route.name);
             dbg!(&model.route.external_ref);
             dbg!(model.iter_geo_points().count());
+        }
+        Dynamodb::GenerateCuesheet(GenerateCuesheet { route_id }) => {
+            let model = route_model_repo
+                .get(RouteId::from(ulid::Ulid::from_str(&route_id).unwrap()))
+                .await?;
+
+            let points = model.iter_elevation_points().cloned().collect_vec();
+            let pois = point_of_interest_repo.all_indexes().await?;
+
+            let cuesheet = generate_cuesheet(&points, &pois);
+
+            dbg!(cuesheet);
         }
         Dynamodb::ListStarredRoutes => {
             let config = config_repo.get(ConfigId).await?;

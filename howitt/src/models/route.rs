@@ -35,11 +35,14 @@ pub struct RouteModel {
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
 }
 impl RouteModel {
-    pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
+    pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
         self.point_chunks
             .iter()
             .flat_map(|chunk| chunk.points.iter())
-            .map(|point| point.point)
+    }
+
+    pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
+        self.iter_elevation_points().map(|point| point.point)
     }
 }
 

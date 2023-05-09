@@ -11,7 +11,7 @@ use super::{
     summarize_segment::summarize_segment,
 };
 
-pub fn generate_cuesheet<P>(route: &[ElevationPoint], pois: &[PointOfInterest]) -> Cuesheet {
+pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> Cuesheet {
     let nearby_pois = nearby_points_of_interest(route, pois, 500.0);
 
     let partitioned_points = route
@@ -31,18 +31,19 @@ pub fn generate_cuesheet<P>(route: &[ElevationPoint], pois: &[PointOfInterest]) 
             match nearby_poi {
                 Some(nearby_poi) => {
                     let points = std::mem::replace(state, vec![]);
-                    Some((points, Some(nearby_poi.clone())))
+                    Some(Some((points, Some(nearby_poi.clone()))))
                 }
                 None => {
                     if is_last {
                         let points = std::mem::replace(state, vec![]);
-                        Some((points, None))
+                        Some(Some((points, None)))
                     } else {
-                        None
+                        Some(None)
                     }
                 }
             }
-        });
+        })
+        .flatten();
 
     let summarized_partitioned_points = partitioned_points.map(|(points, poi)| {
         let summary = summarize_segment(&points);

@@ -18,10 +18,14 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> SegmentSummary {
 
                 *prev_point = point;
 
-                Some((distance, elevation))
+                Some(Some((distance, elevation)))
             }
-            None => None,
+            None => {
+                *prev_point = Some(point);
+                Some(None)
+            }
         })
+        .flatten()
         .fold::<SegmentSummary, _>(
             SegmentSummary::default(),
             |mut summary, (distance, elevation)| {

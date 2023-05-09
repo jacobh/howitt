@@ -50,7 +50,7 @@ where
                         point.as_geo_point().haversine_distance(&poi.point),
                     )
                 })
-                .filter(|(_, _, distance)| *distance > max_distance_m)
+                .filter(|(_, _, distance)| max_distance_m >= *distance)
                 .min_by_key(|(_, _, distance)| ordered_float::OrderedFloat(*distance));
 
             closest_point.map(
