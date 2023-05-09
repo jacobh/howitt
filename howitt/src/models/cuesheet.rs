@@ -7,10 +7,13 @@ pub struct Cuesheet {
     pub cues: Vec<Cue>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, derive_more::Display)]
 pub enum CueStop {
+    #[display(fmt = "Start")]
     Start,
+    #[display(fmt = "End")]
     End,
+    #[display(fmt = "{} ({})", "_0.name", "_0.point_of_interest_type")]
     POI(PointOfInterest),
 }
 

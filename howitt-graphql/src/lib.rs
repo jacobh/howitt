@@ -12,8 +12,10 @@ use geo::CoordsIter;
 use howitt::models::config::ConfigId;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
+use howitt::models::segment_summary::ElevationSummary;
 use howitt::models::Model;
 use howitt::models::{point_of_interest::PointOfInterestId, ModelRef};
+use howitt::services::generate_cuesheet::generate_cuesheet;
 use itertools::Itertools;
 use roles::Role;
 use serde::{Deserialize, Serialize};
@@ -147,6 +149,21 @@ impl Route {
             5,
         )?)
     }
+    async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
+        let SchemaData {
+            route_repo,
+            poi_repo,
+            ..
+        } = ctx.data()?;
+        let route_model = route_repo.get(self.0.id()).await?;
+
+        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let pois = poi_repo.all_indexes().await?;
+
+        let cuesheet = generate_cuesheet(&points, &pois);
+
+        Ok(cuesheet.cues.into_iter().map(Cue::from).collect_vec())
+    }
 }
 
 pub struct Ride(howitt::models::ride::Ride);
@@ -240,6 +257,34 @@ impl From<geo::Point<f64>> for Point {
         Point {
             lat: value.y(),
             lng: value.x(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct Cue {
+    origin: String,
+    destination: String,
+    distance_meters: f64,
+    elevation_ascent_meters: Option<f64>,
+    elevation_descent_meters: Option<f64>,
+}
+impl From<howitt::models::cuesheet::Cue> for Cue {
+    fn from(value: howitt::models::cuesheet::Cue) -> Self {
+        let (elevation_ascent_meters, elevation_descent_meters) = match value.summary.elevation {
+            Some(ElevationSummary {
+                elevation_ascent_m,
+                elevation_descent_m,
+            }) => (Some(elevation_ascent_m), Some(elevation_descent_m)),
+            None => (None, None),
+        };
+
+        Cue {
+            origin: value.origin.to_string(),
+            destination: value.destination.to_string(),
+            distance_meters: value.summary.distance_m,
+            elevation_ascent_meters,
+            elevation_descent_meters,
         }
     }
 }
