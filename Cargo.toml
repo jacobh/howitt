@@ -6,6 +6,7 @@ members = [
     "howitt-dynamo",
     "howitt-fs",
     "howitt-graphql",
+    "howitt-wasm",
     "howitt-web",
     "howitt-web-lambda",
     "howitt-worker-lambda",
