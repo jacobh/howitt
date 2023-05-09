@@ -6,6 +6,7 @@ import Grid2 from "@mui/material/Unstable_Grid2";
 import { useState } from "react";
 import { formatDistance } from "~/services/formatDistance";
 import { Link } from "@remix-run/react";
+import { add } from "howitt-wasm";
 
 const HOME_QUERY = gql(`
   query homeQuery {
@@ -30,6 +31,8 @@ const SidebarContainer = styled.div`
 `;
 
 export default function Index() {
+  console.log(add(2, 3))
+
   const [mode] = useState("routes");
 
   const { data } = useQuery(HOME_QUERY);
@@ -38,7 +41,7 @@ export default function Index() {
     <Grid2 container spacing={2}>
       <Grid2 xs={4} style={{ overflowY: "scroll" }}>
         <SidebarContainer>
-          <h2>Routes</h2>
+          <h2>Routes {add(2, 3)}</h2>
           <hr />
           {data?.starredRoutes.map((route) => (
             <div key={route.id}>
