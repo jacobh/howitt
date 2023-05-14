@@ -381,7 +381,8 @@ macro_rules! impl_repo {
         }
 
         #[async_trait::async_trait]
-        impl Repo<$model_type> for $repo_type {
+        impl Repo for $repo_type {
+            type Model = $model_type;
             type Error = DynamoRepoError;
 
             async fn all_indexes(

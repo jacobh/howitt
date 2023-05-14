@@ -19,8 +19,8 @@ use crate::{
 const SYNC_VERSION: usize = 2;
 
 pub struct RwgpsSyncService<
-    RouteRepo: Repo<RouteModel>,
-    RideRepo: Repo<RideModel>,
+    RouteRepo: Repo<Model = RouteModel>,
+    RideRepo: Repo<Model = RideModel>,
     RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
     RwgpsClientError: Into<anyhow::Error>,
 > {
@@ -32,8 +32,8 @@ pub struct RwgpsSyncService<
 
 impl<R1, R2, C, E> RwgpsSyncService<R1, R2, C, E>
 where
-    R1: Repo<RouteModel>,
-    R2: Repo<RideModel>,
+    R1: Repo<Model = RouteModel>,
+    R2: Repo<Model = RideModel>,
     C: rwgps_types::client::RwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
 {

@@ -8,15 +8,27 @@ use crate::models::{
 };
 
 #[async_trait]
-pub trait Repo<T: Model>: Send + Sync {
+pub trait Repo: Send + Sync {
+    type Model: Model;
     type Error: std::error::Error + Send + Sync + 'static;
 
-    async fn all_indexes(&self) -> Result<Vec<T::IndexItem>, Self::Error>;
-    async fn get(&self, id: T::Id) -> Result<T, Self::Error>;
-    async fn get_index(&self, id: T::Id) -> Result<T::IndexItem, Self::Error>;
-    async fn put(&self, model: T) -> Result<(), Self::Error>;
+    async fn all_indexes(
+        &self,
+    ) -> Result<Vec<<<Self as Repo>::Model as Model>::IndexItem>, Self::Error>;
+    async fn get(
+        &self,
+        id: <<Self as Repo>::Model as Model>::Id,
+    ) -> Result<<Self as Repo>::Model, Self::Error>;
+    async fn get_index(
+        &self,
+        id: <<Self as Repo>::Model as Model>::Id,
+    ) -> Result<<<Self as Repo>::Model as Model>::IndexItem, Self::Error>;
+    async fn put(&self, model: <Self as Repo>::Model) -> Result<(), Self::Error>;
 
-    async fn get_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T>, Self::Error> {
+    async fn get_batch(
+        &self,
+        ids: Vec<<<Self as Repo>::Model as Model>::Id>,
+    ) -> Result<Vec<<Self as Repo>::Model>, Self::Error> {
         Ok(ids
             .into_iter()
             .map(|id| (id, self))
@@ -27,7 +39,10 @@ pub trait Repo<T: Model>: Send + Sync {
             .collect_result_vec()?)
     }
 
-    async fn get_index_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T::IndexItem>, Self::Error> {
+    async fn get_index_batch(
+        &self,
+        ids: Vec<<<Self as Repo>::Model as Model>::Id>,
+    ) -> Result<Vec<<<Self as Repo>::Model as Model>::IndexItem>, Self::Error> {
         Ok(ids
             .into_iter()
             .map(|id| (id, self))
@@ -38,7 +53,7 @@ pub trait Repo<T: Model>: Send + Sync {
             .collect_result_vec()?)
     }
 
-    async fn put_batch(&self, models: Vec<T>) -> Result<(), Self::Error> {
+    async fn put_batch(&self, models: Vec<<Self as Repo>::Model>) -> Result<(), Self::Error> {
         models
             .into_iter()
             .map(|model| (model, self))
@@ -53,22 +68,40 @@ pub trait Repo<T: Model>: Send + Sync {
 }
 
 #[async_trait]
-pub trait AnyhowRepo<T: Model + Sized>: Send + Sync {
-    async fn all_indexes(&self) -> Result<Vec<T::IndexItem>, anyhow::Error>;
-    async fn get(&self, id: T::Id) -> Result<T, anyhow::Error>;
-    async fn get_index(&self, id: T::Id) -> Result<T::IndexItem, anyhow::Error>;
-    async fn get_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T>, anyhow::Error>;
-    async fn get_index_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T::IndexItem>, anyhow::Error>;
-    async fn put(&self, model: T) -> Result<(), anyhow::Error>;
+pub trait AnyhowRepo: Send + Sync {
+    type Model: Model + Sized;
+
+    async fn all_indexes(
+        &self,
+    ) -> Result<Vec<<<Self as AnyhowRepo>::Model as Model>::IndexItem>, anyhow::Error>;
+    async fn get(
+        &self,
+        id: <<Self as AnyhowRepo>::Model as Model>::Id,
+    ) -> Result<<Self as AnyhowRepo>::Model, anyhow::Error>;
+    async fn get_index(
+        &self,
+        id: <<Self as AnyhowRepo>::Model as Model>::Id,
+    ) -> Result<<<Self as AnyhowRepo>::Model as Model>::IndexItem, anyhow::Error>;
+    async fn get_batch(
+        &self,
+        ids: Vec<<<Self as AnyhowRepo>::Model as Model>::Id>,
+    ) -> Result<Vec<<Self as AnyhowRepo>::Model>, anyhow::Error>;
+    async fn get_index_batch(
+        &self,
+        ids: Vec<<<Self as AnyhowRepo>::Model as Model>::Id>,
+    ) -> Result<Vec<<<Self as AnyhowRepo>::Model as Model>::IndexItem>, anyhow::Error>;
+    async fn put(&self, model: <Self as AnyhowRepo>::Model) -> Result<(), anyhow::Error>;
 }
 
 #[async_trait]
-impl<R, T, E> AnyhowRepo<T> for R
+impl<R, T, E> AnyhowRepo for R
 where
-    R: Repo<T, Error = E>,
+    R: Repo<Model = T, Error = E>,
     T: Model + 'static,
     E: std::error::Error + Send + Sync + 'static,
 {
+    type Model = T;
+
     async fn all_indexes(&self) -> Result<Vec<T::IndexItem>, anyhow::Error> {
         Ok(Repo::all_indexes(self).await?)
     }
@@ -89,7 +122,7 @@ where
     }
 }
 
-pub type ConfigRepo = Arc<dyn AnyhowRepo<Config>>;
-pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<PointOfInterest>>;
-pub type RouteModelRepo = Arc<dyn AnyhowRepo<RouteModel>>;
-pub type RideModelRepo = Arc<dyn AnyhowRepo<RideModel>>;
+pub type ConfigRepo = Arc<dyn AnyhowRepo<Model = Config>>;
+pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<Model = PointOfInterest>>;
+pub type RouteModelRepo = Arc<dyn AnyhowRepo<Model = RouteModel>>;
+pub type RideModelRepo = Arc<dyn AnyhowRepo<Model = RideModel>>;
