@@ -91,7 +91,7 @@ impl TryFrom<gpx::Waypoint> for PointOfInterest {
                 name,
                 point: value.point(),
                 point_of_interest_type: value
-                    ._type
+                    .type_
                     .unwrap_or("".to_string())
                     .parse()
                     .unwrap_or(PointOfInterestType::Generic),

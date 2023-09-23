@@ -17,9 +17,9 @@ pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> 
     let partitioned_points = route
         .iter()
         .with_position()
-        .map(|point| match point {
-            Position::First(point) | Position::Middle(point) => (point, false),
-            Position::Last(point) | Position::Only(point) => (point, true),
+        .map(|(position, point)| match position {
+            Position::First | Position::Middle => (point, false),
+            Position::Last | Position::Only => (point, true),
         })
         .scan::<Vec<&ElevationPoint>, _, _>(vec![], |state, (point, is_last)| {
             state.push(point);

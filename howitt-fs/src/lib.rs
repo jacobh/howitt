@@ -89,7 +89,7 @@ pub fn load_huts() -> Result<Vec<PointOfInterest>, anyhow::Error> {
         .waypoints
         .into_iter()
         .map(|mut waypoint| {
-            waypoint._type = Some("HUT".to_string());
+            waypoint.type_ = Some("HUT".to_string());
             waypoint
         })
         .map(PointOfInterest::try_from)

@@ -210,10 +210,10 @@ impl From<Route> for gpx::Route {
             links: vec![gpx::Link {
                 href: value.url(),
                 text: Some(value.name.clone()),
-                _type: None,
+                type_: None,
             }],
             number: None,
-            _type: None,
+            type_: None,
             points: value
                 .track_points
                 .into_iter()
