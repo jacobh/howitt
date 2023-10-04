@@ -29,6 +29,15 @@ export type Scalars = {
   RouteId: any;
 };
 
+export type Cue = {
+  __typename?: "Cue";
+  destination: Scalars["String"];
+  distanceMeters: Scalars["Float"];
+  elevationAscentMeters?: Maybe<Scalars["Float"]>;
+  elevationDescentMeters?: Maybe<Scalars["Float"]>;
+  origin: Scalars["String"];
+};
+
 export type PointOfInterest = {
   __typename?: "PointOfInterest";
   id: Scalars["PointOfInterestId"];
@@ -81,6 +90,7 @@ export enum Role {
 
 export type Route = {
   __typename?: "Route";
+  cues: Array<Cue>;
   distance: Scalars["Float"];
   geojson: Scalars["String"];
   id: Scalars["RouteId"];
@@ -104,13 +114,6 @@ export type HomeQueryQuery = {
     name: string;
     distance: number;
     points: Array<Array<number>>;
-  }>;
-  pointsOfInterest: Array<{
-    __typename?: "PointOfInterest";
-    id: any;
-    name: string;
-    point: Array<number>;
-    pointOfInterestType: PointOfInterestType;
   }>;
 };
 
@@ -150,22 +153,6 @@ export const HomeQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },
-              ],
-            },
-          },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "pointsOfInterest" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "name" } },
-                { kind: "Field", name: { kind: "Name", value: "point" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "pointOfInterestType" },
-                },
               ],
             },
           },

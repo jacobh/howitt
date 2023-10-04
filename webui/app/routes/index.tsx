@@ -15,12 +15,6 @@ const HOME_QUERY = gql(`
       distance
       points
     }
-    pointsOfInterest {
-      id
-      name
-      point
-      pointOfInterestType
-    }
   }
 `);
 
