@@ -119,7 +119,7 @@ export default function Route() {
         </SidebarContainer>
       </Grid2>
       <Grid2 xs={8}>
-        <Map routes={data?.route ? [data.route] : []} />
+        <Map routes={data?.route ? [data.route] : []} initialView={data?.route ? { routeId: data.route.id } : undefined} />
       </Grid2>
     </Grid2>
   );

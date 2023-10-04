@@ -30,9 +30,10 @@ interface MapProps {
     PointOfInterest,
     "name" | "point" | "pointOfInterestType"
   >[];
+  initialView?: {routeId: string}
 }
 
-export function Map({ routes, rides, checkpoints }: MapProps) {
+export function Map({ routes, rides, checkpoints, initialView }: MapProps) {
   const [map, setMap] = useState<OlMap>();
   const hutStyle = useMemo<Style>(
     () =>
@@ -120,17 +121,22 @@ export function Map({ routes, rides, checkpoints }: MapProps) {
       );
 
       if (existingLayer === undefined) {
-        map.addLayer(
-          new VectorLayer({
-            source: new VectorSource({
-              features: [new Feature(new LineString(route.points))],
-            }),
-            properties: { routeId: route.id },
-            style: new Style({
-              stroke: new Stroke({ color: "#a54331", width: 2 }),
-            }),
-          })
-        );
+        const lineString = new LineString(route.points);
+
+        map.addLayer(new VectorLayer({
+          source: new VectorSource({
+            features: [new Feature(lineString)],
+          }),
+          properties: { routeId: route.id },
+          style: new Style({
+            stroke: new Stroke({ color: "#a54331", width: 4 }),
+          }),
+        }));
+
+        if (initialView?.routeId === route.id) {
+          map.getView().fit(lineString)
+          map.getView().adjustZoom(-1)
+        }
       }
     }
 
