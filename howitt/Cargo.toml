@@ -24,3 +24,4 @@ md5 = "*"
 rwgps_types = { path = "../rwgps-types" }
 futures = "*"
 ordered-float = "*"
+toml = "*"

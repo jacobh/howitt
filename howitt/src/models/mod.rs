@@ -11,6 +11,7 @@ pub mod point;
 pub mod point_of_interest;
 pub mod ride;
 pub mod route;
+pub mod route_description;
 pub mod segment;
 pub mod segment_summary;
 

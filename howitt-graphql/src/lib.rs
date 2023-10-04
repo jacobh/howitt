@@ -106,7 +106,65 @@ impl Viewer {
     }
 }
 
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::models::route_description::DifficultyRating")]
+pub enum DifficultyRating {
+    Green,
+    Blue,
+    Black,
+    DoubleBlack,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::models::route_description::Scouted")]
+pub enum Scouted {
+    Yes,
+    Partially,
+    No,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::models::route_description::Direction")]
+pub enum Direction {
+    Either,
+    PrimarlityAsRouted,
+    OnlyAsRouted,
+}
+
+pub struct BikeSpec(howitt::models::route_description::BikeSpec);
+
+#[Object]
+impl BikeSpec {
+    async fn tyre_width_mm(&self) -> Vec<f64> {
+        self.0
+            .tyre_width_mm
+            .clone()
+            .map(|x| x.millimeters())
+            .into_vec()
+    }
+    async fn front_suspension(&self) -> Vec<f64> {
+        self.0
+            .front_suspension
+            .clone()
+            .map(|x| x.millimeters())
+            .into_vec()
+    }
+    async fn rear_suspension(&self) -> Vec<f64> {
+        self.0
+            .rear_suspension
+            .clone()
+            .map(|x| x.millimeters())
+            .into_vec()
+    }
+}
+
 pub struct Route(ModelRef<howitt::models::route::RouteModel>);
+
+impl Route {
+    fn route_description(&self) -> Option<&howitt::models::route_description::RouteDescription> {
+        self.0.as_index().description.as_ref()
+    }
+}
 
 #[Object]
 impl Route {
@@ -118,6 +176,39 @@ impl Route {
     }
     async fn distance(&self) -> f64 {
         self.0.as_index().distance
+    }
+    async fn description(&self) -> Option<&str> {
+        self.route_description()?.description.as_deref()
+    }
+    async fn technical_difficulty(&self) -> Option<DifficultyRating> {
+        self.route_description()?
+            .technical_difficulty
+            .to_owned()
+            .map(DifficultyRating::from)
+    }
+    async fn physical_difficulty(&self) -> Option<DifficultyRating> {
+        self.route_description()?
+            .physical_difficulty
+            .to_owned()
+            .map(DifficultyRating::from)
+    }
+    async fn minimum_bike(&self) -> Option<BikeSpec> {
+        self.route_description()?.minimum_bike.clone().map(BikeSpec)
+    }
+    async fn ideal_bike(&self) -> Option<BikeSpec> {
+        self.route_description()?.ideal_bike.clone().map(BikeSpec)
+    }
+    async fn scouted(&self) -> Option<Scouted> {
+        self.route_description()?
+            .scouted
+            .to_owned()
+            .map(Scouted::from)
+    }
+    async fn direction(&self) -> Option<Direction> {
+        self.route_description()?
+            .direction
+            .to_owned()
+            .map(Direction::from)
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;

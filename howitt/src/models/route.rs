@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::ElevationPoint};
 
-use super::{external_ref::ExternallySourced, point::PointChunk, IndexItem};
+use super::{
+    external_ref::ExternallySourced, point::PointChunk, route_description::RouteDescription,
+    IndexItem,
+};
 
 crate::model_id!(RouteId, "ROUTE");
 
@@ -12,6 +15,7 @@ pub struct Route {
     pub id: ulid::Ulid,
     pub name: String,
     pub distance: f64,
+    pub description: Option<RouteDescription>,
     pub external_ref: Option<ExternalRef>,
 }
 

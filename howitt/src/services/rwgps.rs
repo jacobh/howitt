@@ -13,6 +13,7 @@ use crate::{
         point::{ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
         route::{Route, RouteId, RouteModel},
+        route_description::RouteDescription,
     },
     repos::Repo,
 };
@@ -74,6 +75,18 @@ where
                     sync_version: Some(SYNC_VERSION),
                 }) {
                     ExternalRefMatch::Fresh(_) => None,
+                    // ExternalRefMatch::Fresh(route) => {
+                    //     if summary
+                    //         .description
+                    //         .as_deref()
+                    //         .unwrap_or_default()
+                    //         .contains("[backcountry_segment]")
+                    //     {
+                    //         Some((summary, Some(route.clone())))
+                    //     } else {
+                    //         None
+                    //     }
+                    // }
                     ExternalRefMatch::Stale(route) => Some((summary, Some(route.clone()))),
                     ExternalRefMatch::NotFound => Some((summary, None)),
                 }
@@ -123,6 +136,12 @@ where
                 id,
                 name: route.name,
                 distance: route.distance.unwrap_or(0.0),
+                description: route
+                    .description
+                    .map(RouteDescription::parse)
+                    .transpose()
+                    .ok()
+                    .flatten(),
                 external_ref: Some(ExternalRef {
                     id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
                     sync_version: Some(SYNC_VERSION),

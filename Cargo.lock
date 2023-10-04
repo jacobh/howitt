@@ -1527,6 +1527,7 @@ dependencies = [
  "snap",
  "thiserror",
  "time 0.3.28",
+ "toml",
  "ulid",
  "uuid",
 ]
