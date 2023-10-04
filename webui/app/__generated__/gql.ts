@@ -15,7 +15,7 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      points\n    }\n  }\n":
     types.HomeQueryDocument,
-  "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    distance\n    points\n  }\n  viewer {\n    role\n  }\n}\n":
+  "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    distance\n    points\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n  }\n  viewer {\n    role\n  }\n}\n":
     types.RouteQueryDocument,
 };
 
@@ -43,8 +43,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    distance\n    points\n  }\n  viewer {\n    role\n  }\n}\n"
-): (typeof documents)["\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    distance\n    points\n  }\n  viewer {\n    role\n  }\n}\n"];
+  source: "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    distance\n    points\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n  }\n  viewer {\n    role\n  }\n}\n"
+): (typeof documents)["\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    distance\n    points\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n  }\n  viewer {\n    role\n  }\n}\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

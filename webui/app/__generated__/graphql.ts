@@ -29,6 +29,13 @@ export type Scalars = {
   RouteId: any;
 };
 
+export type BikeSpec = {
+  __typename?: "BikeSpec";
+  frontSuspension: Array<Scalars["Float"]>;
+  rearSuspension: Array<Scalars["Float"]>;
+  tyreWidth: Array<Scalars["Float"]>;
+};
+
 export type Cue = {
   __typename?: "Cue";
   destination: Scalars["String"];
@@ -37,6 +44,19 @@ export type Cue = {
   elevationDescentMeters?: Maybe<Scalars["Float"]>;
   origin: Scalars["String"];
 };
+
+export enum DifficultyRating {
+  Black = "BLACK",
+  Blue = "BLUE",
+  DoubleBlack = "DOUBLE_BLACK",
+  Green = "GREEN",
+}
+
+export enum Direction {
+  Either = "EITHER",
+  OnlyAsRouted = "ONLY_AS_ROUTED",
+  PrimarlityAsRouted = "PRIMARLITY_AS_ROUTED",
+}
 
 export type PointOfInterest = {
   __typename?: "PointOfInterest";
@@ -91,13 +111,26 @@ export enum Role {
 export type Route = {
   __typename?: "Route";
   cues: Array<Cue>;
+  description?: Maybe<Scalars["String"]>;
+  direction?: Maybe<Direction>;
   distance: Scalars["Float"];
   geojson: Scalars["String"];
   id: Scalars["RouteId"];
+  idealBike?: Maybe<BikeSpec>;
+  minimumBike?: Maybe<BikeSpec>;
   name: Scalars["String"];
+  physicalDifficulty?: Maybe<DifficultyRating>;
   points: Array<Array<Scalars["Float"]>>;
   polyline: Scalars["String"];
+  scouted?: Maybe<Scouted>;
+  technicalDifficulty?: Maybe<DifficultyRating>;
 };
+
+export enum Scouted {
+  No = "NO",
+  Partially = "PARTIALLY",
+  Yes = "YES",
+}
 
 export type Viewer = {
   __typename?: "Viewer";
@@ -129,6 +162,23 @@ export type RouteQueryQuery = {
     name: string;
     distance: number;
     points: Array<Array<number>>;
+    description?: string | null;
+    technicalDifficulty?: DifficultyRating | null;
+    physicalDifficulty?: DifficultyRating | null;
+    scouted?: Scouted | null;
+    direction?: Direction | null;
+    minimumBike?: {
+      __typename?: "BikeSpec";
+      tyreWidth: Array<number>;
+      frontSuspension: Array<number>;
+      rearSuspension: Array<number>;
+    } | null;
+    idealBike?: {
+      __typename?: "BikeSpec";
+      tyreWidth: Array<number>;
+      frontSuspension: Array<number>;
+      rearSuspension: Array<number>;
+    } | null;
   } | null;
   viewer: { __typename?: "Viewer"; role: Role };
 };
@@ -207,6 +257,59 @@ export const RouteQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "technicalDifficulty" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "physicalDifficulty" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "scouted" } },
+                { kind: "Field", name: { kind: "Name", value: "direction" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "minimumBike" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "tyreWidth" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "frontSuspension" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rearSuspension" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "idealBike" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "tyreWidth" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "frontSuspension" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rearSuspension" },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
