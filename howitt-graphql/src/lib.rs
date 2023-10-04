@@ -135,9 +135,9 @@ pub struct BikeSpec(howitt::models::route_description::BikeSpec);
 
 #[Object]
 impl BikeSpec {
-    async fn tyre_width_mm(&self) -> Vec<f64> {
+    async fn tyre_width(&self) -> Vec<f64> {
         self.0
-            .tyre_width_mm
+            .tyre_width
             .clone()
             .map(|x| x.millimeters())
             .into_vec()

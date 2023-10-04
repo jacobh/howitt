@@ -139,8 +139,7 @@ where
                 description: route
                     .description
                     .map(RouteDescription::parse)
-                    .transpose()
-                    .ok()
+                    .transpose()?
                     .flatten(),
                 external_ref: Some(ExternalRef {
                     id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
@@ -256,7 +255,7 @@ where
         let ride_sync_candidates = self.detect_ride_sync_candidates(rwgps_user_id).await?;
 
         dbg!(&route_sync_candidates);
-        dbg!(&ride_sync_candidates);
+        dbg!(&ride_sync_candidates);    
 
         let results = route_sync_candidates
             .into_iter()
@@ -267,7 +266,7 @@ where
             .collect_futures_ordered()
             .await;
 
-        dbg!(&results);
+        dbg!(results.len());
 
         results.into_iter().collect_result_vec()?;
 
@@ -280,11 +279,11 @@ where
             .collect_futures_ordered()
             .await;
 
-        dbg!(&results);
+        dbg!(results.len());
 
         results.into_iter().collect_result_vec()?;
 
-        dbg!(self.sync_starred_routes().await?);
+        dbg!(self.sync_starred_routes().await?.len());
 
         Ok(())
     }

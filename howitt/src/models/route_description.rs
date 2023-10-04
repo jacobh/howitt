@@ -102,7 +102,7 @@ impl Default for SuspensionTravel {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct BikeSpec {
-    pub tyre_width_mm: MaybePair<Distance>,
+    pub tyre_width: MaybePair<Distance>,
     #[serde(default)]
     pub front_suspension: MaybePair<SuspensionTravel>,
     #[serde(default)]
@@ -137,24 +137,54 @@ pub struct RouteDescription {
 }
 
 impl RouteDescription {
-    pub fn parse(input: String) -> Result<RouteDescription, ()> {
+    pub fn parse(input: String) -> Result<Option<RouteDescription>, DescriptionParseError> {
         let parts = input.split("[backcountry_segment]").collect_vec();
+
         let description = parts.get(0);
         let toml_text = parts.get(1);
 
         match (description, toml_text) {
             (Some(description), Some(toml_text)) => {
-                let mut table: toml::Table = toml::from_str(*toml_text).map_err(|_| ())?;
+                let mut table: toml::Table = toml::from_str(*toml_text)?;
                 table.insert("description".to_owned(), toml::Value::from(*description));
 
-                Ok(table.try_into().map_err(|_| ())?)
+                Ok(Some(table.try_into()?))
             }
-            _ => Err(()),
+            _ => Ok(None),
         }
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-struct Wrapper {
-    backcountry_segment: RouteDescription,
+#[derive(Debug, thiserror::Error)]
+#[error("Description parse error")]
+pub enum DescriptionParseError {
+    Toml(#[from] toml::de::Error),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const TEST_DESCRIPTION: &'static str = r#"traverse through the heart of the vic high country
+
+[backcountry_segment]
+technical_difficulty = "blue"
+physical_difficulty = "black"
+scouted = "yes"
+direction = "either"
+
+[minimum_bike]
+tyre_width = [{ inches = 2}, { inches = 2.2}]
+
+[ideal_bike]
+tyre_width = [{ inches = 2.4}, { inches = 2.6}]
+front_suspension = [{mm = 100}, {mm=120}]
+rear_suspension = ["rigid", {mm=100}]"#;
+
+    #[test]
+    fn it_parses_example() {
+        let result = RouteDescription::parse(TEST_DESCRIPTION.to_owned());
+
+        assert_eq!(result.is_ok(), true)
+    }
 }
