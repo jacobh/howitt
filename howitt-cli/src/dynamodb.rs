@@ -65,6 +65,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             let service = RwgpsSyncService {
                 route_repo: route_model_repo,
                 ride_repo: ride_model_repo,
+                config_repo,
                 rwgps_client,
                 rwgps_error: std::marker::PhantomData,
             };

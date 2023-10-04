@@ -8,6 +8,7 @@ use crate::{
     ext::futures::FuturesIteratorExt,
     ext::iter::ResultIterExt,
     models::{
+        config::{Config, ConfigId},
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         point::{ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
@@ -21,26 +22,35 @@ const SYNC_VERSION: usize = 2;
 pub struct RwgpsSyncService<
     RouteRepo: Repo<Model = RouteModel>,
     RideRepo: Repo<Model = RideModel>,
+    ConfigRepo: Repo<Model = Config>,
     RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
     RwgpsClientError: Into<anyhow::Error>,
 > {
     pub route_repo: RouteRepo,
     pub ride_repo: RideRepo,
+    pub config_repo: ConfigRepo,
     pub rwgps_client: RwgpsClient,
     pub rwgps_error: PhantomData<RwgpsClientError>,
 }
 
-impl<R1, R2, C, E> RwgpsSyncService<R1, R2, C, E>
+impl<R1, R2, R3, C, E> RwgpsSyncService<R1, R2, R3, C, E>
 where
     R1: Repo<Model = RouteModel>,
     R2: Repo<Model = RideModel>,
+    R3: Repo<Model = Config>,
     C: rwgps_types::client::RwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
 {
-    pub fn new(route_repo: R1, ride_repo: R2, rwgps_client: C) -> RwgpsSyncService<R1, R2, C, E> {
+    pub fn new(
+        route_repo: R1,
+        ride_repo: R2,
+        config_repo: R3,
+        rwgps_client: C,
+    ) -> RwgpsSyncService<R1, R2, R3, C, E> {
         RwgpsSyncService {
             route_repo,
             ride_repo,
+            config_repo,
             rwgps_client,
             rwgps_error: PhantomData,
         }
@@ -206,6 +216,22 @@ where
         Ok(())
     }
 
+    async fn sync_starred_routes(&self) -> Result<Vec<RouteId>, anyhow::Error> {
+        let routes = self.route_repo.all_indexes().await?;
+
+        let starred_route_ids: Vec<RouteId> = routes
+            .into_iter()
+            .filter(|route| route.name.contains("[BCS]"))
+            .map(|route| RouteId::from(route.id))
+            .collect();
+
+        let mut config = self.config_repo.get(ConfigId).await?;
+        config.starred_route_ids = starred_route_ids.clone();
+        self.config_repo.put(config).await?;
+
+        Ok(starred_route_ids)
+    }
+
     pub async fn sync(&self, rwgps_user_id: usize) -> Result<(), anyhow::Error> {
         let route_sync_candidates = self.detect_route_sync_candidates(rwgps_user_id).await?;
         let ride_sync_candidates = self.detect_ride_sync_candidates(rwgps_user_id).await?;
@@ -238,6 +264,8 @@ where
         dbg!(&results);
 
         results.into_iter().collect_result_vec()?;
+
+        dbg!(self.sync_starred_routes().await?);
 
         Ok(())
     }
