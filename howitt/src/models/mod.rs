@@ -116,31 +116,38 @@ pub trait OtherItem: 'static + Send + Sync + Clone + Serialize + DeserializeOwne
     fn item_id(&self) -> String;
 }
 
-pub enum ModelRef<M: Model> {
+enum ModelRefInner<M: Model> {
     Model(M),
     Index(M::IndexItem),
+}
+
+pub struct ModelRef<M: Model> {
+    initial: ModelRefInner<M>
 }
 
 impl<M> ModelRef<M>
 where
     M: Model,
 {
+    fn new(initial: ModelRefInner<M>) -> ModelRef<M> {
+        ModelRef { initial }
+    }
     pub fn from_model(model: M) -> ModelRef<M> {
-        ModelRef::Model(model)
+        ModelRef::new(ModelRefInner::Model(model))
     }
     pub fn from_index(index: M::IndexItem) -> ModelRef<M> {
-        ModelRef::Index(index)
+        ModelRef::new(ModelRefInner::Index(index))
     }
     pub fn id(&self) -> M::Id {
-        match self {
-            ModelRef::Model(model) => model.id(),
-            ModelRef::Index(index) => index.model_id(),
+        match &self.initial {
+            ModelRefInner::Model(model) => model.id(),
+            ModelRefInner::Index(index) => index.model_id(),
         }
     }
     pub fn as_index(&self) -> &M::IndexItem {
-        match self {
-            ModelRef::Model(model) => model.as_index(),
-            ModelRef::Index(index) => index,
+        match &self.initial {
+            ModelRefInner::Model(model) => model.as_index(),
+            ModelRefInner::Index(index) => index,
         }
     }
 }
