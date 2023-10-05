@@ -131,8 +131,8 @@ where
             None => ulid::Ulid::from_datetime(route.created_at.into()),
         };
 
-        let model = RouteModel {
-            route: Route {
+        let model = RouteModel::new(
+            Route {
                 id,
                 name: route.name,
                 distance: route.distance.unwrap_or(0.0),
@@ -147,7 +147,7 @@ where
                     updated_at: route.updated_at,
                 }),
             },
-            point_chunks: PointChunk::new_chunks(
+            PointChunk::new_chunks(
                 RouteId::from(id),
                 route
                     .track_points
@@ -163,7 +163,7 @@ where
                     })
                     .map(|(point, elevation)| ElevationPoint { point, elevation }),
             ),
-        };
+        );
 
         self.route_repo.put(model).await?;
 
@@ -255,7 +255,7 @@ where
         let ride_sync_candidates = self.detect_ride_sync_candidates(rwgps_user_id).await?;
 
         dbg!(&route_sync_candidates);
-        dbg!(&ride_sync_candidates);    
+        dbg!(&ride_sync_candidates);
 
         let results = route_sync_candidates
             .into_iter()

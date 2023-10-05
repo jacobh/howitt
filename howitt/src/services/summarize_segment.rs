@@ -2,9 +2,8 @@ use geo::GeodesicDistance;
 
 use crate::models::{point::Point, segment_summary::SegmentSummary};
 
-pub fn summarize_segment<P: Point>(points: &[P]) -> SegmentSummary {
+pub fn summarize_segment<P: Point>(points: impl Iterator<Item = P>) -> SegmentSummary {
     points
-        .iter()
         .scan::<Option<&P>, _, _>(None, |prev_point, point| match prev_point {
             Some(prev_point) => {
                 let distance = prev_point
@@ -16,12 +15,12 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> SegmentSummary {
                     _ => None,
                 };
 
-                *prev_point = point;
+                *prev_point = &point;
 
                 Some(Some((distance, elevation)))
             }
             None => {
-                *prev_point = Some(point);
+                *prev_point = Some(&point);
                 Some(None)
             }
         })

@@ -1,10 +1,21 @@
+use std::{
+    cell::{Ref, RefCell},
+    sync::{Arc, Mutex},
+};
+
 use derive_more::From;
 use serde::{Deserialize, Serialize};
 
-use crate::models::{external_ref::ExternalRef, point::ElevationPoint};
+use crate::{
+    models::{external_ref::ExternalRef, point::ElevationPoint},
+    services::summarize_segment::summarize_segment,
+};
 
 use super::{
-    external_ref::ExternallySourced, point::PointChunk, route_description::RouteDescription,
+    external_ref::ExternallySourced,
+    point::PointChunk,
+    route_description::RouteDescription,
+    segment_summary::{ElevationSummary, SegmentSummary},
     IndexItem,
 };
 
@@ -33,12 +44,22 @@ impl ExternallySourced for Route {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
+    #[serde(default)]
+    summary: Arc<Mutex<RefCell<Option<SegmentSummary>>>>,
 }
 impl RouteModel {
+    pub fn new(route: Route, point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>) -> RouteModel {
+        RouteModel {
+            route,
+            point_chunks,
+            summary: Default::default(),
+        }
+    }
+
     pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
         self.point_chunks
             .iter()
@@ -47,6 +68,28 @@ impl RouteModel {
 
     pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
         self.iter_elevation_points().map(|point| point.point)
+    }
+
+    fn summary(&self) -> Option<Ref<'_, SegmentSummary>> {
+        let cell = self.summary.lock().unwrap();
+
+        cell.replace_with(|value| match value {
+            Some(summary) => Some(*summary),
+            None => Some(summarize_segment(self.iter_elevation_points())),
+        });
+
+        Ref::filter_map(cell.borrow(), |summary| summary.as_ref()).ok()
+    }
+
+    pub fn elevation_summary(&self) -> Option<Ref<'_, ElevationSummary>> {
+        self.summary()
+            .and_then(|summary| Ref::filter_map(summary, |summary| summary.elevation.as_ref()).ok())
+    }
+}
+
+impl PartialEq for RouteModel {
+    fn eq(&self, other: &Self) -> bool {
+        self.route == other.route && self.point_chunks == other.point_chunks
     }
 }
 
@@ -74,13 +117,13 @@ impl crate::models::Model for RouteModel {
         route: Self::IndexItem,
         other: Vec<Self::OtherItem>,
     ) -> Result<Self, anyhow::Error> {
-        Ok(RouteModel {
+        Ok(RouteModel::new(
             route,
-            point_chunks: other
+            other
                 .into_iter()
                 .filter_map(RouteItem::into_point_chunk)
                 .collect(),
-        })
+        ))
     }
 }
 
