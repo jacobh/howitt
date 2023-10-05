@@ -1,9 +1,6 @@
-use std::{
-    cell::{Ref, RefCell},
-    sync::{Arc, Mutex},
-};
-
 use derive_more::From;
+use itertools::Itertools;
+use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -44,46 +41,37 @@ impl ExternallySourced for Route {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
-    #[serde(default)]
-    summary: Arc<Mutex<RefCell<Option<SegmentSummary>>>>,
+    summary: OnceCell<SegmentSummary>,
 }
 impl RouteModel {
     pub fn new(route: Route, point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>) -> RouteModel {
         RouteModel {
             route,
             point_chunks,
-            summary: Default::default(),
+            summary: OnceCell::new(),
         }
     }
 
     pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
-        self.point_chunks
-            .iter()
-            .flat_map(|chunk| chunk.points.iter())
+        PointChunk::iter_points(&self.point_chunks)
     }
 
     pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
         self.iter_elevation_points().map(|point| point.point)
     }
 
-    fn summary(&self) -> Option<Ref<'_, SegmentSummary>> {
-        let cell = self.summary.lock().unwrap();
-
-        cell.replace_with(|value| match value {
-            Some(summary) => Some(*summary),
-            None => Some(summarize_segment(self.iter_elevation_points())),
-        });
-
-        Ref::filter_map(cell.borrow(), |summary| summary.as_ref()).ok()
+    fn segment_summary(&self) -> &SegmentSummary {
+        self.summary.get_or_init(|| {
+            summarize_segment(self.iter_elevation_points().collect_vec().as_slice())
+        })
     }
 
-    pub fn elevation_summary(&self) -> Option<Ref<'_, ElevationSummary>> {
-        self.summary()
-            .and_then(|summary| Ref::filter_map(summary, |summary| summary.elevation.as_ref()).ok())
+    pub fn elevation_summary(&self) -> Option<&ElevationSummary> {
+        self.segment_summary().elevation.as_ref()
     }
 }
 

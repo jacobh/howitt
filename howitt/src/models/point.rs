@@ -142,4 +142,7 @@ where
             })
             .collect()
     }
+    pub fn iter_points(chunks: &[PointChunk<ID, P>]) -> impl Iterator<Item = &P> + '_ {
+        chunks.iter().flat_map(|chunk| chunk.points.iter())
+    }
 }

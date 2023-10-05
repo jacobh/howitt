@@ -177,6 +177,28 @@ impl Route {
     async fn distance(&self) -> f64 {
         self.0.as_index().distance
     }
+    async fn elevation_ascent_m<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Option<f64>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+        let route_model = route_repo.get(self.0.id()).await?;
+
+        Ok(route_model
+            .elevation_summary()
+            .map(|summary| summary.elevation_ascent_m))
+    }
+    async fn elevation_descent_m<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Option<f64>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+        let route_model = route_repo.get(self.0.id()).await?;
+
+        Ok(route_model
+            .elevation_summary()
+            .map(|summary| summary.elevation_descent_m))
+    }
     async fn description(&self) -> Option<&str> {
         self.route_description()?.description.as_deref()
     }

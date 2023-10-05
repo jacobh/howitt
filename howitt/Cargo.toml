@@ -25,3 +25,4 @@ rwgps_types = { path = "../rwgps-types" }
 futures = "*"
 ordered-float = "*"
 toml = "*"
+once_cell = "*"
