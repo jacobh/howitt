@@ -26,3 +26,4 @@ futures = "*"
 ordered-float = "*"
 toml = "*"
 once_cell = "*"
+tokio = { version = "*", features = [] }

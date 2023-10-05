@@ -1,8 +1,12 @@
 use std::{borrow::Cow, marker::PhantomData};
 
 use anyhow::anyhow;
+use futures::FutureExt;
 use itertools::Itertools;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use tokio::sync::OnceCell;
+
+use crate::repos::AnyhowRepo;
 
 pub mod config;
 pub mod cuesheet;
@@ -116,21 +120,26 @@ pub trait OtherItem: 'static + Send + Sync + Clone + Serialize + DeserializeOwne
     fn item_id(&self) -> String;
 }
 
+#[derive(Clone)]
 enum ModelRefInner<M: Model> {
     Model(M),
     Index(M::IndexItem),
 }
 
 pub struct ModelRef<M: Model> {
-    initial: ModelRefInner<M>
+    initial: ModelRefInner<M>,
+    model: OnceCell<Result<M, anyhow::Error>>,
 }
 
 impl<M> ModelRef<M>
 where
-    M: Model,
+    M: Model + Clone,
 {
     fn new(initial: ModelRefInner<M>) -> ModelRef<M> {
-        ModelRef { initial }
+        ModelRef {
+            initial,
+            model: OnceCell::new(),
+        }
     }
     pub fn from_model(model: M) -> ModelRef<M> {
         ModelRef::new(ModelRefInner::Model(model))
@@ -149,6 +158,20 @@ where
             ModelRefInner::Model(model) => model.as_index(),
             ModelRefInner::Index(index) => index,
         }
+    }
+    pub async fn as_model<R: AsRef<dyn AnyhowRepo<Model = M>> + Send + Sync>(
+        &self,
+        repo: R,
+    ) -> Result<&M, &anyhow::Error> {
+        self.model
+            .get_or_init(move || match self.initial.clone() {
+                ModelRefInner::Model(model) => futures::future::ready(Ok(model)).boxed(),
+                ModelRefInner::Index(index) => {
+                    ((async move || Ok(repo.as_ref().get(index.model_id()).await?))()).boxed()
+                }
+            })
+            .await
+            .as_ref()
     }
 }
 

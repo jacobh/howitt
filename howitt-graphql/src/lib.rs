@@ -182,7 +182,10 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Option<f64>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id()).await?;
+        let route_model = self
+            .0
+            .as_model(route_repo)
+            .await?;
 
         Ok(route_model
             .elevation_summary()
@@ -193,7 +196,10 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Option<f64>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id()).await?;
+        let route_model = self
+            .0
+            .as_model(route_repo)
+            .await?;
 
         Ok(route_model
             .elevation_summary()
@@ -234,7 +240,10 @@ impl Route {
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id()).await?;
+        let route_model = self
+            .0
+            .as_model(route_repo)
+            .await?;
 
         let linestring = geo::LineString::from(route_model.iter_geo_points().collect::<Vec<_>>());
         Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
@@ -244,7 +253,10 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id()).await?;
+        let route_model = self
+            .0
+            .as_model(route_repo)
+            .await?;
 
         Ok(route_model
             .iter_geo_points()
@@ -253,7 +265,10 @@ impl Route {
     }
     async fn polyline<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id()).await?;
+        let route_model = self
+            .0
+            .as_model(route_repo)
+            .await?;
 
         Ok(polyline::encode_coordinates(
             route_model
