@@ -1055,6 +1055,9 @@ name = "either"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "encode_unicode"
@@ -1516,6 +1519,7 @@ dependencies = [
  "bincode",
  "chrono",
  "derive_more",
+ "either",
  "futures",
  "geo",
  "gpx",

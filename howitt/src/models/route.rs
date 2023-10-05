@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{external_ref::ExternalRef, point::ElevationPoint},
-    services::summarize_segment::summarize_segment,
+    services::summarize_segment::{summarize_segment, SummarizeError},
 };
 
 use super::{
@@ -45,7 +45,7 @@ impl ExternallySourced for Route {
 pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
-    summary: OnceCell<SegmentSummary>,
+    summary: OnceCell<Result<SegmentSummary<ElevationPoint>, SummarizeError>>,
 }
 impl RouteModel {
     pub fn new(route: Route, point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>) -> RouteModel {
@@ -64,14 +64,22 @@ impl RouteModel {
         self.iter_elevation_points().map(|point| point.point)
     }
 
-    fn segment_summary(&self) -> &SegmentSummary {
-        self.summary.get_or_init(|| {
-            summarize_segment(self.iter_elevation_points().collect_vec().as_slice())
-        })
+    fn segment_summary(&self) -> Result<&SegmentSummary<ElevationPoint>, &SummarizeError> {
+        self.summary
+            .get_or_init(|| {
+                summarize_segment(
+                    self.iter_elevation_points()
+                        .cloned()
+                        .collect_vec()
+                        .as_slice(),
+                )
+            })
+            .as_ref()
     }
 
-    pub fn elevation_summary(&self) -> Option<&ElevationSummary> {
-        self.segment_summary().elevation.as_ref()
+    pub fn elevation_summary(&self) -> Result<Option<&ElevationSummary>, &SummarizeError> {
+        self.segment_summary()
+            .map(|summary| summary.elevation.as_ref())
     }
 }
 

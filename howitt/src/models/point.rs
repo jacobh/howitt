@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ModelId;
 
-pub trait Point {
+pub trait Point: Clone {
     fn as_geo_point(&self) -> &geo::Point;
     fn elevation_meters(&self) -> Option<&f64>;
 }

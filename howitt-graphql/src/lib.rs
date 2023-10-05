@@ -182,13 +182,10 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Option<f64>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self
-            .0
-            .as_model(route_repo)
-            .await?;
+        let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
-            .elevation_summary()
+            .elevation_summary()?
             .map(|summary| summary.elevation_ascent_m))
     }
     async fn elevation_descent_m<'ctx>(
@@ -196,13 +193,10 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Option<f64>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self
-            .0
-            .as_model(route_repo)
-            .await?;
+        let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
-            .elevation_summary()
+            .elevation_summary()?
             .map(|summary| summary.elevation_descent_m))
     }
     async fn description(&self) -> Option<&str> {
@@ -240,10 +234,7 @@ impl Route {
     }
     async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self
-            .0
-            .as_model(route_repo)
-            .await?;
+        let route_model = self.0.as_model(route_repo).await?;
 
         let linestring = geo::LineString::from(route_model.iter_geo_points().collect::<Vec<_>>());
         Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
@@ -253,10 +244,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self
-            .0
-            .as_model(route_repo)
-            .await?;
+        let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
             .iter_geo_points()
@@ -265,10 +253,7 @@ impl Route {
     }
     async fn polyline<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self
-            .0
-            .as_model(route_repo)
-            .await?;
+        let route_model = self.0.as_model(route_repo).await?;
 
         Ok(polyline::encode_coordinates(
             route_model
@@ -288,7 +273,7 @@ impl Route {
         let points = route_model.iter_elevation_points().cloned().collect_vec();
         let pois = poi_repo.all_indexes().await?;
 
-        let cuesheet = generate_cuesheet(&points, &pois);
+        let cuesheet = generate_cuesheet(&points, &pois)?;
 
         Ok(cuesheet.cues.into_iter().map(Cue::from).collect_vec())
     }
@@ -397,8 +382,11 @@ pub struct Cue {
     elevation_ascent_meters: Option<f64>,
     elevation_descent_meters: Option<f64>,
 }
-impl From<howitt::models::cuesheet::Cue> for Cue {
-    fn from(value: howitt::models::cuesheet::Cue) -> Self {
+impl<P> From<howitt::models::cuesheet::Cue<P>> for Cue
+where
+    P: howitt::models::point::Point,
+{
+    fn from(value: howitt::models::cuesheet::Cue<P>) -> Self {
         let (elevation_ascent_meters, elevation_descent_meters) = match value.summary.elevation {
             Some(ElevationSummary {
                 elevation_ascent_m,

@@ -11,6 +11,7 @@ use crate::repos::AnyhowRepo;
 pub mod config;
 pub mod cuesheet;
 pub mod external_ref;
+pub mod maybe_pair;
 pub mod point;
 pub mod point_of_interest;
 pub mod ride;
