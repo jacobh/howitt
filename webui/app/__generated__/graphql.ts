@@ -195,7 +195,6 @@ export type RouteQueryQuery = {
     __typename?: "Route";
     id: any;
     name: string;
-    externalCanonicalUrl?: any | null;
     distance: number;
     points: Array<Array<number>>;
     description?: string | null;
@@ -203,6 +202,7 @@ export type RouteQueryQuery = {
     physicalDifficulty?: DifficultyRating | null;
     scouted?: Scouted | null;
     direction?: Direction | null;
+    externalRef?: { __typename?: "ExternalRef"; canonicalUrl: any } | null;
     minimumBike?: {
       __typename?: "BikeSpec";
       tyreWidth: Array<number>;
@@ -293,7 +293,16 @@ export const RouteQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 {
                   kind: "Field",
-                  name: { kind: "Name", value: "externalCanonicalUrl" },
+                  name: { kind: "Name", value: "externalRef" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "canonicalUrl" },
+                      },
+                    ],
+                  },
                 },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },

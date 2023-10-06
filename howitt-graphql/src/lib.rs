@@ -237,14 +237,6 @@ impl Route {
             .clone()
             .map(ExternalRef)
     }
-    #[graphql(deprecation="use external_ref instead")]
-    async fn external_canonical_url(&self) -> Option<url::Url> {
-        self.0
-            .as_index()
-            .external_ref
-            .as_ref()
-            .map(|external_ref| external_ref.id.canonical_url())
-    }
     async fn name(&self) -> &str {
         &self.0.as_index().name
     }

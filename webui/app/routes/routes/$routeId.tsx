@@ -12,7 +12,9 @@ query RouteQuery($routeId: RouteId!) {
   route(id: $routeId) {
     id
     name
-    externalCanonicalUrl
+    externalRef {
+      canonicalUrl
+    }
     distance
     points
     description
@@ -78,15 +80,19 @@ export default function Route() {
               {formatDistance(data.route.distance)}
               {data.route.description ? <p>{data.route.description}</p> : null}
               <br />
-              <p>
-                <a
-                  target="_blank"
-                  rel="noreferrer"
-                  href={data.route.externalCanonicalUrl}
-                >
-                  {data.route.externalCanonicalUrl}
-                </a>
-              </p>
+              {data.route.externalRef ? (
+                <p>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    href={data.route.externalRef?.canonicalUrl}
+                  >
+                    {data.route.externalRef?.canonicalUrl}
+                  </a>
+                </p>
+              ) : (
+                <></>
+              )}
               <h3>Info</h3>
               <dl>
                 <Definition
@@ -97,10 +103,7 @@ export default function Route() {
                   term="Physical Difficulty"
                   definition={data.route.technicalDifficulty}
                 />
-                <Definition
-                  term="Scouted"
-                  definition={data.route.scouted}
-                />
+                <Definition term="Scouted" definition={data.route.scouted} />
                 <Definition
                   term="Direction"
                   definition={data.route.direction}
