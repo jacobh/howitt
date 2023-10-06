@@ -65,9 +65,14 @@ impl SlopeEnd {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TerminusElevation {
+    pub slope_end: SlopeEnd,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Terminus<P: Point> {
     pub direction: Option<CardinalDirection>,
-    pub slope_end: Option<SlopeEnd>,
+    pub elevation: Option<TerminusElevation>,
     pub point: P,
 }
 
@@ -105,13 +110,16 @@ impl<P: Point> Termini<P> {
                     *last_point.as_geo_point(),
                 );
 
-                let (start_slope, end_slope) = match (
+                let (start_elevation, end_elevation) = match (
                     first_point.into_elevation_point(),
                     last_point.into_elevation_point(),
                 ) {
                     (Some(a), Some(b)) => {
                         let (a, b) = SlopeEnd::from_points(a, b);
-                        (Some(a), Some(b))
+                        (
+                            Some(TerminusElevation { slope_end: a }),
+                            Some(TerminusElevation { slope_end: b }),
+                        )
                     }
                     _ => (None, None),
                 };
@@ -121,13 +129,13 @@ impl<P: Point> Termini<P> {
                         direction: Some(
                             CardinalDirection::from_bearing(first_to_last_bearing).inverse(),
                         ),
-                        slope_end: start_slope,
                         point: first_point.clone(),
+                        elevation: start_elevation,
                     },
                     Some(Terminus {
                         direction: Some(CardinalDirection::from_bearing(first_to_last_bearing)),
-                        slope_end: end_slope,
                         point: last_point.clone(),
+                        elevation: end_elevation,
                     }),
                 )
             }
@@ -135,7 +143,7 @@ impl<P: Point> Termini<P> {
                 Terminus {
                     point: point.clone(),
                     direction: None,
-                    slope_end: None,
+                    elevation: None,
                 },
                 None,
             ),

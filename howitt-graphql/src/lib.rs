@@ -190,7 +190,10 @@ impl Terminus {
     }
 
     async fn slope_end(&self) -> Option<SlopeEnd> {
-        self.0.slope_end.map(SlopeEnd::from)
+        self.0
+            .elevation
+            .as_ref()
+            .map(|elevation| SlopeEnd::from(elevation.slope_end))
     }
 }
 
