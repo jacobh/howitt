@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { formatDistance } from "~/services/formatDistance";
 import { gql } from "~/__generated__";
 import { Map } from "../../components/map";
-import { BikeSpecContent } from "~/components/BikeSpec";
+import { BikeSpecContent } from "./BikeSpec";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
