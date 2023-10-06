@@ -175,7 +175,7 @@ pub struct Route {
     pub rememberable: bool,
     #[serde(deserialize_with = "deserialize_default_from_empty_object")]
     pub metrics: Option<Metrics>,
-    pub photos: Vec<Value>,
+    pub photos: Vec<Photo>,
     pub segment_matches: Option<Vec<SegmentMatch>>,
     pub track_points: Vec<TrackPoint>,
     pub course_points: Vec<CoursePoint>,
@@ -485,4 +485,24 @@ pub struct CoursePoint {
 pub struct Gear {
     pub id: usize,
     pub name: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Photo {
+    pub id: usize,
+    pub group_membership_id: usize,
+    pub caption: Value,
+    pub created_at: String,
+    pub position: i64,
+    pub visibility: i64,
+    pub lat: Value,
+    pub lng: Value,
+    pub published: bool,
+    pub captured_at: String,
+    pub user_id: usize,
+    pub updated_at: String,
+    pub width: usize,
+    pub height: usize,
+    pub optional_uuid: Value,
+    pub checksum: String,
 }
