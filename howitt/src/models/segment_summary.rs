@@ -136,7 +136,7 @@ impl<P: Point> Termini<P> {
             },
             Terminus {
                 direction: CardinalDirection::from_bearing(first_to_last_bearing),
-                distance_from_start: first_to_last_distance,
+                distance_from_start: f64::round(first_to_last_distance * 100.0) / 100.0,
                 point: last_point.clone(),
                 elevation: end_elevation,
             },

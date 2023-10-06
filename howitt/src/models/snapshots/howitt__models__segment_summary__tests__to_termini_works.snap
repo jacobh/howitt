@@ -33,7 +33,7 @@ expression: result
             ),
             elevation: 1400.0,
         },
-        distance_from_start: 6696.194096387852,
+        distance_from_start: 6696.19,
         elevation: Some(
             TerminusElevation {
                 slope_end: Uphill,

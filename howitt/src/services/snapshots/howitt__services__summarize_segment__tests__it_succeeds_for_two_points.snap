@@ -3,7 +3,7 @@ source: howitt/src/services/summarize_segment.rs
 expression: result
 ---
 SegmentSummary {
-    distance_m: 6696.194096387852,
+    distance_m: 6696.19,
     elevation: Some(
         ElevationSummary {
             elevation_ascent_m: 300.0,

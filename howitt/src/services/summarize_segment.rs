@@ -35,6 +35,8 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, Su
                     .as_geo_point()
                     .geodesic_distance(point.as_geo_point());
 
+                let distance = f64::round(distance * 100.0) / 100.0;
+
                 let elevation = match (prev_point.elevation_meters(), point.elevation_meters()) {
                     (Some(e1), Some(e2)) => Some(e2 - e1),
                     _ => None,
