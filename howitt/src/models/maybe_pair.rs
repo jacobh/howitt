@@ -23,16 +23,25 @@ impl<T> MaybePair<T>
 where
     T: Clone,
 {
-    pub fn into_tuple(self) -> (T, T) {
+    pub fn as_tuple(&self) -> (&T, Option<&T>) {
         match self {
-            MaybePair::Singleton(a) => (a.clone(), a),
-            MaybePair::Pair(a, b) => (a, b),
+            MaybePair::Singleton(a) => (a, None),
+            MaybePair::Pair(a, b) => (a, Some(b)),
+        }
+    }
+
+    pub fn into_tuple(self) -> (T, Option<T>) {
+        match self {
+            MaybePair::Singleton(a) => (a, None),
+            MaybePair::Pair(a, b) => (a, Some(b)),
         }
     }
 
     pub fn into_vec(self) -> Vec<T> {
-        let (a, b) = self.into_tuple();
-        vec![a, b]
+        match self.into_tuple() {
+            (a, Some(b)) => vec![a, b],
+            (a, None) => vec![a],
+        }
     }
 }
 
@@ -42,5 +51,17 @@ where
 {
     fn default() -> Self {
         MaybePair::Singleton(T::default())
+    }
+}
+
+impl<T> From<T> for MaybePair<T> {
+    fn from(value: T) -> Self {
+        MaybePair::Singleton(value)
+    }
+}
+
+impl<T> From<(T, T)> for MaybePair<T> {
+    fn from((a, b): (T, T)) -> Self {
+        MaybePair::Pair(a, b)
     }
 }

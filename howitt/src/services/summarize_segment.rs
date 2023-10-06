@@ -1,4 +1,5 @@
 use either::Either;
+use geo::GeodesicBearing;
 use geo::GeodesicDistance;
 
 use crate::models::{
@@ -14,33 +15,6 @@ pub enum SummarizeError {
     NotEnoughPoints,
 }
 
-fn summarize_termini<P: Point>(first_point: P, last_point: P) -> Termini<P> {
-    if first_point
-        .as_geo_point()
-        .geodesic_distance(last_point.as_geo_point())
-        < 100.0
-    {
-        Either::Left(first_point)
-    } else {
-        Either::Right((
-            Terminus {
-                // TODO
-                direction: CardinalDirection::North,
-                // TODO
-                slope_end: SlopeEnd::Downhill,
-                point: first_point,
-            },
-            Terminus {
-                // TODO
-                direction: CardinalDirection::South,
-                // TODO
-                slope_end: SlopeEnd::Uphill,
-                point: last_point,
-            },
-        ))
-    }
-}
-
 pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, SummarizeError> {
     if points.len() < 2 {
         return Err(SummarizeError::NotEnoughPoints);
@@ -49,7 +23,7 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, Su
     let summary = SegmentSummary::<P> {
         distance_m: 0.0,
         elevation: None,
-        termini: summarize_termini(
+        termini: Termini::new(
             points.first().unwrap().clone(),
             points.last().unwrap().clone(),
         ),
