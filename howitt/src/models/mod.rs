@@ -8,6 +8,7 @@ use tokio::sync::OnceCell;
 
 use crate::repos::AnyhowRepo;
 
+pub mod cardinal_direction;
 pub mod config;
 pub mod cuesheet;
 pub mod external_ref;
@@ -19,6 +20,8 @@ pub mod route;
 pub mod route_description;
 pub mod segment;
 pub mod segment_summary;
+pub mod slope_end;
+pub mod terminus;
 
 pub trait Model: Send + Sync + Sized + 'static {
     type Id: ModelId;

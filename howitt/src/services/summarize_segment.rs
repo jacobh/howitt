@@ -2,7 +2,8 @@ use itertools::Itertools;
 
 use crate::models::{
     point::{Point, PointDelta},
-    segment_summary::{SegmentSummary, Termini},
+    segment_summary::SegmentSummary,
+    terminus::Termini,
 };
 
 use thiserror::Error;

@@ -159,7 +159,7 @@ impl BikeSpec {
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
-#[graphql(remote = "howitt::models::segment_summary::CardinalDirection")]
+#[graphql(remote = "howitt::models::cardinal_direction::CardinalDirection")]
 pub enum CardinalDirection {
     North,
     East,
@@ -168,14 +168,14 @@ pub enum CardinalDirection {
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
-#[graphql(remote = "howitt::models::segment_summary::SlopeEnd")]
+#[graphql(remote = "howitt::models::slope_end::SlopeEnd")]
 pub enum SlopeEnd {
     Uphill,
     Downhill,
     Flat,
 }
 
-pub struct Terminus(howitt::models::segment_summary::Terminus<ElevationPoint>);
+pub struct Terminus(howitt::models::terminus::Terminus<ElevationPoint>);
 
 #[Object]
 impl Terminus {

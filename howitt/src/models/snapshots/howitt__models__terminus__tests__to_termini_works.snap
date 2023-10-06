@@ -1,5 +1,5 @@
 ---
-source: howitt/src/models/segment_summary.rs
+source: howitt/src/models/terminus.rs
 expression: result
 ---
 (
