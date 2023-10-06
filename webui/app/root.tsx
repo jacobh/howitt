@@ -1,4 +1,4 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
+import type { LinksFunction, V2_MetaDescriptor } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -9,11 +9,17 @@ import {
 } from "@remix-run/react";
 import styled from "styled-components";
 
-export const meta: MetaFunction = () => ({
-  charset: "utf-8",
-  title: "Howitt",
-  viewport: "width=device-width,initial-scale=1",
-});
+export const meta = (): V2_MetaDescriptor[] => [
+  {
+    charset: "utf-8",
+  },
+  {
+    title: "Howitt",
+  },
+  {
+    viewport: "width=device-width,initial-scale=1",
+  },
+];
 
 const StyledBody = styled.body`
   margin: 0;
