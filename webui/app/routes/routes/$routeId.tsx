@@ -12,6 +12,7 @@ query RouteQuery($routeId: RouteId!) {
   route(id: $routeId) {
     id
     name
+    externalCanonicalUrl
     distance
     points
     description
@@ -45,7 +46,7 @@ function formatTyreWidth(mm: number): string {
   if (mm <= 50) {
     return [mm, "mm"].join("");
   }
-  return [Math.round(mm / 25.4 * 100) / 100, '"'].join("");
+  return [Math.round((mm / 25.4) * 100) / 100, '"'].join("");
 }
 
 function formatTyreWidths(widths?: number[]): string {
@@ -81,6 +82,16 @@ export default function Route() {
               <hr />
               {formatDistance(data.route.distance)}
               {data.route.description ? <p>{data.route.description}</p> : null}
+              <br />
+              <p>
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={data.route.externalCanonicalUrl}
+                >
+                  {data.route.externalCanonicalUrl}
+                </a>
+              </p>
               <h3>Info</h3>
               <dl>
                 <dt>Technical Difficulty</dt>
@@ -119,7 +130,10 @@ export default function Route() {
         </SidebarContainer>
       </Grid2>
       <Grid2 xs={8}>
-        <Map routes={data?.route ? [data.route] : []} initialView={data?.route ? { routeId: data.route.id } : undefined} />
+        <Map
+          routes={data?.route ? [data.route] : []}
+          initialView={data?.route ? { routeId: data.route.id } : undefined}
+        />
       </Grid2>
     </Grid2>
   );

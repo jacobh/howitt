@@ -27,6 +27,8 @@ export type Scalars = {
   PointOfInterestId: any;
   RideId: any;
   RouteId: any;
+  /** URL is a String implementing the [URL Standard](http://url.spec.whatwg.org/) */
+  Url: any;
 };
 
 export type BikeSpec = {
@@ -35,6 +37,13 @@ export type BikeSpec = {
   rearSuspension: Array<Scalars["Float"]>;
   tyreWidth: Array<Scalars["Float"]>;
 };
+
+export enum CardinalDirection {
+  East = "EAST",
+  North = "NORTH",
+  South = "SOUTH",
+  West = "WEST",
+}
 
 export type Cue = {
   __typename?: "Cue";
@@ -114,6 +123,9 @@ export type Route = {
   description?: Maybe<Scalars["String"]>;
   direction?: Maybe<Direction>;
   distance: Scalars["Float"];
+  elevationAscentM?: Maybe<Scalars["Float"]>;
+  elevationDescentM?: Maybe<Scalars["Float"]>;
+  externalCanonicalUrl?: Maybe<Scalars["Url"]>;
   geojson: Scalars["String"];
   id: Scalars["RouteId"];
   idealBike?: Maybe<BikeSpec>;
@@ -124,6 +136,7 @@ export type Route = {
   polyline: Scalars["String"];
   scouted?: Maybe<Scouted>;
   technicalDifficulty?: Maybe<DifficultyRating>;
+  termini: Array<Terminus>;
 };
 
 export enum Scouted {
@@ -131,6 +144,21 @@ export enum Scouted {
   Partially = "PARTIALLY",
   Yes = "YES",
 }
+
+export enum SlopeEnd {
+  Downhill = "DOWNHILL",
+  Flat = "FLAT",
+  Uphill = "UPHILL",
+}
+
+export type Terminus = {
+  __typename?: "Terminus";
+  direction: CardinalDirection;
+  distanceFromStart: Scalars["Float"];
+  elevationGainFromStart?: Maybe<Scalars["Float"]>;
+  point: Array<Scalars["Float"]>;
+  slopeEnd?: Maybe<SlopeEnd>;
+};
 
 export type Viewer = {
   __typename?: "Viewer";
@@ -160,6 +188,7 @@ export type RouteQueryQuery = {
     __typename?: "Route";
     id: any;
     name: string;
+    externalCanonicalUrl?: any | null;
     distance: number;
     points: Array<Array<number>>;
     description?: string | null;
@@ -255,6 +284,10 @@ export const RouteQueryDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "externalCanonicalUrl" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },
                 { kind: "Field", name: { kind: "Name", value: "description" } },

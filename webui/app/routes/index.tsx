@@ -47,9 +47,7 @@ export default function Index() {
         </SidebarContainer>
       </Grid2>
       <Grid2 xs={8}>
-        <Map
-          routes={mode === "routes" ? data?.starredRoutes : undefined}
-        />
+        <Map routes={mode === "routes" ? data?.starredRoutes : undefined} />
       </Grid2>
     </Grid2>
   );
