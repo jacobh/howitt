@@ -13,3 +13,5 @@ members = [
     "rwgps-types",
     "gtfs"
 ]
+
+resolver = "2"
