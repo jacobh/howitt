@@ -3,7 +3,6 @@ use itertools::Itertools;
 use crate::models::{
     point::{Point, PointDelta},
     segment_summary::SegmentSummary,
-    terminus::Termini,
 };
 
 use thiserror::Error;
@@ -14,18 +13,14 @@ pub enum SummarizeError {
     NotEnoughPoints,
 }
 
-pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, SummarizeError> {
+pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary, SummarizeError> {
     if points.len() < 2 {
         return Err(SummarizeError::NotEnoughPoints);
     }
 
-    let summary = SegmentSummary::<P> {
+    let summary = SegmentSummary {
         distance_m: 0.0,
         elevation: None,
-        termini: Termini::new(
-            points.first().unwrap().clone(),
-            points.last().unwrap().clone(),
-        ),
     };
 
     let summary = points
@@ -33,7 +28,7 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, Su
         .tuple_windows()
         .map(PointDelta::from_points_tuple)
         // .flatten()
-        .fold::<SegmentSummary<P>, _>(
+        .fold::<SegmentSummary, _>(
             summary,
             |mut summary,
              PointDelta {

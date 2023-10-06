@@ -264,20 +264,18 @@ impl Route {
             .as_ref()
             .map(|summary| summary.elevation_descent_m))
     }
-    async fn termini<'ctx>(
+    async fn termini(
         &self,
-        ctx: &Context<'ctx>,
-    ) -> Result<Vec<Terminus>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
-
-        Ok(route_model
-            .segment_summary()?
+    ) -> Vec<Terminus> {
+        self.0
+            .as_index()
             .termini
-            .to_termini_vec()
+            .as_ref()
+            .map(|t| t.to_termini_vec())
+            .unwrap_or(vec![])
             .into_iter()
             .map(Terminus)
-            .collect_vec())
+            .collect_vec()
     }
     async fn description(&self) -> Option<&str> {
         self.route_description()?.description.as_deref()
@@ -461,11 +459,8 @@ pub struct Cue {
     elevation_ascent_meters: Option<f64>,
     elevation_descent_meters: Option<f64>,
 }
-impl<P> From<howitt::models::cuesheet::Cue<P>> for Cue
-where
-    P: howitt::models::point::Point,
-{
-    fn from(value: howitt::models::cuesheet::Cue<P>) -> Self {
+impl From<howitt::models::cuesheet::Cue> for Cue {
+    fn from(value: howitt::models::cuesheet::Cue) -> Self {
         let (elevation_ascent_meters, elevation_descent_meters) = match value.summary.elevation {
             Some(ElevationSummary {
                 elevation_ascent_m,

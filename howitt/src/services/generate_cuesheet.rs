@@ -17,7 +17,7 @@ use super::{
 pub fn generate_cuesheet<'a>(
     route: &'a [ElevationPoint],
     pois: &[PointOfInterest],
-) -> Result<Cuesheet<&'a ElevationPoint>, SummarizeError> {
+) -> Result<Cuesheet, SummarizeError> {
     let nearby_pois = nearby_points_of_interest(route, pois, 500.0);
 
     let partitioned_points = route

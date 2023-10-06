@@ -57,7 +57,7 @@ pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
     point_deltas: OnceCell<Vec<PointDelta>>,
-    summary: OnceCell<Result<SegmentSummary<ElevationPoint>, SummarizeError>>,
+    summary: OnceCell<Result<SegmentSummary, SummarizeError>>,
 }
 impl RouteModel {
     pub fn new(route: Route, point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>) -> RouteModel {
@@ -92,7 +92,7 @@ impl RouteModel {
             .as_slice()
     }
 
-    pub fn segment_summary(&self) -> Result<&SegmentSummary<ElevationPoint>, &SummarizeError> {
+    pub fn segment_summary(&self) -> Result<&SegmentSummary, &SummarizeError> {
         self.summary
             .get_or_init(|| {
                 summarize_segment(
