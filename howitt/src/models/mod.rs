@@ -13,6 +13,7 @@ pub mod config;
 pub mod cuesheet;
 pub mod external_ref;
 pub mod maybe_pair;
+pub mod photo;
 pub mod point;
 pub mod point_of_interest;
 pub mod ride;
@@ -291,6 +292,9 @@ macro_rules! model_id {
         impl $type_name {
             pub fn new() -> $type_name {
                 $type_name(ulid::Ulid::new())
+            }
+            pub fn as_ulid(&self) -> &ulid::Ulid {
+                &self.0
             }
         }
 

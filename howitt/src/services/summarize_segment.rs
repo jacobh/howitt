@@ -1,6 +1,5 @@
 use crate::models::{point::PointDelta, segment_summary::SegmentSummary};
 
-
 pub fn summarize_segment(point_deltas: &[PointDelta]) -> SegmentSummary {
     let summary = SegmentSummary {
         distance_m: 0.0,

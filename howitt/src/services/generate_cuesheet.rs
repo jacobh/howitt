@@ -1,20 +1,17 @@
 use itertools::{Itertools, Position};
 
 use crate::models::{
-        cuesheet::{Cue, CueStop, Cuesheet},
-        point::{generate_point_deltas, ElevationPoint},
-        point_of_interest::PointOfInterest,
-    };
+    cuesheet::{Cue, CueStop, Cuesheet},
+    point::{generate_point_deltas, ElevationPoint},
+    point_of_interest::PointOfInterest,
+};
 
 use super::{
     nearby::{nearby_points_of_interest, NearbyPointOfInterest},
     summarize_segment::summarize_segment,
 };
 
-pub fn generate_cuesheet<'a>(
-    route: &'a [ElevationPoint],
-    pois: &[PointOfInterest],
-) -> Cuesheet {
+pub fn generate_cuesheet<'a>(route: &'a [ElevationPoint], pois: &[PointOfInterest]) -> Cuesheet {
     let nearby_pois = nearby_points_of_interest(route, pois, 500.0);
 
     let partitioned_points = route
@@ -48,11 +45,10 @@ pub fn generate_cuesheet<'a>(
         })
         .flatten();
 
-    let summarized_partitioned_points = partitioned_points
-        .map(|(points, poi)| {
-            let summary = summarize_segment(&generate_point_deltas(&points));
-            (points, poi, summary)
-        });
+    let summarized_partitioned_points = partitioned_points.map(|(points, poi)| {
+        let summary = summarize_segment(&generate_point_deltas(&points));
+        (points, poi, summary)
+    });
 
     let cues = summarized_partitioned_points
         .scan::<Option<NearbyPointOfInterest<_>>, _, _>(None, |prev_poi, (_, poi, summary)| {

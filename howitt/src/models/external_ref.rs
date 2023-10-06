@@ -23,6 +23,7 @@ impl ExternalId {
 pub enum RwgpsId {
     Route(usize),
     Trip(usize),
+    Photo(usize),
 }
 
 impl RwgpsId {
@@ -34,6 +35,10 @@ impl RwgpsId {
             RwgpsId::Trip(trip_id) => {
                 url::Url::parse(&format!("https://ridewithgps.com/trips/{trip_id}")).unwrap()
             }
+            RwgpsId::Photo(photo_id) => url::Url::parse(&format!(
+                "https://ridewithgps.com/photos/{photo_id}/large.jpg"
+            ))
+            .unwrap(),
         }
     }
 }

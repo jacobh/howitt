@@ -10,6 +10,7 @@ use crate::{
     models::{
         config::{Config, ConfigId},
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
+        photo::{Photo, PhotoId},
         point::{ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
         route::{Route, RouteId, RouteModel, RouteTag},
@@ -131,6 +132,15 @@ where
         route_id: usize,
         existing_route: Option<Route>,
     ) -> Result<(), anyhow::Error> {
+        let existing_route_model = match &existing_route {
+            Some(route) => Some(self.route_repo.get(RouteId::from(route.id)).await?),
+            None => None,
+        };
+        let existing_photos = existing_route_model
+            .as_ref()
+            .map(|route| route.photos.clone())
+            .unwrap_or_default();
+
         let route = self.rwgps_client.route(route_id).await?;
 
         let id = match existing_route {
@@ -163,6 +173,36 @@ where
             .map(|(point, elevation)| ElevationPoint { point, elevation })
             .collect_vec();
 
+        let photos = route
+            .photos
+            .into_iter()
+            .map(|photo| {
+                let external_ref = ExternalRef {
+                    id: ExternalId::Rwgps(RwgpsId::Photo(photo.id)),
+                    updated_at: photo.updated_at,
+                    sync_version: Some(SYNC_VERSION),
+                };
+
+                let existing_photo = existing_photos.iter().find(|existing_photo| {
+                    existing_photo.external_ref.as_ref().map(|r| &r.id) == Some(&external_ref.id)
+                });
+
+                match existing_photo {
+                    Some(existing_photo) => Photo {
+                        caption: photo.caption,
+                        ..existing_photo.clone()
+                    },
+                    None => Photo {
+                        model_id: RouteId::from(id),
+                        id: PhotoId::from(ulid::Ulid::from_datetime(photo.created_at.into())),
+                        url: external_ref.id.canonical_url(),
+                        external_ref: Some(external_ref),
+                        caption: photo.caption,
+                    },
+                }
+            })
+            .collect_vec();
+
         let model = RouteModel::new(
             Route {
                 id,
@@ -185,6 +225,7 @@ where
                 tags,
             },
             PointChunk::new_chunks(RouteId::from(id), points.into_iter()),
+            photos,
         );
 
         self.route_repo.put(model).await?;

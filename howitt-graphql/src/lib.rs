@@ -264,9 +264,7 @@ impl Route {
             .as_ref()
             .map(|summary| summary.elevation_descent_m))
     }
-    async fn termini(
-        &self,
-    ) -> Vec<Terminus> {
+    async fn termini(&self) -> Vec<Terminus> {
         self.0
             .as_index()
             .termini
