@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use super::ModelId;
 
-pub trait Point: Clone {
+pub trait Point: std::fmt::Debug + Clone {
     fn as_geo_point(&self) -> &geo::Point;
     fn elevation_meters(&self) -> Option<&f64>;
-    fn into_elevation_point(self) -> Option<ElevationPoint>;
+    fn to_elevation_point(&self) -> Option<ElevationPoint>;
 }
 
 impl Point for geo::Point {
@@ -19,24 +19,7 @@ impl Point for geo::Point {
         None
     }
 
-    fn into_elevation_point(self) -> Option<ElevationPoint> {
-        None
-    }
-}
-
-impl<'a, T> Point for &'a T
-where
-    T: Point,
-{
-    fn as_geo_point(&self) -> &geo::Point {
-        T::as_geo_point(self)
-    }
-
-    fn elevation_meters(&self) -> Option<&f64> {
-        T::elevation_meters(self)
-    }
-
-    fn into_elevation_point(self) -> Option<ElevationPoint> {
+    fn to_elevation_point(&self) -> Option<ElevationPoint> {
         None
     }
 }
@@ -78,8 +61,22 @@ impl Point for ElevationPoint {
         Some(&self.elevation)
     }
 
-    fn into_elevation_point(self) -> Option<ElevationPoint> {
-        Some(self)
+    fn to_elevation_point(&self) -> Option<ElevationPoint> {
+        Some(self.clone())
+    }
+}
+
+impl<'a> Point for &'a ElevationPoint {
+    fn as_geo_point(&self) -> &geo::Point {
+        &self.point
+    }
+
+    fn elevation_meters(&self) -> Option<&f64> {
+        Some(&self.elevation)
+    }
+
+    fn to_elevation_point(&self) -> Option<ElevationPoint> {
+        Some((*self).clone())
     }
 }
 
@@ -131,7 +128,7 @@ impl Point for TemporalElevationPoint {
         Some(&self.elevation)
     }
 
-    fn into_elevation_point(self) -> Option<ElevationPoint> {
+    fn to_elevation_point(&self) -> Option<ElevationPoint> {
         Some(ElevationPoint {
             point: self.point,
             elevation: self.elevation,

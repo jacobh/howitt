@@ -1,0 +1,33 @@
+---
+source: howitt/src/services/summarize_segment.rs
+expression: result
+---
+SegmentSummary {
+    distance_m: 6696.194096387852,
+    elevation: Some(
+        ElevationSummary {
+            elevation_ascent_m: 300.0,
+            elevation_descent_m: 0.0,
+        },
+    ),
+    termini: Termini {
+        first_point: ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 146.60587,
+                    y: -37.2154,
+                },
+            ),
+            elevation: 1100.0,
+        },
+        last_point: ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 146.68021,
+                    y: -37.20515,
+                },
+            ),
+            elevation: 1400.0,
+        },
+    },
+}

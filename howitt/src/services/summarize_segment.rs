@@ -68,3 +68,27 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, Su
             summary
         }))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::models::point::ElevationPoint;
+
+    use super::*;
+
+    #[test]
+    fn it_succeeds_for_two_points() {
+        let point1 = ElevationPoint {
+            point: geo::Point::new(146.60587, -37.2154),
+            elevation: 1100.0,
+        };
+        let point2 = ElevationPoint {
+            point: geo::Point::new(146.68021, -37.20515),
+            elevation: 1400.0,
+        };
+
+        let result =
+            summarize_segment(&[point1.clone(), point2.clone()]).expect("summarize worked");
+
+        insta::assert_debug_snapshot!(result);
+    }
+}

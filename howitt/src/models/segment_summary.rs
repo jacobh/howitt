@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::point::{ElevationPoint, Point};
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum CardinalDirection {
     North,
     East,
@@ -32,7 +32,7 @@ impl CardinalDirection {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum SlopeEnd {
     Uphill,
     Downhill,
@@ -64,13 +64,13 @@ impl SlopeEnd {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TerminusElevation {
     pub slope_end: SlopeEnd,
     pub elevation_gain_from_start: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Terminus<P: Point> {
     pub direction: CardinalDirection,
     pub point: P,
@@ -78,7 +78,7 @@ pub struct Terminus<P: Point> {
     pub elevation: Option<TerminusElevation>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Termini<P> {
     first_point: P,
     last_point: P,
@@ -96,7 +96,7 @@ impl<P: Point> Termini<P> {
     }
 
     pub fn to_termini(&self) -> (Terminus<P>, Terminus<P>) {
-        let (first_point, last_point) = self.points();
+        let (first_point, last_point) = (self.first_point.clone(), self.last_point.clone());
 
         let (first_to_last_bearing, first_to_last_distance) =
             GeodesicBearing::geodesic_bearing_distance(
@@ -104,9 +104,11 @@ impl<P: Point> Termini<P> {
                 *last_point.as_geo_point(),
             );
 
+            // dbg!(first_point.clone(), first_point.clone().to_elevation_point());
+
         let (start_elevation, end_elevation) = match (
-            first_point.into_elevation_point(),
-            last_point.into_elevation_point(),
+            first_point.to_elevation_point(),
+            last_point.to_elevation_point(),
         ) {
             (Some(e1), Some(e2)) => {
                 let elevation_gain_from_start = e2.elevation - e1.elevation;
@@ -147,15 +149,40 @@ impl<P: Point> Termini<P> {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SegmentSummary<P: Point> {
     pub distance_m: f64,
     pub elevation: Option<ElevationSummary>,
     pub termini: Termini<P>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ElevationSummary {
     pub elevation_ascent_m: f64,
     pub elevation_descent_m: f64,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::models::point::ElevationPoint;
+
+    use super::*;
+
+    #[test]
+    fn to_termini_works() {
+        let point1 = ElevationPoint {
+            point: geo::Point::new(146.60587, -37.2154),
+            elevation: 1100.0,
+        };
+        let point2 = ElevationPoint {
+            point: geo::Point::new(146.68021, -37.20515),
+            elevation: 1400.0,
+        };
+
+        let termini = Termini::new(point1.clone(), point2.clone());
+
+        let result = termini.to_termini();
+
+        insta::assert_debug_snapshot!(result)
+    }
 }

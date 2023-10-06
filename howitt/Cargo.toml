@@ -29,3 +29,6 @@ once_cell = "*"
 tokio = { version = "*", features = ["sync"] }
 either = { version = "*", features = ["serde"] }
 num = "*"
+
+[dev-dependencies]
+insta = "*"
