@@ -7,6 +7,7 @@ import { gql } from "~/__generated__";
 import { Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
+import { Photo } from "./Photo";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -34,6 +35,11 @@ query RouteQuery($routeId: RouteId!) {
       tyreWidth
       frontSuspension
       rearSuspension
+    }
+    photos {
+      id
+      url
+      caption
     }
   }
   viewer {
@@ -73,7 +79,7 @@ export default function Route(): React.ReactElement {
 
   return (
     <Grid2 container spacing={2}>
-      <Grid2 xs={4} style={{ overflowY: "scroll" }}>
+      <Grid2 xs={4} style={{ height: "100vh", overflowY: "scroll" }}>
         <SidebarContainer>
           <Link to="/">Back</Link>
           {data?.route ? (
@@ -140,6 +146,9 @@ export default function Route(): React.ReactElement {
           ) : (
             <></>
           )}
+          {data?.route?.photos.map((photo) => (
+            <Photo key={photo.id} photo={photo} />
+          ))}
         </SidebarContainer>
       </Grid2>
       <Grid2 xs={8}>

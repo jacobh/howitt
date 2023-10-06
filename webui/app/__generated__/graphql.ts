@@ -33,6 +33,7 @@ export type Scalars = {
    * The input/output is a string in RFC3339 format.
    */
   DateTime: { input: any; output: any };
+  PhotoId: { input: any; output: any };
   PointOfInterestId: { input: any; output: any };
   RideId: { input: any; output: any };
   RouteId: { input: any; output: any };
@@ -79,6 +80,13 @@ export enum Direction {
 export type ExternalRef = {
   __typename?: "ExternalRef";
   canonicalUrl: Scalars["Url"]["output"];
+};
+
+export type Photo = {
+  __typename?: "Photo";
+  caption?: Maybe<Scalars["String"]["output"]>;
+  id: Scalars["PhotoId"]["output"];
+  url: Scalars["Url"]["output"];
 };
 
 export type PointOfInterest = {
@@ -145,6 +153,7 @@ export type Route = {
   idealBike?: Maybe<BikeSpec>;
   minimumBike?: Maybe<BikeSpec>;
   name: Scalars["String"]["output"];
+  photos: Array<Photo>;
   physicalDifficulty?: Maybe<DifficultyRating>;
   points: Array<Array<Scalars["Float"]["output"]>>;
   scouted?: Maybe<Scouted>;
@@ -223,6 +232,12 @@ export type RouteQueryQuery = {
       frontSuspension: Array<number>;
       rearSuspension: Array<number>;
     } | null;
+    photos: Array<{
+      __typename?: "Photo";
+      id: any;
+      url: any;
+      caption?: string | null;
+    }>;
   } | null;
   viewer: { __typename?: "Viewer"; role: Role };
 };
@@ -371,6 +386,21 @@ export const RouteQueryDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "rearSuspension" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "photos" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "url" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "caption" },
                       },
                     ],
                   },

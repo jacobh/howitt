@@ -20,7 +20,9 @@ function zipStrict<T, U>(items1: T[], items2: U[]): [T, U][] {
 }
 
 function computeData({ elevationPoints, distancePoints }: Props): DataPoint[] {
-  return zipStrict(elevationPoints, distancePoints).map(([elevation, distance]) => ({ elevation, distance: distance / 1000 }));
+  return zipStrict(elevationPoints, distancePoints).map(
+    ([elevation, distance]) => ({ elevation, distance })
+  );
 }
 
 export function ElevationProfile(props: Props): React.ReactElement {
@@ -41,7 +43,9 @@ export function ElevationProfile(props: Props): React.ReactElement {
       <XAxis
         dataKey="distance"
         minTickGap={50}
-        tickFormatter={(tick): string => `${Math.round(tick * 10) / 10}km`}
+        tickFormatter={(tick): string =>
+          `${Math.round((tick / 1000) * 10) / 10}km`
+        }
       />
       <YAxis
         domain={["dataMin", "dataMax"]}

@@ -30,7 +30,7 @@ export default function Index(): React.ReactElement {
 
   return (
     <Grid2 container spacing={2}>
-      <Grid2 xs={4} style={{ overflowY: "scroll" }}>
+      <Grid2 xs={4} style={{ height: "100vh", overflowY: "scroll" }}>
         <SidebarContainer>
           <h2>Routes</h2>
           <hr />
