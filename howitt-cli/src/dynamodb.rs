@@ -90,7 +90,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
         }
         Dynamodb::GenerateCuesheet(GenerateCuesheet { route_id }) => {
             let model = route_model_repo
-                .get(RouteId::from(ulid::Ulid::from_str(&route_id).unwrap()))
+                .get(RouteId::from(ulid::Ulid::from_str(route_id).unwrap()))
                 .await?;
 
             let points = model.iter_elevation_points().cloned().collect_vec();

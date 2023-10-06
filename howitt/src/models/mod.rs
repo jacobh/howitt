@@ -168,7 +168,7 @@ where
             .get_or_init(move || match self.initial.clone() {
                 ModelRefInner::Model(model) => futures::future::ready(Ok(model)).boxed(),
                 ModelRefInner::Index(index) => {
-                    ((async move || Ok(repo.as_ref().get(index.model_id()).await?))()).boxed()
+                    (async move { repo.as_ref().get(index.model_id()).await }).boxed()
                 }
             })
             .await

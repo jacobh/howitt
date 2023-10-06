@@ -24,11 +24,11 @@ where
     T: Point,
 {
     fn as_geo_point(&self) -> &geo::Point {
-        T::as_geo_point(&self)
+        T::as_geo_point(self)
     }
 
     fn elevation_meters(&self) -> Option<&f64> {
-        T::elevation_meters(&self)
+        T::elevation_meters(self)
     }
 }
 

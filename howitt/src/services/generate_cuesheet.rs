@@ -36,12 +36,12 @@ pub fn generate_cuesheet<'a>(
 
             match nearby_poi {
                 Some(nearby_poi) => {
-                    let points = std::mem::replace(state, vec![]);
+                    let points = std::mem::take(state);
                     Some(Some((points, Some(nearby_poi.clone()))))
                 }
                 None => {
                     if is_last {
-                        let points = std::mem::replace(state, vec![]);
+                        let points = std::mem::take(state);
                         Some(Some((points, None)))
                     } else {
                         Some(None)

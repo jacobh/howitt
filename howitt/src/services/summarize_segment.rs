@@ -1,10 +1,8 @@
-use either::Either;
-use geo::GeodesicBearing;
 use geo::GeodesicDistance;
 
 use crate::models::{
     point::Point,
-    segment_summary::{CardinalDirection, SegmentSummary, SlopeEnd, Termini, Terminus},
+    segment_summary::{SegmentSummary, Termini},
 };
 
 use thiserror::Error;

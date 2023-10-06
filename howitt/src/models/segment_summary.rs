@@ -42,7 +42,7 @@ pub enum SlopeEnd {
 impl SlopeEnd {
     pub fn from_points<P: Point>(p1: P, p2: P) -> Option<(SlopeEnd, SlopeEnd)> {
         match (p1.elevation_meters(), p2.elevation_meters()) {
-            (Some(e1), (Some(e2))) => {
+            (Some(e1), Some(e2)) => {
                 let delta = e2 - e1;
                 // let delta_i = delta.to_isize().unwrap()
                 let distance =

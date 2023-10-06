@@ -97,12 +97,12 @@ impl RouteDescription {
     pub fn parse(input: String) -> Result<Option<RouteDescription>, DescriptionParseError> {
         let parts = input.split("[backcountry_segment]").collect_vec();
 
-        let description = parts.get(0);
+        let description = parts.first();
         let toml_text = parts.get(1);
 
         match (description, toml_text) {
             (Some(description), Some(toml_text)) => {
-                let mut table: toml::Table = toml::from_str(*toml_text)?;
+                let mut table: toml::Table = toml::from_str(toml_text)?;
                 table.insert("description".to_owned(), toml::Value::from(*description));
 
                 Ok(Some(table.try_into()?))
@@ -122,7 +122,7 @@ pub enum DescriptionParseError {
 mod tests {
     use super::*;
 
-    const TEST_DESCRIPTION: &'static str = r#"traverse through the heart of the vic high country
+    const TEST_DESCRIPTION: &str = r#"traverse through the heart of the vic high country
 
 [backcountry_segment]
 technical_difficulty = "blue"
