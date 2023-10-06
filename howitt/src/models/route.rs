@@ -64,7 +64,7 @@ impl RouteModel {
         self.iter_elevation_points().map(|point| point.point)
     }
 
-    fn segment_summary(&self) -> Result<&SegmentSummary<ElevationPoint>, &SummarizeError> {
+    pub fn segment_summary(&self) -> Result<&SegmentSummary<ElevationPoint>, &SummarizeError> {
         self.summary
             .get_or_init(|| {
                 summarize_segment(
@@ -75,19 +75,6 @@ impl RouteModel {
                 )
             })
             .as_ref()
-    }
-
-    pub fn termini(
-        &self,
-    ) -> Result<(Terminus<ElevationPoint>, Option<Terminus<ElevationPoint>>), &SummarizeError> {
-        let summary = self.segment_summary()?;
-
-        Ok(summary.termini.to_termini())
-    }
-
-    pub fn elevation_summary(&self) -> Result<Option<&ElevationSummary>, &SummarizeError> {
-        self.segment_summary()
-            .map(|summary| summary.elevation.as_ref())
     }
 }
 

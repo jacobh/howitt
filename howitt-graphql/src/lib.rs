@@ -185,8 +185,8 @@ impl Terminus {
         vec![x, y]
     }
 
-    async fn direction(&self) -> Option<CardinalDirection> {
-        self.0.direction.map(CardinalDirection::from)
+    async fn direction(&self) -> CardinalDirection {
+        CardinalDirection::from(self.0.direction)
     }
 
     async fn distance_from_start(&self) -> f64 {
@@ -235,7 +235,9 @@ impl Route {
         let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
-            .elevation_summary()?
+            .segment_summary()?
+            .elevation
+            .as_ref()
             .map(|summary| summary.elevation_ascent_m))
     }
     async fn elevation_descent_m<'ctx>(
@@ -246,7 +248,9 @@ impl Route {
         let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
-            .elevation_summary()?
+            .segment_summary()?
+            .elevation
+            .as_ref()
             .map(|summary| summary.elevation_descent_m))
     }
     async fn termini<'ctx>(
@@ -256,10 +260,13 @@ impl Route {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.as_model(route_repo).await?;
 
-        Ok(match route_model.termini()? {
-            (a, Some(b)) => vec![Terminus(a), Terminus(b)],
-            (a, None) => vec![Terminus(a)],
-        })
+        Ok(route_model
+            .segment_summary()?
+            .termini
+            .to_termini_vec()
+            .into_iter()
+            .map(Terminus)
+            .collect_vec())
     }
     async fn description(&self) -> Option<&str> {
         self.route_description()?.description.as_deref()
