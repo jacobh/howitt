@@ -7,6 +7,7 @@ use super::ModelId;
 pub trait Point: Clone {
     fn as_geo_point(&self) -> &geo::Point;
     fn elevation_meters(&self) -> Option<&f64>;
+    fn into_elevation_point(self) -> Option<ElevationPoint>;
 }
 
 impl Point for geo::Point {
@@ -15,6 +16,10 @@ impl Point for geo::Point {
     }
 
     fn elevation_meters(&self) -> Option<&f64> {
+        None
+    }
+
+    fn into_elevation_point(self) -> Option<ElevationPoint> {
         None
     }
 }
@@ -29,6 +34,10 @@ where
 
     fn elevation_meters(&self) -> Option<&f64> {
         T::elevation_meters(self)
+    }
+
+    fn into_elevation_point(self) -> Option<ElevationPoint> {
+        None
     }
 }
 
@@ -67,6 +76,10 @@ impl Point for ElevationPoint {
 
     fn elevation_meters(&self) -> Option<&f64> {
         Some(&self.elevation)
+    }
+
+    fn into_elevation_point(self) -> Option<ElevationPoint> {
+        Some(self)
     }
 }
 
@@ -116,6 +129,13 @@ impl Point for TemporalElevationPoint {
 
     fn elevation_meters(&self) -> Option<&f64> {
         Some(&self.elevation)
+    }
+
+    fn into_elevation_point(self) -> Option<ElevationPoint> {
+        Some(ElevationPoint {
+            point: self.point,
+            elevation: self.elevation,
+        })
     }
 }
 

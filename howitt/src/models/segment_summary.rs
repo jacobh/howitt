@@ -2,7 +2,7 @@ use geo::{GeodesicBearing, GeodesicDistance};
 use num::ToPrimitive;
 use serde::{Deserialize, Serialize};
 
-use super::point::Point;
+use super::point::{ElevationPoint, Point};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum CardinalDirection {
@@ -40,24 +40,18 @@ pub enum SlopeEnd {
 }
 
 impl SlopeEnd {
-    pub fn from_points<P: Point>(p1: P, p2: P) -> Option<(SlopeEnd, SlopeEnd)> {
-        match (p1.elevation_meters(), p2.elevation_meters()) {
-            (Some(e1), Some(e2)) => {
-                let delta = e2 - e1;
-                // let delta_i = delta.to_isize().unwrap()
-                let distance =
-                    GeodesicDistance::geodesic_distance(p1.as_geo_point(), p2.as_geo_point());
-                let gradient_percent = 100.0 / distance * delta;
+    pub fn from_points(p1: ElevationPoint, p2: ElevationPoint) -> (SlopeEnd, SlopeEnd) {
+        let delta = p2.elevation - p1.elevation;
+        // let delta_i = delta.to_isize().unwrap()
+        let distance = GeodesicDistance::geodesic_distance(p1.as_geo_point(), p2.as_geo_point());
+        let gradient_percent = 100.0 / distance * delta;
 
-                if delta.abs() <= 25.0 || gradient_percent.abs() < 0.5 {
-                    Some((SlopeEnd::Flat, SlopeEnd::Flat))
-                } else if delta > 0.0 {
-                    Some((SlopeEnd::Downhill, SlopeEnd::Uphill))
-                } else {
-                    Some((SlopeEnd::Uphill, SlopeEnd::Downhill))
-                }
-            }
-            _ => None,
+        if delta.abs() <= 25.0 || gradient_percent.abs() < 0.5 {
+            (SlopeEnd::Flat, SlopeEnd::Flat)
+        } else if delta > 0.0 {
+            (SlopeEnd::Downhill, SlopeEnd::Uphill)
+        } else {
+            (SlopeEnd::Uphill, SlopeEnd::Downhill)
         }
     }
 
@@ -111,10 +105,15 @@ impl<P: Point> Termini<P> {
                     *last_point.as_geo_point(),
                 );
 
-                let (start_slope, end_slope) = match SlopeEnd::from_points(first_point, last_point)
-                {
-                    Some((a, b)) => (Some(a), Some(b)),
-                    None => (None, None),
+                let (start_slope, end_slope) = match (
+                    first_point.into_elevation_point(),
+                    last_point.into_elevation_point(),
+                ) {
+                    (Some(a), Some(b)) => {
+                        let (a, b) = SlopeEnd::from_points(a, b);
+                        (Some(a), Some(b))
+                    }
+                    _ => (None, None),
                 };
 
                 (
