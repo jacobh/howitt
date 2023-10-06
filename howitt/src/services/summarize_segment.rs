@@ -27,15 +27,13 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, Su
         ),
     };
 
-    Ok(points
+    let summary = points
         .iter()
         .scan::<Option<&P>, _, _>(None, |prev_point, point| match prev_point {
             Some(prev_point) => {
                 let distance = prev_point
                     .as_geo_point()
                     .geodesic_distance(point.as_geo_point());
-
-                let distance = f64::round(distance * 100.0) / 100.0;
 
                 let elevation = match (prev_point.elevation_meters(), point.elevation_meters()) {
                     (Some(e1), Some(e2)) => Some(e2 - e1),
@@ -68,7 +66,12 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, Su
             }
 
             summary
-        }))
+        });
+
+    Ok(SegmentSummary {
+        distance_m: f64::round(summary.distance_m * 100.0) / 100.0,
+        ..summary
+    })
 }
 
 #[cfg(test)]

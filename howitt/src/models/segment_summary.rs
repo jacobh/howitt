@@ -104,8 +104,6 @@ impl<P: Point> Termini<P> {
                 *last_point.as_geo_point(),
             );
 
-            // dbg!(first_point.clone(), first_point.clone().to_elevation_point());
-
         let (start_elevation, end_elevation) = match (
             first_point.to_elevation_point(),
             last_point.to_elevation_point(),
