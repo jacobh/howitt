@@ -1,0 +1,33 @@
+name: CDK Deployment
+
+on: push
+
+jobs:
+    test:
+        runs-on: buildjet-8vcpu-ubuntu-2204-arm
+        environment: Production
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - uses: actions/cache@v3
+              with:
+                path: |
+                  ~/.cargo/bin/
+                  ~/.cargo/registry/index/
+                  ~/.cargo/registry/cache/
+                  ~/.cargo/git/db/
+                  target/
+                key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+            - uses: awalsh128/cache-apt-pkgs-action@latest
+              with:
+                packages: zstd libzstd-dev
+                version: 1.0
+
+            - name: Install Rust toolchain
+              uses: dtolnay/rust-toolchain@nightly
+
+            - name: Test
+              run: cargo test
