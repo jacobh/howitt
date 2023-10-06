@@ -345,6 +345,11 @@ impl Route {
             .point_deltas()
             .iter()
             .map(|delta| delta.distance)
+            .scan(0.0, |total_distance, distance| {
+                *total_distance += distance;
+
+                Some(total_distance.clone())
+            })
             .collect())
     }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
