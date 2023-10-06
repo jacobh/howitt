@@ -110,6 +110,7 @@ dependencies = [
  "static_assertions",
  "tempfile",
  "thiserror",
+ "url",
  "uuid",
 ]
 
@@ -1555,6 +1556,7 @@ dependencies = [
  "tokio",
  "toml",
  "ulid",
+ "url",
  "uuid",
 ]
 
@@ -1648,6 +1650,7 @@ dependencies = [
  "test-case",
  "thiserror",
  "ulid",
+ "url",
  "uuid",
 ]
 

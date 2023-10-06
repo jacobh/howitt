@@ -11,11 +11,31 @@ pub trait ExternallySourced {
 pub enum ExternalId {
     Rwgps(RwgpsId),
 }
+impl ExternalId {
+    pub fn canonical_url(&self) -> url::Url {
+        match self {
+            ExternalId::Rwgps(rwgps_id) => rwgps_id.canonical_url(),
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub enum RwgpsId {
     Route(usize),
     Trip(usize),
+}
+
+impl RwgpsId {
+    pub fn canonical_url(&self) -> url::Url {
+        match self {
+            RwgpsId::Route(route_id) => {
+                url::Url::parse(&format!("https://ridewithgps.com/routes/{route_id}")).unwrap()
+            }
+            RwgpsId::Trip(trip_id) => {
+                url::Url::parse(&format!("https://ridewithgps.com/trips/{trip_id}")).unwrap()
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
