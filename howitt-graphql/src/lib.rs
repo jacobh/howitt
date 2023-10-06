@@ -8,7 +8,6 @@ use async_graphql::*;
 use chrono::{DateTime, Utc};
 use context::SchemaData;
 use derive_more::From;
-use geo::CoordsIter;
 use howitt::models::config::ConfigId;
 use howitt::models::point::ElevationPoint;
 use howitt::models::ride::RideId;
@@ -317,13 +316,6 @@ impl Route {
             .to_owned()
             .map(Direction::from)
     }
-    async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
-
-        let linestring = geo::LineString::from(route_model.iter_geo_points().collect::<Vec<_>>());
-        Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
-    }
     async fn points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -335,17 +327,6 @@ impl Route {
             .iter_geo_points()
             .map(|point| vec![point.x(), point.y()])
             .collect())
-    }
-    async fn polyline<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
-
-        Ok(polyline::encode_coordinates(
-            route_model
-                .iter_geo_points()
-                .flat_map(|point| point.coords_iter()),
-            5,
-        )?)
     }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
         let SchemaData {
@@ -382,14 +363,6 @@ impl Ride {
     }
     async fn finished_at(&self) -> DateTime<Utc> {
         self.0.finished_at
-    }
-    async fn geojson<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
-        let SchemaData { ride_repo, .. } = ctx.data()?;
-        let ride_model = ride_repo.get(self.0.id).await?;
-
-        let linestring = geo::LineString::from_iter(ride_model.iter_geo_points());
-
-        Ok(geojson::Feature::from(geojson::Geometry::try_from(&linestring).unwrap()).to_string())
     }
     async fn points<'ctx>(
         &self,

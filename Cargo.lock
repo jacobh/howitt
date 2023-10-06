@@ -1640,11 +1640,9 @@ dependencies = [
  "derive_more",
  "futures",
  "geo",
- "geojson",
  "gpx",
  "howitt",
  "itertools 0.11.0",
- "polyline",
  "rwgps_types",
  "serde",
  "test-case",
@@ -2480,15 +2478,6 @@ name = "pkg-config"
 version = "0.3.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
-
-[[package]]
-name = "polyline"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "658ddb33524bef26833f546fef2ac7b257cdf4c236b91393c64fbd3484206719"
-dependencies = [
- "geo-types",
-]
 
 [[package]]
 name = "ppv-lite86"

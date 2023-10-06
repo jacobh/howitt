@@ -12,14 +12,12 @@ rwgps_types = { path = "../rwgps-types" }
 anyhow = "*"
 gpx = "*"
 geo = "*"
-geojson = "*"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = "*"
 futures = "*"
 ulid = "*"
 serde = { version = "*", features = ["derive"] }
 derive_more = "*"
-polyline = "*"
 itertools = "*"
 thiserror = "*"
 url = "*"
