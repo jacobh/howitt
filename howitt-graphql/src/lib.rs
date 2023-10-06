@@ -246,7 +246,7 @@ impl Route {
         let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
-            .segment_summary()?
+            .segment_summary()
             .elevation
             .as_ref()
             .map(|summary| summary.elevation_ascent_m))
@@ -259,7 +259,7 @@ impl Route {
         let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
-            .segment_summary()?
+            .segment_summary()
             .elevation
             .as_ref()
             .map(|summary| summary.elevation_descent_m))
@@ -358,7 +358,7 @@ impl Route {
         let points = route_model.iter_elevation_points().cloned().collect_vec();
         let pois = poi_repo.all_indexes().await?;
 
-        let cuesheet = generate_cuesheet(&points, &pois)?;
+        let cuesheet = generate_cuesheet(&points, &pois);
 
         Ok(cuesheet.cues.into_iter().map(Cue::from).collect_vec())
     }

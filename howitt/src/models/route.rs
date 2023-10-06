@@ -1,18 +1,17 @@
 use std::collections::HashSet;
 
 use derive_more::From;
-use itertools::Itertools;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{external_ref::ExternalRef, point::ElevationPoint},
-    services::summarize_segment::{summarize_segment, SummarizeError},
+    services::summarize_segment::summarize_segment,
 };
 
 use super::{
     external_ref::ExternallySourced,
-    point::{PointChunk, PointDelta},
+    point::{generate_point_deltas, PointChunk, PointDelta},
     route_description::RouteDescription,
     segment_summary::SegmentSummary,
     terminus::Termini,
@@ -57,7 +56,7 @@ pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
     point_deltas: OnceCell<Vec<PointDelta>>,
-    summary: OnceCell<Result<SegmentSummary, SummarizeError>>,
+    summary: OnceCell<SegmentSummary>,
 }
 impl RouteModel {
     pub fn new(route: Route, point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>) -> RouteModel {
@@ -80,29 +79,16 @@ impl RouteModel {
     pub fn point_deltas(&self) -> &[PointDelta] {
         self.point_deltas
             .get_or_init(|| {
-                [PointDelta::zero()]
-                    .into_iter()
-                    .chain(
-                        self.iter_elevation_points()
-                            .tuple_windows()
-                            .map(PointDelta::from_points_tuple),
-                    )
-                    .collect_vec()
+                generate_point_deltas(self.iter_elevation_points())
             })
             .as_slice()
     }
 
-    pub fn segment_summary(&self) -> Result<&SegmentSummary, &SummarizeError> {
-        self.summary
+    pub fn segment_summary(&self) -> &SegmentSummary {
+        &self.summary
             .get_or_init(|| {
-                summarize_segment(
-                    self.iter_elevation_points()
-                        .cloned()
-                        .collect_vec()
-                        .as_slice(),
-                )
+                summarize_segment(self.point_deltas())
             })
-            .as_ref()
     }
 }
 

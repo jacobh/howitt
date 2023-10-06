@@ -201,3 +201,23 @@ impl PointDelta {
         PointDelta::from_points(p1, p2)
     }
 }
+
+pub fn generate_point_deltas<'a, P: Point + 'a>(
+    points: impl IntoIterator<Item = &'a P>,
+) -> Vec<PointDelta> {
+    let mut is_points_empty = true;
+
+    let deltas = points
+        .into_iter()
+        .inspect(|_| is_points_empty = false)
+        .tuple_windows()
+        .map(PointDelta::from_points_tuple)
+        .collect_vec();
+
+    // add an empty delta to the start to keep this aligned with the input
+    if !is_points_empty {
+        [vec![PointDelta::zero()], deltas].concat()
+    } else {
+        deltas
+    }
+}
