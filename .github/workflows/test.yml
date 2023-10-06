@@ -1,4 +1,4 @@
-name: CDK Deployment
+name: Test
 
 on: push
 
