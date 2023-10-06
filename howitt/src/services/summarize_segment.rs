@@ -1,7 +1,7 @@
-use geo::GeodesicDistance;
+use itertools::Itertools;
 
 use crate::models::{
-    point::Point,
+    point::{Point, PointDelta},
     segment_summary::{SegmentSummary, Termini},
 };
 
@@ -29,44 +29,34 @@ pub fn summarize_segment<P: Point>(points: &[P]) -> Result<SegmentSummary<P>, Su
 
     let summary = points
         .iter()
-        .scan::<Option<&P>, _, _>(None, |prev_point, point| match prev_point {
-            Some(prev_point) => {
-                let distance = prev_point
-                    .as_geo_point()
-                    .geodesic_distance(point.as_geo_point());
+        .tuple_windows()
+        .map(PointDelta::from_points_tuple)
+        // .flatten()
+        .fold::<SegmentSummary<P>, _>(
+            summary,
+            |mut summary,
+             PointDelta {
+                 distance,
+                 elevation_gain,
+                 ..
+             }| {
+                summary.distance_m += distance;
 
-                let elevation = match (prev_point.elevation_meters(), point.elevation_meters()) {
-                    (Some(e1), Some(e2)) => Some(e2 - e1),
-                    _ => None,
-                };
+                if let Some(elevation_gain) = elevation_gain {
+                    let mut elevation_summary = summary.elevation.unwrap_or_default();
 
-                *prev_point = point;
+                    if elevation_gain > 0.0 {
+                        elevation_summary.elevation_ascent_m += elevation_gain;
+                    } else {
+                        elevation_summary.elevation_descent_m += elevation_gain.abs();
+                    }
 
-                Some(Some((distance, elevation)))
-            }
-            None => {
-                *prev_point = Some(point);
-                Some(None)
-            }
-        })
-        .flatten()
-        .fold::<SegmentSummary<P>, _>(summary, |mut summary, (distance, elevation)| {
-            summary.distance_m += distance;
-
-            if let Some(elevation) = elevation {
-                let mut elevation_summary = summary.elevation.unwrap_or_default();
-
-                if elevation > 0.0 {
-                    elevation_summary.elevation_ascent_m += elevation;
-                } else {
-                    elevation_summary.elevation_descent_m += elevation.abs();
+                    summary.elevation = Some(elevation_summary);
                 }
 
-                summary.elevation = Some(elevation_summary);
-            }
-
-            summary
-        });
+                summary
+            },
+        );
 
     Ok(SegmentSummary {
         distance_m: f64::round(summary.distance_m * 100.0) / 100.0,

@@ -11,8 +11,11 @@ use crate::{
 };
 
 use super::{
-    external_ref::ExternallySourced, point::PointChunk, route_description::RouteDescription,
-    segment_summary::SegmentSummary, IndexItem,
+    external_ref::ExternallySourced,
+    point::{PointChunk, PointDelta},
+    route_description::RouteDescription,
+    segment_summary::SegmentSummary,
+    IndexItem,
 };
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
@@ -51,6 +54,7 @@ impl ExternallySourced for Route {
 pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
+    point_deltas: OnceCell<Vec<PointDelta>>,
     summary: OnceCell<Result<SegmentSummary<ElevationPoint>, SummarizeError>>,
 }
 impl RouteModel {
@@ -58,6 +62,7 @@ impl RouteModel {
         RouteModel {
             route,
             point_chunks,
+            point_deltas: OnceCell::new(),
             summary: OnceCell::new(),
         }
     }
@@ -68,6 +73,21 @@ impl RouteModel {
 
     pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
         self.iter_elevation_points().map(|point| point.point)
+    }
+
+    pub fn point_deltas(&self) -> &[PointDelta] {
+        self.point_deltas
+            .get_or_init(|| {
+                [PointDelta::zero()]
+                    .into_iter()
+                    .chain(
+                        self.iter_elevation_points()
+                            .tuple_windows()
+                            .map(PointDelta::from_points_tuple),
+                    )
+                    .collect_vec()
+            })
+            .as_slice()
     }
 
     pub fn segment_summary(&self) -> Result<&SegmentSummary<ElevationPoint>, &SummarizeError> {

@@ -230,11 +230,7 @@ impl Route {
         ModelId(self.0.id())
     }
     async fn external_ref(&self) -> Option<ExternalRef> {
-        self.0
-            .as_index()
-            .external_ref
-            .clone()
-            .map(ExternalRef)
+        self.0.as_index().external_ref.clone().map(ExternalRef)
     }
     async fn name(&self) -> &str {
         &self.0.as_index().name
@@ -338,6 +334,19 @@ impl Route {
         Ok(route_model
             .iter_elevation_points()
             .map(|point| point.elevation)
+            .collect())
+    }
+    async fn distance_points<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<f64>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+        let route_model = self.0.as_model(route_repo).await?;
+
+        Ok(route_model
+            .point_deltas()
+            .iter()
+            .map(|delta| delta.distance)
             .collect())
     }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {

@@ -1,4 +1,5 @@
 use chrono::{DateTime, TimeZone, Utc};
+use geo::GeodesicBearing;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -161,5 +162,42 @@ where
     }
     pub fn iter_points(chunks: &[PointChunk<ID, P>]) -> impl Iterator<Item = &P> + '_ {
         chunks.iter().flat_map(|chunk| chunk.points.iter())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PointDelta {
+    pub distance: f64,
+    pub bearing: f64,
+    pub elevation_gain: Option<f64>,
+}
+
+impl PointDelta {
+    pub fn zero() -> PointDelta {
+        PointDelta {
+            distance: 0.0,
+            bearing: 0.0,
+            elevation_gain: None,
+        }
+    }
+
+    pub fn from_points<P: Point>(p1: &P, p2: &P) -> PointDelta {
+        let (bearing, distance) = p1
+            .as_geo_point()
+            .geodesic_bearing_distance(*p2.as_geo_point());
+
+        let elevation_gain = match (p1.elevation_meters(), p2.elevation_meters()) {
+            (Some(e1), Some(e2)) => Some(e2 - e1),
+            _ => None,
+        };
+
+        PointDelta {
+            distance,
+            bearing,
+            elevation_gain,
+        }
+    }
+    pub fn from_points_tuple<P: Point>((p1, p2): (&P, &P)) -> PointDelta {
+        PointDelta::from_points(p1, p2)
     }
 }
