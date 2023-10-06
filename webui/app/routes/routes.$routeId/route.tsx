@@ -6,6 +6,7 @@ import { formatDistance } from "~/services/formatDistance";
 import { gql } from "~/__generated__";
 import { Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
+import { ElevationProfile } from "~/components/ElevationProfile";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -17,6 +18,8 @@ query RouteQuery($routeId: RouteId!) {
     }
     distance
     points
+    elevationPoints
+    distancePoints
     description
     technicalDifficulty
     physicalDifficulty
@@ -126,6 +129,14 @@ export default function Route(): React.ReactElement {
                 <></>
               )}
             </>
+          ) : (
+            <></>
+          )}
+          {data?.route?.elevationPoints && data?.route?.distancePoints ? (
+            <ElevationProfile
+              elevationPoints={data.route.elevationPoints}
+              distancePoints={data.route.distancePoints}
+            />
           ) : (
             <></>
           )}

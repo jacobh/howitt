@@ -136,6 +136,7 @@ export type Route = {
   description?: Maybe<Scalars["String"]["output"]>;
   direction?: Maybe<Direction>;
   distance: Scalars["Float"]["output"];
+  distancePoints: Array<Scalars["Float"]["output"]>;
   elevationAscentM?: Maybe<Scalars["Float"]["output"]>;
   elevationDescentM?: Maybe<Scalars["Float"]["output"]>;
   elevationPoints: Array<Scalars["Float"]["output"]>;
@@ -202,6 +203,8 @@ export type RouteQueryQuery = {
     name: string;
     distance: number;
     points: Array<Array<number>>;
+    elevationPoints: Array<number>;
+    distancePoints: Array<number>;
     description?: string | null;
     technicalDifficulty?: DifficultyRating | null;
     physicalDifficulty?: DifficultyRating | null;
@@ -311,6 +314,14 @@ export const RouteQueryDocument = {
                 },
                 { kind: "Field", name: { kind: "Name", value: "distance" } },
                 { kind: "Field", name: { kind: "Name", value: "points" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "elevationPoints" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "distancePoints" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 {
                   kind: "Field",
