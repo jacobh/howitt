@@ -189,6 +189,17 @@ impl Terminus {
         self.0.direction.map(CardinalDirection::from)
     }
 
+    async fn distance_from_start(&self) -> f64 {
+        self.0.distance_from_start
+    }
+
+    async fn elevation_gain_from_start(&self) -> Option<f64> {
+        self.0
+            .elevation
+            .as_ref()
+            .map(|elevation| elevation.elevation_gain_from_start)
+    }
+
     async fn slope_end(&self) -> Option<SlopeEnd> {
         self.0
             .elevation

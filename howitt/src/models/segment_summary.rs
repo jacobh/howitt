@@ -67,6 +67,7 @@ impl SlopeEnd {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TerminusElevation {
     pub slope_end: SlopeEnd,
+    pub elevation_gain_from_start: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,6 +75,7 @@ pub struct Terminus<P: Point> {
     pub direction: Option<CardinalDirection>,
     pub elevation: Option<TerminusElevation>,
     pub point: P,
+    pub distance_from_start: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -105,20 +107,28 @@ impl<P: Point> Termini<P> {
     pub fn to_termini(&self) -> (Terminus<P>, Option<Terminus<P>>) {
         match self.points() {
             (first_point, Some(last_point)) => {
-                let first_to_last_bearing = GeodesicBearing::geodesic_bearing(
-                    first_point.as_geo_point(),
-                    *last_point.as_geo_point(),
-                );
+                let (first_to_last_bearing, first_to_last_distance) =
+                    GeodesicBearing::geodesic_bearing_distance(
+                        first_point.as_geo_point(),
+                        *last_point.as_geo_point(),
+                    );
 
                 let (start_elevation, end_elevation) = match (
                     first_point.into_elevation_point(),
                     last_point.into_elevation_point(),
                 ) {
-                    (Some(a), Some(b)) => {
-                        let (a, b) = SlopeEnd::from_points(a, b);
+                    (Some(e1), Some(e2)) => {
+                        let elevation_gain_from_start = e2.elevation - e1.elevation;
+                        let (a, b) = SlopeEnd::from_points(e1, e2);
                         (
-                            Some(TerminusElevation { slope_end: a }),
-                            Some(TerminusElevation { slope_end: b }),
+                            Some(TerminusElevation {
+                                slope_end: a,
+                                elevation_gain_from_start: 0.0,
+                            }),
+                            Some(TerminusElevation {
+                                slope_end: b,
+                                elevation_gain_from_start,
+                            }),
                         )
                     }
                     _ => (None, None),
@@ -129,11 +139,13 @@ impl<P: Point> Termini<P> {
                         direction: Some(
                             CardinalDirection::from_bearing(first_to_last_bearing).inverse(),
                         ),
+                        distance_from_start: 0.0,
                         point: first_point.clone(),
                         elevation: start_elevation,
                     },
                     Some(Terminus {
                         direction: Some(CardinalDirection::from_bearing(first_to_last_bearing)),
+                        distance_from_start: first_to_last_distance,
                         point: last_point.clone(),
                         elevation: end_elevation,
                     }),
@@ -144,6 +156,7 @@ impl<P: Point> Termini<P> {
                     point: point.clone(),
                     direction: None,
                     elevation: None,
+                    distance_from_start: 0.0,
                 },
                 None,
             ),
