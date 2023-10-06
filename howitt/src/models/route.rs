@@ -12,7 +12,7 @@ use super::{
     external_ref::ExternallySourced,
     point::PointChunk,
     route_description::RouteDescription,
-    segment_summary::{ElevationSummary, SegmentSummary},
+    segment_summary::{ElevationSummary, SegmentSummary, Terminus},
     IndexItem,
 };
 
@@ -75,6 +75,14 @@ impl RouteModel {
                 )
             })
             .as_ref()
+    }
+
+    pub fn termini(
+        &self,
+    ) -> Result<(Terminus<ElevationPoint>, Option<Terminus<ElevationPoint>>), &SummarizeError> {
+        let summary = self.segment_summary()?;
+
+        Ok(summary.termini.to_termini())
     }
 
     pub fn elevation_summary(&self) -> Result<Option<&ElevationSummary>, &SummarizeError> {

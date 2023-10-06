@@ -10,6 +10,7 @@ use context::SchemaData;
 use derive_more::From;
 use geo::CoordsIter;
 use howitt::models::config::ConfigId;
+use howitt::models::point::ElevationPoint;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::segment_summary::ElevationSummary;
@@ -158,6 +159,41 @@ impl BikeSpec {
     }
 }
 
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::models::segment_summary::CardinalDirection")]
+pub enum CardinalDirection {
+    North,
+    East,
+    South,
+    West,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::models::segment_summary::SlopeEnd")]
+pub enum SlopeEnd {
+    Uphill,
+    Downhill,
+    Flat,
+}
+
+pub struct Terminus(howitt::models::segment_summary::Terminus<ElevationPoint>);
+
+#[Object]
+impl Terminus {
+    async fn point(&self) -> Vec<f64> {
+        let (x, y) = self.0.point.point.x_y();
+        vec![x, y]
+    }
+
+    async fn direction(&self) -> Option<CardinalDirection> {
+        self.0.direction.map(CardinalDirection::from)
+    }
+
+    async fn slope_end(&self) -> Option<SlopeEnd> {
+        self.0.slope_end.map(SlopeEnd::from)
+    }
+}
+
 pub struct Route(ModelRef<howitt::models::route::RouteModel>);
 
 impl Route {
@@ -198,6 +234,18 @@ impl Route {
         Ok(route_model
             .elevation_summary()?
             .map(|summary| summary.elevation_descent_m))
+    }
+    async fn termini<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Terminus>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+        let route_model = self.0.as_model(route_repo).await?;
+
+        Ok(match route_model.termini()? {
+            (a, Some(b)) => vec![Terminus(a), Terminus(b)],
+            (a, None) => vec![Terminus(a)],
+        })
     }
     async fn description(&self) -> Option<&str> {
         self.route_description()?.description.as_deref()

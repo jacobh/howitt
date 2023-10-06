@@ -72,7 +72,7 @@ impl SlopeEnd {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Terminus<P: Point> {
-    pub direction: CardinalDirection,
+    pub direction: Option<CardinalDirection>,
     pub slope_end: Option<SlopeEnd>,
     pub point: P,
 }
@@ -103,7 +103,7 @@ impl<P: Point> Termini<P> {
         }
     }
 
-    pub fn termini(&self) -> Option<(Terminus<&P>, Terminus<&P>)> {
+    pub fn to_termini(&self) -> (Terminus<P>, Option<Terminus<P>>) {
         match self.points() {
             (first_point, Some(last_point)) => {
                 let first_to_last_bearing = GeodesicBearing::geodesic_bearing(
@@ -117,20 +117,29 @@ impl<P: Point> Termini<P> {
                     None => (None, None),
                 };
 
-                Some((
+                (
                     Terminus {
-                        direction: CardinalDirection::from_bearing(first_to_last_bearing).inverse(),
+                        direction: Some(
+                            CardinalDirection::from_bearing(first_to_last_bearing).inverse(),
+                        ),
                         slope_end: start_slope,
-                        point: first_point,
+                        point: first_point.clone(),
                     },
-                    Terminus {
-                        direction: CardinalDirection::from_bearing(first_to_last_bearing),
+                    Some(Terminus {
+                        direction: Some(CardinalDirection::from_bearing(first_to_last_bearing)),
                         slope_end: end_slope,
-                        point: last_point,
-                    },
-                ))
+                        point: last_point.clone(),
+                    }),
+                )
             }
-            (_, None) => None,
+            (point, None) => (
+                Terminus {
+                    point: point.clone(),
+                    direction: None,
+                    slope_end: None,
+                },
+                None,
+            ),
         }
     }
 }
