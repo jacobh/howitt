@@ -9,6 +9,10 @@ module.exports = {
     /^@apollo\/client(\/.*)?$/,
     /^ol(\/.*)?/,
     "ts-invariant", 
-    "zen-observable-ts"
+    "zen-observable-ts",
+    "@wry/equality",
+    "@wry/trie",
+    "optimism",
+    "@wry/context",
   ],
 };

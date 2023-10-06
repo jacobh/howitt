@@ -11,31 +11,40 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
   [SubKey in K]: Maybe<T[SubKey]>;
 };
+export type MakeEmpty<
+  T extends { [key: string]: unknown },
+  K extends keyof T
+> = { [_ in K]?: never };
+export type Incremental<T> =
+  | T
+  | {
+      [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never;
+    };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
   /**
    * Implement the DateTime<Utc> scalar
    *
    * The input/output is a string in RFC3339 format.
    */
-  DateTime: any;
-  PointOfInterestId: any;
-  RideId: any;
-  RouteId: any;
+  DateTime: { input: any; output: any };
+  PointOfInterestId: { input: any; output: any };
+  RideId: { input: any; output: any };
+  RouteId: { input: any; output: any };
   /** URL is a String implementing the [URL Standard](http://url.spec.whatwg.org/) */
-  Url: any;
+  Url: { input: any; output: any };
 };
 
 export type BikeSpec = {
   __typename?: "BikeSpec";
-  frontSuspension: Array<Scalars["Float"]>;
-  rearSuspension: Array<Scalars["Float"]>;
-  tyreWidth: Array<Scalars["Float"]>;
+  frontSuspension: Array<Scalars["Float"]["output"]>;
+  rearSuspension: Array<Scalars["Float"]["output"]>;
+  tyreWidth: Array<Scalars["Float"]["output"]>;
 };
 
 export enum CardinalDirection {
@@ -47,11 +56,11 @@ export enum CardinalDirection {
 
 export type Cue = {
   __typename?: "Cue";
-  destination: Scalars["String"];
-  distanceMeters: Scalars["Float"];
-  elevationAscentMeters?: Maybe<Scalars["Float"]>;
-  elevationDescentMeters?: Maybe<Scalars["Float"]>;
-  origin: Scalars["String"];
+  destination: Scalars["String"]["output"];
+  distanceMeters: Scalars["Float"]["output"];
+  elevationAscentMeters?: Maybe<Scalars["Float"]["output"]>;
+  elevationDescentMeters?: Maybe<Scalars["Float"]["output"]>;
+  origin: Scalars["String"]["output"];
 };
 
 export enum DifficultyRating {
@@ -69,14 +78,14 @@ export enum Direction {
 
 export type ExternalRef = {
   __typename?: "ExternalRef";
-  canonicalUrl: Scalars["Url"];
+  canonicalUrl: Scalars["Url"]["output"];
 };
 
 export type PointOfInterest = {
   __typename?: "PointOfInterest";
-  id: Scalars["PointOfInterestId"];
-  name: Scalars["String"];
-  point: Array<Scalars["Float"]>;
+  id: Scalars["PointOfInterestId"]["output"];
+  name: Scalars["String"]["output"];
+  point: Array<Scalars["Float"]["output"]>;
   pointOfInterestType: PointOfInterestType;
 };
 
@@ -99,22 +108,21 @@ export type Query = {
 };
 
 export type QueryPointOfInterestArgs = {
-  id: Scalars["Int"];
+  id: Scalars["Int"]["input"];
 };
 
 export type QueryRouteArgs = {
-  id: Scalars["RouteId"];
+  id: Scalars["RouteId"]["input"];
 };
 
 export type Ride = {
   __typename?: "Ride";
-  distance: Scalars["Float"];
-  finishedAt: Scalars["DateTime"];
-  geojson: Scalars["String"];
-  id: Scalars["RideId"];
-  name: Scalars["String"];
-  points: Array<Array<Scalars["Float"]>>;
-  startedAt: Scalars["DateTime"];
+  distance: Scalars["Float"]["output"];
+  finishedAt: Scalars["DateTime"]["output"];
+  id: Scalars["RideId"]["output"];
+  name: Scalars["String"]["output"];
+  points: Array<Array<Scalars["Float"]["output"]>>;
+  startedAt: Scalars["DateTime"]["output"];
 };
 
 export enum Role {
@@ -125,22 +133,19 @@ export enum Role {
 export type Route = {
   __typename?: "Route";
   cues: Array<Cue>;
-  description?: Maybe<Scalars["String"]>;
+  description?: Maybe<Scalars["String"]["output"]>;
   direction?: Maybe<Direction>;
-  distance: Scalars["Float"];
-  elevationAscentM?: Maybe<Scalars["Float"]>;
-  elevationDescentM?: Maybe<Scalars["Float"]>;
-  /** @deprecated use external_ref instead */
-  externalCanonicalUrl?: Maybe<Scalars["Url"]>;
+  distance: Scalars["Float"]["output"];
+  elevationAscentM?: Maybe<Scalars["Float"]["output"]>;
+  elevationDescentM?: Maybe<Scalars["Float"]["output"]>;
+  elevationPoints: Array<Scalars["Float"]["output"]>;
   externalRef?: Maybe<ExternalRef>;
-  geojson: Scalars["String"];
-  id: Scalars["RouteId"];
+  id: Scalars["RouteId"]["output"];
   idealBike?: Maybe<BikeSpec>;
   minimumBike?: Maybe<BikeSpec>;
-  name: Scalars["String"];
+  name: Scalars["String"]["output"];
   physicalDifficulty?: Maybe<DifficultyRating>;
-  points: Array<Array<Scalars["Float"]>>;
-  polyline: Scalars["String"];
+  points: Array<Array<Scalars["Float"]["output"]>>;
   scouted?: Maybe<Scouted>;
   technicalDifficulty?: Maybe<DifficultyRating>;
   termini: Array<Terminus>;
@@ -161,9 +166,9 @@ export enum SlopeEnd {
 export type Terminus = {
   __typename?: "Terminus";
   direction: CardinalDirection;
-  distanceFromStart: Scalars["Float"];
-  elevationGainFromStart?: Maybe<Scalars["Float"]>;
-  point: Array<Scalars["Float"]>;
+  distanceFromStart: Scalars["Float"]["output"];
+  elevationGainFromStart?: Maybe<Scalars["Float"]["output"]>;
+  point: Array<Scalars["Float"]["output"]>;
   slopeEnd?: Maybe<SlopeEnd>;
 };
 
@@ -186,7 +191,7 @@ export type HomeQueryQuery = {
 };
 
 export type RouteQueryQueryVariables = Exact<{
-  routeId: Scalars["RouteId"];
+  routeId: Scalars["RouteId"]["input"];
 }>;
 
 export type RouteQueryQuery = {
