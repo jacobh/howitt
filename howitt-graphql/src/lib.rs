@@ -208,6 +208,15 @@ impl Terminus {
     }
 }
 
+pub struct ExternalRef(howitt::models::external_ref::ExternalRef);
+
+#[Object]
+impl ExternalRef {
+    async fn canonical_url(&self) -> url::Url {
+        self.0.id.canonical_url()
+    }
+}
+
 pub struct Route(ModelRef<howitt::models::route::RouteModel>);
 
 impl Route {
@@ -221,6 +230,14 @@ impl Route {
     async fn id(&self) -> ModelId<RouteId> {
         ModelId(self.0.id())
     }
+    async fn external_ref(&self) -> Option<ExternalRef> {
+        self.0
+            .as_index()
+            .external_ref
+            .clone()
+            .map(ExternalRef)
+    }
+    #[graphql(deprecation="use external_ref instead")]
     async fn external_canonical_url(&self) -> Option<url::Url> {
         self.0
             .as_index()
