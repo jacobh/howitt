@@ -23,7 +23,7 @@ const SidebarContainer = styled.div`
   padding: 20px 50px;
 `;
 
-export default function Index() {
+export default function Index(): React.ReactElement {
   const [mode] = useState("routes");
 
   const { data } = useQuery(HOME_QUERY);

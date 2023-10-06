@@ -33,7 +33,8 @@ interface MapProps {
   initialView?: { routeId: string };
 }
 
-export function Map({ routes, rides, checkpoints, initialView }: MapProps) {
+export function Map({ routes, rides, checkpoints, initialView }: MapProps): React.ReactElement {
+
   const [map, setMap] = useState<OlMap>();
   const hutStyle = useMemo<Style>(
     () =>

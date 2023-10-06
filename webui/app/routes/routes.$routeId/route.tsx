@@ -50,7 +50,7 @@ function Definition({
 }: {
   term: string;
   definition?: string | null;
-}) {
+}): React.ReactElement {
   return definition ? (
     <>
       <dt>{term}</dt>
@@ -61,7 +61,7 @@ function Definition({
   );
 }
 
-export default function Route() {
+export default function Route(): React.ReactElement {
   const params = useParams();
 
   const { data } = useQuery(ROUTE_QUERY, {
