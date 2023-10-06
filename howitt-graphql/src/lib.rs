@@ -328,6 +328,18 @@ impl Route {
             .map(|point| vec![point.x(), point.y()])
             .collect())
     }
+    async fn elevation_points<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<f64>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+        let route_model = self.0.as_model(route_repo).await?;
+
+        Ok(route_model
+            .iter_elevation_points()
+            .map(|point| point.elevation)
+            .collect())
+    }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
         let SchemaData {
             route_repo,
