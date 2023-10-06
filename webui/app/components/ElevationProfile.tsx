@@ -20,7 +20,7 @@ function zipStrict<T, U>(items1: T[], items2: U[]): [T, U][] {
 }
 
 function computeData({ elevationPoints, distancePoints }: Props): DataPoint[] {
-  return zipStrict(elevationPoints, distancePoints).map(([elevation, distance]) => ({ elevation, distance }));
+  return zipStrict(elevationPoints, distancePoints).map(([elevation, distance]) => ({ elevation, distance: distance / 1000 }));
 }
 
 export function ElevationProfile(props: Props): React.ReactElement {
