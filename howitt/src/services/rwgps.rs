@@ -1,4 +1,4 @@
-use std::{error::Error, marker::PhantomData};
+use std::{collections::HashSet, error::Error, marker::PhantomData};
 
 use anyhow::anyhow;
 use itertools::Itertools;
@@ -12,7 +12,7 @@ use crate::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         point::{ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
-        route::{Route, RouteId, RouteModel},
+        route::{Route, RouteId, RouteModel, RouteTag},
         route_description::RouteDescription,
     },
     repos::Repo,
@@ -26,34 +26,46 @@ pub struct RwgpsSyncService<
     ConfigRepo: Repo<Model = Config>,
     RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
     RwgpsClientError: Into<anyhow::Error>,
+    ForceSyncRouteFn: Fn(&RouteSummary) -> bool,
 > {
     pub route_repo: RouteRepo,
     pub ride_repo: RideRepo,
     pub config_repo: ConfigRepo,
     pub rwgps_client: RwgpsClient,
     pub rwgps_error: PhantomData<RwgpsClientError>,
+    pub should_force_sync_route_fn: Option<ForceSyncRouteFn>,
 }
 
-impl<R1, R2, R3, C, E> RwgpsSyncService<R1, R2, R3, C, E>
+impl<R1, R2, R3, C, E, F> RwgpsSyncService<R1, R2, R3, C, E, F>
 where
     R1: Repo<Model = RouteModel>,
     R2: Repo<Model = RideModel>,
     R3: Repo<Model = Config>,
     C: rwgps_types::client::RwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
+    F: Fn(&RouteSummary) -> bool,
 {
     pub fn new(
         route_repo: R1,
         ride_repo: R2,
         config_repo: R3,
         rwgps_client: C,
-    ) -> RwgpsSyncService<R1, R2, R3, C, E> {
+        should_force_sync_route_fn: Option<F>,
+    ) -> RwgpsSyncService<R1, R2, R3, C, E, F> {
         RwgpsSyncService {
             route_repo,
             ride_repo,
             config_repo,
             rwgps_client,
             rwgps_error: PhantomData,
+            should_force_sync_route_fn,
+        }
+    }
+
+    fn should_force_sync_route(&self, summary: &RouteSummary) -> bool {
+        match &self.should_force_sync_route_fn {
+            Some(f) => f(summary),
+            None => false,
         }
     }
 
@@ -74,19 +86,13 @@ where
                     updated_at: summary.updated_at,
                     sync_version: Some(SYNC_VERSION),
                 }) {
-                    ExternalRefMatch::Fresh(_) => None,
-                    // ExternalRefMatch::Fresh(route) => {
-                    //     if summary
-                    //         .description
-                    //         .as_deref()
-                    //         .unwrap_or_default()
-                    //         .contains("[backcountry_segment]")
-                    //     {
-                    //         Some((summary, Some(route.clone())))
-                    //     } else {
-                    //         None
-                    //     }
-                    // }
+                    ExternalRefMatch::Fresh(route) => {
+                        if self.should_force_sync_route(&summary) {
+                            Some((summary, Some(route.clone())))
+                        } else {
+                            None
+                        }
+                    }
                     ExternalRefMatch::Stale(route) => Some((summary, Some(route.clone()))),
                     ExternalRefMatch::NotFound => Some((summary, None)),
                 }
@@ -131,10 +137,20 @@ where
             None => ulid::Ulid::from_datetime(route.created_at.into()),
         };
 
+        let tags: HashSet<RouteTag> = HashSet::from_iter(
+            [if route.name.contains("[BCS]") {
+                Some(RouteTag::BackcountrySegment)
+            } else {
+                None
+            }]
+            .into_iter()
+            .filter_map(|x| x),
+        );
+
         let model = RouteModel::new(
             Route {
                 id,
-                name: route.name,
+                name: route.name.replace("[BCS]", "").trim().to_string(),
                 distance: route.distance.unwrap_or(0.0),
                 description: route
                     .description
@@ -146,6 +162,7 @@ where
                     sync_version: Some(SYNC_VERSION),
                     updated_at: route.updated_at,
                 }),
+                tags,
             },
             PointChunk::new_chunks(
                 RouteId::from(id),
@@ -239,7 +256,7 @@ where
 
         let starred_route_ids: Vec<RouteId> = routes
             .into_iter()
-            .filter(|route| route.name.contains("[BCS]"))
+            .filter(|route| route.tags.contains(&RouteTag::BackcountrySegment))
             .map(|route| RouteId::from(route.id))
             .collect();
 

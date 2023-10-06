@@ -12,11 +12,12 @@ use howitt_dynamo::{
 use howitt_fs::{load_huts, load_stations, load_user_config};
 use itertools::Itertools;
 use rwgps::RwgpsClient;
+use rwgps_types::RouteSummary;
 
 #[derive(Subcommand)]
 pub enum Dynamodb {
     SyncPOIs,
-    SyncRwgps,
+    SyncRwgps(SyncRwgps),
     SetStarredRoute(SetStarredRoute),
     ShowConfig,
     ListStarredRoutes,
@@ -35,6 +36,12 @@ pub struct SetStarredRoute {
 #[derive(Args)]
 pub struct GenerateCuesheet {
     route_id: String,
+}
+
+#[derive(Args)]
+pub struct SyncRwgps {
+    // #[arg]
+    force_sync_bcs: bool,
 }
 
 pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
@@ -58,7 +65,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             println!("done");
         }
-        Dynamodb::SyncRwgps => {
+        Dynamodb::SyncRwgps(SyncRwgps { force_sync_bcs }) => {
             let config = load_user_config()?.unwrap();
             let rwgps_client = RwgpsClient::new(config.credentials());
 
@@ -68,6 +75,11 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
                 config_repo,
                 rwgps_client,
                 rwgps_error: std::marker::PhantomData,
+                should_force_sync_route_fn: if *force_sync_bcs {
+                    Some(|summary: &RouteSummary| summary.name.contains("[BCS]"))
+                } else {
+                    None
+                },
             };
 
             service.sync(config.user_info.unwrap().id).await?;

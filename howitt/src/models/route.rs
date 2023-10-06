@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use derive_more::From;
 use itertools::Itertools;
 use once_cell::sync::OnceCell;
@@ -9,12 +11,14 @@ use crate::{
 };
 
 use super::{
-    external_ref::ExternallySourced,
-    point::PointChunk,
-    route_description::RouteDescription,
-    segment_summary::{ElevationSummary, SegmentSummary, Terminus},
-    IndexItem,
+    external_ref::ExternallySourced, point::PointChunk, route_description::RouteDescription,
+    segment_summary::SegmentSummary, IndexItem,
 };
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
+pub enum RouteTag {
+    BackcountrySegment,
+}
 
 crate::model_id!(RouteId, "ROUTE");
 
@@ -25,6 +29,8 @@ pub struct Route {
     pub distance: f64,
     pub description: Option<RouteDescription>,
     pub external_ref: Option<ExternalRef>,
+    #[serde(default)]
+    pub tags: HashSet<RouteTag>,
 }
 
 impl IndexItem for Route {
