@@ -15,6 +15,7 @@ use super::{
     point::{PointChunk, PointDelta},
     route_description::RouteDescription,
     segment_summary::SegmentSummary,
+    terminus::Termini,
     IndexItem,
 };
 
@@ -30,6 +31,7 @@ pub struct Route {
     pub id: ulid::Ulid,
     pub name: String,
     pub distance: f64,
+    pub termini: Option<Termini<ElevationPoint>>,
     pub description: Option<RouteDescription>,
     pub external_ref: Option<ExternalRef>,
     #[serde(default)]

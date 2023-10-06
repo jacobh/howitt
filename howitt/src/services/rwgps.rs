@@ -14,6 +14,7 @@ use crate::{
         ride::{Ride, RideId, RideModel},
         route::{Route, RouteId, RouteModel, RouteTag},
         route_description::RouteDescription,
+        terminus::Termini,
     },
     repos::Repo,
 };
@@ -147,6 +148,21 @@ where
             .filter_map(|x| x),
         );
 
+        let points = route
+            .track_points
+            .into_iter()
+            .filter_map(|track_point| {
+                match (
+                    geo::Point::try_from(track_point.clone()),
+                    track_point.elevation,
+                ) {
+                    (Ok(point), Some(elevation)) => Some((point, elevation)),
+                    _ => None,
+                }
+            })
+            .map(|(point, elevation)| ElevationPoint { point, elevation })
+            .collect_vec();
+
         let model = RouteModel::new(
             Route {
                 id,
@@ -157,6 +173,10 @@ where
                     .map(RouteDescription::parse)
                     .transpose()?
                     .flatten(),
+                termini: match (points.first(), points.last()) {
+                    (Some(p1), Some(p2)) => Some(Termini::new(p1.clone(), p2.clone())),
+                    _ => None,
+                },
                 external_ref: Some(ExternalRef {
                     id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
                     sync_version: Some(SYNC_VERSION),
@@ -164,22 +184,7 @@ where
                 }),
                 tags,
             },
-            PointChunk::new_chunks(
-                RouteId::from(id),
-                route
-                    .track_points
-                    .into_iter()
-                    .filter_map(|track_point| {
-                        match (
-                            geo::Point::try_from(track_point.clone()),
-                            track_point.elevation,
-                        ) {
-                            (Ok(point), Some(elevation)) => Some((point, elevation)),
-                            _ => None,
-                        }
-                    })
-                    .map(|(point, elevation)| ElevationPoint { point, elevation }),
-            ),
+            PointChunk::new_chunks(RouteId::from(id), points.into_iter()),
         );
 
         self.route_repo.put(model).await?;
