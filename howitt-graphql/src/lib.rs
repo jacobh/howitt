@@ -9,6 +9,7 @@ use chrono::{DateTime, Utc};
 use context::SchemaData;
 use derive_more::From;
 use howitt::models::config::ConfigId;
+use howitt::models::photo::PhotoId;
 use howitt::models::point::ElevationPoint;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
@@ -26,6 +27,7 @@ pub struct ModelId<ID: howitt::models::ModelId>(ID);
 scalar!(ModelId<PointOfInterestId>, "PointOfInterestId");
 scalar!(ModelId<RideId>, "RideId");
 scalar!(ModelId<RouteId>, "RouteId");
+scalar!(ModelId<PhotoId>, "PhotoId");
 
 pub struct Query;
 
@@ -278,6 +280,15 @@ impl Route {
     async fn description(&self) -> Option<&str> {
         self.route_description()?.description.as_deref()
     }
+    async fn photos<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Photo<RouteId>>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+        let route_model = self.0.as_model(route_repo).await?;
+
+        Ok(route_model.photos.clone().into_iter().map(Photo).collect())
+    }
     async fn technical_difficulty(&self) -> Option<DifficultyRating> {
         self.route_description()?
             .technical_difficulty
@@ -479,5 +490,20 @@ impl From<howitt::models::cuesheet::Cue> for Cue {
             elevation_ascent_meters,
             elevation_descent_meters,
         }
+    }
+}
+
+pub struct Photo<ID>(howitt::models::photo::Photo<ID>);
+
+#[Object]
+impl<ID: howitt::models::ModelId> Photo<ID> {
+    async fn id(&self) -> ModelId<PhotoId> {
+        ModelId(self.0.id)
+    }
+    async fn url(&self) -> &url::Url {
+        &self.0.url
+    }
+    async fn caption(&self) -> Option<&str> {
+        self.0.caption.as_deref()
     }
 }
