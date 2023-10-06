@@ -67,6 +67,11 @@ export enum Direction {
   PrimarlityAsRouted = "PRIMARLITY_AS_ROUTED",
 }
 
+export type ExternalRef = {
+  __typename?: "ExternalRef";
+  canonicalUrl: Scalars["Url"];
+};
+
 export type PointOfInterest = {
   __typename?: "PointOfInterest";
   id: Scalars["PointOfInterestId"];
@@ -125,7 +130,9 @@ export type Route = {
   distance: Scalars["Float"];
   elevationAscentM?: Maybe<Scalars["Float"]>;
   elevationDescentM?: Maybe<Scalars["Float"]>;
+  /** @deprecated use external_ref instead */
   externalCanonicalUrl?: Maybe<Scalars["Url"]>;
+  externalRef?: Maybe<ExternalRef>;
   geojson: Scalars["String"];
   id: Scalars["RouteId"];
   idealBike?: Maybe<BikeSpec>;

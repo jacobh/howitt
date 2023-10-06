@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { formatDistance } from "~/services/formatDistance";
 import { gql } from "~/__generated__";
 import { Map } from "../../components/map";
-import { uniq } from "lodash";
+import { BikeSpecContent } from "~/components/BikeSpec";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -42,26 +42,21 @@ const SidebarContainer = styled.div`
   padding: 20px 50px;
 `;
 
-function formatTyreWidth(mm: number): string {
-  if (mm <= 50) {
-    return [mm, "mm"].join("");
-  }
-  return [Math.round((mm / 25.4) * 100) / 100, '"'].join("");
-}
-
-function formatTyreWidths(widths?: number[]): string {
-  return uniq(widths).map(formatTyreWidth).join(" ~ ");
-}
-
-function formatTravel(mm: number): string {
-  if (mm === 0) {
-    return "rigid";
-  }
-  return [mm, "mm"].join("");
-}
-
-function formatTravels(travels?: number[]): string {
-  return uniq(travels).map(formatTravel).join(" ~ ");
+function Definition({
+  term,
+  definition,
+}: {
+  term: string;
+  definition?: string | null;
+}) {
+  return definition ? (
+    <>
+      <dt>{term}</dt>
+      <dd>{definition}</dd>
+    </>
+  ) : (
+    <></>
+  );
 }
 
 export default function Route() {
@@ -94,35 +89,39 @@ export default function Route() {
               </p>
               <h3>Info</h3>
               <dl>
-                <dt>Technical Difficulty</dt>
-                <dd>{data.route.technicalDifficulty}</dd>
-                <dt>Physical Difficulty</dt>
-                <dd>{data.route.technicalDifficulty}</dd>
-                <dt>Scouted</dt>
-                <dd>{data.route.scouted}</dd>
-                <dt>Direction</dt>
-                <dd>{data.route.direction}</dd>
+                <Definition
+                  term="Technical Difficulty"
+                  definition={data.route.technicalDifficulty}
+                />
+                <Definition
+                  term="Physical Difficulty"
+                  definition={data.route.technicalDifficulty}
+                />
+                <Definition
+                  term="Scouted"
+                  definition={data.route.scouted}
+                />
+                <Definition
+                  term="Direction"
+                  definition={data.route.direction}
+                />
               </dl>
-              <h3>Suggested Minimum Bike</h3>
-              <dl>
-                <dt>Tyre Width</dt>
-                <dd>{formatTyreWidths(data.route.minimumBike?.tyreWidth)}</dd>
-                <dt>Front Suspension</dt>
-                <dd>
-                  {formatTravels(data.route.minimumBike?.frontSuspension)}
-                </dd>
-                <dt>Rear Suspension</dt>
-                <dd>{formatTravels(data.route.minimumBike?.rearSuspension)}</dd>
-              </dl>
-              <h3>Suggested Ideal Bike</h3>
-              <dl>
-                <dt>Tyre Width</dt>
-                <dd>{formatTyreWidths(data.route.idealBike?.tyreWidth)}</dd>
-                <dt>Front Suspension</dt>
-                <dd>{formatTravels(data.route.idealBike?.frontSuspension)}</dd>
-                <dt>Rear Suspension</dt>
-                <dd>{formatTravels(data.route.idealBike?.rearSuspension)}</dd>
-              </dl>
+              {data.route.minimumBike ? (
+                <BikeSpecContent
+                  title="Minimum Bike"
+                  bikeSpec={data.route.minimumBike}
+                />
+              ) : (
+                <></>
+              )}
+              {data.route.idealBike ? (
+                <BikeSpecContent
+                  title="Ideal Bike"
+                  bikeSpec={data.route.idealBike}
+                />
+              ) : (
+                <></>
+              )}
             </>
           ) : (
             <></>
