@@ -1,7 +1,10 @@
-use geo::GeodesicBearing;
 use serde::{Deserialize, Serialize};
 
-use super::{cardinal_direction::CardinalDirection, point::Point, slope_end::SlopeEnd};
+use super::{
+    cardinal_direction::CardinalDirection,
+    point::{Point, PointDelta},
+    slope_end::SlopeEnd,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TerminusElevation {
@@ -35,46 +38,35 @@ impl<P: Point> Termini<P> {
     }
 
     pub fn to_termini(&self) -> (Terminus<P>, Terminus<P>) {
-        let (first_point, last_point) = (self.first_point.clone(), self.last_point.clone());
+        let delta = PointDelta::from_points(&self.first_point, &self.last_point);
 
-        let (first_to_last_bearing, first_to_last_distance) =
-            GeodesicBearing::geodesic_bearing_distance(
-                first_point.as_geo_point(),
-                *last_point.as_geo_point(),
-            );
+        let slope_ends = SlopeEnd::from_delta(&delta);
 
-        let (start_elevation, end_elevation) = match (
-            first_point.to_elevation_point(),
-            last_point.to_elevation_point(),
-        ) {
-            (Some(e1), Some(e2)) => {
-                let elevation_gain_from_start = e2.elevation - e1.elevation;
-                let (a, b) = SlopeEnd::from_points(e1, e2);
-                (
-                    Some(TerminusElevation {
-                        slope_end: a,
-                        elevation_gain_from_start: 0.0,
-                    }),
-                    Some(TerminusElevation {
-                        slope_end: b,
-                        elevation_gain_from_start,
-                    }),
-                )
-            }
+        let (start_elevation, end_elevation) = match (delta.elevation_gain, slope_ends) {
+            (Some(elevation_gain_from_start), Some((end1, end2))) => (
+                Some(TerminusElevation {
+                    slope_end: end1,
+                    elevation_gain_from_start: 0.0,
+                }),
+                Some(TerminusElevation {
+                    slope_end: end2,
+                    elevation_gain_from_start,
+                }),
+            ),
             _ => (None, None),
         };
 
         (
             Terminus {
-                direction: CardinalDirection::from_bearing(first_to_last_bearing).inverse(),
+                direction: CardinalDirection::from_bearing(delta.bearing).inverse(),
                 distance_from_start: 0.0,
-                point: first_point.clone(),
+                point: self.first_point.clone(),
                 elevation: start_elevation,
             },
             Terminus {
-                direction: CardinalDirection::from_bearing(first_to_last_bearing),
-                distance_from_start: f64::round(first_to_last_distance * 100.0) / 100.0,
-                point: last_point.clone(),
+                direction: CardinalDirection::from_bearing(delta.bearing),
+                distance_from_start: f64::round(delta.distance * 100.0) / 100.0,
+                point: self.last_point.clone(),
                 elevation: end_elevation,
             },
         )
