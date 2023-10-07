@@ -4,7 +4,7 @@ use crate::models::{
     point::{ElevationPoint, Point, PointDelta},
     point_of_interest::PointOfInterest,
     route::Route,
-    terminus::{ Termini, Terminus, TerminusEnd},
+    terminus::{Termini, Terminus, TerminusEnd},
 };
 use geo::algorithm::haversine_distance::HaversineDistance;
 use itertools::Itertools;
@@ -85,24 +85,16 @@ pub fn routes_near_termini<'a, P: Point>(
     let mut grouped_nearby_routes: HashMap<TerminusEnd, Vec<NearbyRoute>> = HashMap::from_iter(
         vec![]
             .into_iter()
-            .chain(
-                routes_near_start
-                    .map(|(route, terminus, delta)| (route, terminus, delta, TerminusEnd::Start)),
-            )
-            .chain(
-                routes_near_end
-                    .map(|(route, terminus, delta)| (route, terminus, delta, TerminusEnd::End)),
-            )
-            .sorted_by_key(|(_, _, delta, _)| delta.distance as usize)
-            .unique_by(|(route, terminus, _, _)| (route.id(), terminus.end))
-            .group_by(|(_, _, _, end)| *end)
+            .chain(routes_near_start.map(|nearby_route| (TerminusEnd::Start, nearby_route)))
+            .chain(routes_near_end.map(|nearby_route| (TerminusEnd::End, nearby_route)))
+            .sorted_by_key(|(_, (_, _, delta))| delta.distance as usize)
+            .unique_by(|(_, (route, terminus, _))| (route.id(), terminus.end))
+            .group_by(|(end, _)| *end)
             .into_iter()
             .map(|(end, group)| {
                 (
                     end,
-                    group
-                        .map(|(route, terminus, delta, _)| (route, terminus, delta))
-                        .collect_vec(),
+                    group.map(|(_, nearby_route)| nearby_route).collect_vec(),
                 )
             }),
     );
