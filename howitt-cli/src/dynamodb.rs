@@ -11,6 +11,7 @@ use howitt_dynamo::{
 };
 use howitt_fs::{load_huts, load_stations, load_user_config};
 use itertools::Itertools;
+use prettytable::{row, Table};
 use rwgps::RwgpsClient;
 use rwgps_types::RouteSummary;
 
@@ -117,9 +118,18 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             let routes = route_model_repo.get_batch(config.starred_route_ids).await?;
 
+            let mut table = Table::new();
+
+            table.add_row(row!["id", "name", r->"km"]);
+
             for route in routes {
-                dbg!(route.route.name);
+                let distance_km = route.route.distance / 1000.0;
+                table.add_row(
+                    row![route.route.id(), route.route.name, r->format!("{distance_km:.1}")],
+                );
             }
+
+            table.printstd();
         }
         Dynamodb::ListRoutes => {
             let routes = route_model_repo.all_indexes().await?;
