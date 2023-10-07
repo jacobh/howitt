@@ -1,6 +1,7 @@
 use std::{collections::HashSet, convert::identity, error::Error, marker::PhantomData};
 
 use anyhow::anyhow;
+use either::Either;
 use itertools::Itertools;
 use rwgps_types::{RouteSummary, TripSummary};
 
@@ -135,7 +136,7 @@ where
         existing_route: Option<Route>,
     ) -> Result<(), anyhow::Error> {
         let existing_route_model = match &existing_route {
-            Some(route) => Some(self.route_repo.get(RouteId::from(route.id)).await?),
+            Some(route) => Some(self.route_repo.get(route.id()).await?),
             None => None,
         };
         let existing_photos = existing_route_model
@@ -146,7 +147,7 @@ where
         let route = self.rwgps_client.route(route_id).await?;
 
         let id = RouteId::get_or_from_datetime(
-            existing_route.map(|route| route.model_id()),
+            existing_route.map(|route| route.id()),
             &route.created_at,
         );
 
@@ -222,7 +223,7 @@ where
 
         let model = RouteModel::new(
             Route {
-                id: id.as_ulid().to_owned(),
+                id: Either::Right(id),
                 name: route.name.replace("[BCS]", "").trim().to_string(),
                 distance: route.distance.unwrap_or(0.0),
                 description,
@@ -316,7 +317,7 @@ where
         let starred_route_ids: Vec<RouteId> = routes
             .into_iter()
             .filter(|route| route.tags.contains(&Tag::BackcountrySegment))
-            .map(|route| RouteId::from(route.id))
+            .map(|route| route.model_id())
             .collect();
 
         let mut config = self.config_repo.get(ConfigId).await?;

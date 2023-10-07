@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use derive_more::From;
+use either::Either;
 use itertools::Itertools;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
@@ -25,7 +26,8 @@ crate::model_id!(RouteId, "ROUTE");
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Route {
-    pub id: ulid::Ulid,
+    #[serde(with = "either::serde_untagged")]
+    pub id: Either<ulid::Ulid, RouteId>,
     pub name: String,
     pub distance: f64,
     pub termini: Option<Termini<ElevationPoint>>,
@@ -36,6 +38,12 @@ pub struct Route {
 }
 
 impl Route {
+    pub fn id(&self) -> RouteId {
+        match self.id {
+            Either::Left(ulid) => RouteId(ulid),
+            Either::Right(route_id) => route_id,
+        }
+    }
     pub fn published_at(&self) -> Option<&chrono::DateTime<chrono::Utc>> {
         self.tags.iter().find_map(|tag| match tag {
             Tag::Published { published_at } => Some(published_at),
@@ -48,7 +56,7 @@ impl IndexItem for Route {
     type Id = RouteId;
 
     fn model_id(&self) -> Self::Id {
-        RouteId::from(self.id)
+        self.id()
     }
 }
 
@@ -114,7 +122,7 @@ impl crate::models::Model for RouteModel {
     type OtherItem = RouteItem;
 
     fn id(&self) -> RouteId {
-        RouteId::from(self.route.id)
+        self.route.id()
     }
 
     fn as_index(&self) -> &Self::IndexItem {
