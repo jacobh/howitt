@@ -6,7 +6,7 @@ use super::{
     slope_end::SlopeEnd,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Copy)]
 pub enum TerminusEnd {
     Start,
     End,

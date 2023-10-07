@@ -181,7 +181,7 @@ impl PointDelta {
         }
     }
 
-    pub fn from_points<P: Point>(p1: &P, p2: &P) -> PointDelta {
+    pub fn from_points<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> PointDelta {
         let (bearing, distance) = p1
             .as_geo_point()
             .geodesic_bearing_distance(*p2.as_geo_point());
