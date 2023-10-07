@@ -33,3 +33,4 @@ url = { version = "*", features = ["serde"] }
 
 [dev-dependencies]
 insta = "*"
+test-case = "3.1.0"

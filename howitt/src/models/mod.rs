@@ -297,6 +297,18 @@ macro_rules! model_id {
             pub fn as_ulid(&self) -> &ulid::Ulid {
                 &self.0
             }
+            pub fn from_datetime(datetime: chrono::DateTime<chrono::Utc>) -> $type_name {
+                $type_name(ulid::Ulid::from_datetime(datetime.into()))
+            }
+            pub fn get_or_from_datetime(
+                id: Option<$type_name>,
+                datetime: &chrono::DateTime<chrono::Utc>,
+            ) -> $type_name {
+                match id {
+                    Some(id) => id,
+                    None => $type_name::from_datetime(*datetime),
+                }
+            }
         }
 
         impl $crate::models::ModelId for $type_name {
@@ -347,4 +359,41 @@ macro_rules! model_id {
             }
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::{DateTime, Utc};
+    use test_case::test_case;
+
+    use crate::models::route::RouteId;
+
+    fn datetime1() -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z")
+            .unwrap()
+            .into()
+    }
+
+    fn datetime2() -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339("2023-10-01T00:00:00Z")
+            .unwrap()
+            .into()
+    }
+
+    const ULID_PREFIX1: &str = "ROUTE#01GNNA1J00";
+    const ULID_PREFIX2: &str = "ROUTE#01HBM8HS00";
+
+    #[test_case(Some(RouteId::from_datetime(datetime1())), datetime2(), ULID_PREFIX1)]
+    #[test_case(Some(RouteId::from_datetime(datetime2())), datetime1(), ULID_PREFIX2)]
+    #[test_case(None, datetime2(), ULID_PREFIX2)]
+    fn test_get_or_from_datetime(
+        existing_id: Option<RouteId>,
+        datetime: DateTime<Utc>,
+        expected_prefix: &str,
+    ) {
+        let id = RouteId::get_or_from_datetime(existing_id, &datetime).to_string();
+        let (prefix, _) = id.split_at(expected_prefix.len());
+
+        assert_eq!(expected_prefix, prefix);
+    }
 }

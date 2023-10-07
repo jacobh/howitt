@@ -17,6 +17,7 @@ use crate::{
         route_description::RouteDescription,
         tag::Tag,
         terminus::Termini,
+        IndexItem,
     },
     repos::Repo,
 };
@@ -144,10 +145,10 @@ where
 
         let route = self.rwgps_client.route(route_id).await?;
 
-        let id = match existing_route {
-            Some(route) => route.id,
-            None => ulid::Ulid::from_datetime(route.created_at.into()),
-        };
+        let id = RouteId::get_or_from_datetime(
+            existing_route.map(|route| route.model_id()),
+            &route.created_at,
+        );
 
         let description = route
             .description
@@ -210,7 +211,7 @@ where
                     },
                     None => Photo {
                         model_id: RouteId::from(id),
-                        id: PhotoId::from(ulid::Ulid::from_datetime(photo.created_at.into())),
+                        id: PhotoId::from_datetime(photo.created_at),
                         url: external_ref.id.canonical_url(),
                         external_ref: Some(external_ref),
                         caption: photo.caption,
@@ -221,7 +222,7 @@ where
 
         let model = RouteModel::new(
             Route {
-                id,
+                id: id.as_ulid().to_owned(),
                 name: route.name.replace("[BCS]", "").trim().to_string(),
                 distance: route.distance.unwrap_or(0.0),
                 description,
@@ -252,10 +253,10 @@ where
     ) -> Result<(), anyhow::Error> {
         let ride = self.rwgps_client.trip(trip_id).await?;
 
-        let id = match existing_ride {
-            Some(ride) => ride.id,
-            None => RideId::from(ulid::Ulid::from_datetime(ride.created_at.into())),
-        };
+        let id = RideId::get_or_from_datetime(
+            existing_ride.map(|ride| ride.model_id()),
+            &ride.created_at,
+        );
 
         let points = ride
             .track_points

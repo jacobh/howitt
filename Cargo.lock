@@ -1551,6 +1551,7 @@ dependencies = [
  "rwgps_types",
  "serde",
  "snap",
+ "test-case",
  "thiserror",
  "time 0.3.28",
  "tokio",
