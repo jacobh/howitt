@@ -186,6 +186,8 @@ impl PointDelta {
             .as_geo_point()
             .geodesic_bearing_distance(*p2.as_geo_point());
 
+        let bearing = if bearing < 0.0 { bearing + 360.0 } else { bearing };
+
         let elevation_gain = match (p1.elevation_meters(), p2.elevation_meters()) {
             (Some(e1), Some(e2)) => Some(e2 - e1),
             _ => None,
