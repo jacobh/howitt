@@ -127,53 +127,60 @@ pub trait OtherItem: 'static + Send + Sync + Clone + Serialize + DeserializeOwne
 }
 
 #[derive(Clone)]
-enum ModelRefInner<M: Model> {
+enum ModelRefInitial<M: Model> {
     Model(M),
     Index(M::IndexItem),
 }
 
+pub struct ModelRefInner<M: Model> {
+    initial: ModelRefInitial<M>,
+    model: OnceCell<Result<M, anyhow::Error>>,
+}
+
 #[derive(Clone)]
 pub struct ModelRef<M: Model> {
-    initial: Arc<ModelRefInner<M>>,
-    model: Arc<OnceCell<Result<M, anyhow::Error>>>,
+    inner: Arc<ModelRefInner<M>>,
 }
 
 impl<M> ModelRef<M>
 where
     M: Model + Clone,
 {
-    fn new(initial: ModelRefInner<M>) -> ModelRef<M> {
+    fn new(initial: ModelRefInitial<M>) -> ModelRef<M> {
         ModelRef {
-            initial: Arc::new(initial),
-            model: Arc::new(OnceCell::new()),
+            inner: Arc::new(ModelRefInner {
+                initial,
+                model: OnceCell::new(),
+            }),
         }
     }
     pub fn from_model(model: M) -> ModelRef<M> {
-        ModelRef::new(ModelRefInner::Model(model))
+        ModelRef::new(ModelRefInitial::Model(model))
     }
     pub fn from_index(index: M::IndexItem) -> ModelRef<M> {
-        ModelRef::new(ModelRefInner::Index(index))
+        ModelRef::new(ModelRefInitial::Index(index))
     }
     pub fn id(&self) -> M::Id {
-        match self.initial.as_ref() {
-            ModelRefInner::Model(model) => model.id(),
-            ModelRefInner::Index(index) => index.model_id(),
+        match &self.inner.initial {
+            ModelRefInitial::Model(model) => model.id(),
+            ModelRefInitial::Index(index) => index.model_id(),
         }
     }
     pub fn as_index(&self) -> &M::IndexItem {
-        match self.initial.as_ref() {
-            ModelRefInner::Model(model) => model.as_index(),
-            ModelRefInner::Index(index) => index,
+        match &self.inner.initial {
+            ModelRefInitial::Model(model) => model.as_index(),
+            ModelRefInitial::Index(index) => index,
         }
     }
     pub async fn as_model<R: AsRef<dyn AnyhowRepo<Model = M>> + Send + Sync>(
         &self,
         repo: R,
     ) -> Result<&M, &anyhow::Error> {
-        self.model
-            .get_or_init(move || match self.initial.as_ref().clone() {
-                ModelRefInner::Model(model) => futures::future::ready(Ok(model)).boxed(),
-                ModelRefInner::Index(index) => {
+        self.inner
+            .model
+            .get_or_init(move || match self.inner.initial.clone() {
+                ModelRefInitial::Model(model) => futures::future::ready(Ok(model)).boxed(),
+                ModelRefInitial::Index(index) => {
                     (async move { repo.as_ref().get(index.model_id()).await }).boxed()
                 }
             })
