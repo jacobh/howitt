@@ -82,11 +82,24 @@ export type ExternalRef = {
   canonicalUrl: Scalars["Url"]["output"];
 };
 
+export type NearbyRoute = {
+  __typename?: "NearbyRoute";
+  delta: PointDelta;
+  terminus: Terminus;
+};
+
 export type Photo = {
   __typename?: "Photo";
   caption?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["PhotoId"]["output"];
   url: Scalars["Url"]["output"];
+};
+
+export type PointDelta = {
+  __typename?: "PointDelta";
+  bearing: Scalars["Float"]["output"];
+  distance: Scalars["Float"]["output"];
+  elevationGain?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type PointOfInterest = {
@@ -108,6 +121,7 @@ export type Query = {
   __typename?: "Query";
   pointOfInterest?: Maybe<PointOfInterest>;
   pointsOfInterest: Array<PointOfInterest>;
+  publishedRoutes: Array<Route>;
   rides: Array<Ride>;
   route?: Maybe<Route>;
   routes: Array<Route>;
@@ -178,7 +192,9 @@ export type Terminus = {
   direction: CardinalDirection;
   distanceFromStart: Scalars["Float"]["output"];
   elevationGainFromStart?: Maybe<Scalars["Float"]["output"]>;
+  nearbyRoutes: Array<NearbyRoute>;
   point: Array<Scalars["Float"]["output"]>;
+  route: Route;
   slopeEnd?: Maybe<SlopeEnd>;
 };
 
@@ -237,6 +253,29 @@ export type RouteQueryQuery = {
       id: any;
       url: any;
       caption?: string | null;
+    }>;
+    termini: Array<{
+      __typename?: "Terminus";
+      direction: CardinalDirection;
+      nearbyRoutes: Array<{
+        __typename?: "NearbyRoute";
+        delta: {
+          __typename?: "PointDelta";
+          distance: number;
+          bearing: number;
+          elevationGain?: number | null;
+        };
+        terminus: {
+          __typename?: "Terminus";
+          direction: CardinalDirection;
+          route: {
+            __typename?: "Route";
+            id: any;
+            name: string;
+            points: Array<Array<number>>;
+          };
+        };
+      }>;
     }>;
   } | null;
   viewer: { __typename?: "Viewer"; role: Role };
@@ -401,6 +440,89 @@ export const RouteQueryDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "caption" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "termini" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "direction" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "nearbyRoutes" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "delta" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "distance" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "bearing" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: {
+                                      kind: "Name",
+                                      value: "elevationGain",
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "terminus" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "direction" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "route" },
+                                    selectionSet: {
+                                      kind: "SelectionSet",
+                                      selections: [
+                                        {
+                                          kind: "Field",
+                                          name: { kind: "Name", value: "id" },
+                                        },
+                                        {
+                                          kind: "Field",
+                                          name: { kind: "Name", value: "name" },
+                                        },
+                                        {
+                                          kind: "Field",
+                                          name: {
+                                            kind: "Name",
+                                            value: "points",
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
                       },
                     ],
                   },

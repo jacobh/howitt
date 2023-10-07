@@ -8,6 +8,9 @@ import { Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { Photo } from "./Photo";
+import { useMemo } from "react";
+import { isNotNil } from "~/services/isNotNil";
+import { NearbyRoutes } from "./NearbyRoutes";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -40,6 +43,24 @@ query RouteQuery($routeId: RouteId!) {
       id
       url
       caption
+    }
+    termini {
+      direction
+      nearbyRoutes {
+        delta {
+          distance
+          bearing
+          elevationGain
+        }
+        terminus {
+          direction
+          route {
+            id
+            name
+            points
+          }
+        }
+      }
     }
   }
   viewer {
@@ -76,6 +97,17 @@ export default function Route(): React.ReactElement {
   const { data } = useQuery(ROUTE_QUERY, {
     variables: { routeId: ["ROUTE", params.routeId].join("#") },
   });
+
+  const routes = useMemo(
+    () =>
+      [
+        data?.route,
+        ...(data?.route?.termini ?? []).flatMap((t) =>
+          t.nearbyRoutes.map((nearby) => nearby.terminus.route)
+        ),
+      ].filter(isNotNil),
+    [data]
+  );
 
   return (
     <Grid2 container spacing={2}>
@@ -149,11 +181,24 @@ export default function Route(): React.ReactElement {
           {data?.route?.photos.map((photo) => (
             <Photo key={photo.id} photo={photo} />
           ))}
+          {data?.route ? (
+            <div>
+              {(data?.route?.termini ? data.route.termini : []).map(
+                (terminus) => (
+                  <NearbyRoutes
+                    key={terminus.direction}
+                    terminus={terminus}
+                    nearbyRoutes={terminus.nearbyRoutes}
+                  />
+                )
+              )}
+            </div>
+          ) : null}
         </SidebarContainer>
       </Grid2>
       <Grid2 xs={8}>
         <Map
-          routes={data?.route ? [data.route] : []}
+          routes={routes}
           initialView={data?.route ? { routeId: data.route.id } : undefined}
         />
       </Grid2>
