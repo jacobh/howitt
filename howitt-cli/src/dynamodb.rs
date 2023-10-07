@@ -1,6 +1,6 @@
-use std::str::FromStr;
+use std::{convert::identity, str::FromStr};
 
-use clap::{Args, Subcommand};
+use clap::{Args, Subcommand, arg};
 use howitt::{
     models::{config::ConfigId, route::RouteId},
     repos::Repo,
@@ -41,8 +41,10 @@ pub struct GenerateCuesheet {
 
 #[derive(Args)]
 pub struct SyncRwgps {
-    // #[arg]
+    #[arg(long)]
     force_sync_bcs: bool,
+    #[arg(long)]
+    force_sync_rwgps_id: Option<usize>,
 }
 
 pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
@@ -66,7 +68,10 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             println!("done");
         }
-        Dynamodb::SyncRwgps(SyncRwgps { force_sync_bcs }) => {
+        Dynamodb::SyncRwgps(SyncRwgps {
+            force_sync_bcs,
+            force_sync_rwgps_id,
+        }) => {
             let config = load_user_config()?.unwrap();
             let rwgps_client = RwgpsClient::new(config.credentials());
 
@@ -76,11 +81,16 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
                 config_repo,
                 rwgps_client,
                 rwgps_error: std::marker::PhantomData,
-                should_force_sync_route_fn: if *force_sync_bcs {
-                    Some(|summary: &RouteSummary| summary.name.contains("[BCS]"))
-                } else {
-                    None
-                },
+                should_force_sync_route_fn: Some(|summary: &RouteSummary| {
+                    [
+                        *force_sync_bcs && summary.name.contains("[BCS]"),
+                        force_sync_rwgps_id
+                            .map(|id| id == summary.id)
+                            .unwrap_or(false),
+                    ]
+                    .into_iter()
+                    .any(identity)
+                }),
             };
 
             service.sync(config.user_info.unwrap().id).await?;

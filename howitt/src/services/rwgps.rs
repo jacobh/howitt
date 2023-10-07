@@ -331,8 +331,8 @@ where
         let route_sync_candidates = self.detect_route_sync_candidates(rwgps_user_id).await?;
         let ride_sync_candidates = self.detect_ride_sync_candidates(rwgps_user_id).await?;
 
-        dbg!(&route_sync_candidates);
-        dbg!(&ride_sync_candidates);
+        dbg!(route_sync_candidates.len());
+        dbg!(ride_sync_candidates.len());
 
         let results = route_sync_candidates
             .into_iter()
