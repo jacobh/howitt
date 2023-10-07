@@ -21,6 +21,7 @@ expression: result
                 elevation_gain_from_start: 0.0,
             },
         ),
+        end: Start,
     },
     Terminus {
         direction: East,
@@ -40,5 +41,6 @@ expression: result
                 elevation_gain_from_start: 300.0,
             },
         ),
+        end: End,
     },
 )

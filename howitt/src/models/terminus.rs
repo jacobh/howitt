@@ -7,6 +7,12 @@ use super::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum TerminusEnd {
+    Start,
+    End
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TerminusElevation {
     pub slope_end: SlopeEnd,
     pub elevation_gain_from_start: f64,
@@ -18,6 +24,7 @@ pub struct Terminus<P: Point> {
     pub point: P,
     pub distance_from_start: f64,
     pub elevation: Option<TerminusElevation>,
+    pub end: TerminusEnd,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -62,12 +69,14 @@ impl<P: Point> Termini<P> {
                 distance_from_start: 0.0,
                 point: self.first_point.clone(),
                 elevation: start_elevation,
+                end: TerminusEnd::Start,
             },
             Terminus {
                 direction: CardinalDirection::from_bearing(delta.bearing),
                 distance_from_start: f64::round(delta.distance * 100.0) / 100.0,
                 point: self.last_point.clone(),
                 elevation: end_elevation,
+                end: TerminusEnd::End,
             },
         )
     }
