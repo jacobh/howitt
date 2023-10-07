@@ -63,6 +63,21 @@ impl Query {
             .map(Route)
             .collect())
     }
+    async fn published_routes<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Route>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+
+        let routes = route_repo.all_indexes().await?;
+
+        Ok(routes
+            .into_iter()
+            .filter(|route| route.published_at().is_some())
+            .map(ModelRef::from_index)
+            .map(Route)
+            .collect())
+    }
     async fn route<'ctx>(
         &self,
         ctx: &Context<'ctx>,

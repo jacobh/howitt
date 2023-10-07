@@ -85,6 +85,7 @@ pub enum Direction {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Default)]
 pub struct RouteDescription {
     pub description: Option<String>,
+    pub published_at: Option<chrono::DateTime<chrono::Utc>>,
     pub technical_difficulty: Option<DifficultyRating>,
     pub physical_difficulty: Option<DifficultyRating>,
     pub minimum_bike: Option<BikeSpec>,

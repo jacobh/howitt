@@ -1,4 +1,4 @@
-use std::{collections::HashSet, error::Error, marker::PhantomData};
+use std::{collections::HashSet, convert::identity, error::Error, marker::PhantomData};
 
 use anyhow::anyhow;
 use itertools::Itertools;
@@ -13,8 +13,9 @@ use crate::{
         photo::{Photo, PhotoId},
         point::{ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
-        route::{Route, RouteId, RouteModel, RouteTag},
+        route::{Route, RouteId, RouteModel},
         route_description::RouteDescription,
+        tag::Tag,
         terminus::Termini,
     },
     repos::Repo,
@@ -148,14 +149,29 @@ where
             None => ulid::Ulid::from_datetime(route.created_at.into()),
         };
 
-        let tags: HashSet<RouteTag> = HashSet::from_iter(
-            [if route.name.contains("[BCS]") {
-                Some(RouteTag::BackcountrySegment)
-            } else {
-                None
-            }]
+        let description = route
+            .description
+            .map(RouteDescription::parse)
+            .transpose()?
+            .flatten();
+
+        let tags: HashSet<Tag> = HashSet::from_iter(
+            [
+                if route.name.contains("[BCS]") {
+                    Some(Tag::BackcountrySegment)
+                } else {
+                    None
+                },
+                if let Some(description) = description.as_ref() {
+                    description
+                        .published_at
+                        .map(|published_at| Tag::Published { published_at })
+                } else {
+                    None
+                },
+            ]
             .into_iter()
-            .filter_map(|x| x),
+            .filter_map(identity),
         );
 
         let points = route
@@ -208,11 +224,7 @@ where
                 id,
                 name: route.name.replace("[BCS]", "").trim().to_string(),
                 distance: route.distance.unwrap_or(0.0),
-                description: route
-                    .description
-                    .map(RouteDescription::parse)
-                    .transpose()?
-                    .flatten(),
+                description,
                 termini: match (points.first(), points.last()) {
                     (Some(p1), Some(p2)) => Some(Termini::new(p1.clone(), p2.clone())),
                     _ => None,
@@ -302,7 +314,7 @@ where
 
         let starred_route_ids: Vec<RouteId> = routes
             .into_iter()
-            .filter(|route| route.tags.contains(&RouteTag::BackcountrySegment))
+            .filter(|route| route.tags.contains(&Tag::BackcountrySegment))
             .map(|route| RouteId::from(route.id))
             .collect();
 

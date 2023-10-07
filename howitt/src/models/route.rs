@@ -16,14 +16,10 @@ use super::{
     point::{generate_point_deltas, PointChunk, PointDelta},
     route_description::RouteDescription,
     segment_summary::SegmentSummary,
+    tag::Tag,
     terminus::Termini,
     IndexItem,
 };
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub enum RouteTag {
-    BackcountrySegment,
-}
 
 crate::model_id!(RouteId, "ROUTE");
 
@@ -36,7 +32,16 @@ pub struct Route {
     pub description: Option<RouteDescription>,
     pub external_ref: Option<ExternalRef>,
     #[serde(default)]
-    pub tags: HashSet<RouteTag>,
+    pub tags: HashSet<Tag>,
+}
+
+impl Route {
+    pub fn published_at(&self) -> Option<&chrono::DateTime<chrono::Utc>> {
+        self.tags.iter().find_map(|tag| match tag {
+            Tag::Published { published_at } => Some(published_at),
+            _ => None,
+        })
+    }
 }
 
 impl IndexItem for Route {

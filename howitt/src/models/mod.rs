@@ -22,6 +22,7 @@ pub mod route_description;
 pub mod segment;
 pub mod segment_summary;
 pub mod slope_end;
+pub mod tag;
 pub mod terminus;
 
 pub trait Model: Send + Sync + Sized + 'static {
