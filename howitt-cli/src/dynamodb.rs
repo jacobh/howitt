@@ -1,6 +1,6 @@
 use std::{convert::identity, str::FromStr};
 
-use clap::{Args, Subcommand, arg};
+use clap::{arg, Args, Subcommand};
 use howitt::{
     models::{config::ConfigId, route::RouteId},
     repos::Repo,

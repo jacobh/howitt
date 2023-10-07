@@ -1,7 +1,7 @@
 use futures::{prelude::*, stream::FuturesOrdered, Future};
 
 pub trait FuturesIteratorExt<T> {
-    async fn collect_futures_ordered(self) -> Vec<T>;
+    fn collect_futures_ordered(self) -> impl std::future::Future<Output = Vec<T>>;
 }
 
 impl<I, F, T> FuturesIteratorExt<T> for I

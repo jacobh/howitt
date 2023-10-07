@@ -287,7 +287,7 @@ impl Route {
             .termini
             .as_ref()
             .map(|t| t.to_termini_vec())
-            .unwrap_or(vec![])
+            .unwrap_or_default()
             .into_iter()
             .map(Terminus)
             .collect_vec()
@@ -372,7 +372,7 @@ impl Route {
             .scan(0.0, |total_distance, distance| {
                 *total_distance += distance;
 
-                Some(total_distance.clone())
+                Some(*total_distance)
             })
             .collect())
     }

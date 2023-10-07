@@ -11,7 +11,7 @@ use super::{
     summarize_segment::summarize_segment,
 };
 
-pub fn generate_cuesheet<'a>(route: &'a [ElevationPoint], pois: &[PointOfInterest]) -> Cuesheet {
+pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> Cuesheet {
     let nearby_pois = nearby_points_of_interest(route, pois, 500.0);
 
     let partitioned_points = route

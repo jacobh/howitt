@@ -1,4 +1,4 @@
-use std::{collections::HashSet, convert::identity, error::Error, marker::PhantomData};
+use std::{collections::HashSet, error::Error, marker::PhantomData};
 
 use anyhow::anyhow;
 use either::Either;
@@ -173,7 +173,7 @@ where
                 },
             ]
             .into_iter()
-            .filter_map(identity),
+            .flatten(),
         );
 
         let points = route
@@ -211,7 +211,7 @@ where
                         ..existing_photo.clone()
                     },
                     None => Photo {
-                        model_id: RouteId::from(id),
+                        model_id: id,
                         id: PhotoId::from_datetime(photo.created_at),
                         url: external_ref.id.canonical_url(),
                         external_ref: Some(external_ref),
@@ -238,7 +238,7 @@ where
                 }),
                 tags,
             },
-            PointChunk::new_chunks(RouteId::from(id), points.into_iter()),
+            PointChunk::new_chunks(id, points.into_iter()),
             photos,
         );
 

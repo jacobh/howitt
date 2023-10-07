@@ -104,8 +104,7 @@ impl RouteModel {
     }
 
     pub fn segment_summary(&self) -> &SegmentSummary {
-        &self
-            .summary
+        self.summary
             .get_or_init(|| summarize_segment(self.point_deltas()))
     }
 }
