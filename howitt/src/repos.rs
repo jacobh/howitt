@@ -129,7 +129,7 @@ where
 pub struct CachingRepo<R: Repo<Model = M, Error = E>, M: Model, E> {
     repo: R,
     index_cache: OnceCell<Result<std::collections::HashMap<M::Id, M::IndexItem>, Arc<E>>>,
-    model_cache: scc::HashMap<M::Id, OnceCell<Result<M, Arc<E>>>>,
+    model_cache: scc::HashMap<M::Id, OnceCell<Result<Arc<M>, Arc<E>>>>,
 }
 
 impl<R, M, E> CachingRepo<R, M, E>
@@ -157,6 +157,17 @@ where
             .await
             .as_ref()
             .map_err(|e| e.clone())
+    }
+
+    async fn get_model(&self, id: M::Id) -> Result<Arc<M>, Arc<E>> {
+        self.model_cache
+            .entry_async(id)
+            .await
+            .or_insert_with(OnceCell::new)
+            .get()
+            .get_or_init(async || self.repo.get(id).await.map(Arc::new).map_err(Arc::new))
+            .await
+            .clone()
     }
 }
 
@@ -188,17 +199,7 @@ where
         &self,
         id: <<Self as Repo>::Model as Model>::Id,
     ) -> Result<<Self as Repo>::Model, Self::Error> {
-        let entry = self.model_cache.entry_async(id).await;
-
-        let entry = entry.or_insert_with(OnceCell::new);
-
-        let model = entry
-            .get()
-            .get_or_init(async || self.repo.get(id).await.map_err(Arc::new))
-            .await
-            .as_ref()
-            .map_err(|e| e.clone())?;
-
+        let model = self.get_model(id).await?;
         Ok((*model).clone())
     }
     async fn get_index(
