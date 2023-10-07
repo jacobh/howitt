@@ -9,7 +9,7 @@ use super::{
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum TerminusEnd {
     Start,
-    End
+    End,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

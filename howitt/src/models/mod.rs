@@ -1,4 +1,4 @@
-use std::{borrow::Cow, marker::PhantomData};
+use std::{borrow::Cow, marker::PhantomData, sync::Arc};
 
 use anyhow::anyhow;
 use futures::FutureExt;
@@ -132,9 +132,10 @@ enum ModelRefInner<M: Model> {
     Index(M::IndexItem),
 }
 
+#[derive(Clone)]
 pub struct ModelRef<M: Model> {
-    initial: ModelRefInner<M>,
-    model: OnceCell<Result<M, anyhow::Error>>,
+    initial: Arc<ModelRefInner<M>>,
+    model: Arc<OnceCell<Result<M, anyhow::Error>>>,
 }
 
 impl<M> ModelRef<M>
@@ -143,8 +144,8 @@ where
 {
     fn new(initial: ModelRefInner<M>) -> ModelRef<M> {
         ModelRef {
-            initial,
-            model: OnceCell::new(),
+            initial: Arc::new(initial),
+            model: Arc::new(OnceCell::new()),
         }
     }
     pub fn from_model(model: M) -> ModelRef<M> {
@@ -154,13 +155,13 @@ where
         ModelRef::new(ModelRefInner::Index(index))
     }
     pub fn id(&self) -> M::Id {
-        match &self.initial {
+        match self.initial.as_ref() {
             ModelRefInner::Model(model) => model.id(),
             ModelRefInner::Index(index) => index.model_id(),
         }
     }
     pub fn as_index(&self) -> &M::IndexItem {
-        match &self.initial {
+        match self.initial.as_ref() {
             ModelRefInner::Model(model) => model.as_index(),
             ModelRefInner::Index(index) => index,
         }
@@ -170,7 +171,7 @@ where
         repo: R,
     ) -> Result<&M, &anyhow::Error> {
         self.model
-            .get_or_init(move || match self.initial.clone() {
+            .get_or_init(move || match self.initial.as_ref().clone() {
                 ModelRefInner::Model(model) => futures::future::ready(Ok(model)).boxed(),
                 ModelRefInner::Index(index) => {
                     (async move { repo.as_ref().get(index.model_id()).await }).boxed()
