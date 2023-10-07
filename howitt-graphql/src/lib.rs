@@ -193,6 +193,13 @@ pub enum SlopeEnd {
     Flat,
 }
 
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::models::terminus::TerminusEnd")]
+pub enum TerminusEnd {
+    Start,
+    End,
+}
+
 #[derive(SimpleObject)]
 pub struct PointDelta {
     pub distance: f64,
@@ -246,6 +253,12 @@ impl Terminus {
 
         let (x, y) = terminus.point.point.x_y();
         vec![x, y]
+    }
+
+    async fn end(&self) -> TerminusEnd {
+        let Terminus { terminus, .. } = self;
+
+        TerminusEnd::from(terminus.end)
     }
 
     async fn direction(&self) -> CardinalDirection {
