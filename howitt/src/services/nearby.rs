@@ -1,10 +1,10 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::HashMap, iter};
 
 use crate::models::{
     point::{ElevationPoint, Point, PointDelta},
     point_of_interest::PointOfInterest,
     route::Route,
-    terminus::{Termini, Terminus, TerminusEnd},
+    terminus::{Terminus, TerminusEnd},
 };
 use geo::algorithm::haversine_distance::HaversineDistance;
 use itertools::Itertools;
@@ -73,20 +73,37 @@ where
 
 pub type NearbyRoute<'a> = (&'a Route, Terminus<ElevationPoint>, PointDelta);
 
-pub fn routes_near_termini<'a, P: Point>(
-    terimini: &Termini<P>,
+pub fn nearby_routes<'a>(
+    route: &Route,
     routes: &'a [Route],
 ) -> (Vec<NearbyRoute<'a>>, Vec<NearbyRoute<'a>>) {
-    let (start, end) = terimini.points();
+    let (routes_near_start, routes_near_end) = match &route.termini {
+        Some(termini) => {
+            let (start, end) = termini.points();
 
-    let routes_near_start = routes_near_point(start, routes);
-    let routes_near_end = routes_near_point(end, routes);
+            (
+                Some(routes_near_point(start, routes)),
+                Some(routes_near_point(end, routes)),
+            )
+        }
+        None => (None, None),
+    };
 
     let mut grouped_nearby_routes: HashMap<TerminusEnd, Vec<NearbyRoute>> = HashMap::from_iter(
-        vec![]
-            .into_iter()
-            .chain(routes_near_start.map(|nearby_route| (TerminusEnd::Start, nearby_route)))
-            .chain(routes_near_end.map(|nearby_route| (TerminusEnd::End, nearby_route)))
+        iter::empty()
+            .chain(
+                routes_near_start
+                    .into_iter()
+                    .flatten()
+                    .map(|nearby_route| (TerminusEnd::Start, nearby_route)),
+            )
+            .chain(
+                routes_near_end
+                    .into_iter()
+                    .flatten()
+                    .map(|nearby_route| (TerminusEnd::End, nearby_route)),
+            )
+            .filter(|(_, (route2, _, _))| route.id() != route2.id())
             .sorted_by_key(|(_, (_, _, delta))| delta.distance as usize)
             .unique_by(|(_, (route, terminus, _))| (route.id(), terminus.end))
             .group_by(|(end, _)| *end)
@@ -114,7 +131,7 @@ pub fn routes_near_point<'a, P: Point>(
     routes: &'a [Route],
 ) -> impl Iterator<Item = NearbyRoute<'a>> {
     routes
-        .into_iter()
+        .iter()
         .flat_map(|route| {
             route
                 .termini

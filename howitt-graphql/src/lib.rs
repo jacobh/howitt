@@ -15,7 +15,6 @@ use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::segment_summary::ElevationSummary;
 use howitt::models::tag::Tag;
-use howitt::models::terminus::Termini;
 use howitt::models::Model;
 use howitt::models::{point_of_interest::PointOfInterestId, ModelRef};
 use howitt::services::generate_cuesheet::generate_cuesheet;
@@ -237,12 +236,6 @@ pub struct Terminus {
     route: ModelRef<howitt::models::route::RouteModel>,
 }
 
-impl Terminus {
-    fn termini(&self) -> &Termini<ElevationPoint> {
-        self.route.as_index().termini.as_ref().unwrap()
-    }
-}
-
 #[Object]
 impl Terminus {
     async fn route(&self) -> Route {
@@ -289,7 +282,7 @@ impl Terminus {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<NearbyRoute>, async_graphql::Error> {
-        let Terminus { terminus, .. } = self;
+        let Terminus { terminus, route } = self;
 
         let SchemaData { route_repo, .. } = ctx.data()?;
 
@@ -300,8 +293,8 @@ impl Terminus {
             .filter(|route| route.tags.contains(&Tag::BackcountrySegment))
             .collect_vec();
 
-        Ok(self
-            .termini()
+        Ok(route
+            .as_index()
             .routes_near_terminus(&route_indexes, terminus.end)
             .into_iter()
             .map(|(route, terminus, delta)| NearbyRoute {

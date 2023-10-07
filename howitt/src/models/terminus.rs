@@ -1,11 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::services::nearby::{routes_near_termini, NearbyRoute};
-
 use super::{
     cardinal_direction::CardinalDirection,
     point::{Point, PointDelta},
-    route::Route,
     slope_end::SlopeEnd,
 };
 
@@ -87,25 +84,6 @@ impl<P: Point> Termini<P> {
     pub fn to_termini_vec(&self) -> Vec<Terminus<P>> {
         let (a, b) = self.to_termini();
         vec![a, b]
-    }
-
-    pub fn nearby_routes<'a>(
-        &self,
-        routes: &'a [Route],
-    ) -> (Vec<NearbyRoute<'a>>, Vec<NearbyRoute<'a>>) {
-        routes_near_termini(self, routes)
-    }
-
-    pub fn routes_near_terminus<'a>(
-        &self,
-        routes: &'a [Route],
-        end: TerminusEnd,
-    ) -> Vec<NearbyRoute<'a>> {
-        let (start_routes, end_routes) = self.nearby_routes(routes);
-        match end {
-            TerminusEnd::Start => start_routes,
-            TerminusEnd::End => end_routes,
-        }
     }
 }
 

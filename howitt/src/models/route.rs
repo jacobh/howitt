@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{external_ref::ExternalRef, point::ElevationPoint},
-    services::summarize_segment::summarize_segment,
+    services::{
+        nearby::{nearby_routes, NearbyRoute},
+        summarize_segment::summarize_segment,
+    },
 };
 
 use super::{
@@ -18,7 +21,7 @@ use super::{
     route_description::RouteDescription,
     segment_summary::SegmentSummary,
     tag::Tag,
-    terminus::Termini,
+    terminus::{Termini, TerminusEnd},
     IndexItem,
 };
 
@@ -49,6 +52,25 @@ impl Route {
             Tag::Published { published_at } => Some(published_at),
             _ => None,
         })
+    }
+
+    pub fn nearby_routes<'a>(
+        &self,
+        routes: &'a [Route],
+    ) -> (Vec<NearbyRoute<'a>>, Vec<NearbyRoute<'a>>) {
+        nearby_routes(self, routes)
+    }
+
+    pub fn routes_near_terminus<'a>(
+        &self,
+        routes: &'a [Route],
+        end: TerminusEnd,
+    ) -> Vec<NearbyRoute<'a>> {
+        let (start_routes, end_routes) = self.nearby_routes(routes);
+        match end {
+            TerminusEnd::Start => start_routes,
+            TerminusEnd::End => end_routes,
+        }
     }
 }
 
