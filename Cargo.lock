@@ -1584,6 +1584,7 @@ dependencies = [
  "once_cell",
  "ordered-float",
  "rwgps_types",
+ "scc",
  "serde",
  "snap",
  "test-case",
@@ -2890,6 +2891,12 @@ checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
 ]
+
+[[package]]
+name = "scc"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43cdfb7f4f598d961b8ef0a4eefbc87fc6f4164df24beeb1d199166893e8ecd2"
 
 [[package]]
 name = "schannel"

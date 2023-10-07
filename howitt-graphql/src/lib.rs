@@ -305,7 +305,10 @@ impl Route {
             .map(|t| t.to_termini_vec())
             .unwrap_or_default()
             .into_iter()
-            .map(|terminus| Terminus { terminus, route: self.0.clone() })
+            .map(|terminus| Terminus {
+                terminus,
+                route: self.0.clone(),
+            })
             .collect_vec()
     }
     async fn description(&self) -> Option<&str> {

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{route::RouteId, IndexModel, ModelId};
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone, Hash, Debug)]
 pub struct ConfigId;
 
 impl std::fmt::Display for ConfigId {

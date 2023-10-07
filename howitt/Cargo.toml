@@ -30,6 +30,7 @@ tokio = { version = "*", features = ["sync"] }
 either = { version = "*", features = ["serde"] }
 num = "*"
 url = { version = "*", features = ["serde"] }
+scc = "*"
 
 [dev-dependencies]
 insta = "*"

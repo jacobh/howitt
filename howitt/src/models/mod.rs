@@ -1,4 +1,4 @@
-use std::{borrow::Cow, marker::PhantomData, sync::Arc};
+use std::{borrow::Cow, hash::Hash, marker::PhantomData, sync::Arc};
 
 use anyhow::anyhow;
 use futures::FutureExt;
@@ -25,7 +25,7 @@ pub mod slope_end;
 pub mod tag;
 pub mod terminus;
 
-pub trait Model: Send + Sync + Sized + 'static {
+pub trait Model: Send + Sync + Sized + Clone + 'static {
     type Id: ModelId;
     type IndexItem: IndexItem<Id = Self::Id>;
     type OtherItem: OtherItem<Id = Self::Id>;
@@ -288,14 +288,18 @@ where
     }
 }
 
-pub trait ModelId: Send + Sync + std::fmt::Display + PartialEq + Copy + Clone + 'static {
+pub trait ModelId:
+    Send + Sync + std::fmt::Debug + std::fmt::Display + PartialEq + Copy + Clone + Hash + Eq + 'static
+{
     fn model_name() -> &'static str;
 }
 
 #[macro_export]
 macro_rules! model_id {
     ($type_name:ident, $model_name:expr) => {
-        #[derive(Debug, Default, derive_more::From, derive_more::Into, PartialEq, Clone, Copy)]
+        #[derive(
+            Debug, Default, derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy,
+        )]
         pub struct $type_name(ulid::Ulid);
 
         impl $type_name {
