@@ -71,7 +71,7 @@ where
         .collect()
 }
 
-type NearbyRoute<'a> = (&'a Route, Terminus<ElevationPoint>, PointDelta);
+pub type NearbyRoute<'a> = (&'a Route, Terminus<ElevationPoint>, PointDelta);
 
 pub fn routes_near_termini<'a, P: Point>(
     terimini: &Termini<P>,

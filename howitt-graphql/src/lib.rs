@@ -14,6 +14,8 @@ use howitt::models::point::ElevationPoint;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::segment_summary::ElevationSummary;
+use howitt::models::tag::Tag;
+use howitt::models::terminus::Termini;
 use howitt::models::Model;
 use howitt::models::{point_of_interest::PointOfInterestId, ModelRef};
 use howitt::services::generate_cuesheet::generate_cuesheet;
@@ -192,9 +194,53 @@ pub enum SlopeEnd {
     Flat,
 }
 
+#[derive(SimpleObject)]
+pub struct PointDelta {
+    pub distance: f64,
+    pub bearing: f64,
+    pub elevation_gain: Option<f64>,
+}
+
+impl From<howitt::models::point::PointDelta> for PointDelta {
+    fn from(
+        howitt::models::point::PointDelta {
+            distance,
+            bearing,
+            elevation_gain,
+        }: howitt::models::point::PointDelta,
+    ) -> Self {
+        PointDelta {
+            distance,
+            bearing,
+            elevation_gain,
+        }
+    }
+}
+
+pub struct NearbyRoute {
+    delta: PointDelta,
+    terminus: Terminus,
+}
+
+#[Object]
+impl NearbyRoute {
+    async fn delta(&self) -> &PointDelta {
+        &self.delta
+    }
+    async fn terminus(&self) -> &Terminus {
+        &self.terminus
+    }
+}
+
 pub struct Terminus {
     terminus: howitt::models::terminus::Terminus<ElevationPoint>,
     route: ModelRef<howitt::models::route::RouteModel>,
+}
+
+impl Terminus {
+    fn termini(&self) -> &Termini<ElevationPoint> {
+        self.route.as_index().termini.as_ref().unwrap()
+    }
 }
 
 #[Object]
@@ -237,6 +283,35 @@ impl Terminus {
             .elevation
             .as_ref()
             .map(|elevation| SlopeEnd::from(elevation.slope_end))
+    }
+
+    async fn nearby_routes<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<NearbyRoute>, async_graphql::Error> {
+        let Terminus { terminus, .. } = self;
+
+        let SchemaData { route_repo, .. } = ctx.data()?;
+
+        let route_indexes = route_repo
+            .all_indexes()
+            .await?
+            .into_iter()
+            .filter(|route| route.tags.contains(&Tag::BackcountrySegment))
+            .collect_vec();
+
+        Ok(self
+            .termini()
+            .routes_near_terminus(&route_indexes, terminus.end)
+            .into_iter()
+            .map(|(route, terminus, delta)| NearbyRoute {
+                delta: PointDelta::from(delta),
+                terminus: Terminus {
+                    terminus,
+                    route: ModelRef::from_index(route.clone()),
+                },
+            })
+            .collect_vec())
     }
 }
 
