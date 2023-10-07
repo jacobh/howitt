@@ -1,5 +1,5 @@
 use chrono::{DateTime, TimeZone, Utc};
-use geo::GeodesicBearing;
+use geo::{CoordsIter, GeodesicBearing, LineString, Simplify};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -220,4 +220,71 @@ pub fn generate_point_deltas<'a, P: Point + 'a>(
     } else {
         deltas
     }
+}
+
+// const LOWER_EPSILON: f64 = 0.0;
+// const UPPER_EPSILON: f64 = 0.001;
+
+pub enum UpperEpsilon {
+    Attempts(usize),
+    Value(f64),
+}
+impl UpperEpsilon {
+    fn value(&self) -> f64 {
+        match self {
+            UpperEpsilon::Attempts(i) => 0.001 * (*i as f64),
+            UpperEpsilon::Value(x) => *x,
+        }
+    }
+    fn increment_attempts(self) -> UpperEpsilon {
+        match self {
+            UpperEpsilon::Attempts(i) => UpperEpsilon::Attempts(i + 1),
+            UpperEpsilon::Value(y) => UpperEpsilon::Value(y),
+        }
+    }
+}
+
+pub fn simplify_linestring(
+    linestring: LineString,
+    target_points: usize,
+    epsilon: Option<(f64, UpperEpsilon)>,
+) -> LineString {
+    if linestring.coords_count() <= target_points {
+        return linestring;
+    }
+
+    let (lower, upper) = epsilon.unwrap_or((0.0, UpperEpsilon::Attempts(1)));
+    let epsilon = (lower + upper.value()) / 2.0;
+
+    let simplified = Simplify::simplify(&linestring, &epsilon);
+    let count = simplified.coords_count();
+
+    if count == target_points {
+        simplified
+    } else if count > target_points {
+        return simplify_linestring(
+            linestring,
+            target_points,
+            Some((epsilon, upper.increment_attempts())),
+        );
+    } else {
+        return simplify_linestring(
+            linestring,
+            target_points,
+            Some((lower, UpperEpsilon::Value(epsilon))),
+        );
+    }
+}
+
+pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
+    let linestring = LineString::from_iter(points.iter().map(|p| *p.as_geo_point()));
+
+    let simplified = simplify_linestring(linestring, target_points, None);
+
+    simplified
+        .points()
+        .map(|point| points.iter().find(|p| p.as_geo_point() == &point))
+        .flatten()
+        .cloned()
+        .collect()
 }

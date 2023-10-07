@@ -2,7 +2,7 @@ use std::{convert::identity, str::FromStr};
 
 use clap::{arg, Args, Subcommand};
 use howitt::{
-    models::{config::ConfigId, route::RouteId},
+    models::{config::ConfigId, point::simplify_points, route::RouteId},
     repos::Repo,
     services::{generate_cuesheet::generate_cuesheet, rwgps::RwgpsSyncService},
 };
@@ -19,23 +19,18 @@ use rwgps_types::RouteSummary;
 pub enum Dynamodb {
     SyncPOIs,
     SyncRwgps(SyncRwgps),
-    SetStarredRoute(SetStarredRoute),
+    SetStarredRoute(RouteIdArgs),
     ShowConfig,
     ListStarredRoutes,
     ListRoutes,
-    GetRoute,
-    GenerateCuesheet(GenerateCuesheet),
+    GetRoute(RouteIdArgs),
+    GenerateCuesheet(RouteIdArgs),
     ListPOIs,
     DeleteAll,
 }
 
 #[derive(Args)]
-pub struct SetStarredRoute {
-    route_id: String,
-}
-
-#[derive(Args)]
-pub struct GenerateCuesheet {
+pub struct RouteIdArgs {
     route_id: String,
 }
 
@@ -95,23 +90,23 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             service.sync(config.user_info.unwrap().id).await?;
         }
-        Dynamodb::SetStarredRoute(SetStarredRoute { route_id }) => {
+        Dynamodb::SetStarredRoute(RouteIdArgs { route_id }) => {
             let route_id = ulid::Ulid::from_string(route_id)?;
             let mut config = config_repo.get(ConfigId).await?;
             config.starred_route_ids.push(RouteId::from(route_id));
             config_repo.put(config).await?;
         }
-        Dynamodb::GetRoute => {
+        Dynamodb::GetRoute(RouteIdArgs { route_id }) => {
             let model = route_model_repo
-                .get(RouteId::from(
-                    ulid::Ulid::from_str("01GRQGBJ9NNA8354256RQ10DJB").unwrap(),
-                ))
+                .get(RouteId::from(ulid::Ulid::from_str(&route_id).unwrap()))
                 .await?;
-            dbg!(&model.route.name);
-            dbg!(&model.route.external_ref);
-            dbg!(model.iter_geo_points().count());
+            dbg!(&model.route);
+
+            let points = model.iter_elevation_points().cloned().collect_vec();
+
+            dbg!(simplify_points(&points, 50).len());
         }
-        Dynamodb::GenerateCuesheet(GenerateCuesheet { route_id }) => {
+        Dynamodb::GenerateCuesheet(RouteIdArgs { route_id }) => {
             let model = route_model_repo
                 .get(RouteId::from(ulid::Ulid::from_str(route_id).unwrap()))
                 .await?;
