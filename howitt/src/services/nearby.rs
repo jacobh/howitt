@@ -6,6 +6,7 @@ use crate::models::{
     route::Route,
     terminus::{Terminus, TerminusEnd},
 };
+use either::Either;
 use geo::algorithm::haversine_distance::HaversineDistance;
 use itertools::Itertools;
 
@@ -89,41 +90,27 @@ pub fn nearby_routes<'a>(
         None => (None, None),
     };
 
-    let mut grouped_nearby_routes: HashMap<TerminusEnd, Vec<NearbyRoute>> = HashMap::from_iter(
-        iter::empty()
-            .chain(
-                routes_near_start
-                    .into_iter()
-                    .flatten()
-                    .map(|nearby_route| (TerminusEnd::Start, nearby_route)),
-            )
-            .chain(
-                routes_near_end
-                    .into_iter()
-                    .flatten()
-                    .map(|nearby_route| (TerminusEnd::End, nearby_route)),
-            )
-            .filter(|(_, (route2, _, _))| route.id() != route2.id())
-            .sorted_by_key(|(_, (_, _, delta))| delta.distance as usize)
-            .unique_by(|(_, (route, terminus, _))| (route.id(), terminus.end))
-            .group_by(|(end, _)| *end)
-            .into_iter()
-            .map(|(end, group)| {
-                (
-                    end,
-                    group.map(|(_, nearby_route)| nearby_route).collect_vec(),
-                )
-            }),
-    );
+    let nearby_routes = iter::empty()
+        .chain(
+            routes_near_start
+                .into_iter()
+                .flatten()
+                .map(|nearby_route| (TerminusEnd::Start, nearby_route)),
+        )
+        .chain(
+            routes_near_end
+                .into_iter()
+                .flatten()
+                .map(|nearby_route| (TerminusEnd::End, nearby_route)),
+        )
+        .filter(|(_, (route2, _, _))| route.id() != route2.id())
+        .sorted_by_key(|(_, (_, _, delta))| delta.distance as usize)
+        .unique_by(|(_, (route, terminus, _))| (route.id(), terminus.end));
 
-    (
-        grouped_nearby_routes
-            .remove(&TerminusEnd::Start)
-            .unwrap_or_default(),
-        grouped_nearby_routes
-            .remove(&TerminusEnd::End)
-            .unwrap_or_default(),
-    )
+    nearby_routes.partition_map(|(end, nearby_route)| match end {
+        TerminusEnd::Start => Either::Left(nearby_route),
+        TerminusEnd::End => Either::Right(nearby_route),
+    })
 }
 
 pub fn routes_near_point<'a, P: Point>(
