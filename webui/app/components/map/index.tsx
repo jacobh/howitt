@@ -139,11 +139,14 @@ export function Map({
             }),
           })
         );
-
-        if (initialView?.routeId === route.id) {
-          map.getView().fit(lineString);
-          map.getView().adjustZoom(-1);
-        }
+      }
+      if (initialView?.routeId === route.id) {
+        map
+          .getView()
+          .fit(new LineString(route.points), {
+            padding: [100, 100, 100, 100],
+            duration: 2500,
+          });
       }
     }
 
@@ -168,7 +171,14 @@ export function Map({
         );
       }
     }
-  }, [routes, checkpoints, map]);
+  }, [
+    routes,
+    checkpoints,
+    map,
+    initialView,
+    hutStyle,
+    stationStyle,
+  ]);
 
   return <MapContainer id="map" />;
 }
