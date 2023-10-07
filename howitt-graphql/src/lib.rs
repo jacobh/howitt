@@ -192,32 +192,44 @@ pub enum SlopeEnd {
     Flat,
 }
 
-pub struct Terminus(howitt::models::terminus::Terminus<ElevationPoint>);
+pub struct Terminus {
+    terminus: howitt::models::terminus::Terminus<ElevationPoint>
+}
 
 #[Object]
 impl Terminus {
     async fn point(&self) -> Vec<f64> {
-        let (x, y) = self.0.point.point.x_y();
+        let Terminus { terminus } = self;
+
+        let (x, y) = terminus.point.point.x_y();
         vec![x, y]
     }
 
     async fn direction(&self) -> CardinalDirection {
-        CardinalDirection::from(self.0.direction)
+        let Terminus { terminus } = self;
+
+        CardinalDirection::from(terminus.direction)
     }
 
     async fn distance_from_start(&self) -> f64 {
-        self.0.distance_from_start
+        let Terminus { terminus } = self;
+
+        terminus.distance_from_start
     }
 
     async fn elevation_gain_from_start(&self) -> Option<f64> {
-        self.0
+        let Terminus { terminus } = self;
+
+        terminus
             .elevation
             .as_ref()
             .map(|elevation| elevation.elevation_gain_from_start)
     }
 
     async fn slope_end(&self) -> Option<SlopeEnd> {
-        self.0
+        let Terminus { terminus } = self;
+
+        terminus
             .elevation
             .as_ref()
             .map(|elevation| SlopeEnd::from(elevation.slope_end))
@@ -289,7 +301,7 @@ impl Route {
             .map(|t| t.to_termini_vec())
             .unwrap_or_default()
             .into_iter()
-            .map(Terminus)
+            .map(|terminus| Terminus { terminus })
             .collect_vec()
     }
     async fn description(&self) -> Option<&str> {
