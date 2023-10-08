@@ -103,9 +103,33 @@ pub fn nearby_routes<'a>(
                 .flatten()
                 .map(|nearby_route| (TerminusEnd::End, nearby_route)),
         )
-        .filter(|(_, (route2, _, _))| route.id() != route2.id())
-        .sorted_by_key(|(_, (_, _, delta))| delta.distance as usize)
-        .unique_by(|(_, (route, point, _))| (route.id(), point.ordered_x_y()));
+        .filter(|(_, (route2, _, _))| route.id() != route2.id());
+
+    let grouped = nearby_routes.group_by(|(_, (route, _, _))| route.id());
+
+    let nearby_routes = grouped
+        .into_iter()
+        .map(|(_, group)| {
+            group
+                .sorted_by_key(|(_, (_, _, delta))| delta.clone())
+                .fold(
+                    Vec::new(),
+                    |mut nearby_routes, (end, (route, point, delta))| {
+                        let is_separated = nearby_routes.iter().all(|(_, (_, nearby_point, _))| {
+                            let delta = PointDelta::from_points(point, nearby_point);
+
+                            delta.distance > 5000.0
+                        });
+
+                        if is_separated {
+                            nearby_routes.push((end, (route, point, delta)))
+                        }
+
+                        nearby_routes
+                    },
+                )
+        })
+        .flatten();
 
     nearby_routes.partition_map(|(end, nearby_route)| match end {
         TerminusEnd::Start => Either::Left(nearby_route),
@@ -129,7 +153,7 @@ pub fn routes_near_point<'a, P: Point>(
                     (route, route_point, delta)
                 })
         })
-        .sorted_by_key(|(_, _, delta)| ordered_float::OrderedFloat(delta.distance))
+        .sorted_by_key(|(_, _, delta)| delta.clone())
         .take_while(|(_, _, delta)| delta.distance < 25_000.0)
         .unique_by(|(route, _, _)| route.id())
 }

@@ -213,7 +213,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
 pub struct PointDelta {
     pub distance: f64,
     pub bearing: f64,
@@ -249,6 +249,25 @@ impl PointDelta {
     }
     pub fn from_points_tuple<P: Point>((p1, p2): (&P, &P)) -> PointDelta {
         PointDelta::from_points(p1, p2)
+    }
+}
+
+impl Eq for PointDelta {}
+
+impl Ord for PointDelta {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        fn o_f(x: f64) -> ordered_float::OrderedFloat<f64> {
+            ordered_float::OrderedFloat(x)
+        }
+
+        o_f(self.distance)
+            .cmp(&o_f(other.distance))
+            .then(
+                self.elevation_gain
+                    .map(o_f)
+                    .cmp(&other.elevation_gain.map(o_f)),
+            )
+            .then(o_f(self.bearing).cmp(&o_f(other.bearing)))
     }
 }
 
