@@ -165,7 +165,7 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PointDelta {
     pub distance: f64,
     pub bearing: f64,
@@ -186,11 +186,7 @@ impl PointDelta {
             .as_geo_point()
             .geodesic_bearing_distance(*p2.as_geo_point());
 
-        let bearing = if bearing < 0.0 {
-            bearing + 360.0
-        } else {
-            bearing
-        };
+        let bearing = bearing % 360.0;
 
         let elevation_gain = match (p1.elevation_meters(), p2.elevation_meters()) {
             (Some(e1), Some(e2)) => Some(e2 - e1),

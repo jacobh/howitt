@@ -251,7 +251,7 @@ impl Terminus {
     async fn point(&self) -> Vec<f64> {
         let Terminus { terminus, .. } = self;
 
-        let (x, y) = terminus.point.point.x_y();
+        let (x, y) = terminus.point().point.x_y();
         vec![x, y]
     }
 
@@ -261,23 +261,23 @@ impl Terminus {
         TerminusEnd::from(terminus.end)
     }
 
-    async fn direction(&self) -> CardinalDirection {
+    async fn bearing(&self) -> f64 {
         let Terminus { terminus, .. } = self;
 
-        CardinalDirection::from(terminus.direction)
+        terminus.bearing()
     }
 
     async fn distance_from_start(&self) -> f64 {
         let Terminus { terminus, .. } = self;
 
-        terminus.distance_from_start
+        terminus.distance_from_start()
     }
 
     async fn elevation_gain_from_start(&self) -> Option<f64> {
         let Terminus { terminus, .. } = self;
 
         terminus
-            .elevation
+            .elevation()
             .as_ref()
             .map(|elevation| elevation.elevation_gain_from_start)
     }
@@ -286,7 +286,7 @@ impl Terminus {
         let Terminus { terminus, .. } = self;
 
         terminus
-            .elevation
+            .elevation()
             .as_ref()
             .map(|elevation| SlopeEnd::from(elevation.slope_end))
     }

@@ -127,7 +127,7 @@ pub fn routes_near_point<'a, P: Point>(
                 .unwrap_or_default()
                 .into_iter()
                 .map(|terminus| {
-                    let delta = PointDelta::from_points(point, &terminus.point);
+                    let delta = PointDelta::from_points(point, &terminus.point());
                     (route, terminus, delta)
                 })
                 .collect_vec()

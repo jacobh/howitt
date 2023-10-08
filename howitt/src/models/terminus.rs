@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 use super::{
-    cardinal_direction::CardinalDirection,
     point::{Point, PointDelta},
     slope_end::SlopeEnd,
 };
@@ -12,6 +11,15 @@ pub enum TerminusEnd {
     End,
 }
 
+impl TerminusEnd {
+    fn tuple_value<T>(&self, (start, end): (T, T)) -> T {
+        match self {
+            TerminusEnd::Start => start,
+            TerminusEnd::End => end,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TerminusElevation {
     pub slope_end: SlopeEnd,
@@ -20,11 +28,36 @@ pub struct TerminusElevation {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Terminus<P: Point> {
-    pub direction: CardinalDirection,
-    pub point: P,
-    pub distance_from_start: f64,
-    pub elevation: Option<TerminusElevation>,
+    pub termini: Termini<P>,
     pub end: TerminusEnd,
+}
+
+impl<P: Point> Terminus<P> {
+    pub fn point(&self) -> &P {
+        self.end.tuple_value(self.termini.points())
+    }
+    pub fn bearing(&self) -> f64 {
+        let delta = &self.termini.delta();
+
+        self.end
+            .tuple_value(((delta.bearing + 180.0) % 360.0, delta.bearing))
+    }
+    pub fn distance_from_start(&self) -> f64 {
+        let delta = &self.termini.delta();
+
+        self.end.tuple_value((0.0, delta.distance))
+    }
+    pub fn elevation(&self) -> Option<TerminusElevation> {
+        let delta = &self.termini.delta();
+
+        match (delta.elevation_gain, SlopeEnd::from_delta(delta)) {
+            (Some(elevation_gain_from_start), Some(slope_ends)) => Some(TerminusElevation {
+                slope_end: self.end.tuple_value(slope_ends),
+                elevation_gain_from_start: self.end.tuple_value((0.0, elevation_gain_from_start)),
+            }),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -44,38 +77,18 @@ impl<P: Point> Termini<P> {
         (&self.first_point, &self.last_point)
     }
 
+    pub fn delta(&self) -> PointDelta {
+        PointDelta::from_points(&self.first_point, &self.last_point)
+    }
+
     pub fn to_termini(&self) -> (Terminus<P>, Terminus<P>) {
-        let delta = PointDelta::from_points(&self.first_point, &self.last_point);
-
-        let slope_ends = SlopeEnd::from_delta(&delta);
-
-        let (start_elevation, end_elevation) = match (delta.elevation_gain, slope_ends) {
-            (Some(elevation_gain_from_start), Some((end1, end2))) => (
-                Some(TerminusElevation {
-                    slope_end: end1,
-                    elevation_gain_from_start: 0.0,
-                }),
-                Some(TerminusElevation {
-                    slope_end: end2,
-                    elevation_gain_from_start,
-                }),
-            ),
-            _ => (None, None),
-        };
-
         (
             Terminus {
-                direction: CardinalDirection::from_bearing(delta.bearing).inverse(),
-                distance_from_start: 0.0,
-                point: self.first_point.clone(),
-                elevation: start_elevation,
+                termini: self.clone(),
                 end: TerminusEnd::Start,
             },
             Terminus {
-                direction: CardinalDirection::from_bearing(delta.bearing),
-                distance_from_start: f64::round(delta.distance * 100.0) / 100.0,
-                point: self.last_point.clone(),
-                elevation: end_elevation,
+                termini: self.clone(),
                 end: TerminusEnd::End,
             },
         )
