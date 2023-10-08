@@ -227,22 +227,38 @@ pub fn generate_point_deltas<'a, P: Point + 'a>(
 // const LOWER_EPSILON: f64 = 0.0;
 // const UPPER_EPSILON: f64 = 0.001;
 
-#[derive(Debug, Clone, Copy)]
-pub enum UpperEpsilon {
-    Attempts(usize),
-    Value(f64),
+// #[derive(Debug, Clone, Copy)]
+// pub enum UpperEpsilon {
+//     Attempts(usize),
+//     Value(f64),
+// }
+// impl UpperEpsilon {
+//     fn value(&self) -> f64 {
+//         match self {
+//             UpperEpsilon::Attempts(i) => ,
+//             UpperEpsilon::Value(x) => *x,
+//         }
+//     }
+//     fn increment_attempts(self) -> UpperEpsilon {
+//         match self {
+//             UpperEpsilon::Attempts(i) => UpperEpsilon::Attempts(i + 1),
+//             UpperEpsilon::Value(y) => UpperEpsilon::Value(y),
+//         }
+//     }
+// }
+
+pub struct SimplifyState {
+    epsilon: (f64, Option<f64>),
+    i: usize,
+    oversimplified: Option<LineString>,
 }
-impl UpperEpsilon {
-    fn value(&self) -> f64 {
-        match self {
-            UpperEpsilon::Attempts(i) => 0.0005 * f64::powi(2.0, *i as i32),
-            UpperEpsilon::Value(x) => *x,
-        }
-    }
-    fn increment_attempts(self) -> UpperEpsilon {
-        match self {
-            UpperEpsilon::Attempts(i) => UpperEpsilon::Attempts(i + 1),
-            UpperEpsilon::Value(y) => UpperEpsilon::Value(y),
+
+impl Default for SimplifyState {
+    fn default() -> Self {
+        Self {
+            epsilon: (0.0, None),
+            oversimplified: Default::default(),
+            i: 0,
         }
     }
 }
@@ -250,16 +266,19 @@ impl UpperEpsilon {
 pub fn simplify_linestring(
     linestring: LineString,
     max_points: usize,
-    initial_epsilon: Option<(f64, UpperEpsilon)>,
-    oversimplified: Option<LineString>,
-    i: usize,
+    state: Option<SimplifyState>,
 ) -> LineString {
     if linestring.coords_count() <= max_points {
         return linestring;
     }
 
-    let (lower, upper) = dbg!(initial_epsilon.unwrap_or((0.0, UpperEpsilon::Attempts(1))));
-    let epsilon = (lower + upper.value()) / 2.0;
+    let SimplifyState {
+        epsilon: (lower, upper),
+        i,
+        oversimplified,
+    } = state.unwrap_or_default();
+
+    let epsilon = (lower + upper.unwrap_or(0.0005 * f64::powi(2.0, (i + 1) as i32))) / 2.0;
 
     let simplified = Simplify::simplify(&linestring, &epsilon);
     let count = simplified.coords_count();
@@ -274,26 +293,32 @@ pub fn simplify_linestring(
         simplify_linestring(
             linestring,
             max_points,
-            Some((epsilon, upper.increment_attempts())),
-            oversimplified,
-            i + 1,
+            Some(SimplifyState {
+                epsilon: (epsilon, upper),
+                oversimplified,
+                i: i + 1,
+            }),
         )
     } else {
-        if initial_epsilon.is_some() {
+        if i > 0 {
             let oversimplified = oversimplified.unwrap_or(LineString::new(vec![]));
-            let oversimplified = Some(if simplified.coords_count() > oversimplified.coords_count() {
-                simplified
-            } else {
-                oversimplified
-            });
+            let oversimplified = Some(
+                if simplified.coords_count() > oversimplified.coords_count() {
+                    simplified
+                } else {
+                    oversimplified
+                },
+            );
 
             // not enough points and we're not using the default epsilon. search our way back to the limit
             simplify_linestring(
                 linestring,
                 max_points,
-                Some((lower, UpperEpsilon::Value(epsilon))),
-                oversimplified,
-                i + 1,
+                Some(SimplifyState {
+                    epsilon: (lower, Some(epsilon)),
+                    i: i + 1,
+                    oversimplified,
+                }),
             )
         } else {
             // initial epsilon was good enough to get us below the limit
@@ -305,7 +330,7 @@ pub fn simplify_linestring(
 pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
     let linestring = LineString::from_iter(points.iter().map(|p| *p.as_geo_point()));
 
-    let simplified = simplify_linestring(linestring, target_points, None, None, 0);
+    let simplified = simplify_linestring(linestring, target_points, None);
 
     simplified
         .points()
