@@ -1,10 +1,10 @@
-use std::{borrow::Cow, collections::HashMap, iter};
+use std::{borrow::Cow, iter};
 
 use crate::models::{
     point::{ElevationPoint, Point, PointDelta},
     point_of_interest::PointOfInterest,
     route::Route,
-    terminus::{Terminus, TerminusEnd},
+    terminus::TerminusEnd,
 };
 use either::Either;
 use geo::algorithm::haversine_distance::HaversineDistance;
@@ -72,7 +72,7 @@ where
         .collect()
 }
 
-pub type NearbyRoute<'a> = (&'a Route, Terminus<ElevationPoint>, PointDelta);
+pub type NearbyRoute<'a> = (&'a Route, &'a ElevationPoint, PointDelta);
 
 pub fn nearby_routes<'a>(
     route: &Route,
@@ -105,7 +105,7 @@ pub fn nearby_routes<'a>(
         )
         .filter(|(_, (route2, _, _))| route.id() != route2.id())
         .sorted_by_key(|(_, (_, _, delta))| delta.distance as usize)
-        .unique_by(|(_, (route, terminus, _))| (route.id(), terminus.end));
+        .unique_by(|(_, (route, point, _))| (route.id(), point.ordered_x_y()));
 
     nearby_routes.partition_map(|(end, nearby_route)| match end {
         TerminusEnd::Start => Either::Left(nearby_route),
@@ -121,18 +121,15 @@ pub fn routes_near_point<'a, P: Point>(
         .iter()
         .flat_map(|route| {
             route
-                .termini()
-                .as_ref()
-                .map(|t| t.to_termini_vec())
-                .unwrap_or_default()
-                .into_iter()
-                .map(|terminus| {
-                    let delta = PointDelta::from_points(point, &terminus.point());
-                    (route, terminus, delta)
+                .sample_points
+                .iter()
+                .flatten()
+                .map(move |route_point| {
+                    let delta = PointDelta::from_points(point, route_point);
+                    (route, route_point, delta)
                 })
-                .collect_vec()
         })
-        .sorted_by_key(|(_, _, delta)| delta.distance as usize)
+        .sorted_by_key(|(_, _, delta)| ordered_float::OrderedFloat(delta.distance))
         .take_while(|(_, _, delta)| delta.distance < 25_000.0)
         .unique_by(|(route, _, _)| route.id())
 }

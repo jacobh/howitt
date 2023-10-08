@@ -98,6 +98,15 @@ impl<P: Point> Termini<P> {
         let (a, b) = self.to_termini();
         vec![a, b]
     }
+
+    pub fn closest_terminus<P1: Point>(&self, point: P1) -> Terminus<P> {
+        self.to_termini_vec()
+            .into_iter()
+            .min_by_key(|t| {
+                ordered_float::OrderedFloat(PointDelta::from_points(&point, t.point()).distance)
+            })
+            .unwrap_or_else(|| self.to_termini().0)
+    }
 }
 
 #[cfg(test)]

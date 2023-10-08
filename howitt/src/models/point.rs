@@ -14,6 +14,20 @@ pub trait Point: std::fmt::Debug + Clone {
         geo::Point::x_y(*self.as_geo_point())
     }
 
+    fn ordered_x_y(
+        &self,
+    ) -> (
+        ordered_float::OrderedFloat<f64>,
+        ordered_float::OrderedFloat<f64>,
+    ) {
+        let (x, y) = self.x_y();
+
+        (
+            ordered_float::OrderedFloat(x),
+            ordered_float::OrderedFloat(y),
+        )
+    }
+
     fn x_y_z(&self) -> (f64, f64, Option<f64>) {
         let (x, y) = self.x_y();
 

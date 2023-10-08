@@ -225,7 +225,8 @@ impl From<howitt::models::point::PointDelta> for PointDelta {
 
 pub struct NearbyRoute {
     delta: PointDelta,
-    terminus: Terminus,
+    closest_terminus_delta: PointDelta,
+    closest_terminus: Terminus,
 }
 
 #[Object]
@@ -233,8 +234,11 @@ impl NearbyRoute {
     async fn delta(&self) -> &PointDelta {
         &self.delta
     }
-    async fn terminus(&self) -> &Terminus {
-        &self.terminus
+    async fn closest_terminus_delta(&self) -> &PointDelta {
+        &self.closest_terminus_delta
+    }
+    async fn closest_terminus(&self) -> &Terminus {
+        &self.closest_terminus
     }
 }
 
@@ -310,12 +314,26 @@ impl Terminus {
             .as_index()
             .routes_near_terminus(&route_indexes, terminus.end)
             .into_iter()
-            .map(|(route, terminus, delta)| NearbyRoute {
-                delta: PointDelta::from(delta),
-                terminus: Terminus {
-                    terminus,
-                    route: ModelRef::from_index(route.clone()),
-                },
+            .filter_map(|(route, closest_point, delta)| {
+                let closest_terminus = route.termini().map(|t| t.closest_terminus(closest_point));
+
+                if let Some(closest_terminus) = closest_terminus {
+                    Some(NearbyRoute {
+                        delta: PointDelta::from(delta),
+                        closest_terminus_delta: PointDelta::from(
+                            howitt::models::point::PointDelta::from_points(
+                                terminus.point(),
+                                closest_terminus.point(),
+                            ),
+                        ),
+                        closest_terminus: Terminus {
+                            terminus: closest_terminus,
+                            route: ModelRef::from_index(route.clone()),
+                        },
+                    })
+                } else {
+                    None
+                }
             })
             .collect_vec())
     }
