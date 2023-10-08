@@ -9,9 +9,43 @@ pub trait Point: std::fmt::Debug + Clone {
     fn as_geo_point(&self) -> &geo::Point;
     fn elevation_meters(&self) -> Option<&f64>;
     fn to_elevation_point(&self) -> Option<ElevationPoint>;
+
+    fn x_y(&self) -> (f64, f64) {
+        geo::Point::x_y(*self.as_geo_point())
+    }
+
+    fn x_y_z(&self) -> (f64, f64, Option<f64>) {
+        let (x, y) = self.x_y();
+
+        (x, y, self.elevation_meters().copied())
+    }
+
+    fn to_x_y_vec(&self) -> Vec<f64> {
+        let (x, y) = self.x_y();
+        vec![x, y]
+    }
+
+    fn into_x_y_vec(self) -> Vec<f64> {
+        let (x, y) = self.x_y();
+        vec![x, y]
+    }
 }
 
 impl Point for geo::Point {
+    fn as_geo_point(&self) -> &geo::Point {
+        self
+    }
+
+    fn elevation_meters(&self) -> Option<&f64> {
+        None
+    }
+
+    fn to_elevation_point(&self) -> Option<ElevationPoint> {
+        None
+    }
+}
+
+impl<'a> Point for &'a geo::Point {
     fn as_geo_point(&self) -> &geo::Point {
         self
     }

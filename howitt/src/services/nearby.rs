@@ -78,7 +78,7 @@ pub fn nearby_routes<'a>(
     route: &Route,
     routes: &'a [Route],
 ) -> (Vec<NearbyRoute<'a>>, Vec<NearbyRoute<'a>>) {
-    let (routes_near_start, routes_near_end) = match &route.termini {
+    let (routes_near_start, routes_near_end) = match &route.termini() {
         Some(termini) => {
             let (start, end) = termini.points();
 
@@ -121,7 +121,7 @@ pub fn routes_near_point<'a, P: Point>(
         .iter()
         .flat_map(|route| {
             route
-                .termini
+                .termini()
                 .as_ref()
                 .map(|t| t.to_termini_vec())
                 .unwrap_or_default()

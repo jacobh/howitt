@@ -12,7 +12,7 @@ use crate::{
         config::{Config, ConfigId},
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         photo::{Photo, PhotoId},
-        point::{ElevationPoint, PointChunk, TemporalElevationPoint},
+        point::{simplify_points, ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
         route::{Route, RouteId, RouteModel},
         route_description::RouteDescription,
@@ -227,10 +227,7 @@ where
                 name: route.name.replace("[BCS]", "").trim().to_string(),
                 distance: route.distance.unwrap_or(0.0),
                 description,
-                termini: match (points.first(), points.last()) {
-                    (Some(p1), Some(p2)) => Some(Termini::new(p1.clone(), p2.clone())),
-                    _ => None,
-                },
+                sample_points: Some(simplify_points(&points, 50)),
                 external_ref: Some(ExternalRef {
                     id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
                     sync_version: Some(SYNC_VERSION),

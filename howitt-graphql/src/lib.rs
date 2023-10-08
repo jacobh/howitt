@@ -381,8 +381,7 @@ impl Route {
     async fn termini(&self) -> Vec<Terminus> {
         self.0
             .as_index()
-            .termini
-            .as_ref()
+            .termini()
             .map(|t| t.to_termini_vec())
             .unwrap_or_default()
             .into_iter()
@@ -434,6 +433,29 @@ impl Route {
             .to_owned()
             .map(Direction::from)
     }
+    async fn sample_points_count(&self) -> usize {
+        self.0
+            .as_index()
+            .sample_points
+            .as_ref()
+            .map(|points| points.len())
+            .unwrap_or(0)
+    }
+    async fn sample_points(&self) -> Vec<Vec<f64>> {
+        self.0
+            .as_index()
+            .sample_points
+            .iter()
+            .flatten()
+            .map(howitt::models::point::Point::to_x_y_vec)
+            .collect()
+    }
+    async fn points_count<'ctx>(&self, ctx: &Context<'ctx>) -> Result<usize, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+        let route_model = self.0.as_model(route_repo).await?;
+
+        Ok(route_model.iter_geo_points().count())
+    }
     async fn points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -443,7 +465,7 @@ impl Route {
 
         Ok(route_model
             .iter_geo_points()
-            .map(|point| vec![point.x(), point.y()])
+            .map(howitt::models::point::Point::into_x_y_vec)
             .collect())
     }
     async fn elevation_points<'ctx>(

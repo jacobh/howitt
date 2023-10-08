@@ -33,7 +33,7 @@ pub struct Route {
     pub id: Either<ulid::Ulid, RouteId>,
     pub name: String,
     pub distance: f64,
-    pub termini: Option<Termini<ElevationPoint>>,
+    pub sample_points: Option<Vec<ElevationPoint>>,
     pub description: Option<RouteDescription>,
     pub external_ref: Option<ExternalRef>,
     #[serde(default)]
@@ -51,6 +51,15 @@ impl Route {
         self.tags.iter().find_map(|tag| match tag {
             Tag::Published { published_at } => Some(published_at),
             _ => None,
+        })
+    }
+
+    pub fn termini(&self) -> Option<Termini<ElevationPoint>> {
+        self.sample_points.as_ref().and_then(|sample_points| {
+            match (sample_points.first(), sample_points.last()) {
+                (Some(p1), Some(p2)) => Some(Termini::new(p1.clone(), p2.clone())),
+                _ => None,
+            }
         })
     }
 

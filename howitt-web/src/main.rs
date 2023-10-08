@@ -4,7 +4,7 @@ use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Sche
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use howitt::repos::{ConfigRepo, PointOfInterestRepo, RideModelRepo, RouteModelRepo};
 use howitt_dynamo::SingleTableClient;
-use howitt_graphql::{Query, context::SchemaData};
+use howitt_graphql::{context::SchemaData, Query};
 use http::StatusCode;
 use warp::{http::Response as HttpResponse, Filter, Rejection};
 
