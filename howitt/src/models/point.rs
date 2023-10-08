@@ -227,6 +227,7 @@ pub fn generate_point_deltas<'a, P: Point + 'a>(
 // const LOWER_EPSILON: f64 = 0.0;
 // const UPPER_EPSILON: f64 = 0.001;
 
+#[derive(Debug, Clone, Copy)]
 pub enum UpperEpsilon {
     Attempts(usize),
     Value(f64),
@@ -234,7 +235,7 @@ pub enum UpperEpsilon {
 impl UpperEpsilon {
     fn value(&self) -> f64 {
         match self {
-            UpperEpsilon::Attempts(i) => 0.001 * (*i as f64),
+            UpperEpsilon::Attempts(i) => 0.0005 * f64::powi(2.0, *i as i32),
             UpperEpsilon::Value(x) => *x,
         }
     }
@@ -248,40 +249,63 @@ impl UpperEpsilon {
 
 pub fn simplify_linestring(
     linestring: LineString,
-    target_points: usize,
-    epsilon: Option<(f64, UpperEpsilon)>,
+    max_points: usize,
+    initial_epsilon: Option<(f64, UpperEpsilon)>,
+    oversimplified: Option<LineString>,
+    i: usize,
 ) -> LineString {
-    if linestring.coords_count() <= target_points {
+    if linestring.coords_count() <= max_points {
         return linestring;
     }
 
-    let (lower, upper) = epsilon.unwrap_or((0.0, UpperEpsilon::Attempts(1)));
+    let (lower, upper) = dbg!(initial_epsilon.unwrap_or((0.0, UpperEpsilon::Attempts(1))));
     let epsilon = (lower + upper.value()) / 2.0;
 
     let simplified = Simplify::simplify(&linestring, &epsilon);
     let count = simplified.coords_count();
 
-    if count == target_points {
+    if count == max_points {
+        // bang on target, return simplified
         simplified
-    } else if count > target_points {
-        return simplify_linestring(
+    } else if i >= 50 {
+        oversimplified.unwrap_or(simplified)
+    } else if count > max_points {
+        // too many points
+        simplify_linestring(
             linestring,
-            target_points,
+            max_points,
             Some((epsilon, upper.increment_attempts())),
-        );
+            oversimplified,
+            i + 1,
+        )
     } else {
-        return simplify_linestring(
-            linestring,
-            target_points,
-            Some((lower, UpperEpsilon::Value(epsilon))),
-        );
+        if initial_epsilon.is_some() {
+            let oversimplified = oversimplified.unwrap_or(LineString::new(vec![]));
+            let oversimplified = Some(if simplified.coords_count() > oversimplified.coords_count() {
+                simplified
+            } else {
+                oversimplified
+            });
+
+            // not enough points and we're not using the default epsilon. search our way back to the limit
+            simplify_linestring(
+                linestring,
+                max_points,
+                Some((lower, UpperEpsilon::Value(epsilon))),
+                oversimplified,
+                i + 1,
+            )
+        } else {
+            // initial epsilon was good enough to get us below the limit
+            simplified
+        }
     }
 }
 
 pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
     let linestring = LineString::from_iter(points.iter().map(|p| *p.as_geo_point()));
 
-    let simplified = simplify_linestring(linestring, target_points, None);
+    let simplified = simplify_linestring(linestring, target_points, None, None, 0);
 
     simplified
         .points()
