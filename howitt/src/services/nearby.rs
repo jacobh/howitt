@@ -77,6 +77,8 @@ pub fn nearby_routes<'a, 'b>(
     route: &'a Route,
     routes: &'b [Route],
 ) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
+    // let nearby_routes = route.sample_points.iter().flatten().map(|point| routes_near_point(point, routes));
+
     let (routes_near_start, routes_near_end) = match route.termini() {
         Some(termini) => {
             let (start, end) = termini.into_points();
@@ -90,47 +92,33 @@ pub fn nearby_routes<'a, 'b>(
     };
 
     let nearby_routes = iter::empty()
-        .chain(
-            routes_near_start
-                .into_iter()
-                .flatten()
-                .map(|nearby_route| (TerminusEnd::Start, nearby_route)),
-        )
-        .chain(
-            routes_near_end
-                .into_iter()
-                .flatten()
-                .map(|nearby_route| (TerminusEnd::End, nearby_route)),
-        )
-        .filter(|(_, (_, route2, _, _))| route.id() != route2.id());
+        .chain(routes_near_start.into_iter().flatten())
+        .chain(routes_near_end.into_iter().flatten())
+        .filter(|(_, route2, _, _)| route.id() != route2.id());
 
-    let grouped = nearby_routes.group_by(|(_, (_, route, _, _))| route.id());
+    let grouped = nearby_routes.group_by(|(_, route, _, _)| route.id());
 
     grouped
         .into_iter()
         .map(|(_, group)| {
-            group
-                .sorted_by_key(|(_, (_, _, _, delta))| delta.clone())
-                .fold(
-                    Vec::new(),
-                    |mut nearby_routes, (end, (point, route, route_point, delta))| {
-                        let is_separated =
-                            nearby_routes.iter().all(|(_, (_, _, nearby_point, _))| {
-                                let delta = PointDelta::from_points(route_point, nearby_point);
+            group.sorted_by_key(|(_, _, _, delta)| delta.clone()).fold(
+                Vec::new(),
+                |mut nearby_routes, (point, route, route_point, delta)| {
+                    let is_separated = nearby_routes.iter().all(|(_, _, nearby_point, _)| {
+                        let delta = PointDelta::from_points(route_point, nearby_point);
 
-                                delta.distance > 5000.0
-                            });
+                        delta.distance > 5000.0
+                    });
 
-                        if is_separated {
-                            nearby_routes.push((end, (point, route, route_point, delta)))
-                        }
+                    if is_separated {
+                        nearby_routes.push((point, route, route_point, delta))
+                    }
 
-                        nearby_routes
-                    },
-                )
+                    nearby_routes
+                },
+            )
         })
         .flatten()
-        .map(|(_, nearby_route)| nearby_route)
         .collect_vec()
 }
 
