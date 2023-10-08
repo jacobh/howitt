@@ -73,8 +73,24 @@ impl<P: Point> Termini<P> {
         }
     }
 
+    pub fn map_points<Q, F: Fn(P) -> Q>(self, f: F) -> Termini<Q> {
+        let Termini {
+            first_point,
+            last_point,
+        } = self;
+
+        Termini {
+            first_point: f(first_point),
+            last_point: f(last_point),
+        }
+    }
+
     pub fn points(&self) -> (&P, &P) {
         (&self.first_point, &self.last_point)
+    }
+
+    pub fn into_points(self) -> (P, P) {
+        (self.first_point, self.last_point)
     }
 
     pub fn delta(&self) -> PointDelta {

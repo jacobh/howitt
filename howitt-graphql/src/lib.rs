@@ -315,7 +315,9 @@ impl Terminus {
             .routes_near_terminus(&route_indexes, terminus.end)
             .into_iter()
             .filter_map(|(_, route, closest_point, delta)| {
-                let closest_terminus = route.termini().map(|t| t.closest_terminus(closest_point));
+                let closest_terminus = route
+                    .termini()
+                    .map(|t| t.map_points(|p| p.clone()).closest_terminus(closest_point));
 
                 if let Some(closest_terminus) = closest_terminus {
                     Some(NearbyRoute {
@@ -400,7 +402,7 @@ impl Route {
         self.0
             .as_index()
             .termini()
-            .map(|t| t.to_termini_vec())
+            .map(|t| t.map_points(|p| p.clone()).to_termini_vec())
             .unwrap_or_default()
             .into_iter()
             .map(|terminus| Terminus {

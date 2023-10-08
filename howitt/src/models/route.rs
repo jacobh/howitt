@@ -38,8 +38,6 @@ pub struct Route {
     pub external_ref: Option<ExternalRef>,
     #[serde(default)]
     pub tags: HashSet<Tag>,
-    #[serde(skip)]
-    pub termini: once_cell::sync::OnceCell<Option<Termini<ElevationPoint>>>,
 }
 
 impl Route {
@@ -56,17 +54,13 @@ impl Route {
         })
     }
 
-    pub fn termini(&self) -> Option<&Termini<ElevationPoint>> {
-        self.termini
-            .get_or_init(|| {
-                self.sample_points.as_ref().and_then(|sample_points| {
-                    match (sample_points.first(), sample_points.last()) {
-                        (Some(p1), Some(p2)) => Some(Termini::new(p1.clone(), p2.clone())),
-                        _ => None,
-                    }
-                })
-            })
-            .as_ref()
+    pub fn termini(&self) -> Option<Termini<&ElevationPoint>> {
+        self.sample_points.as_ref().and_then(|sample_points| {
+            match (sample_points.first(), sample_points.last()) {
+                (Some(p1), Some(p2)) => Some(Termini::new(p1, p2)),
+                _ => None,
+            }
+        })
     }
 
     pub fn nearby_routes<'a, 'b>(
