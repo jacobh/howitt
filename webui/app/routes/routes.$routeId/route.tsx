@@ -101,9 +101,12 @@ export default function Route(): React.ReactElement {
   const routes = useMemo(
     () =>
       [
-        data?.route,
+        data?.route ? { route: data?.route } : undefined,
         ...(data?.route?.termini ?? []).flatMap((t) =>
-          t.nearbyRoutes.map((nearby) => nearby.terminus.route)
+          t.nearbyRoutes.map((nearby) => ({
+            route: nearby.terminus.route,
+            style: "muted" as const,
+          }))
         ),
       ].filter(isNotNil),
     [data]

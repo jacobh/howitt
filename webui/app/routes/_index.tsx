@@ -47,7 +47,13 @@ export default function Index(): React.ReactElement {
         </SidebarContainer>
       </Grid2>
       <Grid2 xs={8}>
-        <Map routes={mode === "routes" ? data?.starredRoutes : undefined} />
+        <Map
+          routes={
+            mode === "routes"
+              ? data?.starredRoutes.map((route) => ({ route }))
+              : undefined
+          }
+        />
       </Grid2>
     </Grid2>
   );

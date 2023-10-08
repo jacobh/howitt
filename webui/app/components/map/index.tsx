@@ -23,8 +23,13 @@ const MapContainer = styled.div`
   height: 100vh;
 `;
 
+interface DisplayedRoute {
+  route: Pick<Route, "id" | "points">;
+  style?: "default" | "muted" | "highlighted";
+}
+
 interface MapProps {
-  routes?: Pick<Route, "id" | "points">[];
+  routes?: DisplayedRoute[];
   rides?: Pick<Ride, "id" | "points">[];
   checkpoints?: Pick<
     PointOfInterest,
@@ -119,7 +124,7 @@ export function Map({
 
     const layers = map.getLayers().getArray();
 
-    for (const route of routes ?? []) {
+    for (const { route, style } of routes ?? []) {
       console.log(route.id);
       const existingLayer = layers.find(
         (layer) => layer.getProperties().routeId === route.id
@@ -128,6 +133,8 @@ export function Map({
       if (existingLayer === undefined) {
         const lineString = new LineString(route.points);
 
+        const color = style === "muted" ? "#808080" : "#a54331";
+
         map.addLayer(
           new VectorLayer({
             source: new VectorSource({
@@ -135,18 +142,16 @@ export function Map({
             }),
             properties: { routeId: route.id },
             style: new Style({
-              stroke: new Stroke({ color: "#a54331", width: 4 }),
+              stroke: new Stroke({ color, width: 4 }),
             }),
           })
         );
       }
       if (initialView?.routeId === route.id) {
-        map
-          .getView()
-          .fit(new LineString(route.points), {
-            padding: [100, 100, 100, 100],
-            duration: 2500,
-          });
+        map.getView().fit(new LineString(route.points), {
+          padding: [100, 100, 100, 100],
+          duration: 2500,
+        });
       }
     }
 
@@ -171,14 +176,7 @@ export function Map({
         );
       }
     }
-  }, [
-    routes,
-    checkpoints,
-    map,
-    initialView,
-    hutStyle,
-    stationStyle,
-  ]);
+  }, [routes, checkpoints, map, initialView, hutStyle, stationStyle]);
 
   return <MapContainer id="map" />;
 }

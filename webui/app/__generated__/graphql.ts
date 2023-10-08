@@ -192,11 +192,17 @@ export type Terminus = {
   direction: CardinalDirection;
   distanceFromStart: Scalars["Float"]["output"];
   elevationGainFromStart?: Maybe<Scalars["Float"]["output"]>;
+  end: TerminusEnd;
   nearbyRoutes: Array<NearbyRoute>;
   point: Array<Scalars["Float"]["output"]>;
   route: Route;
   slopeEnd?: Maybe<SlopeEnd>;
 };
+
+export enum TerminusEnd {
+  End = "END",
+  Start = "START",
+}
 
 export type Viewer = {
   __typename?: "Viewer";
