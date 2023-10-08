@@ -4,43 +4,49 @@ expression: result
 ---
 (
     Terminus {
-        direction: West,
-        point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.60587,
-                    y: -37.2154,
-                },
-            ),
-            elevation: 1100.0,
-        },
-        distance_from_start: 0.0,
-        elevation: Some(
-            TerminusElevation {
-                slope_end: Downhill,
-                elevation_gain_from_start: 0.0,
+        termini: Termini {
+            first_point: ElevationPoint {
+                point: Point(
+                    Coord {
+                        x: 146.60587,
+                        y: -37.2154,
+                    },
+                ),
+                elevation: 1100.0,
             },
-        ),
+            last_point: ElevationPoint {
+                point: Point(
+                    Coord {
+                        x: 146.68021,
+                        y: -37.20515,
+                    },
+                ),
+                elevation: 1400.0,
+            },
+        },
         end: Start,
     },
     Terminus {
-        direction: East,
-        point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.68021,
-                    y: -37.20515,
-                },
-            ),
-            elevation: 1400.0,
-        },
-        distance_from_start: 6696.19,
-        elevation: Some(
-            TerminusElevation {
-                slope_end: Uphill,
-                elevation_gain_from_start: 300.0,
+        termini: Termini {
+            first_point: ElevationPoint {
+                point: Point(
+                    Coord {
+                        x: 146.60587,
+                        y: -37.2154,
+                    },
+                ),
+                elevation: 1100.0,
             },
-        ),
+            last_point: ElevationPoint {
+                point: Point(
+                    Coord {
+                        x: 146.68021,
+                        y: -37.20515,
+                    },
+                ),
+                elevation: 1400.0,
+            },
+        },
         end: End,
     },
 )
