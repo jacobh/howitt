@@ -6,7 +6,6 @@ use crate::models::{
     route::Route,
     terminus::TerminusEnd,
 };
-use either::Either;
 use geo::algorithm::haversine_distance::HaversineDistance;
 use itertools::Itertools;
 
@@ -77,10 +76,7 @@ pub type NearbyRoute<'a, 'b, P> = (&'a P, &'b Route, &'b ElevationPoint, PointDe
 pub fn nearby_routes<'a, 'b>(
     route: &'a Route,
     routes: &'b [Route],
-) -> (
-    Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
-    Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
-) {
+) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
     let (routes_near_start, routes_near_end) = match route.termini() {
         Some(termini) => {
             let (start, end) = termini.into_points();
@@ -110,7 +106,7 @@ pub fn nearby_routes<'a, 'b>(
 
     let grouped = nearby_routes.group_by(|(_, (_, route, _, _))| route.id());
 
-    let nearby_routes = grouped
+    grouped
         .into_iter()
         .map(|(_, group)| {
             group
@@ -133,12 +129,9 @@ pub fn nearby_routes<'a, 'b>(
                     },
                 )
         })
-        .flatten();
-
-    nearby_routes.partition_map(|(end, nearby_route)| match end {
-        TerminusEnd::Start => Either::Left(nearby_route),
-        TerminusEnd::End => Either::Right(nearby_route),
-    })
+        .flatten()
+        .map(|(_, nearby_route)| nearby_route)
+        .collect_vec()
 }
 
 pub fn routes_near_point<'a, 'b, P: Point>(

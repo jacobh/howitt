@@ -66,10 +66,7 @@ impl Route {
     pub fn nearby_routes<'a, 'b>(
         &'a self,
         routes: &'b [Route],
-    ) -> (
-        Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
-        Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
-    ) {
+    ) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
         nearby_routes(self, routes)
     }
 
@@ -78,10 +75,13 @@ impl Route {
         routes: &'b [Route],
         end: TerminusEnd,
     ) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
-        let (start_routes, end_routes) = self.nearby_routes(routes);
-        match end {
-            TerminusEnd::Start => start_routes,
-            TerminusEnd::End => end_routes,
+        if let Some(termini) = self.termini() {
+            self.nearby_routes(routes)
+                .into_iter()
+                .filter(|(point, _, _, _)| termini.closest_terminus(*point).end == end)
+                .collect_vec()
+        } else {
+            vec![]
         }
     }
 }
