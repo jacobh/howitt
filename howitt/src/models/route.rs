@@ -38,6 +38,8 @@ pub struct Route {
     pub external_ref: Option<ExternalRef>,
     #[serde(default)]
     pub tags: HashSet<Tag>,
+    #[serde(skip)]
+    pub termini: once_cell::sync::OnceCell<Option<Termini<ElevationPoint>>>,
 }
 
 impl Route {
@@ -54,27 +56,34 @@ impl Route {
         })
     }
 
-    pub fn termini(&self) -> Option<Termini<ElevationPoint>> {
-        self.sample_points.as_ref().and_then(|sample_points| {
-            match (sample_points.first(), sample_points.last()) {
-                (Some(p1), Some(p2)) => Some(Termini::new(p1.clone(), p2.clone())),
-                _ => None,
-            }
-        })
+    pub fn termini(&self) -> Option<&Termini<ElevationPoint>> {
+        self.termini
+            .get_or_init(|| {
+                self.sample_points.as_ref().and_then(|sample_points| {
+                    match (sample_points.first(), sample_points.last()) {
+                        (Some(p1), Some(p2)) => Some(Termini::new(p1.clone(), p2.clone())),
+                        _ => None,
+                    }
+                })
+            })
+            .as_ref()
     }
 
-    pub fn nearby_routes<'a>(
-        &self,
-        routes: &'a [Route],
-    ) -> (Vec<NearbyRoute<'a>>, Vec<NearbyRoute<'a>>) {
+    pub fn nearby_routes<'a, 'b>(
+        &'a self,
+        routes: &'b [Route],
+    ) -> (
+        Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
+        Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
+    ) {
         nearby_routes(self, routes)
     }
 
-    pub fn routes_near_terminus<'a>(
-        &self,
-        routes: &'a [Route],
+    pub fn routes_near_terminus<'a, 'b>(
+        &'a self,
+        routes: &'b [Route],
         end: TerminusEnd,
-    ) -> Vec<NearbyRoute<'a>> {
+    ) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
         let (start_routes, end_routes) = self.nearby_routes(routes);
         match end {
             TerminusEnd::Start => start_routes,

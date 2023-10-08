@@ -314,7 +314,7 @@ impl Terminus {
             .as_index()
             .routes_near_terminus(&route_indexes, terminus.end)
             .into_iter()
-            .filter_map(|(route, closest_point, delta)| {
+            .filter_map(|(_, route, closest_point, delta)| {
                 let closest_terminus = route.termini().map(|t| t.closest_terminus(closest_point));
 
                 if let Some(closest_terminus) = closest_terminus {

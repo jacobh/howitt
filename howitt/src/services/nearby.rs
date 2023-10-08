@@ -72,12 +72,15 @@ where
         .collect()
 }
 
-pub type NearbyRoute<'a> = (&'a Route, &'a ElevationPoint, PointDelta);
+pub type NearbyRoute<'a, 'b, P> = (&'a P, &'b Route, &'b ElevationPoint, PointDelta);
 
-pub fn nearby_routes<'a>(
-    route: &Route,
-    routes: &'a [Route],
-) -> (Vec<NearbyRoute<'a>>, Vec<NearbyRoute<'a>>) {
+pub fn nearby_routes<'a, 'b>(
+    route: &'a Route,
+    routes: &'b [Route],
+) -> (
+    Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
+    Vec<NearbyRoute<'a, 'b, ElevationPoint>>,
+) {
     let (routes_near_start, routes_near_end) = match &route.termini() {
         Some(termini) => {
             let (start, end) = termini.points();
@@ -103,26 +106,27 @@ pub fn nearby_routes<'a>(
                 .flatten()
                 .map(|nearby_route| (TerminusEnd::End, nearby_route)),
         )
-        .filter(|(_, (route2, _, _))| route.id() != route2.id());
+        .filter(|(_, (_, route2, _, _))| route.id() != route2.id());
 
-    let grouped = nearby_routes.group_by(|(_, (route, _, _))| route.id());
+    let grouped = nearby_routes.group_by(|(_, (_, route, _, _))| route.id());
 
     let nearby_routes = grouped
         .into_iter()
         .map(|(_, group)| {
             group
-                .sorted_by_key(|(_, (_, _, delta))| delta.clone())
+                .sorted_by_key(|(_, (_, _, _, delta))| delta.clone())
                 .fold(
                     Vec::new(),
-                    |mut nearby_routes, (end, (route, point, delta))| {
-                        let is_separated = nearby_routes.iter().all(|(_, (_, nearby_point, _))| {
-                            let delta = PointDelta::from_points(point, nearby_point);
+                    |mut nearby_routes, (end, (point, route, route_point, delta))| {
+                        let is_separated =
+                            nearby_routes.iter().all(|(_, (_, _, nearby_point, _))| {
+                                let delta = PointDelta::from_points(route_point, nearby_point);
 
-                            delta.distance > 5000.0
-                        });
+                                delta.distance > 5000.0
+                            });
 
                         if is_separated {
-                            nearby_routes.push((end, (route, point, delta)))
+                            nearby_routes.push((end, (point, route, route_point, delta)))
                         }
 
                         nearby_routes
@@ -137,10 +141,10 @@ pub fn nearby_routes<'a>(
     })
 }
 
-pub fn routes_near_point<'a, P: Point>(
-    point: &P,
-    routes: &'a [Route],
-) -> impl Iterator<Item = NearbyRoute<'a>> {
+pub fn routes_near_point<'a, 'b, P: Point>(
+    point: &'a P,
+    routes: &'b [Route],
+) -> impl Iterator<Item = NearbyRoute<'a, 'b, P>> {
     routes
         .iter()
         .flat_map(|route| {
@@ -150,10 +154,10 @@ pub fn routes_near_point<'a, P: Point>(
                 .flatten()
                 .map(move |route_point| {
                     let delta = PointDelta::from_points(point, route_point);
-                    (route, route_point, delta)
+                    (point, route, route_point, delta)
                 })
         })
-        .sorted_by_key(|(_, _, delta)| delta.clone())
-        .take_while(|(_, _, delta)| delta.distance < 25_000.0)
-        .unique_by(|(route, _, _)| route.id())
+        .sorted_by_key(|(_, _, _, delta)| delta.clone())
+        .take_while(|(_, _, _, delta)| delta.distance < 25_000.0)
+        .unique_by(|(_, route, _, _)| route.id())
 }

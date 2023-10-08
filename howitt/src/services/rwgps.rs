@@ -234,6 +234,7 @@ where
                     updated_at: route.updated_at,
                 }),
                 tags,
+                termini: Default::default(),
             },
             PointChunk::new_chunks(id, points.into_iter()),
             photos,
