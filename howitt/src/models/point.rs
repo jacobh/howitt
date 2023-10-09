@@ -1,8 +1,9 @@
 use chrono::{DateTime, TimeZone, Utc};
 use geo::{CoordsIter, GeodesicBearing, LineString, Simplify};
-use howitt_derive::Round2;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+
+use crate::services::num::Round2;
 
 use super::ModelId;
 
@@ -214,48 +215,106 @@ where
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Round2)]
-pub struct PointDelta {
-    pub distance: f64,
-    pub bearing: f64,
-    pub elevation_gain: Option<f64>,
+pub trait DeltaData: Default + Ord + Clone + Round2 {
+    type Point: Point;
+
+    fn delta(p1: &Self::Point, p2: &Self::Point) -> Self;
+
+    fn elevation_gain(&self) -> Option<&f64>;
 }
 
-impl PointDelta {
-    pub fn zero() -> PointDelta {
-        PointDelta {
-            distance: 0.0,
-            bearing: 0.0,
-            elevation_gain: None,
+impl DeltaData for () {
+    type Point = geo::Point;
+
+    fn delta(p1: &Self::Point, p2: &Self::Point) -> Self {
+        ()
+    }
+
+    fn elevation_gain(&self) -> Option<&f64> {
+        None
+    }
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Round2)]
+pub struct ElevationDelta {
+    pub elevation_gain: f64,
+}
+
+impl DeltaData for ElevationDelta {
+    type Point = ElevationPoint;
+
+    fn delta(p1: &Self::Point, p2: &Self::Point) -> Self {
+        ElevationDelta {
+            elevation_gain: p2.elevation - p1.elevation,
         }
     }
 
-    pub fn from_points<P1: Point, P2: Point>(p1: &P1, p2: &P2) -> PointDelta {
+    fn elevation_gain(&self) -> Option<&f64> {
+        Some(&self.elevation_gain)
+    }
+}
+
+impl Eq for ElevationDelta {}
+
+impl Ord for ElevationDelta {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        fn o_f(x: f64) -> ordered_float::OrderedFloat<f64> {
+            ordered_float::OrderedFloat(x)
+        }
+
+        o_f(self.elevation_gain).cmp(&o_f(other.elevation_gain))
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Round2)]
+pub struct PointDelta<T>
+where
+    T: DeltaData,
+{
+    pub distance: f64,
+    pub bearing: f64,
+    pub data: T,
+}
+
+pub type SimplePointDelta = PointDelta<ElevationDelta>;
+pub type ElevationPointDelta = PointDelta<ElevationDelta>;
+
+impl<T> PointDelta<T>
+where
+    T: DeltaData,
+{
+    pub fn zero() -> PointDelta<T> {
+        PointDelta {
+            distance: 0.0,
+            bearing: 0.0,
+            data: T::default(),
+        }
+    }
+
+    pub fn from_points(p1: &T::Point, p2: &T::Point) -> PointDelta<T> {
         let (bearing, distance) = p1
             .as_geo_point()
             .geodesic_bearing_distance(*p2.as_geo_point());
 
         let bearing = (bearing + 360.0) % 360.0;
 
-        let elevation_gain = match (p1.elevation_meters(), p2.elevation_meters()) {
-            (Some(e1), Some(e2)) => Some(e2 - e1),
-            _ => None,
-        };
-
         PointDelta {
             distance,
             bearing,
-            elevation_gain,
+            data: T::delta(p1, p2),
         }
     }
-    pub fn from_points_tuple<P: Point>((p1, p2): (&P, &P)) -> PointDelta {
+    pub fn from_points_tuple((p1, p2): (&T::Point, &T::Point)) -> PointDelta<T> {
         PointDelta::from_points(p1, p2)
     }
 }
 
-impl Eq for PointDelta {}
+impl<T> Eq for PointDelta<T> where T: DeltaData + Eq {}
 
-impl Ord for PointDelta {
+impl<T> Ord for PointDelta<T>
+where
+    T: DeltaData + Ord,
+{
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         fn o_f(x: f64) -> ordered_float::OrderedFloat<f64> {
             ordered_float::OrderedFloat(x)
@@ -263,18 +322,13 @@ impl Ord for PointDelta {
 
         o_f(self.distance)
             .cmp(&o_f(other.distance))
-            .then(
-                self.elevation_gain
-                    .map(o_f)
-                    .cmp(&other.elevation_gain.map(o_f)),
-            )
             .then(o_f(self.bearing).cmp(&o_f(other.bearing)))
     }
 }
 
-pub fn generate_point_deltas<'a, P: Point + 'a>(
-    points: impl IntoIterator<Item = &'a P>,
-) -> Vec<PointDelta> {
+pub fn generate_point_deltas<'a, T>(
+    points: impl IntoIterator<Item = &'a T::Point>,
+) -> Vec<PointDelta<T>> where T: DeltaData, <T as DeltaData>::Point: 'a {
     let mut is_points_empty = true;
 
     let deltas = points
@@ -292,13 +346,12 @@ pub fn generate_point_deltas<'a, P: Point + 'a>(
     }
 }
 
-pub fn closest_point<'a, P1, P2>(
-    point: &P1,
-    points: impl Iterator<Item = &'a P2>,
-) -> Option<(&'a P2, PointDelta)>
+pub fn closest_point<'a, T>(
+    point: &T::Point,
+    points: impl Iterator<Item = &'a T::Point>,
+) -> Option<(&'a T::Point, PointDelta<T>)>
 where
-    P1: Point,
-    P2: Point,
+    T: DeltaData,
 {
     points
         .map(|p| {
@@ -424,7 +477,7 @@ pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        models::point::{ElevationPoint, PointDelta},
+        models::point::{ElevationDelta, ElevationPoint, PointDelta},
         services::num::Round2,
     };
 
@@ -447,7 +500,9 @@ mod tests {
             PointDelta {
                 distance: 5622.13,
                 bearing: 211.02,
-                elevation_gain: Some(664.6)
+                data: ElevationDelta {
+                    elevation_gain: 664.6
+                }
             }
         )
     }

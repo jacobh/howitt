@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::{
-    point::{Point, PointDelta},
+    point::{ElevationPointDelta, Point, PointDelta},
     slope_end::SlopeEnd,
 };
 
@@ -93,7 +93,7 @@ impl<P: Point> Termini<P> {
         (self.first_point, self.last_point)
     }
 
-    pub fn delta(&self) -> PointDelta {
+    pub fn delta(&self) -> ElevationPointDelta {
         PointDelta::from_points(&self.first_point, &self.last_point)
     }
 

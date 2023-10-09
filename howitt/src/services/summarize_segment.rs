@@ -1,6 +1,9 @@
-use crate::models::{point::PointDelta, segment_summary::SegmentSummary};
+use crate::models::{
+    point::{DeltaData, PointDelta},
+    segment_summary::SegmentSummary,
+};
 
-pub fn summarize_segment(point_deltas: &[PointDelta]) -> SegmentSummary {
+pub fn summarize_segment<T: DeltaData>(point_deltas: &[PointDelta<T>]) -> SegmentSummary {
     let summary = SegmentSummary {
         distance_m: 0.0,
         elevation: None,
@@ -8,15 +11,10 @@ pub fn summarize_segment(point_deltas: &[PointDelta]) -> SegmentSummary {
 
     point_deltas.iter().fold::<SegmentSummary, _>(
         summary,
-        |mut summary,
-         PointDelta {
-             distance,
-             elevation_gain,
-             ..
-         }| {
+        |mut summary, PointDelta { distance, data, .. }| {
             summary.distance_m += distance;
 
-            if let Some(elevation_gain) = elevation_gain {
+            if let Some(elevation_gain) = data.elevation_gain() {
                 let mut elevation_summary = summary.elevation.unwrap_or_default();
 
                 if *elevation_gain > 0.0 {

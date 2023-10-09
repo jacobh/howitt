@@ -37,7 +37,7 @@ pub fn expand_round2(input: DeriveInput) -> syn::Result<TokenStream> {
         #[automatically_derived]
         impl #impl_generics #round2 for #st_name #ty_generics #where_clause {
             // #getters
-            fn round2(self) -> #st_name {
+            fn round2(self) -> Self {
                 #st_name {
                     #field_values
                 }

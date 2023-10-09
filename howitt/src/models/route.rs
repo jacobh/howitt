@@ -17,7 +17,7 @@ use crate::{
 use super::{
     external_ref::ExternallySourced,
     photo::Photo,
-    point::{generate_point_deltas, PointChunk, PointDelta},
+    point::{generate_point_deltas, ElevationPointDelta, PointChunk, PointDelta},
     route_description::RouteDescription,
     segment_summary::SegmentSummary,
     tag::Tag,
@@ -105,7 +105,7 @@ pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
     pub photos: Vec<Photo<RouteId>>,
-    point_deltas: OnceCell<Vec<PointDelta>>,
+    point_deltas: OnceCell<Vec<ElevationPointDelta>>,
     summary: OnceCell<SegmentSummary>,
 }
 impl RouteModel {
@@ -131,7 +131,7 @@ impl RouteModel {
         self.iter_elevation_points().map(|point| point.point)
     }
 
-    pub fn point_deltas(&self) -> &[PointDelta] {
+    pub fn point_deltas(&self) -> &[ElevationPointDelta] {
         self.point_deltas
             .get_or_init(|| generate_point_deltas(self.iter_elevation_points()))
             .as_slice()

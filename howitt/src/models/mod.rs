@@ -294,9 +294,7 @@ pub trait ModelId:
     fn model_name() -> &'static str;
 }
 
-#[derive(
-    derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy,
-)]
+#[derive(derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct ModelUlid<const NAME: &'static str>(ulid::Ulid);
 
 impl<const NAME: &'static str> ModelUlid<NAME> {
