@@ -24,14 +24,20 @@ where
     }
 }
 
-impl<T> Round2 for (T, T) where T: Round2 {
+impl<T> Round2 for (T, T)
+where
+    T: Round2,
+{
     fn round2(self) -> Self {
         let (a, b) = self;
         (a.round2(), b.round2())
     }
 }
 
-impl<T> Round2 for Vec<T> where T: Round2 {
+impl<T> Round2 for Vec<T>
+where
+    T: Round2,
+{
     fn round2(self) -> Self {
         self.into_iter().map(Round2::round2).collect_vec()
     }

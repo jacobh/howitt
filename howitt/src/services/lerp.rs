@@ -145,7 +145,6 @@ where
         let (lower, upper) = self.node1.frac_bounds();
         let scaling_factor = self.nodes.bounds_scaling_factor();
 
-
         (lower * scaling_factor, upper * scaling_factor)
     }
 
@@ -252,7 +251,7 @@ mod tests {
 
     use crate::services::num::Round2;
 
-    use super::{lerp_data_vec, LerpNode, LerpNodes, Lerped, Lerp, LerpData};
+    use super::{lerp_data_vec, Lerp, LerpData, LerpNode, LerpNodes, Lerped};
 
     #[test]
     fn test_lerped() {
@@ -299,20 +298,25 @@ mod tests {
             vec![(1.0, 2.0), (0.0, 0.25)],
             vec![(2.0, 3.0), (0.25, 0.5)],
             vec![(3.0, 4.0), (0.5, 0.75)],
-            vec![(4.0, 5.0), (0.75, 1.0)]
+            vec![(4.0, 5.0), (0.75, 1.0)],
         ];
 
-        assert_eq!(
-            lerp_bounds,
-            expected
-        );
+        assert_eq!(lerp_bounds, expected);
     }
 
     #[test]
     fn test_lerp_data_vec() {
-        let data_vec = vec![(5.0, 10.0, "a"), (20.0, 20.0, "b"), (40.0, 20.0, "c"), (10.0, 10.0, "d")];
+        let data_vec = vec![
+            (5.0, 10.0, "a"),
+            (20.0, 20.0, "b"),
+            (40.0, 20.0, "c"),
+            (10.0, 10.0, "d"),
+        ];
 
-        let result = lerp_data_vec(data_vec, 20).into_iter().map(|(x, y)| (x.round2(), y)).collect_vec();
+        let result = lerp_data_vec(data_vec, 20)
+            .into_iter()
+            .map(|(x, y)| (x.round2(), y))
+            .collect_vec();
 
         insta::assert_toml_snapshot!(result);
     }
