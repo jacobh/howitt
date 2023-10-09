@@ -14,7 +14,10 @@ impl Round2 for f64 {
     }
 }
 
-impl<T> Round2 for Option<T> where T: Round2 {
+impl<T> Round2 for Option<T>
+where
+    T: Round2,
+{
     fn round2(self) -> Self {
         self.map(Round2::round2)
     }

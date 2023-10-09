@@ -1,8 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-    punctuated::Punctuated,
-    Data, DataStruct, DeriveInput, FieldValue, Fields, Token, parse_quote,
+    parse_quote, punctuated::Punctuated, Data, DataStruct, DeriveInput, FieldValue, Fields, Token,
 };
 
 pub fn expand_round2(input: DeriveInput) -> syn::Result<TokenStream> {
@@ -26,7 +25,6 @@ pub fn expand_round2(input: DeriveInput) -> syn::Result<TokenStream> {
             })
         })
         .collect::<syn::Result<Vec<FieldValue>>>()?;
-
 
     let field_values = Punctuated::<FieldValue, Token![,]>::from_iter(field_values.into_iter())
         .into_token_stream();
