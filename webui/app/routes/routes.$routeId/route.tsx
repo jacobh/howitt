@@ -45,15 +45,15 @@ query RouteQuery($routeId: RouteId!) {
       caption
     }
     termini {
-      direction
+      bearing
       nearbyRoutes {
         delta {
           distance
           bearing
           elevationGain
         }
-        terminus {
-          direction
+        closestTerminus {
+          bearing
           route {
             id
             name
@@ -104,7 +104,7 @@ export default function Route(): React.ReactElement {
         data?.route ? { route: data?.route } : undefined,
         ...(data?.route?.termini ?? []).flatMap((t) =>
           t.nearbyRoutes.map((nearby) => ({
-            route: nearby.terminus.route,
+            route: nearby.closestTerminus.route,
             style: "muted" as const,
           }))
         ),
@@ -189,7 +189,7 @@ export default function Route(): React.ReactElement {
               {(data?.route?.termini ? data.route.termini : []).map(
                 (terminus) => (
                   <NearbyRoutes
-                    key={terminus.direction}
+                    key={terminus.bearing}
                     terminus={terminus}
                     nearbyRoutes={terminus.nearbyRoutes}
                   />

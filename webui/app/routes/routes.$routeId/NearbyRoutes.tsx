@@ -4,9 +4,9 @@ import { formatDistance } from "~/services/formatDistance";
 import { CardinalSubset, cardinalFromDegree } from "cardinal-direction";
 
 interface Props {
-  terminus: Pick<Terminus, "direction">;
+  terminus: Pick<Terminus, "bearing">;
   nearbyRoutes: (Pick<NearbyRoute, "delta"> & {
-    terminus: Pick<Terminus, "direction"> & {
+    closestTerminus: Pick<Terminus, "bearing"> & {
       route: Pick<Route, "id" | "name">;
     };
   })[];
@@ -18,12 +18,16 @@ export function NearbyRoutes({
 }: Props): React.ReactElement {
   return (
     <div>
-      <h3>Nearby Routes ({terminus.direction[0]})</h3>
-      {nearbyRoutes.map(({ delta, terminus: { direction, route } }) => (
+      <h3>
+        Nearby Routes (
+        {cardinalFromDegree(terminus.bearing, CardinalSubset.Ordinal)})
+      </h3>
+      {nearbyRoutes.map(({ delta, closestTerminus: { bearing, route } }) => (
         <div key={route.id}>
           <h3>
             <Link to={`/routes/${route.id.split("#")[1]}`}>
-              {route.name} ({direction[0]})
+              {route.name} (
+              {cardinalFromDegree(bearing, CardinalSubset.Ordinal)})
             </Link>
           </h3>
           <p>

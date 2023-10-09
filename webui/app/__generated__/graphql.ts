@@ -48,13 +48,6 @@ export type BikeSpec = {
   tyreWidth: Array<Scalars["Float"]["output"]>;
 };
 
-export enum CardinalDirection {
-  East = "EAST",
-  North = "NORTH",
-  South = "SOUTH",
-  West = "WEST",
-}
-
 export type Cue = {
   __typename?: "Cue";
   destination: Scalars["String"]["output"];
@@ -84,8 +77,9 @@ export type ExternalRef = {
 
 export type NearbyRoute = {
   __typename?: "NearbyRoute";
+  closestTerminus: Terminus;
+  closestTerminusDelta: PointDelta;
   delta: PointDelta;
-  terminus: Terminus;
 };
 
 export type Photo = {
@@ -170,6 +164,9 @@ export type Route = {
   photos: Array<Photo>;
   physicalDifficulty?: Maybe<DifficultyRating>;
   points: Array<Array<Scalars["Float"]["output"]>>;
+  pointsCount: Scalars["Int"]["output"];
+  samplePoints: Array<Array<Scalars["Float"]["output"]>>;
+  samplePointsCount: Scalars["Int"]["output"];
   scouted?: Maybe<Scouted>;
   technicalDifficulty?: Maybe<DifficultyRating>;
   termini: Array<Terminus>;
@@ -189,7 +186,7 @@ export enum SlopeEnd {
 
 export type Terminus = {
   __typename?: "Terminus";
-  direction: CardinalDirection;
+  bearing: Scalars["Float"]["output"];
   distanceFromStart: Scalars["Float"]["output"];
   elevationGainFromStart?: Maybe<Scalars["Float"]["output"]>;
   end: TerminusEnd;
@@ -262,7 +259,7 @@ export type RouteQueryQuery = {
     }>;
     termini: Array<{
       __typename?: "Terminus";
-      direction: CardinalDirection;
+      bearing: number;
       nearbyRoutes: Array<{
         __typename?: "NearbyRoute";
         delta: {
@@ -271,9 +268,9 @@ export type RouteQueryQuery = {
           bearing: number;
           elevationGain?: number | null;
         };
-        terminus: {
+        closestTerminus: {
           __typename?: "Terminus";
-          direction: CardinalDirection;
+          bearing: number;
           route: {
             __typename?: "Route";
             id: any;
@@ -458,7 +455,7 @@ export const RouteQueryDocument = {
                     selections: [
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "direction" },
+                        name: { kind: "Name", value: "bearing" },
                       },
                       {
                         kind: "Field",
@@ -492,13 +489,13 @@ export const RouteQueryDocument = {
                             },
                             {
                               kind: "Field",
-                              name: { kind: "Name", value: "terminus" },
+                              name: { kind: "Name", value: "closestTerminus" },
                               selectionSet: {
                                 kind: "SelectionSet",
                                 selections: [
                                   {
                                     kind: "Field",
-                                    name: { kind: "Name", value: "direction" },
+                                    name: { kind: "Name", value: "bearing" },
                                   },
                                   {
                                     kind: "Field",
