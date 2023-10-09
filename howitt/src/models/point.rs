@@ -1,9 +1,8 @@
 use chrono::{DateTime, TimeZone, Utc};
 use geo::{CoordsIter, GeodesicBearing, LineString, Simplify};
+use howitt_derive::Round2;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-
-use crate::services::num::round2;
 
 use super::ModelId;
 
@@ -215,7 +214,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Round2)]
 pub struct PointDelta {
     pub distance: f64,
     pub bearing: f64,
@@ -251,20 +250,6 @@ impl PointDelta {
     }
     pub fn from_points_tuple<P: Point>((p1, p2): (&P, &P)) -> PointDelta {
         PointDelta::from_points(p1, p2)
-    }
-
-    pub fn round2(self) -> PointDelta {
-        let PointDelta {
-            distance,
-            bearing,
-            elevation_gain,
-        } = self;
-
-        PointDelta {
-            distance: round2(distance),
-            bearing: round2(bearing),
-            elevation_gain: elevation_gain.map(round2),
-        }
     }
 }
 
@@ -425,7 +410,7 @@ pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
 
 #[cfg(test)]
 mod tests {
-    use crate::models::point::{ElevationPoint, PointDelta};
+    use crate::{models::point::{ElevationPoint, PointDelta}, services::num::Round2};
 
     #[test]
     fn test_delta_basic() {

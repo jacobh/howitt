@@ -4,6 +4,8 @@
 #![feature(async_fn_in_trait)]
 #![feature(exclusive_range_pattern)]
 
+extern crate self as howitt;
+
 pub mod ext;
 pub mod models;
 pub mod repos;

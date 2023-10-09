@@ -2,6 +2,7 @@
 
 members = [
     "howitt",
+    "howitt_derive",
     "howitt-cli",
     "howitt-dynamo",
     "howitt-fs",

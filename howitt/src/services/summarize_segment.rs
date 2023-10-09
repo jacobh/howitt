@@ -36,6 +36,7 @@ pub fn summarize_segment(point_deltas: &[PointDelta]) -> SegmentSummary {
 #[cfg(test)]
 mod tests {
     use crate::models::point::{generate_point_deltas, ElevationPoint};
+    use crate::services::num::Round2;
 
     use super::*;
 

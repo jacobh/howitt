@@ -21,6 +21,7 @@ bincode = "*"
 snap = "1"
 ulid = { version = "1", features = ["serde"] }
 md5 = "*"
+howitt_derive = { path = "../howitt_derive" }
 rwgps_types = { path = "../rwgps-types" }
 futures = "*"
 ordered-float = "*"
