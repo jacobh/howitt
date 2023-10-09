@@ -126,27 +126,35 @@ export function Map({
 
     for (const { route, style } of routes ?? []) {
       console.log(route.id);
-      const existingLayer = layers.find(
+      const existingLayer = layers.filter((x): x is VectorLayer<any> => x instanceof VectorLayer).find(
         (layer) => layer.getProperties().routeId === route.id
       );
+      let layer: VectorLayer<any>;
 
       if (existingLayer === undefined) {
         const lineString = new LineString(route.points);
 
-        const color = style === "muted" ? "#808080" : "#a54331";
+        layer = new VectorLayer({
+          source: new VectorSource({
+            features: [new Feature(lineString)],
+          }),
+          properties: { routeId: route.id },
+        });
 
         map.addLayer(
-          new VectorLayer({
-            source: new VectorSource({
-              features: [new Feature(lineString)],
-            }),
-            properties: { routeId: route.id },
-            style: new Style({
-              stroke: new Stroke({ color, width: 4 }),
-            }),
-          })
+          layer
         );
+      } else {
+        layer = existingLayer;
       }
+
+      const color = style === "muted" ? "#808080" : "#a54331";
+
+      layer.setStyle(new Style({
+        stroke: new Stroke({ color, width: 4 }),
+      }));
+
+
       if (initialView?.routeId === route.id) {
         map.getView().fit(new LineString(route.points), {
           padding: [100, 100, 100, 100],
