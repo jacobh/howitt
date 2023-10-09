@@ -208,7 +208,7 @@ impl<T: Lerp + Clone> LerpNodes<T> {
     }
 
     fn value(&self, frac: f64) -> T {
-        if self.nodes.len() == 0 {
+        if self.nodes.is_empty() {
             panic!()
         }
 

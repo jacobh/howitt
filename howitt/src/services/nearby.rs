@@ -1,10 +1,9 @@
 use std::{borrow::Cow, iter};
 
 use crate::models::{
-    point::{ElevationPoint, Point, PointDelta},
+    point::{closest_point, ElevationPoint, Point, PointDelta},
     point_of_interest::PointOfInterest,
     route::Route,
-    terminus::TerminusEnd,
 };
 use geo::algorithm::haversine_distance::HaversineDistance;
 use itertools::Itertools;
@@ -100,7 +99,7 @@ pub fn nearby_routes<'a, 'b>(
 
     grouped
         .into_iter()
-        .map(|(_, group)| {
+        .flat_map(|(_, group)| {
             group.sorted_by_key(|(_, _, _, delta)| delta.clone()).fold(
                 Vec::new(),
                 |mut nearby_routes, (point, route, route_point, delta)| {
@@ -118,7 +117,6 @@ pub fn nearby_routes<'a, 'b>(
                 },
             )
         })
-        .flatten()
         .collect_vec()
 }
 
@@ -128,17 +126,9 @@ pub fn routes_near_point<'a, 'b, P: Point>(
 ) -> impl Iterator<Item = NearbyRoute<'a, 'b, P>> {
     routes
         .iter()
-        .flat_map(|route| {
-            route
-                .sample_points
-                .iter()
-                .flatten()
-                .map(move |route_point| {
-                    let delta = PointDelta::from_points(point, route_point);
-                    (point, route, route_point, delta)
-                })
+        .flat_map(move |route| {
+            closest_point(point, route.sample_points.iter().flatten())
+                .map(|(route_point, delta)| (point, route, route_point, delta))
         })
-        .sorted_by_key(|(_, _, _, delta)| delta.clone())
-        .take_while(|(_, _, _, delta)| delta.distance < 25_000.0)
-        .unique_by(|(_, route, _, _)| route.id())
+        .filter(|(_, _, _, delta)| delta.distance < 25_000.0)
 }

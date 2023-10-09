@@ -347,7 +347,7 @@ impl<'de, const NAME: &'static str> Deserialize<'de> for ModelUlid<NAME> {
         D: serde::Deserializer<'de>,
     {
         let model_id: String = Deserialize::deserialize(deserializer)?;
-        let parts = model_id.split("#").collect::<Vec<_>>();
+        let parts = model_id.split('#').collect::<Vec<_>>();
 
         if parts.len() != 2 {
             return Err(serde::de::Error::custom("expected 2 parts"));

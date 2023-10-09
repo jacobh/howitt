@@ -292,6 +292,22 @@ pub fn generate_point_deltas<'a, P: Point + 'a>(
     }
 }
 
+pub fn closest_point<'a, P1, P2>(
+    point: &P1,
+    points: impl Iterator<Item = &'a P2>,
+) -> Option<(&'a P2, PointDelta)>
+where
+    P1: Point,
+    P2: Point,
+{
+    points
+        .map(|p| {
+            let delta = PointDelta::from_points(point, p);
+            (p, delta)
+        })
+        .min_by_key(|(_, delta)| delta.clone())
+}
+
 // const LOWER_EPSILON: f64 = 0.0;
 // const UPPER_EPSILON: f64 = 0.001;
 
@@ -367,31 +383,29 @@ pub fn simplify_linestring(
                 i: i + 1,
             }),
         )
-    } else {
-        if i > 0 {
-            let oversimplified = oversimplified.unwrap_or(LineString::new(vec![]));
-            let oversimplified = Some(
-                if simplified.coords_count() > oversimplified.coords_count() {
-                    simplified
-                } else {
-                    oversimplified
-                },
-            );
+    } else if i > 0 {
+        let oversimplified = oversimplified.unwrap_or(LineString::new(vec![]));
+        let oversimplified = Some(
+            if simplified.coords_count() > oversimplified.coords_count() {
+                simplified
+            } else {
+                oversimplified
+            },
+        );
 
-            // not enough points and we're not using the default epsilon. search our way back to the limit
-            simplify_linestring(
-                linestring,
-                max_points,
-                Some(SimplifyState {
-                    epsilon: (lower, Some(epsilon)),
-                    i: i + 1,
-                    oversimplified,
-                }),
-            )
-        } else {
-            // initial epsilon was good enough to get us below the limit
-            simplified
-        }
+        // not enough points and we're not using the default epsilon. search our way back to the limit
+        simplify_linestring(
+            linestring,
+            max_points,
+            Some(SimplifyState {
+                epsilon: (lower, Some(epsilon)),
+                i: i + 1,
+                oversimplified,
+            }),
+        )
+    } else {
+        // initial epsilon was good enough to get us below the limit
+        simplified
     }
 }
 
@@ -402,8 +416,7 @@ pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
 
     simplified
         .points()
-        .map(|point| points.iter().find(|p| p.as_geo_point() == &point))
-        .flatten()
+        .filter_map(|point| points.iter().find(|p| p.as_geo_point() == &point))
         .cloned()
         .collect()
 }
