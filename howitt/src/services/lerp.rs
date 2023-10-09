@@ -126,6 +126,7 @@ where
 
 #[derive(Debug, derive_more::Constructor)]
 struct LerpNodeRefWindow<'a, T: Lerp> {
+    nodes: &'a LerpNodes<T>,
     node1: LerpNodeRef<'a, T>,
     node2: LerpNodeRef<'a, T>,
 }
@@ -135,19 +136,17 @@ where
     T: Lerp,
 {
     fn as_lerps(&self) -> (&T, &T) {
-        let LerpNodeRefWindow { node1, node2 } = self;
+        let LerpNodeRefWindow { node1, node2, .. } = self;
 
         (node1.as_lerp(), node2.as_lerp())
     }
 
     fn bounds(&self) -> (f64, f64) {
-        let (lower1, upper1) = self.node1.frac_bounds();
-        let (lower2, upper2) = self.node2.frac_bounds();
+        let (lower, upper) = self.node1.frac_bounds();
+        let scaling_factor = self.nodes.bounds_scaling_factor();
 
-        let lower = f64::min(lower1, lower2);
-        let upper = f64::max(upper1, upper2);
 
-        (lower, upper)
+        (lower * scaling_factor, upper * scaling_factor)
     }
 
     fn contains_frac(&self, frac: f64) -> bool {
@@ -198,7 +197,15 @@ impl<T: Lerp + Clone> LerpNodes<T> {
     fn node_windows(&self) -> impl Iterator<Item = LerpNodeRefWindow<'_, T>> {
         self.node_refs()
             .tuple_windows()
-            .map(|(ref1, ref2)| LerpNodeRefWindow::new(ref1, ref2))
+            .map(|(ref1, ref2)| LerpNodeRefWindow::new(self, ref1, ref2))
+    }
+
+    fn bounds_scaling_factor(&self) -> f64 {
+        let last_node = self.node_refs().last().unwrap();
+
+        let (lower, _) = last_node.frac_bounds();
+
+        1.0 / lower
     }
 
     fn value(&self, frac: f64) -> T {
@@ -243,9 +250,9 @@ pub fn lerp_data_vec<T: Lerp + Clone, U: std::fmt::Debug + Clone>(
 mod tests {
     use itertools::Itertools;
 
-    use crate::services::lerp::{Lerp, LerpData};
+    use crate::services::num::Round2;
 
-    use super::{lerp_data_vec, LerpNode, LerpNodes, Lerped};
+    use super::{lerp_data_vec, LerpNode, LerpNodes, Lerped, Lerp, LerpData};
 
     #[test]
     fn test_lerped() {
@@ -284,7 +291,7 @@ mod tests {
             .map(|window| {
                 let (a, b) = window.as_lerps();
                 let bounds = window.bounds();
-                vec![(*a, *b), bounds]
+                vec![(*a, *b), bounds].round2()
             })
             .collect_vec();
 
@@ -301,68 +308,12 @@ mod tests {
         );
     }
 
-    // #[test]
+    #[test]
     fn test_lerp_data_vec() {
-        let data_vec = vec![(5.0, 10.0, "a"), (20.0, 30.0, "b"), (10.0, 20.0, "c")];
+        let data_vec = vec![(5.0, 10.0, "a"), (20.0, 20.0, "b"), (40.0, 20.0, "c"), (10.0, 10.0, "d")];
 
-        let result = lerp_data_vec(data_vec, 50);
+        let result = lerp_data_vec(data_vec, 20).into_iter().map(|(x, y)| (x.round2(), y)).collect_vec();
 
-        assert_eq!(
-            result,
-            vec![
-                (5.0, "a"),
-                (5.45, "a"),
-                (5.9, "a"),
-                (6.35, "a"),
-                (6.8, "a"),
-                (7.25, "a"),
-                (7.700000000000001, "a"),
-                (8.150000000000002, "a"),
-                (8.600000000000001, "a"),
-                (9.05, "a"),
-                (9.5, "a"),
-                (9.95, "a"),
-                (10.399999999999999, "a"),
-                (10.850000000000001, "a"),
-                (11.3, "a"),
-                (11.75, "a"),
-                (12.2, "a"),
-                (12.65, "b"),
-                (13.100000000000001, "b"),
-                (13.55, "b"),
-                (14.000000000000002, "b"),
-                (14.45, "b"),
-                (14.9, "b"),
-                (15.350000000000001, "b"),
-                (15.799999999999999, "b"),
-                (16.25, "b"),
-                (16.700000000000003, "b"),
-                (17.15, "b"),
-                (17.6, "b"),
-                (18.05, "b"),
-                (18.5, "b"),
-                (18.950000000000003, "b"),
-                (19.4, "b"),
-                // this is weird. shouldn't jump like this
-                (19.85, "b"),
-                (13.84, "c"),
-                //
-                (13.600000000000001, "c"),
-                (13.360000000000001, "c"),
-                (13.120000000000001, "c"),
-                (12.88, "c"),
-                (12.64, "c"),
-                (12.4, "c"),
-                (12.16, "c"),
-                (11.92, "c"),
-                (11.68, "c"),
-                (11.44, "c"),
-                (11.2, "c"),
-                (10.959999999999999, "c"),
-                (10.72, "c"),
-                (10.48, "c"),
-                (10.24, "c")
-            ]
-        )
+        insta::assert_toml_snapshot!(result);
     }
 }
