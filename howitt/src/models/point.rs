@@ -234,7 +234,7 @@ impl PointDelta {
             .as_geo_point()
             .geodesic_bearing_distance(*p2.as_geo_point());
 
-        let bearing = bearing % 360.0;
+        let bearing = (bearing + 360.0) % 360.0;
 
         let elevation_gain = match (p1.elevation_meters(), p2.elevation_meters()) {
             (Some(e1), Some(e2)) => Some(e2 - e1),
@@ -249,6 +249,24 @@ impl PointDelta {
     }
     pub fn from_points_tuple<P: Point>((p1, p2): (&P, &P)) -> PointDelta {
         PointDelta::from_points(p1, p2)
+    }
+
+    pub fn round2(self) -> PointDelta {
+        fn round2(x: f64) -> f64 {
+            f64::round(x * 100.0) / 100.0
+        }
+
+        let PointDelta {
+            distance,
+            bearing,
+            elevation_gain,
+        } = self;
+
+        PointDelta {
+            distance: round2(distance),
+            bearing: round2(bearing),
+            elevation_gain: elevation_gain.map(round2),
+        }
     }
 }
 
@@ -405,4 +423,33 @@ pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
         .flatten()
         .cloned()
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::models::point::{ElevationPoint, PointDelta};
+
+    #[test]
+    fn test_delta_basic() {
+        let p1 = ElevationPoint {
+            point: geo::Point::new(146.55653, -37.1722),
+            elevation: 831.1,
+        };
+
+        let p2 = ElevationPoint {
+            point: geo::Point::new(146.52389, -37.21561),
+            elevation: 1495.7,
+        };
+
+        let delta = PointDelta::from_points(&p1, &p2);
+
+        assert_eq!(
+            delta.round2(),
+            PointDelta {
+                distance: 5622.13,
+                bearing: 211.02,
+                elevation_gain: Some(664.6)
+            }
+        )
+    }
 }
