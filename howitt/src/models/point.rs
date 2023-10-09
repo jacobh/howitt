@@ -3,6 +3,8 @@ use geo::{CoordsIter, GeodesicBearing, LineString, Simplify};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
+use crate::services::num::round2;
+
 use super::ModelId;
 
 pub trait Point: std::fmt::Debug + Clone {
@@ -252,10 +254,6 @@ impl PointDelta {
     }
 
     pub fn round2(self) -> PointDelta {
-        fn round2(x: f64) -> f64 {
-            f64::round(x * 100.0) / 100.0
-        }
-
         let PointDelta {
             distance,
             bearing,

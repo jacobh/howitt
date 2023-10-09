@@ -6,7 +6,7 @@ pub fn summarize_segment(point_deltas: &[PointDelta]) -> SegmentSummary {
         elevation: None,
     };
 
-    let summary = point_deltas.iter().fold::<SegmentSummary, _>(
+    point_deltas.iter().fold::<SegmentSummary, _>(
         summary,
         |mut summary,
          PointDelta {
@@ -30,12 +30,7 @@ pub fn summarize_segment(point_deltas: &[PointDelta]) -> SegmentSummary {
 
             summary
         },
-    );
-
-    SegmentSummary {
-        distance_m: f64::round(summary.distance_m * 100.0) / 100.0,
-        ..summary
-    }
+    )
 }
 
 #[cfg(test)]
@@ -57,6 +52,6 @@ mod tests {
 
         let result = summarize_segment(&generate_point_deltas(&[point1.clone(), point2.clone()]));
 
-        insta::assert_debug_snapshot!(result);
+        insta::assert_debug_snapshot!(result.round2());
     }
 }
