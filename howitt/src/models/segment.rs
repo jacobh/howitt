@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::point_of_interest::PointOfInterest;
 
-crate::model_id!(SegmentId, "SEGMENT");
+use super::ModelUlid;
+
+pub type SegmentId = ModelUlid<"SEGMENT">;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Segment {

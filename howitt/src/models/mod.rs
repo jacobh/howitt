@@ -294,83 +294,78 @@ pub trait ModelId:
     fn model_name() -> &'static str;
 }
 
-#[macro_export]
-macro_rules! model_id {
-    ($type_name:ident, $model_name:expr) => {
-        #[derive(
-            Debug, Default, derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy,
-        )]
-        pub struct $type_name(ulid::Ulid);
+#[derive(
+    Debug, Default, derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy,
+)]
+pub struct ModelUlid<const NAME: &'static str>(ulid::Ulid);
 
-        impl $type_name {
-            pub fn new() -> $type_name {
-                $type_name(ulid::Ulid::new())
-            }
-            pub fn as_ulid(&self) -> &ulid::Ulid {
-                &self.0
-            }
-            pub fn from_datetime(datetime: chrono::DateTime<chrono::Utc>) -> $type_name {
-                $type_name(ulid::Ulid::from_datetime(datetime.into()))
-            }
-            pub fn get_or_from_datetime(
-                id: Option<$type_name>,
-                datetime: &chrono::DateTime<chrono::Utc>,
-            ) -> $type_name {
-                match id {
-                    Some(id) => id,
-                    None => $type_name::from_datetime(*datetime),
-                }
-            }
+impl<const NAME: &'static str> ModelUlid<NAME> {
+    pub fn new() -> ModelUlid<NAME> {
+        ModelUlid::<NAME>(ulid::Ulid::new())
+    }
+    pub fn as_ulid(&self) -> &ulid::Ulid {
+        &self.0
+    }
+    pub fn from_datetime(datetime: chrono::DateTime<chrono::Utc>) -> ModelUlid<NAME> {
+        ModelUlid::<NAME>(ulid::Ulid::from_datetime(datetime.into()))
+    }
+    pub fn get_or_from_datetime(
+        id: Option<ModelUlid<NAME>>,
+        datetime: &chrono::DateTime<chrono::Utc>,
+    ) -> ModelUlid<NAME> {
+        match id {
+            Some(id) => id,
+            None => ModelUlid::<NAME>::from_datetime(*datetime),
+        }
+    }
+}
+
+impl<const NAME: &'static str> ModelId for ModelUlid<NAME> {
+    fn model_name() -> &'static str {
+        NAME
+    }
+}
+
+impl<const NAME: &'static str> std::fmt::Display for ModelUlid<NAME> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}#{}", NAME, self.0)
+    }
+}
+
+impl<const NAME: &'static str> Serialize for ModelUlid<NAME> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_string().serialize(serializer)
+    }
+}
+
+impl<'de, const NAME: &'static str> Deserialize<'de> for ModelUlid<NAME> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let model_id: String = Deserialize::deserialize(deserializer)?;
+        let parts = model_id.split("#").collect::<Vec<_>>();
+
+        if parts.len() != 2 {
+            return Err(serde::de::Error::custom("expected 2 parts"));
         }
 
-        impl $crate::models::ModelId for $type_name {
-            fn model_name() -> &'static str {
-                $model_name
-            }
+        let name = parts[0];
+        let id = parts[1];
+
+        if name != NAME {
+            return Err(serde::de::Error::custom(
+                "model name component of ID did not match",
+            ));
         }
 
-        impl std::fmt::Display for $type_name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}#{}", $model_name, self.0)
-            }
-        }
-
-        impl Serialize for $type_name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                self.to_string().serialize(serializer)
-            }
-        }
-
-        impl<'de> Deserialize<'de> for $type_name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                let model_id: String = Deserialize::deserialize(deserializer)?;
-                let parts = model_id.split("#").collect::<Vec<_>>();
-
-                if (parts.len() != 2) {
-                    return Err(serde::de::Error::custom("expected 2 parts"));
-                }
-
-                let name = parts[0];
-                let id = parts[1];
-
-                if (name != $model_name) {
-                    return Err(serde::de::Error::custom(
-                        "model name component of ID did not match",
-                    ));
-                }
-
-                std::str::FromStr::from_str(id)
-                    .map($type_name)
-                    .map_err(serde::de::Error::custom)
-            }
-        }
-    };
+        std::str::FromStr::from_str(id)
+            .map(ModelUlid::<NAME>)
+            .map_err(serde::de::Error::custom)
+    }
 }
 
 #[cfg(test)]

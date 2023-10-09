@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use crate::ext::ulid::generate_ulid;
 
-use super::IndexModel;
+use super::{IndexModel, ModelUlid};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -44,7 +44,7 @@ impl Display for PointOfInterestType {
     }
 }
 
-crate::model_id!(PointOfInterestId, "CHECKPOINT");
+pub type PointOfInterestId = ModelUlid<"CHECKPOINT">;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PointOfInterest {

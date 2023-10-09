@@ -3,6 +3,7 @@
 #![feature(async_closure)]
 #![feature(async_fn_in_trait)]
 #![feature(exclusive_range_pattern)]
+#![feature(adt_const_params)]
 
 extern crate self as howitt;
 

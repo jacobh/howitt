@@ -22,10 +22,10 @@ use super::{
     segment_summary::SegmentSummary,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
-    IndexItem,
+    IndexItem, ModelUlid,
 };
 
-crate::model_id!(RouteId, "ROUTE");
+pub type RouteId = ModelUlid<"ROUTE">;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Route {
@@ -43,7 +43,7 @@ pub struct Route {
 impl Route {
     pub fn id(&self) -> RouteId {
         match self.id {
-            Either::Left(ulid) => RouteId(ulid),
+            Either::Left(ulid) => RouteId::from(ulid),
             Either::Right(route_id) => route_id,
         }
     }

@@ -410,7 +410,10 @@ pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{models::point::{ElevationPoint, PointDelta}, services::num::Round2};
+    use crate::{
+        models::point::{ElevationPoint, PointDelta},
+        services::num::Round2,
+    };
 
     #[test]
     fn test_delta_basic() {
