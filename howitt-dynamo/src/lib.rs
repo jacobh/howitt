@@ -1,5 +1,6 @@
 #![feature(async_closure)]
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::sync::Arc;
 
 use anyhow::anyhow;
@@ -269,14 +270,29 @@ pub enum DynamoRepoError {
     NotFound,
 }
 
-#[async_trait::async_trait]
-pub trait DynamoModelRepo: Send + Sync {
-    type Model: Model;
+#[derive(Debug, Clone)]
+pub struct DynamoModelRepo<M: Model> {
+    client: SingleTableClient,
+    model: PhantomData<M>,
+}
 
-    fn client(&self) -> &SingleTableClient;
+impl<M> DynamoModelRepo<M>
+where
+    M: Model,
+{
+    pub fn new(client: SingleTableClient) -> DynamoModelRepo<M> {
+        DynamoModelRepo {
+            client,
+            model: PhantomData,
+        }
+    }
 
-    fn keys(item: &ItemCow<'_, Self::Model>) -> Keys {
-        let model_name = Self::Model::model_name().to_string();
+    fn client(&self) -> &SingleTableClient {
+        &self.client
+    }
+
+    fn keys(item: &ItemCow<'_, M>) -> Keys {
+        let model_name = M::model_name().to_string();
         let model_id = item.model_id().to_string();
         let item_name = item.item_name();
         let item_id = item.item_id();
@@ -300,14 +316,31 @@ pub trait DynamoModelRepo: Send + Sync {
             ])),
         }
     }
+}
 
-    async fn get_model(
-        &self,
-        model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
-    ) -> Result<Self::Model, DynamoRepoError> {
+#[async_trait::async_trait]
+impl<M> Repo for DynamoModelRepo<M>
+where
+    M: Model,
+{
+    type Model = M;
+    type Error = DynamoRepoError;
+
+    async fn all_indexes(&self) -> Result<Vec<M::IndexItem>, DynamoRepoError> {
         let items = self
             .client()
-            .query_pk(model_id.to_string(), Index::Default)
+            .query_pk(["", M::model_name()].join("#"), Index::Gsi1)
+            .await?;
+
+        Ok(items
+            .into_iter()
+            .map(serde_dynamo::from_item)
+            .collect::<Result<Vec<_>, _>>()?)
+    }
+    async fn get(&self, id: M::Id) -> Result<M, DynamoRepoError> {
+        let items = self
+            .client()
+            .query_pk(id.to_string(), Index::Default)
             .await?;
 
         if items.is_empty() {
@@ -316,25 +349,20 @@ pub trait DynamoModelRepo: Send + Sync {
 
         let items = items
             .into_iter()
-            .map(serde_dynamo::from_item::<_, ItemCow<'static, Self::Model>>)
+            .map(serde_dynamo::from_item::<_, ItemCow<'static, M>>)
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(Self::Model::from_items(items).map_err(DynamoRepoError::ModelFromItems)?)
+        Ok(M::from_items(items).map_err(DynamoRepoError::ModelFromItems)?)
     }
-
-    async fn get_index(
-        &self,
-        model_id: <<Self as DynamoModelRepo>::Model as Model>::Id,
-    ) -> Result<<<Self as DynamoModelRepo>::Model as Model>::IndexItem, DynamoRepoError> {
-        let item = self.client().get(Keys::from_model_id(model_id)).await?;
+    async fn get_index(&self, id: M::Id) -> Result<M::IndexItem, DynamoRepoError> {
+        let item = self.client().get(Keys::from_model_id(id)).await?;
 
         match item {
             Some(item) => Ok(serde_dynamo::from_item(item)?),
             None => Err(DynamoRepoError::NotFound),
         }
     }
-
-    async fn put(&self, model: Self::Model) -> Result<(), DynamoRepoError> {
+    async fn put(&self, model: M) -> Result<(), DynamoRepoError> {
         let items = model.into_items().into_iter().collect::<Vec<_>>();
 
         items
@@ -352,65 +380,10 @@ pub trait DynamoModelRepo: Send + Sync {
 
         Ok(())
     }
-
-    async fn all_indexes(&self) -> Result<Vec<<Self::Model as Model>::IndexItem>, DynamoRepoError> {
-        let items = self
-            .client()
-            .query_pk(["", Self::Model::model_name()].join("#"), Index::Gsi1)
-            .await?;
-
-        Ok(items
-            .into_iter()
-            .map(serde_dynamo::from_item)
-            .collect::<Result<Vec<_>, _>>()?)
-    }
 }
 
-macro_rules! impl_repo {
-    ($repo_type:ident, $model_type:ident) => {
-        #[derive(Debug, Constructor, Clone)]
-        pub struct $repo_type {
-            client: SingleTableClient,
-        }
-        impl DynamoModelRepo for $repo_type {
-            type Model = $model_type;
-
-            fn client(&self) -> &SingleTableClient {
-                &self.client
-            }
-        }
-
-        #[async_trait::async_trait]
-        impl Repo for $repo_type {
-            type Model = $model_type;
-            type Error = DynamoRepoError;
-
-            async fn all_indexes(
-                &self,
-            ) -> Result<Vec<<$model_type as Model>::IndexItem>, DynamoRepoError> {
-                DynamoModelRepo::all_indexes(self).await
-            }
-            async fn get(
-                &self,
-                id: <$model_type as Model>::Id,
-            ) -> Result<$model_type, DynamoRepoError> {
-                DynamoModelRepo::get_model(self, id).await
-            }
-            async fn get_index(
-                &self,
-                id: <$model_type as Model>::Id,
-            ) -> Result<<$model_type as Model>::IndexItem, DynamoRepoError> {
-                DynamoModelRepo::get_index(self, id).await
-            }
-            async fn put(&self, model: $model_type) -> Result<(), DynamoRepoError> {
-                DynamoModelRepo::put(self, model).await
-            }
-        }
-    };
-}
-
-impl_repo!(PointOfInterestRepo, PointOfInterest);
-impl_repo!(RideRepo, RideModel);
-impl_repo!(RouteModelRepo, RouteModel);
-impl_repo!(RideModelRepo, RideModel);
-impl_repo!(ConfigRepo, Config);
+pub type PointOfInterestRepo = DynamoModelRepo<PointOfInterest>;
+pub type RideRepo = DynamoModelRepo<RideModel>;
+pub type RouteModelRepo = DynamoModelRepo<RouteModel>;
+pub type RideModelRepo = DynamoModelRepo<RideModel>;
+pub type ConfigRepo = DynamoModelRepo<Config>;
