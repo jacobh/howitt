@@ -295,7 +295,7 @@ pub trait ModelId:
 }
 
 #[derive(
-    Debug, Default, derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy,
+    derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy,
 )]
 pub struct ModelUlid<const NAME: &'static str>(ulid::Ulid);
 
@@ -323,6 +323,12 @@ impl<const NAME: &'static str> ModelUlid<NAME> {
 impl<const NAME: &'static str> ModelId for ModelUlid<NAME> {
     fn model_name() -> &'static str {
         NAME
+    }
+}
+
+impl<const NAME: &'static str> std::fmt::Debug for ModelUlid<NAME> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}#{}", NAME, self.0)
     }
 }
 
