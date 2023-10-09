@@ -90,6 +90,90 @@ struct LerpNode<T: Lerp> {
     size: f64,
 }
 
+#[derive(Debug, Clone, derive_more::Constructor)]
+struct LerpNodeRef<'a, T: Lerp> {
+    idx: usize,
+    node: &'a LerpNode<T>,
+    nodes: &'a LerpNodes<T>,
+}
+
+impl<'a, T> LerpNodeRef<'a, T>
+where
+    T: Lerp,
+{
+    fn as_lerp(&self) -> &T {
+        &self.node.lerp
+    }
+
+    fn frac_delta(&self) -> f64 {
+        self.node.size / self.nodes.size()
+    }
+
+    fn frac_start(&self) -> f64 {
+        self.nodes
+            .node_refs()
+            .take_while(|node_ref| node_ref.idx != self.idx)
+            .map(|node_ref| node_ref.frac_delta())
+            .sum()
+    }
+
+    fn frac_bounds(&self) -> (f64, f64) {
+        let start = self.frac_start();
+
+        (start, start + self.frac_delta())
+    }
+}
+
+#[derive(Debug, derive_more::Constructor)]
+struct LerpNodeRefWindow<'a, T: Lerp> {
+    node1: LerpNodeRef<'a, T>,
+    node2: LerpNodeRef<'a, T>,
+}
+
+impl<'a, T> LerpNodeRefWindow<'a, T>
+where
+    T: Lerp,
+{
+    fn as_lerps(&self) -> (&T, &T) {
+        let LerpNodeRefWindow { node1, node2 } = self;
+
+        (node1.as_lerp(), node2.as_lerp())
+    }
+
+    fn bounds(&self) -> (f64, f64) {
+        let (lower1, upper1) = self.node1.frac_bounds();
+        let (lower2, upper2) = self.node2.frac_bounds();
+
+        let lower = f64::min(lower1, lower2);
+        let upper = f64::max(upper1, upper2);
+
+        (lower, upper)
+    }
+
+    fn contains_frac(&self, frac: f64) -> bool {
+        let (lower, upper) = self.bounds();
+
+        frac >= lower && frac <= upper
+    }
+
+    fn internodal_frac(&self, frac: f64) -> Result<f64, ()> {
+        let (lower, upper) = self.bounds();
+
+        if self.contains_frac(frac) {
+            Ok(1.0 - ((upper - frac) / (upper - lower)))
+        } else {
+            Err(())
+        }
+    }
+
+    fn value(&self, frac: f64) -> Result<T, ()> {
+        self.internodal_frac(frac).map(|internodal_frac| {
+            let (lerp1, lerp2) = self.as_lerps();
+            lerp1.lerp(lerp2, internodal_frac)
+        })
+    }
+}
+
 #[derive(Debug, derive_more::Constructor)]
 struct LerpNodes<T: Lerp + Clone> {
     nodes: Vec<LerpNode<T>>,
@@ -100,25 +184,24 @@ impl<T: Lerp + Clone> LerpNodes<T> {
         self.nodes.iter().map(|node| node.size).sum()
     }
 
-    fn node_windows(&self) -> impl Iterator<Item = ((&T, &T), (f64, f64))> + '_ {
-        unimplemented!();
-        let size = self.size();
+    fn node_refs(&self) -> impl Iterator<Item = LerpNodeRef<'_, T>> {
+        self.nodes
+            .iter()
+            .enumerate()
+            .map(|(idx, node)| LerpNodeRef {
+                idx,
+                node,
+                nodes: self,
+            })
+    }
 
-        self.nodes.iter().scan(0.0, move |prev_frac, node| {
-            let frac = prev_frac.clone();
-
-            let delta = node.size / size;
-
-            *prev_frac += delta;
-
-            Some((&node.lerp, (frac, frac + delta)))
-        })
-        .tuple_windows()
-        .with_position()
+    fn node_windows(&self) -> impl Iterator<Item = LerpNodeRefWindow<'_, T>> {
+        self.node_refs()
+            .tuple_windows()
+            .map(|(ref1, ref2)| LerpNodeRefWindow::new(ref1, ref2))
     }
 
     fn value(&self, frac: f64) -> T {
-        unimplemented!();
         if self.nodes.len() == 0 {
             panic!()
         }
@@ -127,19 +210,9 @@ impl<T: Lerp + Clone> LerpNodes<T> {
             return self.nodes.first().unwrap().lerp.clone();
         }
 
-        let ((lerp1, (lower, _)), (lerp2, (_, upper))) = self
-            .nodes_frac()
-            .filter()
-            .tuple_windows()
-            // .find(|((_, (lower, _)), (_, (_, upper)))| frac >= *lower && frac <= *upper)
-            .unwrap();
-
-        let internodal_frac = 1.0 - ((upper - frac) / (upper - lower));
-
-        // dbg!(internodal_frac);
-        dbg!((upper, lower, frac));
-
-        lerp1.lerp(lerp2, internodal_frac)
+        self.node_windows()
+            .find_map(|window| window.value(frac).ok())
+            .unwrap()
     }
 
     fn values(&self, count: usize) -> impl Iterator<Item = T> + '_ {
@@ -168,9 +241,11 @@ pub fn lerp_data_vec<T: Lerp + Clone, U: std::fmt::Debug + Clone>(
 
 #[cfg(test)]
 mod tests {
+    use itertools::Itertools;
+
     use crate::services::lerp::{Lerp, LerpData};
 
-    use super::{lerp_data_vec, Lerped};
+    use super::{lerp_data_vec, LerpNode, LerpNodes, Lerped};
 
     #[test]
     fn test_lerped() {
@@ -195,6 +270,38 @@ mod tests {
     }
 
     #[test]
+    fn test_node_windows() {
+        let nodes = LerpNodes::new(vec![
+            LerpNode::new(1.0, 20.0),
+            LerpNode::new(2.0, 20.0),
+            LerpNode::new(3.0, 20.0),
+            LerpNode::new(4.0, 20.0),
+            LerpNode::new(5.0, 20.0),
+        ]);
+
+        let lerp_bounds = nodes
+            .node_windows()
+            .map(|window| {
+                let (a, b) = window.as_lerps();
+                let bounds = window.bounds();
+                vec![(*a, *b), bounds]
+            })
+            .collect_vec();
+
+        let expected = vec![
+            vec![(1.0, 2.0), (0.0, 0.25)],
+            vec![(2.0, 3.0), (0.25, 0.5)],
+            vec![(3.0, 4.0), (0.5, 0.75)],
+            vec![(4.0, 5.0), (0.75, 1.0)]
+        ];
+
+        assert_eq!(
+            lerp_bounds,
+            expected
+        );
+    }
+
+    // #[test]
     fn test_lerp_data_vec() {
         let data_vec = vec![(5.0, 10.0, "a"), (20.0, 30.0, "b"), (10.0, 20.0, "c")];
 
@@ -239,7 +346,7 @@ mod tests {
                 // this is weird. shouldn't jump like this
                 (19.85, "b"),
                 (13.84, "c"),
-                // 
+                //
                 (13.600000000000001, "c"),
                 (13.360000000000001, "c"),
                 (13.120000000000001, "c"),
