@@ -19,7 +19,7 @@ use super::{
     photo::Photo,
     point::{generate_point_deltas, ElevationPointDelta, PointChunk},
     route_description::RouteDescription,
-    segment_summary::SegmentSummary,
+    segment_summary::SegmentElevationSummary,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
     IndexItem, ModelUlid,
@@ -106,7 +106,7 @@ pub struct RouteModel {
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
     pub photos: Vec<Photo<RouteId>>,
     point_deltas: OnceCell<Vec<ElevationPointDelta>>,
-    summary: OnceCell<SegmentSummary>,
+    summary: OnceCell<SegmentElevationSummary>,
 }
 impl RouteModel {
     pub fn new(
@@ -137,7 +137,7 @@ impl RouteModel {
             .as_slice()
     }
 
-    pub fn segment_summary(&self) -> &SegmentSummary {
+    pub fn segment_summary(&self) -> &SegmentElevationSummary {
         self.summary
             .get_or_init(|| summarize_segment(self.point_deltas()))
     }

@@ -10,10 +10,9 @@ use context::SchemaData;
 use derive_more::From;
 use howitt::models::config::ConfigId;
 use howitt::models::photo::PhotoId;
-use howitt::models::point::{DeltaData, ElevationPoint};
+use howitt::models::point::ElevationPoint;
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
-use howitt::models::segment_summary::ElevationSummary;
 use howitt::models::tag::Tag;
 use howitt::models::Model;
 use howitt::models::{point_of_interest::PointOfInterestId, ModelRef};
@@ -204,21 +203,21 @@ pub enum TerminusEnd {
 pub struct PointDelta {
     pub distance: f64,
     pub bearing: f64,
-    pub elevation_gain: Option<f64>,
+    pub elevation_gain: f64,
 }
 
-impl<T: DeltaData> From<howitt::models::point::PointDelta<T>> for PointDelta {
+impl From<howitt::models::point::ElevationPointDelta> for PointDelta {
     fn from(
         howitt::models::point::PointDelta {
             distance,
             bearing,
             data,
-        }: howitt::models::point::PointDelta<T>,
+        }: howitt::models::point::ElevationPointDelta,
     ) -> Self {
         PointDelta {
             distance,
             bearing,
-            elevation_gain: data.elevation_gain().cloned(),
+            elevation_gain: data.elevation_gain,
         }
     }
 }
@@ -369,28 +368,20 @@ impl Route {
     async fn elevation_ascent_m<'ctx>(
         &self,
         ctx: &Context<'ctx>,
-    ) -> Result<Option<f64>, async_graphql::Error> {
+    ) -> Result<f64, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.as_model(route_repo).await?;
 
-        Ok(route_model
-            .segment_summary()
-            .elevation
-            .as_ref()
-            .map(|summary| summary.elevation_ascent_m))
+        Ok(route_model.segment_summary().data.elevation_ascent_m)
     }
     async fn elevation_descent_m<'ctx>(
         &self,
         ctx: &Context<'ctx>,
-    ) -> Result<Option<f64>, async_graphql::Error> {
+    ) -> Result<f64, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.as_model(route_repo).await?;
 
-        Ok(route_model
-            .segment_summary()
-            .elevation
-            .as_ref()
-            .map(|summary| summary.elevation_descent_m))
+        Ok(route_model.segment_summary().data.elevation_descent_m)
     }
     async fn termini(&self) -> Vec<Terminus> {
         self.0
@@ -621,25 +612,17 @@ pub struct Cue {
     origin: String,
     destination: String,
     distance_meters: f64,
-    elevation_ascent_meters: Option<f64>,
-    elevation_descent_meters: Option<f64>,
+    elevation_ascent_meters: f64,
+    elevation_descent_meters: f64,
 }
 impl From<howitt::models::cuesheet::Cue> for Cue {
     fn from(value: howitt::models::cuesheet::Cue) -> Self {
-        let (elevation_ascent_meters, elevation_descent_meters) = match value.summary.elevation {
-            Some(ElevationSummary {
-                elevation_ascent_m,
-                elevation_descent_m,
-            }) => (Some(elevation_ascent_m), Some(elevation_descent_m)),
-            None => (None, None),
-        };
-
         Cue {
             origin: value.origin.to_string(),
             destination: value.destination.to_string(),
             distance_meters: value.summary.distance_m,
-            elevation_ascent_meters,
-            elevation_descent_meters,
+            elevation_ascent_meters: value.summary.data.elevation_ascent_m,
+            elevation_descent_meters: value.summary.data.elevation_descent_m,
         }
     }
 }

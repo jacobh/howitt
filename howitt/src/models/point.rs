@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::services::num::Round2;
 
-use super::ModelId;
+use super::{
+    segment_summary::{ElevationSummary, SummaryData},
+    ModelId,
+};
 
 pub trait Point: std::fmt::Debug + Clone {
     type DeltaData: DeltaData;
@@ -251,13 +254,14 @@ where
 }
 
 pub trait DeltaData: Default + Ord + Clone + Round2 {
-    fn elevation_gain(&self) -> Option<&f64>;
+    type SummaryData: SummaryData;
+
+    fn to_summary(&self) -> Self::SummaryData;
 }
 
 impl DeltaData for () {
-    fn elevation_gain(&self) -> Option<&f64> {
-        None
-    }
+    type SummaryData = ();
+    fn to_summary(&self) -> Self::SummaryData {}
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Round2)]
@@ -266,8 +270,21 @@ pub struct ElevationDelta {
 }
 
 impl DeltaData for ElevationDelta {
-    fn elevation_gain(&self) -> Option<&f64> {
-        Some(&self.elevation_gain)
+    type SummaryData = ElevationSummary;
+
+    fn to_summary(&self) -> Self::SummaryData {
+        ElevationSummary {
+            elevation_ascent_m: if self.elevation_gain > 0.0 {
+                self.elevation_gain
+            } else {
+                0.0
+            },
+            elevation_descent_m: if self.elevation_gain < 0.0 {
+                self.elevation_gain
+            } else {
+                0.0
+            },
+        }
     }
 }
 

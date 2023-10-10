@@ -1,9 +1,7 @@
 use std::{borrow::Cow, iter};
 
 use crate::models::{
-    point::{
-        closest_point, ElevationPoint, ElevationPointDelta, Point, PointDelta,
-    },
+    point::{closest_point, ElevationPoint, ElevationPointDelta, Point, PointDelta},
     point_of_interest::PointOfInterest,
     route::Route,
 };
