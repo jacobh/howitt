@@ -2,7 +2,7 @@ use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
-use howitt::repos::{ConfigRepo, PointOfInterestRepo, RideModelRepo, RouteModelRepo};
+use howitt::repos::{CachingRepo, ConfigRepo, PointOfInterestRepo, RideModelRepo, RouteModelRepo};
 use howitt_dynamo::SingleTableClient;
 use howitt_graphql::{context::SchemaData, Query};
 use http::StatusCode;
@@ -12,17 +12,18 @@ use warp::{http::Response as HttpResponse, Filter, Rejection};
 async fn main() -> Result<(), anyhow::Error> {
     let single_table_client = SingleTableClient::new_from_env().await;
 
-    let config_repo: ConfigRepo =
-        Arc::new(howitt_dynamo::ConfigRepo::new(single_table_client.clone()));
-    let poi_repo: PointOfInterestRepo = Arc::new(howitt_dynamo::PointOfInterestRepo::new(
+    let config_repo: ConfigRepo = Arc::new(CachingRepo::new(howitt_dynamo::ConfigRepo::new(
         single_table_client.clone(),
+    )));
+    let poi_repo: PointOfInterestRepo = Arc::new(CachingRepo::new(
+        howitt_dynamo::PointOfInterestRepo::new(single_table_client.clone()),
     ));
-    let route_repo: RouteModelRepo = Arc::new(howitt_dynamo::RouteModelRepo::new(
+    let route_repo: RouteModelRepo = Arc::new(CachingRepo::new(
+        howitt_dynamo::RouteModelRepo::new(single_table_client.clone()),
+    ));
+    let ride_repo: RideModelRepo = Arc::new(CachingRepo::new(howitt_dynamo::RideModelRepo::new(
         single_table_client.clone(),
-    ));
-    let ride_repo: RideModelRepo = Arc::new(howitt_dynamo::RideModelRepo::new(
-        single_table_client.clone(),
-    ));
+    )));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(SchemaData {
