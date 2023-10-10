@@ -35,9 +35,7 @@ where
 }
 
 impl Round2 for () {
-    fn round2(self) -> Self {
-        ()
-    }
+    fn round2(self) -> Self {}
 }
 
 impl<T> Round2 for Vec<T>

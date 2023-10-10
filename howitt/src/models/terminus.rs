@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::{
-    point::{ElevationPointDelta, Point, PointDelta},
+    point::{ElevationPoint, Point, PointDelta},
     slope_end::SlopeEnd,
 };
 
@@ -47,15 +47,15 @@ impl<P: Point> Terminus<P> {
 
         self.end.tuple_value((0.0, delta.distance))
     }
-    pub fn elevation(&self) -> Option<TerminusElevation> {
+}
+
+impl Terminus<ElevationPoint> {
+    pub fn elevation(&self) -> TerminusElevation {
         let delta = &self.termini.delta();
 
-        match (delta.elevation_gain, SlopeEnd::from_delta(delta)) {
-            (Some(elevation_gain_from_start), Some(slope_ends)) => Some(TerminusElevation {
-                slope_end: self.end.tuple_value(slope_ends),
-                elevation_gain_from_start: self.end.tuple_value((0.0, elevation_gain_from_start)),
-            }),
-            _ => None,
+        TerminusElevation {
+            slope_end: self.end.tuple_value(SlopeEnd::from_delta(delta)),
+            elevation_gain_from_start: self.end.tuple_value((0.0, delta.data.elevation_gain)),
         }
     }
 }
@@ -93,7 +93,7 @@ impl<P: Point> Termini<P> {
         (self.first_point, self.last_point)
     }
 
-    pub fn delta(&self) -> ElevationPointDelta {
+    pub fn delta(&self) -> PointDelta<<P as Point>::DeltaData> {
         PointDelta::from_points(&self.first_point, &self.last_point)
     }
 
@@ -118,7 +118,7 @@ impl<P: Point> Termini<P> {
     pub fn closest_terminus<P1: Point>(&self, point: P1) -> Terminus<P> {
         self.to_termini_vec()
             .into_iter()
-            .min_by_key(|t| PointDelta::from_points(&point, t.point()))
+            .min_by_key(|t| PointDelta::from_points(point.as_geo_point(), t.point().as_geo_point()))
             .unwrap_or_else(|| self.to_termini().0)
     }
 }

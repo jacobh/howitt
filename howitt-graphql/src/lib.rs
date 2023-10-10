@@ -10,7 +10,7 @@ use context::SchemaData;
 use derive_more::From;
 use howitt::models::config::ConfigId;
 use howitt::models::photo::PhotoId;
-use howitt::models::point::ElevationPoint;
+use howitt::models::point::{DeltaData, ElevationPoint};
 use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::segment_summary::ElevationSummary;
@@ -207,18 +207,18 @@ pub struct PointDelta {
     pub elevation_gain: Option<f64>,
 }
 
-impl From<howitt::models::point::PointDelta> for PointDelta {
+impl<T: DeltaData> From<howitt::models::point::PointDelta<T>> for PointDelta {
     fn from(
         howitt::models::point::PointDelta {
             distance,
             bearing,
-            elevation_gain,
-        }: howitt::models::point::PointDelta,
+            data,
+        }: howitt::models::point::PointDelta<T>,
     ) -> Self {
         PointDelta {
             distance,
             bearing,
-            elevation_gain,
+            elevation_gain: data.elevation_gain().cloned(),
         }
     }
 }
@@ -277,22 +277,16 @@ impl Terminus {
         terminus.distance_from_start()
     }
 
-    async fn elevation_gain_from_start(&self) -> Option<f64> {
+    async fn elevation_gain_from_start(&self) -> f64 {
         let Terminus { terminus, .. } = self;
 
-        terminus
-            .elevation()
-            .as_ref()
-            .map(|elevation| elevation.elevation_gain_from_start)
+        terminus.elevation().elevation_gain_from_start
     }
 
-    async fn slope_end(&self) -> Option<SlopeEnd> {
+    async fn slope_end(&self) -> SlopeEnd {
         let Terminus { terminus, .. } = self;
 
-        terminus
-            .elevation()
-            .as_ref()
-            .map(|elevation| SlopeEnd::from(elevation.slope_end))
+        SlopeEnd::from(terminus.elevation().slope_end)
     }
 
     async fn nearby_routes<'ctx>(

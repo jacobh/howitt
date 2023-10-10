@@ -8,9 +8,12 @@ use crate::services::num::Round2;
 use super::ModelId;
 
 pub trait Point: std::fmt::Debug + Clone {
+    type DeltaData: DeltaData;
+
     fn as_geo_point(&self) -> &geo::Point;
     fn elevation_meters(&self) -> Option<&f64>;
     fn to_elevation_point(&self) -> Option<ElevationPoint>;
+    fn delta(&self, other: &Self) -> Self::DeltaData;
 
     fn x_y(&self) -> (f64, f64) {
         geo::Point::x_y(*self.as_geo_point())
@@ -48,6 +51,8 @@ pub trait Point: std::fmt::Debug + Clone {
 }
 
 impl Point for geo::Point {
+    type DeltaData = ();
+
     fn as_geo_point(&self) -> &geo::Point {
         self
     }
@@ -59,9 +64,13 @@ impl Point for geo::Point {
     fn to_elevation_point(&self) -> Option<ElevationPoint> {
         None
     }
+
+    fn delta(&self, _: &Self) -> Self::DeltaData {}
 }
 
 impl<'a> Point for &'a geo::Point {
+    type DeltaData = ();
+
     fn as_geo_point(&self) -> &geo::Point {
         self
     }
@@ -73,6 +82,8 @@ impl<'a> Point for &'a geo::Point {
     fn to_elevation_point(&self) -> Option<ElevationPoint> {
         None
     }
+
+    fn delta(&self, _: &Self) -> Self::DeltaData {}
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -104,6 +115,8 @@ impl<'de> Deserialize<'de> for ElevationPoint {
 }
 
 impl Point for ElevationPoint {
+    type DeltaData = ElevationDelta;
+
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
     }
@@ -115,9 +128,17 @@ impl Point for ElevationPoint {
     fn to_elevation_point(&self) -> Option<ElevationPoint> {
         Some(self.clone())
     }
+
+    fn delta(&self, other: &Self) -> Self::DeltaData {
+        ElevationDelta {
+            elevation_gain: other.elevation - self.elevation,
+        }
+    }
 }
 
 impl<'a> Point for &'a ElevationPoint {
+    type DeltaData = ElevationDelta;
+
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
     }
@@ -128,6 +149,12 @@ impl<'a> Point for &'a ElevationPoint {
 
     fn to_elevation_point(&self) -> Option<ElevationPoint> {
         Some((*self).clone())
+    }
+
+    fn delta(&self, other: &Self) -> Self::DeltaData {
+        ElevationDelta {
+            elevation_gain: other.elevation - self.elevation,
+        }
     }
 }
 
@@ -171,6 +198,8 @@ impl<'de> Deserialize<'de> for TemporalElevationPoint {
 }
 
 impl Point for TemporalElevationPoint {
+    type DeltaData = ElevationDelta;
+
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
     }
@@ -184,6 +213,12 @@ impl Point for TemporalElevationPoint {
             point: self.point,
             elevation: self.elevation,
         })
+    }
+
+    fn delta(&self, other: &Self) -> Self::DeltaData {
+        ElevationDelta {
+            elevation_gain: other.elevation - self.elevation,
+        }
     }
 }
 
@@ -216,20 +251,10 @@ where
 }
 
 pub trait DeltaData: Default + Ord + Clone + Round2 {
-    type Point: Point;
-
-    fn delta(p1: &Self::Point, p2: &Self::Point) -> Self;
-
     fn elevation_gain(&self) -> Option<&f64>;
 }
 
 impl DeltaData for () {
-    type Point = geo::Point;
-
-    fn delta(p1: &Self::Point, p2: &Self::Point) -> Self {
-        ()
-    }
-
     fn elevation_gain(&self) -> Option<&f64> {
         None
     }
@@ -241,14 +266,6 @@ pub struct ElevationDelta {
 }
 
 impl DeltaData for ElevationDelta {
-    type Point = ElevationPoint;
-
-    fn delta(p1: &Self::Point, p2: &Self::Point) -> Self {
-        ElevationDelta {
-            elevation_gain: p2.elevation - p1.elevation,
-        }
-    }
-
     fn elevation_gain(&self) -> Option<&f64> {
         Some(&self.elevation_gain)
     }
@@ -291,7 +308,7 @@ where
         }
     }
 
-    pub fn from_points(p1: &T::Point, p2: &T::Point) -> PointDelta<T> {
+    pub fn from_points<P: Point<DeltaData = T>>(p1: &P, p2: &P) -> PointDelta<T> {
         let (bearing, distance) = p1
             .as_geo_point()
             .geodesic_bearing_distance(*p2.as_geo_point());
@@ -301,10 +318,10 @@ where
         PointDelta {
             distance,
             bearing,
-            data: T::delta(p1, p2),
+            data: P::delta(p1, p2),
         }
     }
-    pub fn from_points_tuple((p1, p2): (&T::Point, &T::Point)) -> PointDelta<T> {
+    pub fn from_points_tuple<P: Point<DeltaData = T>>((p1, p2): (&P, &P)) -> PointDelta<T> {
         PointDelta::from_points(p1, p2)
     }
 }
@@ -326,9 +343,12 @@ where
     }
 }
 
-pub fn generate_point_deltas<'a, T>(
-    points: impl IntoIterator<Item = &'a T::Point>,
-) -> Vec<PointDelta<T>> where T: DeltaData, <T as DeltaData>::Point: 'a {
+pub fn generate_point_deltas<'a, P>(
+    points: impl IntoIterator<Item = &'a P>,
+) -> Vec<PointDelta<P::DeltaData>>
+where
+    P: Point + 'a,
+{
     let mut is_points_empty = true;
 
     let deltas = points
@@ -346,13 +366,10 @@ pub fn generate_point_deltas<'a, T>(
     }
 }
 
-pub fn closest_point<'a, T>(
-    point: &T::Point,
-    points: impl Iterator<Item = &'a T::Point>,
-) -> Option<(&'a T::Point, PointDelta<T>)>
-where
-    T: DeltaData,
-{
+pub fn closest_point<'a, P: Point>(
+    point: &P,
+    points: impl Iterator<Item = &'a P>,
+) -> Option<(&'a P, PointDelta<P::DeltaData>)> {
     points
         .map(|p| {
             let delta = PointDelta::from_points(point, p);

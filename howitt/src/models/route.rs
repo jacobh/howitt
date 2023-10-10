@@ -17,7 +17,7 @@ use crate::{
 use super::{
     external_ref::ExternallySourced,
     photo::Photo,
-    point::{generate_point_deltas, ElevationPointDelta, PointChunk, PointDelta},
+    point::{generate_point_deltas, ElevationPointDelta, PointChunk},
     route_description::RouteDescription,
     segment_summary::SegmentSummary,
     tag::Tag,
