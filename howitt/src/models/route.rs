@@ -63,10 +63,11 @@ impl Route {
         })
     }
 
-    pub fn nearby_routes<'a, 'b>(
-        &'a self,
-        routes: &'b [Route],
-    ) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
+    pub fn sample_points(&self) -> impl Iterator<Item = &ElevationPoint> {
+        self.sample_points.iter().flatten()
+    }
+
+    pub fn nearby_routes<'a, 'b>(&'a self, routes: &'b [Route]) -> Vec<NearbyRoute<'a, 'b>> {
         nearby_routes(self, routes)
     }
 
@@ -74,11 +75,11 @@ impl Route {
         &'a self,
         routes: &'b [Route],
         end: TerminusEnd,
-    ) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
+    ) -> Vec<NearbyRoute<'a, 'b>> {
         if let Some(termini) = self.termini() {
             self.nearby_routes(routes)
                 .into_iter()
-                .filter(|(point, _, _, _)| termini.closest_terminus(*point).end == end)
+                .filter(|(point, _, _, _)| termini.closest_terminus(point).end == end)
                 .collect_vec()
         } else {
             vec![]

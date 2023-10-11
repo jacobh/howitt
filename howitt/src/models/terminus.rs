@@ -89,6 +89,10 @@ impl<P: Point> Termini<P> {
         (&self.first_point, &self.last_point)
     }
 
+    pub fn into_points_array(self) -> [P; 2] {
+        [self.first_point, self.last_point]
+    }
+
     pub fn into_points(self) -> (P, P) {
         (self.first_point, self.last_point)
     }

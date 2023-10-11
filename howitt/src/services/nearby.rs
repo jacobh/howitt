@@ -1,7 +1,9 @@
-use std::{borrow::Cow, iter};
+use std::borrow::Cow;
 
 use crate::models::{
-    point::{closest_point, ElevationPoint, ElevationPointDelta, Point, PointDelta},
+    point::{
+        closest_point, simplify_points, ElevationPoint, ElevationPointDelta, Point,
+    },
     point_of_interest::PointOfInterest,
     route::Route,
 };
@@ -70,72 +72,48 @@ where
         .collect()
 }
 
-pub type NearbyRoute<'a, 'b, P> = (
-    &'a P,
+pub type NearbyRoute<'a, 'b> = (
+    ElevationPoint,
     &'b Route,
     &'b ElevationPoint,
-    PointDelta<<P as Point>::DeltaData>,
+    ElevationPointDelta,
 );
 
-pub fn nearby_routes<'a, 'b>(
-    route: &'a Route,
-    routes: &'b [Route],
-) -> Vec<NearbyRoute<'a, 'b, ElevationPoint>> {
-    // let nearby_routes = route.sample_points.iter().flatten().map(|point| routes_near_point(point, routes));
+const MAX_DISTANCE: f64 = 25_000.0;
 
-    let (routes_near_start, routes_near_end) = match route.termini() {
-        Some(termini) => {
-            let (start, end) = termini.into_points();
-
-            (
-                Some(routes_near_point(start, routes)),
-                Some(routes_near_point(end, routes)),
-            )
-        }
-        None => (None, None),
+pub fn nearby_routes<'a, 'b>(route: &'a Route, routes: &'b [Route]) -> Vec<NearbyRoute<'a, 'b>> {
+    let sample_points = match &route.sample_points {
+        Some(sample_points) => simplify_points(sample_points, 10),
+        None => vec![],
     };
 
-    let nearby_routes = iter::empty()
-        .chain(routes_near_start.into_iter().flatten())
-        .chain(routes_near_end.into_iter().flatten())
-        .filter(|(_, route2, _, _)| route.id() != route2.id());
+    // let sample_points = route.sample_points.as_ref().into_iter().flatten().collect_vec();
 
-    let grouped = nearby_routes.group_by(|(_, route, _, _)| route.id());
-
-    grouped
-        .into_iter()
-        .flat_map(|(_, group)| {
-            group
-                .sorted_by_key(|(_, _, _, delta)| delta.clone())
-                .fold::<Vec<NearbyRoute<'a, 'b, ElevationPoint>>, _>(
-                    Vec::new(),
-                    |mut nearby_routes, (point, route, route_point, delta)| {
-                        let is_separated = nearby_routes.iter().all(|(_, _, nearby_point, _)| {
-                            let delta = ElevationPointDelta::from_points(route_point, nearby_point);
-
-                            delta.distance > 5000.0
-                        });
-
-                        if is_separated {
-                            nearby_routes.push((point, route, route_point, delta))
-                        }
-
-                        nearby_routes
-                    },
-                )
+    routes
+        .iter()
+        .flat_map(|route2| {
+            sample_points
+                .iter()
+                .flat_map(move |sample_point| {
+                    closest_point(sample_point, route2.sample_points()).map(
+                        |(route2_point, delta)| (sample_point.clone(), route2, route2_point, delta),
+                    )
+                })
+                .min_by_key(|(_, _, _, delta)| delta.clone())
         })
+        .filter(|(_, _, _, delta)| delta.distance < MAX_DISTANCE)
         .collect_vec()
 }
 
 pub fn routes_near_point<'a, 'b>(
     point: &'a ElevationPoint,
     routes: &'b [Route],
-) -> impl Iterator<Item = NearbyRoute<'a, 'b, ElevationPoint>> {
+) -> impl Iterator<Item = NearbyRoute<'a, 'b>> {
     routes
         .iter()
         .flat_map(move |route| {
             closest_point(point, route.sample_points.iter().flatten())
-                .map(|(route_point, delta)| (point, route, route_point, delta))
+                .map(|(route_point, delta)| (point.clone(), route, route_point, delta))
         })
-        .filter(|(_, _, _, delta)| delta.distance < 25_000.0)
+        .filter(|(_, _, _, delta)| delta.distance < MAX_DISTANCE)
 }
