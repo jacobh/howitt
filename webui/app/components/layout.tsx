@@ -1,36 +1,98 @@
 import { css } from "@emotion/react";
 import { Link } from "@remix-run/react";
+
 import { PropsWithChildren } from "react";
+import { makeMqs } from "~/styles/mediaQueries";
+
+const containerCss = makeMqs([
+  css`
+    grid-auto-flow: row;
+  `,
+  css``,
+  css``,
+  css``,
+  css`
+    grid-auto-flow: column;
+    grid-template-columns: minmax(640px, 40%) 1fr;
+  `,
+  css``,
+]);
 
 export function Container({ children }: PropsWithChildren): JSX.Element {
-  return <div className="grid grid-cols-12">{children}</div>;
+  return (
+    <div className="grid w-screen h-screen" css={containerCss}>
+      {children}
+    </div>
+  );
 }
 
-const sidebarContainerOuterCss = css`
-  height: 100vh;
-  overflow-y: scroll;
+const sidebarContainerOuterCss = makeMqs([
+  css`
+    grid-row: 2;
+    width: 100vw;
+  `,
+  css``,
+  css``,
+  css``,
+  css`
+    grid-row: unset;
+    width: 100%;
+    height: 100vh;
+  `,
+]);
 
-  grid-column: span 4 / span 4;
+const mapContainerCss = makeMqs([
+  css`
+    grid-row: 1;
+    width: 100vw;
+    height: 66vh;
+  `,
+  css``,
+  css``,
+  css``,
+  css`
+    grid-row: unset;
+    width: 100%;
+    height: 100vh;
+  `,
+]);
 
-  @media (min-width: 2100px) {
-    grid-column: span 3 / span 3;
-  }
+const sidebarContainerInnerCss = makeMqs([
+  css`
+    padding: 16px;
+  `,
+  css`
+    padding: 18px 24px;
+  `,
+  css`
+    padding: 24px 32px;
+  `,
+  css`
+    padding: 30px 48px;
+  `,
+  css`
+    padding: 18px 24px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  `,
+]);
+
+const sidebarTitleCss = css`
+  margin-bottom: 12px;
+  display: flex;
 `;
 
-const mapContainerCss = css`
-  grid-column: span 8 / span 8;
-
-  @media (min-width: 2100px) {
-    grid-column: span 9 / span 9;
-  }
-`;
-
-const sidebarContainerInnerCss = css({
-  overflowY: "scroll",
-  padding: "20px",
-  width: "90%",
-  margin: "0 auto",
-});
+const sidebarChildrenCss = makeMqs([
+  css``,
+  css``,
+  css``,
+  css``,
+  css`
+    height: auto;
+    overflow-y: scroll;
+  `,
+]);
 
 export function SidebarContainer({
   title,
@@ -40,10 +102,17 @@ export function SidebarContainer({
   return (
     <div css={sidebarContainerOuterCss}>
       <div css={sidebarContainerInnerCss}>
-        {showBack && <Link to="/">Back</Link>}
-        <h2 css={{ marginBottom: "12px" }}>{title}</h2>
+        <h3 css={sidebarTitleCss}>
+          {showBack && (
+            <span css={{ display: "inline-flex" }}>
+              <Link to="/">Routes</Link>
+              <span css={{ padding: "0 6px" }}>/</span>
+            </span>
+          )}
+          <span css={{ flexShrink: 1 }}>{title}</span>
+        </h3>
         <hr />
-        <div>{children}</div>
+        <div css={sidebarChildrenCss}>{children}</div>
       </div>
     </div>
   );

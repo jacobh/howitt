@@ -21,7 +21,8 @@ export const meta = (): MetaDescriptor[] => [
     title: "Howitt",
   },
   {
-    viewport: "width=device-width,initial-scale=1",
+    name: "viewport",
+    content: "width=device-width, initial-scale=1, user-scalable=no",
   },
 ];
 
@@ -47,6 +48,10 @@ const bodyCss = css`
   h4 {
     font-size: 1.125rem; /* 18px */
     line-height: 1.75rem; /* 28px */
+  }
+
+  a {
+    text-decoration: underline;
   }
 `;
 
