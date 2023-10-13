@@ -157,7 +157,7 @@ export function Map({
       if (initialView?.routeId === route.id) {
         map.getView().fit(new LineString(route.points), {
           padding: [100, 100, 100, 100],
-          duration: 2500,
+          duration: 0,
         });
       }
     }

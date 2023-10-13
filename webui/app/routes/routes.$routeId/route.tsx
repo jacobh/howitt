@@ -117,10 +117,14 @@ export default function Route(): React.ReactElement {
       [
         data?.route ? { route: data?.route } : undefined,
         ...(data?.route?.termini ?? []).flatMap((t) =>
-          t.nearbyRoutes.map((nearby) => ({
-            route: nearby.closestTerminus.route,
-            style: "muted" as const,
-          }))
+          t.nearbyRoutes
+            .filter(
+              (nearby) => nearby.closestTerminus.route.id !== data?.route?.id
+            )
+            .map((nearby) => ({
+              route: nearby.closestTerminus.route,
+              style: "muted" as const,
+            }))
         ),
       ].filter(isNotNil),
     [data]
