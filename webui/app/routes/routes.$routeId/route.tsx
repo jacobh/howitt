@@ -147,7 +147,17 @@ export default function Route(): React.ReactElement {
               {data.route.description ? (
                 <p css={{ margin: "20px 0" }}>{data.route.description}</p>
               ) : null}
-              <br />
+              {data?.route?.elevationPoints && data?.route?.distancePoints ? (
+                <div css={{ margin: "20px 0" }}>
+                  <ElevationProfile
+                    elevationPoints={data.route.elevationPoints}
+                    distancePoints={data.route.distancePoints}
+                  />
+                </div>
+              ) : (
+                <></>
+              )}
+
               <DataTable items={tableItems} />
               {data.route.minimumBike ? (
                 <BikeSpecContent
@@ -166,14 +176,6 @@ export default function Route(): React.ReactElement {
                 <></>
               )}
             </>
-          ) : (
-            <></>
-          )}
-          {data?.route?.elevationPoints && data?.route?.distancePoints ? (
-            <ElevationProfile
-              elevationPoints={data.route.elevationPoints}
-              distancePoints={data.route.distancePoints}
-            />
           ) : (
             <></>
           )}
