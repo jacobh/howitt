@@ -1,5 +1,7 @@
+import { css } from "@emotion/react";
 import { uniq } from "lodash";
 import type { BikeSpec } from "~/__generated__/graphql";
+import { DataTable } from "~/components/DataTable";
 
 function formatTyreWidth(mm: number): string {
   if (mm <= 50) {
@@ -28,18 +30,24 @@ interface Props {
   bikeSpec: BikeSpec;
 }
 
-export function BikeSpecContent({ title, bikeSpec }: Props) {
+const bikeSpecContentCss = css`
+  margin: 20px 0;
+`;
+
+export function BikeSpecContent({ title, bikeSpec }: Props): JSX.Element {
+  const tableItems = [
+    { name: "Tyre Width", value: formatTyreWidths(bikeSpec.tyreWidth) },
+    {
+      name: "Front Suspension",
+      value: formatTravels(bikeSpec.frontSuspension),
+    },
+    { name: "Rear Suspension", value: formatTravels(bikeSpec.rearSuspension) },
+  ];
+
   return (
-    <div>
-      <h3>{title}</h3>
-      <dl>
-        <dt>Tyre Width</dt>
-        <dd>{formatTyreWidths(bikeSpec.tyreWidth)}</dd>
-        <dt>Front Suspension</dt>
-        <dd>{formatTravels(bikeSpec.frontSuspension)}</dd>
-        <dt>Rear Suspension</dt>
-        <dd>{formatTravels(bikeSpec.rearSuspension)}</dd>
-      </dl>
+    <div css={bikeSpecContentCss}>
+      <p css={{ marginBottom: "8px" }}>{title}</p>
+      <DataTable items={tableItems} />
     </div>
   );
 }

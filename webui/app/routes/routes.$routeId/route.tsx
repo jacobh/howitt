@@ -12,6 +12,8 @@ import { Container, MapContainer, SidebarContainer } from "~/components/layout";
 import { RouteVitals } from "~/components/RouteVitals";
 import { makeMqs } from "~/styles/mediaQueries";
 import { css } from "@emotion/react";
+import { COLORS } from "~/styles/theme";
+import { DataTable } from "~/components/DataTable";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -72,23 +74,6 @@ query RouteQuery($routeId: RouteId!) {
 }
 `);
 
-function Definition({
-  term,
-  definition,
-}: {
-  term: string;
-  definition?: string | null;
-}): React.ReactElement {
-  return definition ? (
-    <>
-      <dt>{term}</dt>
-      <dd>{definition}</dd>
-    </>
-  ) : (
-    <></>
-  );
-}
-
 const routeContentContainerCss = makeMqs([
   css`
     padding: 10px 0;
@@ -130,6 +115,15 @@ export default function Route(): React.ReactElement {
     [data]
   );
 
+  const tableItems = [
+    { name: "Technical Difficulty", value: data?.route?.technicalDifficulty },
+    { name: "Physical Difficulty", value: data?.route?.physicalDifficulty },
+    { name: "Scouted", value: data?.route?.scouted },
+    { name: "Direction", value: data?.route?.direction },
+  ]
+    .map(({ name, value }) => (isNotNil(value) ? { name, value } : undefined))
+    .filter(isNotNil);
+
   return (
     <Container>
       <SidebarContainer title={data?.route?.name ?? ""} showBack>
@@ -137,37 +131,24 @@ export default function Route(): React.ReactElement {
           {data?.route ? (
             <>
               <RouteVitals route={data.route} />
-              {data.route.description ? <p>{data.route.description}</p> : null}
-              <br />
               {data.route.externalRef ? (
-                <p>
+                <p css={{ margin: "20px 0", color: COLORS.darkGrey }}>
                   <a
                     target="_blank"
                     rel="noreferrer"
                     href={data.route.externalRef?.canonicalUrl}
                   >
-                    {data.route.externalRef?.canonicalUrl}
+                    {data.route.externalRef?.canonicalUrl.split("://")[1]}
                   </a>
                 </p>
               ) : (
                 <></>
               )}
-              <h3>Info</h3>
-              <dl>
-                <Definition
-                  term="Technical Difficulty"
-                  definition={data.route.technicalDifficulty}
-                />
-                <Definition
-                  term="Physical Difficulty"
-                  definition={data.route.technicalDifficulty}
-                />
-                <Definition term="Scouted" definition={data.route.scouted} />
-                <Definition
-                  term="Direction"
-                  definition={data.route.direction}
-                />
-              </dl>
+              {data.route.description ? (
+                <p css={{ margin: "20px 0" }}>{data.route.description}</p>
+              ) : null}
+              <br />
+              <DataTable items={tableItems} />
               {data.route.minimumBike ? (
                 <BikeSpecContent
                   title="Minimum Bike"
