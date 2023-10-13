@@ -10,7 +10,7 @@ const photoContainerCss = css`
 `;
 
 const photoCss = css`
-  max-width: 100vw;
+  max-width: 100%;
   max-height: 70vh;
 
   margin: 0 auto;
