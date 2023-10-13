@@ -35,6 +35,9 @@ const routeSubtitleCss = css`
   grid-auto-flow: column;
   max-width: 320px;
 
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem; /* 20px */
+
   @container (max-width: 300px) {
     grid-auto-flow: row;
   }
@@ -58,7 +61,7 @@ export default function Index(): React.ReactElement {
             <h3 css={routeTitleCss}>
               <Link to={`/routes/${route.id.split("#")[1]}`}>{route.name}</Link>
             </h3>
-            <p className="text-sm" css={routeSubtitleCss}>
+            <p css={routeSubtitleCss}>
               <span>
                 <span css={routeSubtitleArrowCss}>&rarr;</span>
                 {formatDistance(route.distance)}

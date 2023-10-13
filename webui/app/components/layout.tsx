@@ -6,7 +6,11 @@ import { makeMqs } from "~/styles/mediaQueries";
 
 const containerCss = makeMqs([
   css`
+    display: grid;
     grid-auto-flow: row;
+
+    width: 100vw;
+    height: 100vh;
   `,
   css``,
   css``,
@@ -19,11 +23,7 @@ const containerCss = makeMqs([
 ]);
 
 export function Container({ children }: PropsWithChildren): JSX.Element {
-  return (
-    <div className="grid w-screen h-screen" css={containerCss}>
-      {children}
-    </div>
-  );
+  return <div css={containerCss}>{children}</div>;
 }
 
 const sidebarContainerOuterCss = makeMqs([

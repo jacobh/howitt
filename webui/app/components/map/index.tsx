@@ -16,6 +16,7 @@ import VectorSource from "ol/source/Vector";
 import { Style, Stroke, Circle } from "ol/style";
 import { LineString, Point } from "ol/geom";
 import Fill from "ol/style/Fill";
+import { css } from "@emotion/react";
 
 interface DisplayedRoute {
   route: Pick<Route, "id" | "points">;
@@ -31,6 +32,11 @@ interface MapProps {
   >[];
   initialView?: { routeId: string };
 }
+
+const mapCss = css`
+  width: 100%;
+  height: 100%;
+`;
 
 export function Map({
   routes,
@@ -179,5 +185,5 @@ export function Map({
     }
   }, [routes, checkpoints, map, initialView, hutStyle, stationStyle]);
 
-  return <div className={"w-full h-full"} id="map" />;
+  return <div css={mapCss} id="map" />;
 }
