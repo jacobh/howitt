@@ -3,7 +3,6 @@ import OlMap from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
-import styled from "@emotion/styled";
 import { useGeographic } from "ol/proj";
 import {
   Route,
@@ -17,11 +16,6 @@ import VectorSource from "ol/source/Vector";
 import { Style, Stroke, Circle } from "ol/style";
 import { LineString, Point } from "ol/geom";
 import Fill from "ol/style/Fill";
-
-const MapContainer = styled.div`
-  width: 100%;
-  height: 100vh;
-`;
 
 interface DisplayedRoute {
   route: Pick<Route, "id" | "points">;
@@ -185,5 +179,5 @@ export function Map({
     }
   }, [routes, checkpoints, map, initialView, hutStyle, stationStyle]);
 
-  return <MapContainer id="map" />;
+  return <div css={{ width: "100%", height: "100vh" }} id="map" />;
 }

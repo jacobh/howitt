@@ -7,11 +7,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import styled from "@emotion/styled";
-import { withEmotionCache } from "@emotion/react";
+import { css, withEmotionCache } from "@emotion/react";
 import { useContext, useRef, useEffect } from "react";
 import { ClientStyleContext } from "./styles/client.context";
 import { ServerStyleContext } from "./styles/server.context";
+import stylesheet from "./styles/tailwind.css";
 
 export const meta = (): V2_MetaDescriptor[] => [
   {
@@ -25,12 +25,12 @@ export const meta = (): V2_MetaDescriptor[] => [
   },
 ];
 
-const StyledBody = styled.body`
+const bodyCss = css`
   margin: 0;
   font-family: "Hanken Grotesk", sans-serif;
 `;
 
-const StyledMain = styled.main`
+const mainCss = css`
   width: 100%;
   height: 100%;
   margin: 0;
@@ -85,12 +85,12 @@ const Document = withEmotionCache(
             />
           ))}
         </head>
-        <StyledBody>
+        <body css={bodyCss}>
           {children}
           <ScrollRestoration />
           <Scripts />
           <LiveReload />
-        </StyledBody>
+        </body>
       </html>
     );
   }
@@ -99,9 +99,9 @@ const Document = withEmotionCache(
 export default function App(): JSX.Element {
   return (
     <Document>
-      <StyledMain>
+      <main css={mainCss}>
         <Outlet />
-      </StyledMain>
+      </main>
     </Document>
   );
 }
@@ -118,5 +118,6 @@ export const links: LinksFunction = () => {
       rel: "stylesheet",
       href: "https://fonts.googleapis.com/css2?family=Hanken+Grotesk&display=swap",
     },
+    { rel: "stylesheet", href: stylesheet },
   ];
 };
