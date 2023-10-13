@@ -4,7 +4,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev",
-    "start": "remix-serve build",
+    "start": "remix-serve build/index.js",
     "typecheck": "tsc",
     "gql-codegen": "graphql-codegen",
     "gql-watch": "graphql-codegen -w",
@@ -17,6 +17,7 @@
     "@graphql-codegen/cli": "^5",
     "@graphql-codegen/client-preset": "^4",
     "@graphql-typed-document-node/core": "^3.2.0",
+    "@remix-run/express": "^2.0.1",
     "@remix-run/node": "^2",
     "@remix-run/react": "^2",
     "@remix-run/serve": "^2",
