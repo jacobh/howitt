@@ -38,7 +38,11 @@ mod tests {
             elevation: 1400.0,
         };
 
-        let result = summarize_segment(&generate_point_deltas(&[point1.clone(), point2.clone()]));
+        let result = summarize_segment(&generate_point_deltas(&[
+            point1.clone(),
+            point2.clone(),
+            point1.clone(),
+        ]));
 
         insta::assert_debug_snapshot!(result.round2());
     }

@@ -280,7 +280,7 @@ impl DeltaData for ElevationDelta {
                 0.0
             },
             elevation_descent_m: if self.elevation_gain < 0.0 {
-                self.elevation_gain
+                self.elevation_gain.abs()
             } else {
                 0.0
             },

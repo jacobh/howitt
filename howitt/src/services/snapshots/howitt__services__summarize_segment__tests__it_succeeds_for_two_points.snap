@@ -1,13 +1,11 @@
 ---
 source: howitt/src/services/summarize_segment.rs
-expression: result
+expression: result.round2()
 ---
 SegmentSummary {
-    distance_m: 6696.19,
-    elevation: Some(
-        ElevationSummary {
-            elevation_ascent_m: 300.0,
-            elevation_descent_m: 0.0,
-        },
-    ),
+    distance_m: 13392.39,
+    data: ElevationSummary {
+        elevation_ascent_m: 300.0,
+        elevation_descent_m: 300.0,
+    },
 }
