@@ -3,3 +3,7 @@ export function formatDistance(meters: number): string {
 
   return `${km}km`;
 }
+
+export function formatVertical(meters: number): string {
+  return `${Math.round(meters)}m`;
+}

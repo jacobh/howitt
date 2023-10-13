@@ -1,6 +1,6 @@
 import { Link } from "@remix-run/react";
 import { NearbyRoute, Route, Terminus } from "~/__generated__/graphql";
-import { formatDistance } from "~/services/formatDistance";
+import { formatDistance } from "~/services/format";
 import { CardinalSubset, cardinalFromDegree } from "cardinal-direction";
 
 interface Props {

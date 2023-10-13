@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@apollo/client": "^3.7.3",
-    "@emotion/css": "^11",
     "@emotion/react": "^11",
     "@emotion/server": "^11",
     "@graphql-codegen/cli": "^5",

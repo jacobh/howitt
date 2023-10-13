@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
-import { Link, useParams } from "@remix-run/react";
-import { formatDistance } from "~/services/formatDistance";
+import { useParams } from "@remix-run/react";
+import { formatDistance } from "~/services/format";
 import { gql } from "~/__generated__";
 import { Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
@@ -108,12 +108,9 @@ export default function Route(): React.ReactElement {
 
   return (
     <Container>
-      <SidebarContainer>
-        <Link to="/">Back</Link>
+      <SidebarContainer title={data?.route?.name ?? ""} showBack>
         {data?.route ? (
           <>
-            <h2>{data.route.name}</h2>
-            <hr />
             {formatDistance(data.route.distance)}
             {data.route.description ? <p>{data.route.description}</p> : null}
             <br />

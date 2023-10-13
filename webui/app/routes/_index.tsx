@@ -2,9 +2,11 @@ import { Map } from "../components/map";
 import { useQuery } from "@apollo/client";
 import { gql } from "../__generated__/gql";
 import { useState } from "react";
-import { formatDistance } from "~/services/formatDistance";
+import { formatDistance, formatVertical } from "~/services/format";
 import { Link } from "@remix-run/react";
 import { Container, MapContainer, SidebarContainer } from "~/components/layout";
+import { css } from "@emotion/react";
+import { COLORS } from "~/styles/theme";
 
 const HOME_QUERY = gql(`
   query homeQuery {
@@ -12,10 +14,36 @@ const HOME_QUERY = gql(`
       id
       name
       distance
+      elevationAscentM
+      elevationDescentM
       points
     }
   }
 `);
+
+const routeItemCss = css(
+  { padding: "20px 0", containerType: "inline-size" },
+  css`
+    border-bottom: 1px solid ${COLORS.offWhite};
+  `
+);
+const routeTitleCss = css({ marginBottom: "6px", textDecoration: "underline" });
+const routeSubtitleCss = css`
+  color: ${COLORS.midGrey};
+
+  display: grid;
+  grid-auto-flow: column;
+  max-width: 320px;
+
+  @container (max-width: 300px) {
+    grid-auto-flow: row;
+  }
+`;
+const routeSubtitleArrowCss = css`
+  width: 30px;
+  display: inline-block;
+  text-align: center;
+`;
 
 export default function Index(): React.ReactElement {
   const [mode] = useState("routes");
@@ -24,15 +52,26 @@ export default function Index(): React.ReactElement {
 
   return (
     <Container>
-      <SidebarContainer>
-        <h2>Routes</h2>
-        <hr />
+      <SidebarContainer title="Routes">
         {data?.starredRoutes.map((route) => (
-          <div key={route.id}>
-            <h3>
+          <div key={route.id} css={routeItemCss}>
+            <h3 css={routeTitleCss}>
               <Link to={`/routes/${route.id.split("#")[1]}`}>{route.name}</Link>
             </h3>
-            <p>{formatDistance(route.distance)}</p>
+            <p className="text-sm" css={routeSubtitleCss}>
+              <span>
+                <span css={routeSubtitleArrowCss}>&rarr;</span>
+                {formatDistance(route.distance)}
+              </span>
+              <span>
+                <span css={routeSubtitleArrowCss}>&uarr;</span>
+                {formatVertical(route.elevationAscentM)}
+              </span>
+              <span>
+                <span css={routeSubtitleArrowCss}>&darr;</span>
+                {formatVertical(route.elevationDescentM)}
+              </span>
+            </p>
           </div>
         ))}
       </SidebarContainer>
