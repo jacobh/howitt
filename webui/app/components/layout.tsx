@@ -2,7 +2,7 @@ import { cx, css } from "@emotion/css";
 import { PropsWithChildren } from "react";
 
 export function Container({ children }: PropsWithChildren): JSX.Element {
-  return <div className="grid-cols-4">{children}</div>;
+  return <div className="grid grid-cols-4">{children}</div>;
 }
 
 const sidebarContainerOuterCss = cx(
