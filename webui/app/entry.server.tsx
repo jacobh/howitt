@@ -5,7 +5,6 @@ import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 // import { getDataFromTree } from "@apollo/client/react/ssr";
-import { Response } from "@remix-run/node";
 
 import { createEmotionCache } from "~/styles/createEmotionCache";
 import { ServerStyleContext } from "~/styles/server.context";

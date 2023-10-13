@@ -9,7 +9,7 @@ import { Photo } from "./Photo";
 import { useMemo } from "react";
 import { isNotNil } from "~/services/isNotNil";
 import { NearbyRoutes } from "./NearbyRoutes";
-import { SidebarContainer } from "~/components/layout/SidebarContainer";
+import { Container, MapContainer, SidebarContainer } from "~/components/layout";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -107,7 +107,7 @@ export default function Route(): React.ReactElement {
   );
 
   return (
-    <div>
+    <Container>
       <SidebarContainer>
         <Link to="/">Back</Link>
         {data?.route ? (
@@ -188,12 +188,12 @@ export default function Route(): React.ReactElement {
           </div>
         ) : null}
       </SidebarContainer>
-      <div>
+      <MapContainer>
         <Map
           routes={routes}
           initialView={data?.route ? { routeId: data.route.id } : undefined}
         />
-      </div>
-    </div>
+      </MapContainer>
+    </Container>
   );
 }

@@ -1,4 +1,4 @@
-import type { LinksFunction, V2_MetaDescriptor } from "@remix-run/node";
+import type { LinksFunction, MetaDescriptor } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -13,7 +13,7 @@ import { ClientStyleContext } from "./styles/client.context";
 import { ServerStyleContext } from "./styles/server.context";
 import stylesheet from "./styles/tailwind.css";
 
-export const meta = (): V2_MetaDescriptor[] => [
+export const meta = (): MetaDescriptor[] => [
   {
     charset: "utf-8",
   },

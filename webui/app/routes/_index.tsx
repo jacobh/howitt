@@ -4,7 +4,7 @@ import { gql } from "../__generated__/gql";
 import { useState } from "react";
 import { formatDistance } from "~/services/formatDistance";
 import { Link } from "@remix-run/react";
-import { SidebarContainer } from "~/components/layout/SidebarContainer";
+import { Container, MapContainer, SidebarContainer } from "~/components/layout";
 
 const HOME_QUERY = gql(`
   query homeQuery {
@@ -23,7 +23,7 @@ export default function Index(): React.ReactElement {
   const { data } = useQuery(HOME_QUERY);
 
   return (
-    <div>
+    <Container>
       <SidebarContainer>
         <h2>Routes</h2>
         <hr />
@@ -36,7 +36,7 @@ export default function Index(): React.ReactElement {
           </div>
         ))}
       </SidebarContainer>
-      <div>
+      <MapContainer>
         <Map
           routes={
             mode === "routes"
@@ -44,7 +44,7 @@ export default function Index(): React.ReactElement {
               : undefined
           }
         />
-      </div>
-    </div>
+      </MapContainer>
+    </Container>
   );
 }
