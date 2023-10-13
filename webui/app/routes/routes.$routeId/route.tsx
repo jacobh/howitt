@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { Link, useParams } from "@remix-run/react";
-import styled from "styled-components";
+import styled from "@emotion/styled";
 import { formatDistance } from "~/services/formatDistance";
 import { gql } from "~/__generated__";
 import { Map } from "../../components/map";

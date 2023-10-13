@@ -1,5 +1,5 @@
 import { Map } from "../components/map";
-import styled from "styled-components";
+import styled from "@emotion/styled";
 import { useQuery } from "@apollo/client";
 import { gql } from "../__generated__/gql";
 import Grid2 from "@mui/material/Unstable_Grid2";

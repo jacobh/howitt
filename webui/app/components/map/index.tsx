@@ -3,7 +3,7 @@ import OlMap from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
-import styled from "styled-components";
+import styled from "@emotion/styled";
 import { useGeographic } from "ol/proj";
 import {
   Route,
@@ -126,9 +126,9 @@ export function Map({
 
     for (const { route, style } of routes ?? []) {
       console.log(route.id);
-      const existingLayer = layers.filter((x): x is VectorLayer<any> => x instanceof VectorLayer).find(
-        (layer) => layer.getProperties().routeId === route.id
-      );
+      const existingLayer = layers
+        .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
+        .find((layer) => layer.getProperties().routeId === route.id);
       let layer: VectorLayer<any>;
 
       if (existingLayer === undefined) {
@@ -141,19 +141,18 @@ export function Map({
           properties: { routeId: route.id },
         });
 
-        map.addLayer(
-          layer
-        );
+        map.addLayer(layer);
       } else {
         layer = existingLayer;
       }
 
       const color = style === "muted" ? "#808080" : "#a54331";
 
-      layer.setStyle(new Style({
-        stroke: new Stroke({ color, width: 4 }),
-      }));
-
+      layer.setStyle(
+        new Style({
+          stroke: new Stroke({ color, width: 4 }),
+        })
+      );
 
       if (initialView?.routeId === route.id) {
         map.getView().fit(new LineString(route.points), {

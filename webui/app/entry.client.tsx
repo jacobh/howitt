@@ -6,10 +6,34 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { RemixBrowser } from "@remix-run/react";
-import { startTransition, StrictMode } from "react";
+import React, { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
+import { CacheProvider } from "@emotion/react";
 
-function Client() {
+import { ClientStyleContext } from "~/styles/client.context";
+import { createEmotionCache } from "~/styles/createEmotionCache";
+
+interface ClientCacheProviderProps {
+  children: React.ReactNode;
+}
+
+function ClientStyleCacheProvider({
+  children,
+}: ClientCacheProviderProps): JSX.Element {
+  const [cache, setCache] = React.useState(createEmotionCache());
+
+  const reset = React.useCallback(() => {
+    setCache(createEmotionCache());
+  }, []);
+
+  return (
+    <ClientStyleContext.Provider value={{ reset }}>
+      <CacheProvider value={cache}>{children}</CacheProvider>
+    </ClientStyleContext.Provider>
+  );
+}
+
+function Client(): JSX.Element {
   const httpLink = createHttpLink({
     uri: "https://howitt-api.haslehurst.net/graphql",
   });
@@ -32,23 +56,13 @@ function Client() {
 
   return (
     <ApolloProvider client={client}>
-      <StrictMode>
-        <RemixBrowser />
-      </StrictMode>
+      <ClientStyleCacheProvider>
+        <StrictMode>
+          <RemixBrowser />
+        </StrictMode>
+      </ClientStyleCacheProvider>
     </ApolloProvider>
   );
 }
 
-function hydrate() {
-  startTransition(() => {
-    hydrateRoot(document, <Client />);
-  });
-}
-
-if (typeof requestIdleCallback === "function") {
-  requestIdleCallback(hydrate);
-} else {
-  // Safari doesn't support requestIdleCallback
-  // https://caniuse.com/requestidlecallback
-  setTimeout(hydrate, 1);
-}
+hydrateRoot(document, <Client />);
