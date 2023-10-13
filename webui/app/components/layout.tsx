@@ -90,6 +90,7 @@ const sidebarChildrenCss = makeMqs([
   css``,
   css`
     height: auto;
+    overflow-x: hidden;
     overflow-y: scroll;
   `,
 ]);

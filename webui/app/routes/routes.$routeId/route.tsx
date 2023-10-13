@@ -1,6 +1,5 @@
 import { useQuery } from "@apollo/client";
 import { useParams } from "@remix-run/react";
-import { formatDistance } from "~/services/format";
 import { gql } from "~/__generated__";
 import { Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
@@ -10,6 +9,9 @@ import { useMemo } from "react";
 import { isNotNil } from "~/services/isNotNil";
 import { NearbyRoutes } from "./NearbyRoutes";
 import { Container, MapContainer, SidebarContainer } from "~/components/layout";
+import { RouteVitals } from "~/components/RouteVitals";
+import { makeMqs } from "~/styles/mediaQueries";
+import { css } from "@emotion/react";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -20,6 +22,8 @@ query RouteQuery($routeId: RouteId!) {
       canonicalUrl
     }
     distance
+    elevationAscentM
+    elevationDescentM
     points
     elevationPoints
     distancePoints
@@ -85,6 +89,22 @@ function Definition({
   );
 }
 
+const routeContentContainerCss = makeMqs([
+  css`
+    padding: 10px 0;
+  `,
+  css``,
+  css`
+    padding: 12px 0;
+  `,
+  css`
+    padding: 14px 0;
+  `,
+  css`
+    padding: 16px 0;
+  `,
+]);
+
 export default function Route(): React.ReactElement {
   const params = useParams();
 
@@ -109,81 +129,86 @@ export default function Route(): React.ReactElement {
   return (
     <Container>
       <SidebarContainer title={data?.route?.name ?? ""} showBack>
-        {data?.route ? (
-          <>
-            {formatDistance(data.route.distance)}
-            {data.route.description ? <p>{data.route.description}</p> : null}
-            <br />
-            {data.route.externalRef ? (
-              <p>
-                <a
-                  target="_blank"
-                  rel="noreferrer"
-                  href={data.route.externalRef?.canonicalUrl}
-                >
-                  {data.route.externalRef?.canonicalUrl}
-                </a>
-              </p>
-            ) : (
-              <></>
-            )}
-            <h3>Info</h3>
-            <dl>
-              <Definition
-                term="Technical Difficulty"
-                definition={data.route.technicalDifficulty}
-              />
-              <Definition
-                term="Physical Difficulty"
-                definition={data.route.technicalDifficulty}
-              />
-              <Definition term="Scouted" definition={data.route.scouted} />
-              <Definition term="Direction" definition={data.route.direction} />
-            </dl>
-            {data.route.minimumBike ? (
-              <BikeSpecContent
-                title="Minimum Bike"
-                bikeSpec={data.route.minimumBike}
-              />
-            ) : (
-              <></>
-            )}
-            {data.route.idealBike ? (
-              <BikeSpecContent
-                title="Ideal Bike"
-                bikeSpec={data.route.idealBike}
-              />
-            ) : (
-              <></>
-            )}
-          </>
-        ) : (
-          <></>
-        )}
-        {data?.route?.elevationPoints && data?.route?.distancePoints ? (
-          <ElevationProfile
-            elevationPoints={data.route.elevationPoints}
-            distancePoints={data.route.distancePoints}
-          />
-        ) : (
-          <></>
-        )}
-        {data?.route?.photos.map((photo) => (
-          <Photo key={photo.id} photo={photo} />
-        ))}
-        {data?.route ? (
-          <div>
-            {(data?.route?.termini ? data.route.termini : []).map(
-              (terminus) => (
-                <NearbyRoutes
-                  key={terminus.bearing}
-                  terminus={terminus}
-                  nearbyRoutes={terminus.nearbyRoutes}
+        <div css={routeContentContainerCss}>
+          {data?.route ? (
+            <>
+              <RouteVitals route={data.route} />
+              {data.route.description ? <p>{data.route.description}</p> : null}
+              <br />
+              {data.route.externalRef ? (
+                <p>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    href={data.route.externalRef?.canonicalUrl}
+                  >
+                    {data.route.externalRef?.canonicalUrl}
+                  </a>
+                </p>
+              ) : (
+                <></>
+              )}
+              <h3>Info</h3>
+              <dl>
+                <Definition
+                  term="Technical Difficulty"
+                  definition={data.route.technicalDifficulty}
                 />
-              )
-            )}
-          </div>
-        ) : null}
+                <Definition
+                  term="Physical Difficulty"
+                  definition={data.route.technicalDifficulty}
+                />
+                <Definition term="Scouted" definition={data.route.scouted} />
+                <Definition
+                  term="Direction"
+                  definition={data.route.direction}
+                />
+              </dl>
+              {data.route.minimumBike ? (
+                <BikeSpecContent
+                  title="Minimum Bike"
+                  bikeSpec={data.route.minimumBike}
+                />
+              ) : (
+                <></>
+              )}
+              {data.route.idealBike ? (
+                <BikeSpecContent
+                  title="Ideal Bike"
+                  bikeSpec={data.route.idealBike}
+                />
+              ) : (
+                <></>
+              )}
+            </>
+          ) : (
+            <></>
+          )}
+          {data?.route?.elevationPoints && data?.route?.distancePoints ? (
+            <ElevationProfile
+              elevationPoints={data.route.elevationPoints}
+              distancePoints={data.route.distancePoints}
+            />
+          ) : (
+            <></>
+          )}
+          {data?.route?.photos.map((photo) => (
+            <Photo key={photo.id} photo={photo} />
+          ))}
+          {data?.route ? (
+            <div>
+              {(data?.route?.termini ? data.route.termini : []).map(
+                (terminus) => (
+                  <NearbyRoutes
+                    key={terminus.bearing}
+                    terminus={terminus}
+                    nearbyRoutes={terminus.nearbyRoutes}
+                  />
+                )
+              )}
+            </div>
+          ) : null}
+        </div>
       </SidebarContainer>
       <MapContainer>
         <Map
