@@ -34,9 +34,7 @@ import {
   OriginProtocolPolicy,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
-import {
-  HttpOrigin,
-} from "aws-cdk-lib/aws-cloudfront-origins";
+import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { experimental } from "aws-cdk-lib/aws-cloudfront";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
@@ -124,7 +122,9 @@ export class CdkStack extends cdk.Stack {
     const webuiApi = new webuiLambdaDeployment(this);
 
     // taken from deployed webuiApi
-    const origin = new HttpOrigin("6qrdtonstb.execute-api.ap-southeast-2.amazonaws.com")
+    const origin = new HttpOrigin(
+      "6qrdtonstb.execute-api.ap-southeast-2.amazonaws.com"
+    );
 
     const webuiCloudfront = new Distribution(this, "howitt-webui-cloudfront", {
       domainNames: [webUIDomainName.name],
@@ -148,10 +148,13 @@ export class CdkStack extends cdk.Stack {
       },
     });
 
-    const cacheControlFn = new experimental.EdgeFunction(this, 'tiles-cf-cache-control', {
-      runtime: Runtime.NODEJS_14_X,
-      handler: 'index.handler',
-      code: Code.fromInline(`
+    const cacheControlFn = new experimental.EdgeFunction(
+      this,
+      "tiles-cf-cache-control",
+      {
+        runtime: Runtime.NODEJS_14_X,
+        handler: "index.handler",
+        code: Code.fromInline(`
         exports.handler = function(event, context, callback) {
           const response = event.Records[0].cf.response;
           const headers = response.headers;
@@ -161,7 +164,8 @@ export class CdkStack extends cdk.Stack {
           callback(null, response);
         }
       `),
-    });
+      }
+    );
 
     const tileCloudfront = new Distribution(this, "howitt-tiles-cloudfront", {
       httpVersion: HttpVersion.HTTP2_AND_3,
@@ -174,7 +178,12 @@ export class CdkStack extends cdk.Stack {
           defaultTtl: Duration.days(1),
           queryStringBehavior: CacheQueryStringBehavior.allowList("apikey"),
         }),
-        edgeLambdas: [{ functionVersion: cacheControlFn.currentVersion, eventType: LambdaEdgeEventType.ORIGIN_RESPONSE }]
+        edgeLambdas: [
+          {
+            functionVersion: cacheControlFn.currentVersion,
+            eventType: LambdaEdgeEventType.ORIGIN_RESPONSE,
+          },
+        ],
       },
     });
   }
@@ -182,15 +191,16 @@ export class CdkStack extends cdk.Stack {
 
 // not in use
 class webuiLambdaDeployment extends Construct {
-  public httpApi: HttpApi
+  public httpApi: HttpApi;
 
   constructor(scope: Construct) {
-    super(scope, "webui-lambda-deployment")
+    super(scope, "webui-lambda-deployment");
 
     const remixRootDir = [PROJECT_ROOT_DIR, "webui"].join("/");
 
     const remixLambda = new NodejsFunction(this, "remix-webui", {
       architecture: Architecture.ARM_64,
+      runtime: Runtime.NODEJS_18_X,
       memorySize: 1024,
       timeout: Duration.seconds(10),
 
