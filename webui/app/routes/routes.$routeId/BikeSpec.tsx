@@ -46,8 +46,7 @@ export function BikeSpecContent({ title, bikeSpec }: Props): JSX.Element {
 
   return (
     <div css={bikeSpecContentCss}>
-      <p css={{ marginBottom: "8px" }}>{title}</p>
-      <DataTable items={tableItems} />
+      <DataTable title={title} items={tableItems} />
     </div>
   );
 }

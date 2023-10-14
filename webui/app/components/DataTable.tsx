@@ -1,4 +1,5 @@
 import { css } from "@emotion/react";
+import { isNotNil } from "~/services/isNotNil";
 import { COLORS } from "~/styles/theme";
 
 interface TableItem {
@@ -7,6 +8,7 @@ interface TableItem {
 }
 
 interface Props {
+  title?: string;
   items: TableItem[];
 }
 
@@ -35,17 +37,24 @@ const dataTableCss = css`
   }
 `;
 
-export function DataTable({ items }: Props): JSX.Element {
+const titleCss = css`
+  margin-bottom: 8px;
+`;
+
+export function DataTable({ items, title }: Props): JSX.Element {
   return (
-    <table css={dataTableCss}>
-      <tbody>
-        {items.map(({ name, value }) => (
-          <tr key={name}>
-            <td>{name}</td>
-            <td>{value}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div>
+      {isNotNil(title) ? <p css={titleCss}>{title}</p> : null}
+      <table css={dataTableCss}>
+        <tbody>
+          {items.map(({ name, value }) => (
+            <tr key={name}>
+              <td>{name}</td>
+              <td>{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

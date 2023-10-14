@@ -158,7 +158,7 @@ export default function Route(): React.ReactElement {
                 <></>
               )}
 
-              <DataTable items={tableItems} />
+              <DataTable title="Overview" items={tableItems} />
               {data.route.minimumBike ? (
                 <BikeSpecContent
                   title="Minimum Bike"
