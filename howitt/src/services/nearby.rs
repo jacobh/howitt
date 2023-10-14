@@ -1,9 +1,7 @@
 use std::borrow::Cow;
 
 use crate::models::{
-    point::{
-        closest_point, simplify_points, ElevationPoint, ElevationPointDelta, Point,
-    },
+    point::{closest_point, simplify_points, ElevationPoint, ElevationPointDelta, Point},
     point_of_interest::PointOfInterest,
     route::Route,
 };
@@ -91,6 +89,7 @@ pub fn nearby_routes<'a, 'b>(route: &'a Route, routes: &'b [Route]) -> Vec<Nearb
 
     routes
         .iter()
+        .filter(|route2| route.id() != route2.id())
         .flat_map(|route2| {
             sample_points
                 .iter()
