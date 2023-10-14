@@ -65,16 +65,22 @@ const sidebarContainerInnerCss = makeMqs([
     padding: 18px 24px;
   `,
   css`
-    padding: 24px 32px;
+    padding: 24px 8%;
   `,
   css`
-    padding: 30px 48px;
+    padding: 30px 10%;
   `,
   css`
-    padding: 18px 24px;
+    padding: 18px 6%;
     height: 100vh;
     display: flex;
     flex-direction: column;
+  `,
+  css`
+    padding: 20px 6%;
+  `,
+  css`
+    padding: 24px 6%;
   `,
 ]);
 
