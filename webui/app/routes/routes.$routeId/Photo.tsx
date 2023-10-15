@@ -5,10 +5,6 @@ interface Props {
   photo: Pick<ApiPhoto, "url" | "caption">;
 }
 
-const photoContainerCss = css`
-  margin: 20px 0;
-`;
-
 const photoCss = css`
   max-width: 100%;
   max-height: 70vh;
@@ -22,7 +18,7 @@ const captionCss = css`
 
 export function Photo({ photo: { url, caption } }: Props): React.ReactElement {
   return (
-    <div css={photoContainerCss}>
+    <div>
       <img css={photoCss} src={url} alt={caption ?? undefined}></img>
       {caption ? <p css={captionCss}>{caption}</p> : <></>}
     </div>

@@ -59,28 +59,22 @@ const mapContainerCss = makeMqs([
 
 const sidebarContainerInnerCss = makeMqs([
   css`
-    padding: 16px;
+    padding: 12px 4%;
   `,
   css`
-    padding: 18px 24px;
+    padding: 12px 6%;
   `,
   css`
-    padding: 24px 8%;
+    padding: 14px 9%;
   `,
   css`
-    padding: 30px 10%;
+    padding: 16px 12%;
   `,
   css`
-    padding: 18px 6%;
+    padding: max(18px, 1vw) 6%;
     height: 100vh;
     display: flex;
     flex-direction: column;
-  `,
-  css`
-    padding: 20px 6%;
-  `,
-  css`
-    padding: 24px 6%;
   `,
 ]);
 

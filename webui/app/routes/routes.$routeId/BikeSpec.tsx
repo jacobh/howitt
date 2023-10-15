@@ -1,7 +1,8 @@
 import { css } from "@emotion/react";
-import { uniq } from "lodash";
+import { every, uniq } from "lodash";
 import type { BikeSpec } from "~/__generated__/graphql";
 import { DataTable } from "~/components/DataTable";
+import { isNotNil } from "~/services/isNotNil";
 
 function formatTyreWidth(mm: number): string {
   if (mm <= 50) {
@@ -25,28 +26,31 @@ function formatTravels(travels?: number[]): string {
   return uniq(travels).map(formatTravel).join(" ~ ");
 }
 
+function isRigid(travels?: number[]): boolean {
+  return every(travels ?? [], (t) => t === 0);
+}
+
 interface Props {
   title: string;
   bikeSpec: BikeSpec;
 }
 
-const bikeSpecContentCss = css`
-  margin: 20px 0;
-`;
-
 export function BikeSpecContent({ title, bikeSpec }: Props): JSX.Element {
   const tableItems = [
     { name: "Tyre Width", value: formatTyreWidths(bikeSpec.tyreWidth) },
-    {
-      name: "Front Suspension",
-      value: formatTravels(bikeSpec.frontSuspension),
-    },
-    { name: "Rear Suspension", value: formatTravels(bikeSpec.rearSuspension) },
-  ];
+    !isRigid(bikeSpec.frontSuspension)
+      ? {
+          name: "Front Suspension",
+          value: formatTravels(bikeSpec.frontSuspension),
+        }
+      : undefined,
+    !isRigid(bikeSpec.rearSuspension)
+      ? {
+          name: "Rear Suspension",
+          value: formatTravels(bikeSpec.rearSuspension),
+        }
+      : undefined,
+  ].filter(isNotNil);
 
-  return (
-    <div css={bikeSpecContentCss}>
-      <DataTable title={title} items={tableItems} />
-    </div>
-  );
+  return <DataTable title={title} items={tableItems} />;
 }

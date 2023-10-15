@@ -18,7 +18,7 @@ export function NearbyRoutes({
   nearbyRoutes,
 }: Props): React.ReactElement {
   return (
-    <div css={{ margin: "20px 0" }}>
+    <div>
       <p css={{ margin: "10px 0" }}>
         Nearby Routes (
         {cardinalFromDegree(terminus.bearing, CardinalSubset.Ordinal)})

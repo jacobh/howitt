@@ -14,6 +14,7 @@ import { makeMqs } from "~/styles/mediaQueries";
 import { css } from "@emotion/react";
 import { COLORS } from "~/styles/theme";
 import { DataTable } from "~/components/DataTable";
+import { capitalize } from "lodash";
 
 const ROUTE_QUERY = gql(`
 query RouteQuery($routeId: RouteId!) {
@@ -90,6 +91,10 @@ const routeContentContainerCss = makeMqs([
   `,
 ]);
 
+const contentSectionCss = css`
+  margin: 24px 0;
+`;
+
 export default function Route(): React.ReactElement {
   const params = useParams();
 
@@ -122,7 +127,8 @@ export default function Route(): React.ReactElement {
     { name: "Direction", value: data?.route?.direction },
   ]
     .map(({ name, value }) => (isNotNil(value) ? { name, value } : undefined))
-    .filter(isNotNil);
+    .filter(isNotNil)
+    .map(({ name, value }) => ({ name, value: capitalize(value) }));
 
   return (
     <Container>
@@ -130,48 +136,61 @@ export default function Route(): React.ReactElement {
         <div css={routeContentContainerCss}>
           {data?.route ? (
             <>
-              <RouteVitals route={data.route} />
+              <section css={{ marginTop: "2px" }}>
+                <RouteVitals route={data.route} />
+              </section>
               {data.route.externalRef ? (
-                <p css={{ margin: "20px 0", color: COLORS.darkGrey }}>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href={data.route.externalRef?.canonicalUrl}
-                  >
-                    {data.route.externalRef?.canonicalUrl.split("://")[1]}
-                  </a>
-                </p>
+                <section css={contentSectionCss}>
+                  <p css={{ color: COLORS.darkGrey }}>
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      href={data.route.externalRef?.canonicalUrl}
+                    >
+                      {data.route.externalRef?.canonicalUrl.split("://")[1]}
+                    </a>
+                  </p>
+                </section>
               ) : (
                 <></>
               )}
               {data.route.description ? (
-                <p css={{ margin: "20px 0" }}>{data.route.description}</p>
+                <section css={contentSectionCss}>
+                  <p>{data.route.description}</p>
+                </section>
               ) : null}
               {data?.route?.elevationPoints && data?.route?.distancePoints ? (
-                <div css={{ margin: "20px 0" }}>
+                <section css={contentSectionCss}>
                   <ElevationProfile
                     elevationPoints={data.route.elevationPoints}
                     distancePoints={data.route.distancePoints}
                   />
-                </div>
+                </section>
               ) : (
                 <></>
               )}
 
-              <DataTable title="Overview" items={tableItems} />
+              <section css={contentSectionCss}>
+                <DataTable title="Overview" items={tableItems} />
+              </section>
+
               {data.route.minimumBike ? (
-                <BikeSpecContent
-                  title="Minimum Bike"
-                  bikeSpec={data.route.minimumBike}
-                />
+                <section css={contentSectionCss}>
+                  <BikeSpecContent
+                    title="Minimum Bike"
+                    bikeSpec={data.route.minimumBike}
+                  />
+                </section>
               ) : (
                 <></>
               )}
               {data.route.idealBike ? (
-                <BikeSpecContent
-                  title="Ideal Bike"
-                  bikeSpec={data.route.idealBike}
-                />
+                <section css={contentSectionCss}>
+                  <BikeSpecContent
+                    title="Ideal Bike"
+                    bikeSpec={data.route.idealBike}
+                  />
+                </section>
               ) : (
                 <></>
               )}
@@ -180,17 +199,20 @@ export default function Route(): React.ReactElement {
             <></>
           )}
           {data?.route?.photos.map((photo) => (
-            <Photo key={photo.id} photo={photo} />
+            <section css={contentSectionCss} key={photo.id}>
+              <Photo photo={photo} />
+            </section>
           ))}
           {data?.route ? (
             <div>
               {(data?.route?.termini ? data.route.termini : []).map(
                 (terminus) => (
-                  <NearbyRoutes
-                    key={terminus.bearing}
-                    terminus={terminus}
-                    nearbyRoutes={terminus.nearbyRoutes}
-                  />
+                  <section css={contentSectionCss} key={terminus.bearing}>
+                    <NearbyRoutes
+                      terminus={terminus}
+                      nearbyRoutes={terminus.nearbyRoutes}
+                    />
+                  </section>
                 )
               )}
             </div>
