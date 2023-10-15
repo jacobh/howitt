@@ -170,9 +170,11 @@ export default function Route(): React.ReactElement {
                 <></>
               )}
 
-              <section css={contentSectionCss}>
-                <DataTable title="Overview" items={tableItems} />
-              </section>
+              {tableItems.length > 0 ? (
+                <section css={contentSectionCss}>
+                  <DataTable title="Overview" items={tableItems} />
+                </section>
+              ) : null}
 
               {data.route.minimumBike ? (
                 <section css={contentSectionCss}>

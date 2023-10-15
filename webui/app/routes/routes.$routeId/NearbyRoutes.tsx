@@ -3,6 +3,7 @@ import { NearbyRoute, Route, Terminus } from "~/__generated__/graphql";
 import { formatDistance } from "~/services/format";
 import { CardinalSubset, cardinalFromDegree } from "cardinal-direction";
 import { COLORS } from "~/styles/theme";
+import { sortBy } from "lodash";
 
 interface Props {
   terminus: Pick<Terminus, "bearing">;
@@ -23,20 +24,19 @@ export function NearbyRoutes({
         Nearby Routes (
         {cardinalFromDegree(terminus.bearing, CardinalSubset.Ordinal)})
       </p>
-      {nearbyRoutes.map(({ delta, closestTerminus: { bearing, route } }) => (
-        <div key={route.id} css={{ margin: "10px 0" }}>
-          <p>
-            <Link to={`/routes/${route.id.split("#")[1]}`}>
-              {route.name} (
-              {cardinalFromDegree(bearing, CardinalSubset.Ordinal)})
-            </Link>
-          </p>
-          <p css={{ color: COLORS.darkGrey }}>
-            {formatDistance(delta.distance)}{" "}
-            {cardinalFromDegree(delta.bearing, CardinalSubset.Ordinal)}
-          </p>
-        </div>
-      ))}
+      {sortBy(nearbyRoutes, ({ delta }) => delta.distance).map(
+        ({ delta, closestTerminus: { route } }) => (
+          <div key={route.id} css={{ margin: "10px 0" }}>
+            <p>
+              <Link to={`/routes/${route.id.split("#")[1]}`}>{route.name}</Link>
+            </p>
+            <p css={{ color: COLORS.darkGrey }}>
+              {formatDistance(delta.distance)}{" "}
+              {cardinalFromDegree(delta.bearing, CardinalSubset.Ordinal)}
+            </p>
+          </div>
+        )
+      )}
     </div>
   );
 }
