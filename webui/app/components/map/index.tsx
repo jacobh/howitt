@@ -18,7 +18,7 @@ import { LineString, Point } from "ol/geom";
 import Fill from "ol/style/Fill";
 import { css } from "@emotion/react";
 
-interface DisplayedRoute {
+export interface DisplayedRoute {
   route: Pick<Route, "id" | "points">;
   style?: "default" | "muted" | "highlighted";
 }

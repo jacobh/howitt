@@ -1,42 +1,60 @@
-import { Link } from "@remix-run/react";
 import { NearbyRoute, Route, Terminus } from "~/__generated__/graphql";
 import { formatDistance } from "~/services/format";
 import { CardinalSubset, cardinalFromDegree } from "cardinal-direction";
-import { COLORS } from "~/styles/theme";
 import { sortBy } from "lodash";
+import { RouteItem } from "~/components/RouteItem";
+import { css } from "@emotion/react";
 
 interface Props {
-  terminus: Pick<Terminus, "bearing">;
+  terminus?: Pick<Terminus, "bearing">;
   nearbyRoutes: (Pick<NearbyRoute, "delta"> & {
     closestTerminus: Pick<Terminus, "bearing"> & {
-      route: Pick<Route, "id" | "name">;
+      route: Pick<
+        Route,
+        "id" | "name" | "distance" | "elevationAscentM" | "elevationDescentM"
+      >;
     };
   })[];
 }
 
+const routeItemContainerCss = css`
+  margin: 24px 0;
+
+  &:first-child {
+    margin-top: 18px;
+  }
+`;
+
 export function NearbyRoutes({
   terminus,
   nearbyRoutes,
-}: Props): React.ReactElement {
+}: Props): React.ReactNode {
+  if (nearbyRoutes.length === 0) {
+    return null;
+  }
+
   return (
     <div>
-      <p css={{ margin: "10px 0" }}>
-        Nearby Routes (
-        {cardinalFromDegree(terminus.bearing, CardinalSubset.Ordinal)})
+      <p>
+        Nearby Routes
+        {terminus &&
+          ` (${cardinalFromDegree(terminus.bearing, CardinalSubset.Ordinal)})`}
       </p>
-      {sortBy(nearbyRoutes, ({ delta }) => delta.distance).map(
-        ({ delta, closestTerminus: { route } }) => (
-          <div key={route.id} css={{ margin: "10px 0" }}>
-            <p>
-              <Link to={`/routes/${route.id.split("#")[1]}`}>{route.name}</Link>
-            </p>
-            <p css={{ color: COLORS.darkGrey }}>
-              {formatDistance(delta.distance)}{" "}
-              {cardinalFromDegree(delta.bearing, CardinalSubset.Ordinal)}
-            </p>
-          </div>
-        )
-      )}
+      <div>
+        {sortBy(nearbyRoutes, ({ delta }) => delta.distance).map(
+          ({ delta, closestTerminus: { route } }) => (
+            <div key={route.id} css={routeItemContainerCss}>
+              <RouteItem
+                titlePostfix={`(${[
+                  formatDistance(delta.distance),
+                  cardinalFromDegree(delta.bearing, CardinalSubset.Ordinal),
+                ].join(" ")})`}
+                route={route}
+              />
+            </div>
+          )
+        )}
+      </div>
     </div>
   );
 }

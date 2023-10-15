@@ -1,11 +1,10 @@
 import { useQuery } from "@apollo/client";
 import { useParams } from "@remix-run/react";
 import { gql } from "~/__generated__";
-import { Map } from "../../components/map";
+import { DisplayedRoute, Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { Photo } from "./Photo";
-import { useMemo } from "react";
 import { isNotNil } from "~/services/isNotNil";
 import { NearbyRoutes } from "./NearbyRoutes";
 import { Container, MapContainer, SidebarContainer } from "~/components/layout";
@@ -64,6 +63,9 @@ query RouteQuery($routeId: RouteId!) {
             id
             name
             points
+            distance
+            elevationAscentM
+            elevationDescentM
           }
         }
       }
@@ -102,23 +104,19 @@ export default function Route(): React.ReactElement {
     variables: { routeId: ["ROUTE", params.routeId].join("#") },
   });
 
-  const routes = useMemo(
-    () =>
-      [
-        data?.route ? { route: data?.route } : undefined,
-        ...(data?.route?.termini ?? []).flatMap((t) =>
-          t.nearbyRoutes
-            .filter(
-              (nearby) => nearby.closestTerminus.route.id !== data?.route?.id
-            )
-            .map((nearby) => ({
-              route: nearby.closestTerminus.route,
-              style: "muted" as const,
-            }))
-        ),
-      ].filter(isNotNil),
-    [data]
+  const nearbyRoutes = (data?.route?.termini ?? []).flatMap((t) =>
+    t.nearbyRoutes.filter(
+      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id
+    )
   );
+
+  const routes: DisplayedRoute[] = [
+    data?.route ? { route: data.route } : undefined,
+    ...nearbyRoutes.map((nearby) => ({
+      route: nearby.closestTerminus.route,
+      style: "muted" as const,
+    })),
+  ].filter(isNotNil);
 
   const tableItems = [
     { name: "Technical Difficulty", value: data?.route?.technicalDifficulty },
@@ -205,19 +203,10 @@ export default function Route(): React.ReactElement {
               <Photo photo={photo} />
             </section>
           ))}
-          {data?.route ? (
-            <div>
-              {(data?.route?.termini ? data.route.termini : []).map(
-                (terminus) => (
-                  <section css={contentSectionCss} key={terminus.bearing}>
-                    <NearbyRoutes
-                      terminus={terminus}
-                      nearbyRoutes={terminus.nearbyRoutes}
-                    />
-                  </section>
-                )
-              )}
-            </div>
+          {nearbyRoutes.length > 0 ? (
+            <section css={contentSectionCss}>
+              <NearbyRoutes nearbyRoutes={nearbyRoutes} />
+            </section>
           ) : null}
         </div>
       </SidebarContainer>

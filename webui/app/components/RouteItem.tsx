@@ -1,4 +1,4 @@
-import { css } from "@emotion/react";
+import { SerializedStyles, css } from "@emotion/react";
 import { Link } from "@remix-run/react";
 import { Route } from "~/__generated__/graphql";
 import { COLORS } from "~/styles/theme";
@@ -9,22 +9,39 @@ interface Props {
     Route,
     "id" | "name" | "distance" | "elevationAscentM" | "elevationDescentM"
   >;
+  routeTitleCss?: SerializedStyles;
+  titlePostfix?: string;
 }
 
 const routeItemCss = css`
-  padding: 20px 0;
   container-type: inline-size;
-  border-bottom: 1px solid ${COLORS.offWhite};
 `;
 
-const routeTitleCss = css({ marginBottom: "6px", textDecoration: "underline" });
+const defaultRouteTitleCss = css({
+  marginBottom: "6px",
+});
 
-export function RouteItem({ route }: Props): JSX.Element {
+const titlePostfixCss = css`
+  text-decoration: none;
+  color: ${COLORS.darkGrey};
+`;
+
+export function RouteItem({
+  route,
+  titlePostfix,
+  routeTitleCss,
+}: Props): JSX.Element {
   return (
     <div className="route-item" css={routeItemCss}>
-      <h3 className="route-title" css={routeTitleCss}>
+      <p
+        className="route-title"
+        css={css([defaultRouteTitleCss, routeTitleCss])}
+      >
         <Link to={`/routes/${route.id.split("#")[1]}`}>{route.name}</Link>
-      </h3>
+        {titlePostfix && (
+          <span css={titlePostfixCss}>&nbsp;&nbsp;{titlePostfix}</span>
+        )}
+      </p>
       <RouteVitals route={route} />
     </div>
   );

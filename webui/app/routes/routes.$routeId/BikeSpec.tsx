@@ -1,4 +1,3 @@
-import { css } from "@emotion/react";
 import { every, uniq } from "lodash";
 import type { BikeSpec } from "~/__generated__/graphql";
 import { DataTable } from "~/components/DataTable";
