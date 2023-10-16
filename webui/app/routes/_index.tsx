@@ -1,11 +1,13 @@
 import { DEFAULT_VIEW, Map } from "../components/map";
 import { useQuery } from "@apollo/client";
 import { gql } from "../__generated__/gql";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Container, MapContainer, SidebarContainer } from "~/components/layout";
 import { RouteItem } from "~/components/RouteItem";
 import { css } from "@emotion/react";
 import { COLORS } from "~/styles/theme";
+import { isNotNil } from "~/services/isNotNil";
+import { sortBy } from "lodash";
 
 const HOME_QUERY = gql(`
   query homeQuery {
@@ -33,12 +35,33 @@ const routeTitleCss = css`
 export default function Index(): React.ReactElement {
   const [mode] = useState("routes");
 
+  const [visibleRouteIds, setVisibleRouteIds] = useState<
+    { routeId: string; distanceFromCenter: number }[] | undefined
+  >(undefined);
+
   const { data } = useQuery(HOME_QUERY);
+
+  const routeIdMap: Record<
+    string,
+    Exclude<typeof data, undefined>["starredRoutes"][number]
+  > = useMemo(
+    () =>
+      Object.fromEntries(
+        (data?.starredRoutes ?? []).map((route) => [route.id, route])
+      ),
+    [data]
+  );
+
+  const sidebarRoutes = isNotNil(visibleRouteIds)
+    ? sortBy(visibleRouteIds, ({ distanceFromCenter }) => distanceFromCenter)
+        .map(({ routeId }) => routeIdMap[routeId])
+        .filter(isNotNil)
+    : Object.values(routeIdMap);
 
   return (
     <Container>
       <SidebarContainer title="Routes">
-        {data?.starredRoutes.map((route) => (
+        {sidebarRoutes.map((route) => (
           <div key={route.id} css={routeItemContainerCss}>
             <RouteItem route={route} routeTitleCss={routeTitleCss} />
           </div>
@@ -55,6 +78,7 @@ export default function Index(): React.ReactElement {
             type: "view",
             view: DEFAULT_VIEW,
           }}
+          onVisibleRoutesChanged={setVisibleRouteIds}
         />
       </MapContainer>
     </Container>

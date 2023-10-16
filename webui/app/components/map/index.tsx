@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useEffect, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import OlMap from "ol/Map";
+import { getDistance } from "ol/sphere";
 import View, { ViewOptions } from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
@@ -17,6 +24,9 @@ import { Style, Stroke, Circle } from "ol/style";
 import { LineString, Point } from "ol/geom";
 import Fill from "ol/style/Fill";
 import { css } from "@emotion/react";
+import BaseEvent from "ol/events/Event";
+import { isNotNil } from "~/services/isNotNil";
+import { debounce, isEqual, min } from "lodash";
 
 export interface DisplayedRoute {
   route: Pick<Route, "id" | "points">;
@@ -33,6 +43,9 @@ interface MapProps {
   initialView?:
     | { type: "route"; routeId: string }
     | { type: "view"; view: ViewOptions };
+  onVisibleRoutesChanged?: (
+    routes: { routeId: string; distanceFromCenter: number }[]
+  ) => void;
 }
 
 interface MapContext {
@@ -56,9 +69,20 @@ export function Map({
   routes,
   rides,
   checkpoints,
-  initialView,
+  initialView: initialViewProp,
+  onVisibleRoutesChanged,
 }: MapProps): React.ReactElement {
   const { map: existingMap, setMap } = useContext(MapContext);
+
+  const [isFirstMapRender, setIsFirstRender] = useState(true);
+
+  const [initialView, setInitialView] = useState(initialViewProp);
+
+  useEffect(() => {
+    if (!isEqual(initialView, initialViewProp)) {
+      setInitialView(initialView);
+    }
+  }, [initialView, initialViewProp, setInitialView]);
 
   const hutStyle = useMemo<Style>(
     () =>
@@ -128,12 +152,14 @@ export function Map({
       map = newMap;
     }
 
-    if (initialView?.type === "view") {
+    if (isFirstMapRender && initialView?.type === "view") {
       map.setView(new View(initialView.view));
     }
     if (existingMap === undefined) {
       map.setView(new View(DEFAULT_VIEW));
     }
+
+    setIsFirstRender(false);
 
     const clickListener = (event: MapBrowserEvent<any>): void => {
       console.log(event.coordinate);
@@ -141,13 +167,60 @@ export function Map({
       // console.log(view.getCenter(), view.getZoom());
     };
 
+    const onViewChange = debounce((event: BaseEvent): void => {
+      const view = event.target as View;
+      const { extent, viewState } = view.getViewStateAndExtent();
+
+      const visibleRoutes = map
+        .getAllLayers()
+        .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
+        .flatMap((layer) => {
+          const source = layer.getSource() as VectorSource;
+          const features = source.getFeaturesInExtent(extent);
+          const distanceFromCenter = min(
+            features
+              .map((feature) =>
+                feature.getGeometry()?.getClosestPoint(viewState.center)
+              )
+              .filter(isNotNil)
+              .map((closestPoint) =>
+                getDistance(closestPoint, viewState.center)
+              )
+          );
+
+          return isNotNil(distanceFromCenter)
+            ? { layer, distanceFromCenter }
+            : undefined;
+        })
+        .filter(isNotNil)
+        .flatMap(({ layer }) =>
+          isNotNil(layer.getProperties().routeId)
+            ? { routeId: layer.getProperties().routeId, distanceFromCenter: 0 }
+            : undefined
+        )
+        .filter(isNotNil);
+
+      if (onVisibleRoutesChanged) {
+        onVisibleRoutesChanged(visibleRoutes);
+      }
+    }, 250);
+
     map.on("click", clickListener);
+    map.getView().on("change:center", onViewChange);
 
     return () => {
       map.setTarget(undefined);
       map.un("click", clickListener);
+      map.getView().un("change:center", onViewChange);
     };
-  }, [existingMap, setMap, initialView]);
+  }, [
+    existingMap,
+    setMap,
+    initialView,
+    onVisibleRoutesChanged,
+    isFirstMapRender,
+    setIsFirstRender,
+  ]);
 
   useEffect(() => {
     if (!existingMap) {
@@ -160,7 +233,7 @@ export function Map({
     const layers = map.getLayers().getArray();
 
     for (const { route, style } of routes ?? []) {
-      console.log(route.id);
+      // console.log(route.id);
       const existingLayer = layers
         .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
         .find((layer) => layer.getProperties().routeId === route.id);
@@ -222,3 +295,53 @@ export function Map({
 
   return <div css={mapCss} id="map" />;
 }
+
+// function usePrevious<T>(value: T, initialValue: T): T {
+//   const ref = useRef(initialValue);
+//   useEffect(() => {
+//     ref.current = value;
+//   });
+//   return ref.current;
+// }
+
+// function useEffectDebugger(
+//   effect: React.EffectCallback,
+//   dependencies: React.DependencyList,
+//   dependencyNames: string[] = []
+// ): void {
+//   const previousDeps = usePrevious(dependencies, []);
+
+//   const changedDeps = dependencies.reduce(
+//     (
+//       accum: Record<
+//         string,
+//         {
+//           before: unknown;
+//           after: unknown;
+//         }
+//       >,
+//       dependency,
+//       index
+//     ) => {
+//       if (dependency !== previousDeps[index]) {
+//         const keyName = dependencyNames[index] || index;
+//         return {
+//           ...accum,
+//           [keyName]: {
+//             before: previousDeps[index],
+//             after: dependency,
+//           },
+//         };
+//       }
+
+//       return accum;
+//     },
+//     {}
+//   );
+
+//   if (Object.keys(changedDeps).length) {
+//     console.log("[use-effect-debugger] ", changedDeps);
+//   }
+
+//   useEffect(effect, dependencies);
+// }
