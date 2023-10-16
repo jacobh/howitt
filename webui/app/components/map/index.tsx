@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo } from "react";
 import OlMap from "ol/Map";
-import View from "ol/View";
+import View, { ViewOptions } from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
 import { useGeographic } from "ol/proj";
@@ -30,8 +30,22 @@ interface MapProps {
     PointOfInterest,
     "name" | "point" | "pointOfInterestType"
   >[];
-  initialView?: { routeId: string };
+  initialView?:
+    | { type: "route"; routeId: string }
+    | { type: "view"; view: ViewOptions };
 }
+
+interface MapContext {
+  map?: OlMap | undefined;
+  setMap: (map: OlMap) => void;
+}
+
+export const MapContext = createContext<MapContext>({ setMap: () => {} });
+
+export const DEFAULT_VIEW: ViewOptions = {
+  center: [146, -37],
+  zoom: 7.5,
+};
 
 const mapCss = css`
   width: 100%;
@@ -44,7 +58,8 @@ export function Map({
   checkpoints,
   initialView,
 }: MapProps): React.ReactElement {
-  const [map, setMap] = useState<OlMap>();
+  const { map, setMap } = useContext(MapContext);
+
   const hutStyle = useMemo<Style>(
     () =>
       new Style({
@@ -80,16 +95,27 @@ export function Map({
   );
 
   useEffect(() => {
+    if (map instanceof OlMap) {
+      console.log("map already rendered");
+
+      map.setTarget("map");
+
+      if (initialView?.type === "view") {
+        map.setView(new View(initialView.view));
+      }
+
+      return () => map.setTarget(undefined);
+    }
+
     console.log("initial map render");
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useGeographic();
 
-    const view = new View({
-      center: [146, -37],
-      zoom: 7.5,
-    });
+    const view = new View(
+      initialView?.type === "view" ? initialView.view : DEFAULT_VIEW
+    );
 
-    const map = new OlMap({
+    const newMap = new OlMap({
       target: "map",
       layers: [
         new TileLayer({
@@ -104,17 +130,17 @@ export function Map({
       view,
     });
 
-    setMap(map);
+    setMap(newMap);
 
-    map.addEventListener("click", (baseEvt) => {
+    newMap.addEventListener("click", (baseEvt) => {
       const evt = baseEvt as MapBrowserEvent<any>;
       console.log(evt.coordinate);
-      console.log(map.getFeaturesAtPixel(evt.pixel, { hitTolerance: 5.0 }));
+      console.log(newMap.getFeaturesAtPixel(evt.pixel, { hitTolerance: 5.0 }));
       // console.log(view.getCenter(), view.getZoom());
     });
 
-    return () => map.setTarget(undefined);
-  }, []);
+    return () => newMap.setTarget(undefined);
+  }, [map, setMap, initialView]);
 
   useEffect(() => {
     if (!map) {
@@ -154,7 +180,7 @@ export function Map({
         })
       );
 
-      if (initialView?.routeId === route.id) {
+      if (initialView?.type === "route" && initialView.routeId === route.id) {
         map.getView().fit(new LineString(route.points), {
           padding: [100, 100, 100, 100],
           duration: 0,

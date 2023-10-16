@@ -1,4 +1,4 @@
-import { Map } from "../components/map";
+import { DEFAULT_VIEW, Map } from "../components/map";
 import { useQuery } from "@apollo/client";
 import { gql } from "../__generated__/gql";
 import { useState } from "react";
@@ -51,6 +51,10 @@ export default function Index(): React.ReactElement {
               ? data?.starredRoutes.map((route) => ({ route }))
               : undefined
           }
+          initialView={{
+            type: "view",
+            view: DEFAULT_VIEW,
+          }}
         />
       </MapContainer>
     </Container>

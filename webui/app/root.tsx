@@ -8,10 +8,12 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import { css, withEmotionCache } from "@emotion/react";
-import { useContext, useRef, useEffect } from "react";
+import { useContext, useRef, useEffect, useState } from "react";
 import { ClientStyleContext } from "./styles/client.context";
 import { ServerStyleContext } from "./styles/server.context";
 import stylesheet from "./styles/tailwind.css";
+import { MapContext } from "./components/map";
+import OlMap from "ol/Map";
 
 export const meta = (): MetaDescriptor[] => [
   {
@@ -122,11 +124,15 @@ const Document = withEmotionCache(
 );
 
 export default function App(): JSX.Element {
+  const [map, setMap] = useState<OlMap | undefined>(undefined);
+
   return (
     <Document>
-      <main css={mainCss}>
-        <Outlet />
-      </main>
+      <MapContext.Provider value={{ map, setMap }}>
+        <main css={mainCss}>
+          <Outlet />
+        </main>
+      </MapContext.Provider>
     </Document>
   );
 }

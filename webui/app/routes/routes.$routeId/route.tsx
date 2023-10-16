@@ -213,7 +213,9 @@ export default function Route(): React.ReactElement {
       <MapContainer>
         <Map
           routes={routes}
-          initialView={data?.route ? { routeId: data.route.id } : undefined}
+          initialView={
+            data?.route ? { type: "route", routeId: data.route.id } : undefined
+          }
         />
       </MapContainer>
     </Container>
