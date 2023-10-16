@@ -58,7 +58,7 @@ export function Map({
   checkpoints,
   initialView,
 }: MapProps): React.ReactElement {
-  const { map, setMap } = useContext(MapContext);
+  const { map: existingMap, setMap } = useContext(MapContext);
 
   const hutStyle = useMemo<Style>(
     () =>
@@ -95,58 +95,67 @@ export function Map({
   );
 
   useEffect(() => {
-    if (map instanceof OlMap) {
+    let map: OlMap;
+
+    if (existingMap instanceof OlMap) {
       console.log("map already rendered");
 
-      map.setTarget("map");
+      map = existingMap;
 
-      if (initialView?.type === "view") {
-        map.setView(new View(initialView.view));
-      }
+      existingMap.setTarget("map");
+    } else {
+      console.log("initial map render");
 
-      return () => map.setTarget(undefined);
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      useGeographic();
+
+      const newMap = new OlMap({
+        target: "map",
+        layers: [
+          new TileLayer({
+            preload: Infinity,
+            source: new XYZ({
+              urls: [
+                "https://d2o31mmlexa59r.cloudfront.net/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
+              ],
+            }),
+          }),
+        ],
+      });
+
+      setMap(newMap);
+
+      map = newMap;
     }
 
-    console.log("initial map render");
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useGeographic();
+    if (initialView?.type === "view") {
+      map.setView(new View(initialView.view));
+    }
+    if (existingMap === undefined) {
+      map.setView(new View(DEFAULT_VIEW));
+    }
 
-    const view = new View(
-      initialView?.type === "view" ? initialView.view : DEFAULT_VIEW
-    );
-
-    const newMap = new OlMap({
-      target: "map",
-      layers: [
-        new TileLayer({
-          preload: Infinity,
-          source: new XYZ({
-            urls: [
-              "https://d2o31mmlexa59r.cloudfront.net/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
-            ],
-          }),
-        }),
-      ],
-      view,
-    });
-
-    setMap(newMap);
-
-    newMap.addEventListener("click", (baseEvt) => {
-      const evt = baseEvt as MapBrowserEvent<any>;
-      console.log(evt.coordinate);
-      console.log(newMap.getFeaturesAtPixel(evt.pixel, { hitTolerance: 5.0 }));
+    const clickListener = (event: MapBrowserEvent<any>): void => {
+      console.log(event.coordinate);
+      console.log(map.getFeaturesAtPixel(event.pixel, { hitTolerance: 5.0 }));
       // console.log(view.getCenter(), view.getZoom());
-    });
+    };
 
-    return () => newMap.setTarget(undefined);
-  }, [map, setMap, initialView]);
+    map.on("click", clickListener);
+
+    return () => {
+      map.setTarget(undefined);
+      map.un("click", clickListener);
+    };
+  }, [existingMap, setMap, initialView]);
 
   useEffect(() => {
-    if (!map) {
+    if (!existingMap) {
       console.log("no map yet");
       return;
     }
+
+    const map = existingMap;
 
     const layers = map.getLayers().getArray();
 
@@ -209,7 +218,7 @@ export function Map({
         );
       }
     }
-  }, [routes, checkpoints, map, initialView, hutStyle, stationStyle]);
+  }, [routes, checkpoints, existingMap, initialView, hutStyle, stationStyle]);
 
   return <div css={mapCss} id="map" />;
 }
