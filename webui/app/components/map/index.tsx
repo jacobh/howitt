@@ -80,7 +80,7 @@ export function Map({
 
   useEffect(() => {
     if (!isEqual(initialView, initialViewProp)) {
-      setInitialView(initialView);
+      setInitialView(initialViewProp);
     }
   }, [initialView, initialViewProp, setInitialView]);
 
