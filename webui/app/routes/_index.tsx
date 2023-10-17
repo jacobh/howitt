@@ -23,8 +23,12 @@ const HOME_QUERY = gql(`
 `);
 
 const routeItemContainerCss = css`
-  padding: 20px 0;
+  padding: 20px 1.5%;
   border-bottom: 1px solid ${COLORS.offWhite};
+
+  &:hover {
+    background-color: ${COLORS.offWhite};
+  }
 `;
 
 const routeTitleCss = css`
@@ -33,7 +37,9 @@ const routeTitleCss = css`
 `;
 
 export default function Index(): React.ReactElement {
-  const [mode] = useState("routes");
+  const [hoveredRouteId, setHoveredRouteId] = useState<string | undefined>(
+    undefined
+  );
 
   const [visibleRouteIds, setVisibleRouteIds] = useState<
     { routeId: string; distanceFromCenter: number }[] | undefined
@@ -58,22 +64,28 @@ export default function Index(): React.ReactElement {
         .filter(isNotNil)
     : Object.values(routeIdMap);
 
+  const mapRoutes = (data?.starredRoutes ?? []).map((route) => ({
+    route,
+    style: hoveredRouteId === route.id ? ("highlighted" as const) : undefined,
+  }));
+
   return (
     <Container>
       <SidebarContainer title="Routes">
         {sidebarRoutes.map((route) => (
-          <div key={route.id} css={routeItemContainerCss}>
+          <div
+            key={route.id}
+            css={routeItemContainerCss}
+            onMouseEnter={(): void => setHoveredRouteId(route.id)}
+            onMouseLeave={(): void => setHoveredRouteId(undefined)}
+          >
             <RouteItem route={route} routeTitleCss={routeTitleCss} />
           </div>
         ))}
       </SidebarContainer>
       <MapContainer>
         <Map
-          routes={
-            mode === "routes"
-              ? data?.starredRoutes.map((route) => ({ route }))
-              : undefined
-          }
+          routes={mapRoutes}
           initialView={{
             type: "view",
             view: DEFAULT_VIEW,

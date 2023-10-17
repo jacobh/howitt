@@ -254,7 +254,19 @@ export function Map({
         layer = existingLayer;
       }
 
-      const color = style === "muted" ? "#808080" : "#a54331";
+      let color;
+
+      switch (style) {
+        case "muted":
+          color = "#808080";
+          break;
+        case "highlighted":
+          color = "#39abbf";
+          break;
+        default:
+          color = "#a54331";
+          break;
+      }
 
       layer.setStyle(
         new Style({
