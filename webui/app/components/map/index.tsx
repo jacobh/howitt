@@ -58,6 +58,7 @@ export const MapContext = createContext<MapContext>({ setMap: () => {} });
 export const DEFAULT_VIEW: ViewOptions = {
   center: [146, -37],
   zoom: 7.5,
+  enableRotation: false,
 };
 
 const mapCss = css`
@@ -153,7 +154,7 @@ export function Map({
     }
 
     if (isFirstMapRender && initialView?.type === "view") {
-      map.setView(new View(initialView.view));
+      map.setView(new View({ ...initialView.view, enableRotation: false }));
     }
     if (existingMap === undefined) {
       map.setView(new View(DEFAULT_VIEW));
