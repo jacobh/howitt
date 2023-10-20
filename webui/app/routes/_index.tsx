@@ -31,6 +31,13 @@ const routeItemContainerCss = css`
   }
 `;
 
+const clickedRouteItemContainerCss = css(
+  routeItemContainerCss,
+  css`
+    background-color: ${COLORS.offWhite};
+  `
+);
+
 const routeTitleCss = css`
   font-size: 1.25rem; /* 20px */
   line-height: 1.75rem; /* 28px */
@@ -64,6 +71,7 @@ export default function Index(): React.ReactElement {
 
   const sidebarRoutes = isNotNil(visibleRouteIds)
     ? sortBy(visibleRouteIds, ({ distanceFromCenter }) => distanceFromCenter)
+        .filter(({ routeId }) => routeId !== clickedRouteId)
         .map(({ routeId }) => routeIdMap[routeId])
         .filter(isNotNil)
     : Object.values(routeIdMap);
@@ -79,6 +87,18 @@ export default function Index(): React.ReactElement {
   return (
     <Container>
       <SidebarContainer title="Routes">
+        {clickedRouteId ? (
+          <div
+            css={clickedRouteItemContainerCss}
+            onMouseEnter={(): void => setHoveredRouteId(clickedRouteId)}
+            onMouseLeave={(): void => setHoveredRouteId(undefined)}
+          >
+            <RouteItem
+              route={routeIdMap[clickedRouteId]}
+              routeTitleCss={routeTitleCss}
+            />
+          </div>
+        ) : null}
         {sidebarRoutes.map((route) => (
           <div
             key={route.id}
