@@ -46,6 +46,8 @@ interface MapProps {
   onVisibleRoutesChanged?: (
     routes: { routeId: string; distanceFromCenter: number }[]
   ) => void;
+
+  onRouteClicked?: (routeId: string | undefined) => void;
 }
 
 interface MapContext {
@@ -72,6 +74,7 @@ export function Map({
   checkpoints,
   initialView: initialViewProp,
   onVisibleRoutesChanged,
+  onRouteClicked,
 }: MapProps): React.ReactElement {
   const { map: existingMap, setMap } = useContext(MapContext);
 
@@ -163,9 +166,23 @@ export function Map({
     setIsFirstRender(false);
 
     const clickListener = (event: MapBrowserEvent<any>): void => {
-      console.log(event.coordinate);
-      console.log(map.getFeaturesAtPixel(event.pixel, { hitTolerance: 5.0 }));
-      // console.log(view.getCenter(), view.getZoom());
+      const clickedFeatures = map.getFeaturesAtPixel(event.pixel, {
+        hitTolerance: 20.0,
+      });
+      const feature = clickedFeatures[0];
+
+      if (!isNotNil(feature)) {
+        if (isNotNil(onRouteClicked)) {
+          onRouteClicked(undefined);
+        }
+        return;
+      }
+
+      const { routeId } = feature.getProperties();
+
+      if (isNotNil(onRouteClicked)) {
+        onRouteClicked(routeId);
+      }
     };
 
     const onViewChange = debounce((event: BaseEvent): void => {
@@ -221,6 +238,7 @@ export function Map({
     onVisibleRoutesChanged,
     isFirstMapRender,
     setIsFirstRender,
+    onRouteClicked,
   ]);
 
   useEffect(() => {
@@ -245,7 +263,9 @@ export function Map({
 
         layer = new VectorLayer({
           source: new VectorSource({
-            features: [new Feature(lineString)],
+            features: [
+              new Feature({ geometry: lineString, routeId: route.id }),
+            ],
           }),
           properties: { routeId: route.id },
         });

@@ -37,6 +37,10 @@ const routeTitleCss = css`
 `;
 
 export default function Index(): React.ReactElement {
+  const [clickedRouteId, setClickedRouteId] = useState<string | undefined>(
+    undefined
+  );
+
   const [hoveredRouteId, setHoveredRouteId] = useState<string | undefined>(
     undefined
   );
@@ -66,7 +70,10 @@ export default function Index(): React.ReactElement {
 
   const mapRoutes = (data?.starredRoutes ?? []).map((route) => ({
     route,
-    style: hoveredRouteId === route.id ? ("highlighted" as const) : undefined,
+    style:
+      hoveredRouteId === route.id || clickedRouteId === route.id
+        ? ("highlighted" as const)
+        : undefined,
   }));
 
   return (
@@ -91,6 +98,7 @@ export default function Index(): React.ReactElement {
             view: DEFAULT_VIEW,
           }}
           onVisibleRoutesChanged={setVisibleRouteIds}
+          onRouteClicked={setClickedRouteId}
         />
       </MapContainer>
     </Container>
