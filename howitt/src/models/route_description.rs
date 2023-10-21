@@ -149,12 +149,17 @@ impl RouteDescription {
     }
 
     pub fn is_meta_complete(&self) -> bool {
-        self.technical_difficulty.is_some()
-            && self.physical_difficulty.is_some()
-            && self.minimum_bike.is_some()
-            && self.ideal_bike.is_some()
-            && self.scouted.is_some()
-            && self.direction.is_some()
+        match self.scouted {
+            Some(Scouted::Yes) | None => {
+                self.technical_difficulty.is_some()
+                    && self.physical_difficulty.is_some()
+                    && self.minimum_bike.is_some()
+                    && self.ideal_bike.is_some()
+                    && self.direction.is_some()
+                    && self.scouted.is_some()
+            }
+            Some(Scouted::Partially) | Some(Scouted::No) => true,
+        }
     }
 }
 
