@@ -1,14 +1,15 @@
 import { SerializedStyles, css } from "@emotion/react";
-import { Link } from "@remix-run/react";
+import { Link, useSearchParams } from "@remix-run/react";
 import { Route } from "~/__generated__/graphql";
 import { COLORS } from "~/styles/theme";
-import { RouteVitals } from "./RouteVitals";
+import { RouteVitals, routeSubtitleArrowCss } from "./RouteVitals";
 
 interface Props {
   route: Pick<
     Route,
     "id" | "name" | "distance" | "elevationAscentM" | "elevationDescentM"
-  >;
+  > &
+    Partial<Route>;
   routeTitleCss?: SerializedStyles;
   titlePostfix?: string;
 }
@@ -26,11 +27,21 @@ const titlePostfixCss = css`
   color: ${COLORS.darkGrey};
 `;
 
+const subtitleContainerCss = css`
+  display: flex;
+`;
+
+const routeVitalsCss = css`
+  flex: 1 1 auto;
+`;
+
 export function RouteItem({
   route,
   titlePostfix,
   routeTitleCss,
 }: Props): JSX.Element {
+  const [searchParams] = useSearchParams();
+
   return (
     <div className="route-item" css={routeItemCss}>
       <p
@@ -42,7 +53,16 @@ export function RouteItem({
           <span css={titlePostfixCss}>&nbsp;&nbsp;{titlePostfix}</span>
         )}
       </p>
-      <RouteVitals route={route} />
+      <div css={subtitleContainerCss}>
+        <div css={routeVitalsCss}>
+          <RouteVitals route={route} />
+        </div>
+        {searchParams.has("debug") && route.isMetaComplete ? (
+          <span>
+            <span css={routeSubtitleArrowCss}>&#x2713;</span>
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }

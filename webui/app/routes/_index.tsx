@@ -15,6 +15,7 @@ const HOME_QUERY = gql(`
       id
       name
       distance
+      isMetaComplete
       elevationAscentM
       elevationDescentM
       points

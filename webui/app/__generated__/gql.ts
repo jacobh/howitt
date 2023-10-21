@@ -13,7 +13,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      elevationAscentM\n      elevationDescentM\n      points\n    }\n  }\n": types.HomeQueryDocument,
+    "\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      isMetaComplete\n      elevationAscentM\n      elevationDescentM\n      points\n    }\n  }\n": types.HomeQueryDocument,
     "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    externalRef {\n      canonicalUrl\n    }\n    distance\n    elevationAscentM\n    elevationDescentM\n    points\n    elevationPoints\n    distancePoints\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    photos {\n      id\n      url\n      caption\n    }\n    termini {\n      bearing\n      nearbyRoutes {\n        delta {\n          distance\n          bearing\n          elevationGain\n        }\n        closestTerminus {\n          bearing\n          route {\n            id\n            name\n            points\n            distance\n            elevationAscentM\n            elevationDescentM\n          }\n        }\n      }\n    }\n  }\n  viewer {\n    role\n  }\n}\n": types.RouteQueryDocument,
 };
 
@@ -34,7 +34,7 @@ export function gql(source: string): unknown;
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      elevationAscentM\n      elevationDescentM\n      points\n    }\n  }\n"): (typeof documents)["\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      elevationAscentM\n      elevationDescentM\n      points\n    }\n  }\n"];
+export function gql(source: "\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      isMetaComplete\n      elevationAscentM\n      elevationDescentM\n      points\n    }\n  }\n"): (typeof documents)["\n  query homeQuery {\n    starredRoutes {\n      id\n      name\n      distance\n      isMetaComplete\n      elevationAscentM\n      elevationDescentM\n      points\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

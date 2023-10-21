@@ -17,7 +17,9 @@ const routeSubtitleCss = css`
   font-size: 0.875rem; /* 14px */
   line-height: 1.25rem; /* 20px */
 `;
-const routeSubtitleArrowCss = css`
+export const routeSubtitleArrowCss = css`
+  color: ${COLORS.midGrey};
+
   width: 30px;
   display: inline-block;
   text-align: center;
