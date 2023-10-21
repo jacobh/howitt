@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::maybe_pair::MaybePair;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, derive_more::Display)]
 pub enum Distance {
     #[serde(rename = "mm")]
     Millimeters(f64),
@@ -20,7 +20,25 @@ impl Distance {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+impl PartialOrd for Distance {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.millimeters().partial_cmp(&other.millimeters())
+    }
+}
+
+impl Eq for Distance {}
+
+impl Ord for Distance {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        fn o_f(x: f64) -> ordered_float::OrderedFloat<f64> {
+            ordered_float::OrderedFloat(x)
+        }
+
+        o_f(self.millimeters()).cmp(&o_f(other.millimeters()))
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, derive_more::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum DifficultyRating {
     Green,
@@ -29,13 +47,13 @@ pub enum DifficultyRating {
     DoubleBlack,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, derive_more::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum Rigid {
     Rigid,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, derive_more::Display)]
 #[serde(untagged)]
 pub enum SuspensionTravel {
     Rigid(Rigid),
@@ -57,6 +75,24 @@ impl Default for SuspensionTravel {
     }
 }
 
+impl PartialOrd for SuspensionTravel {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.millimeters().partial_cmp(&other.millimeters())
+    }
+}
+
+impl Eq for SuspensionTravel {}
+
+impl Ord for SuspensionTravel {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        fn o_f(x: f64) -> ordered_float::OrderedFloat<f64> {
+            ordered_float::OrderedFloat(x)
+        }
+
+        o_f(self.millimeters()).cmp(&o_f(other.millimeters()))
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct BikeSpec {
     pub tyre_width: MaybePair<Distance>,
@@ -66,7 +102,7 @@ pub struct BikeSpec {
     pub rear_suspension: MaybePair<SuspensionTravel>,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, derive_more::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum Scouted {
     Yes,
@@ -74,7 +110,7 @@ pub enum Scouted {
     No,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, derive_more::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum Direction {
     Either,
@@ -110,6 +146,15 @@ impl RouteDescription {
             }
             _ => Ok(None),
         }
+    }
+
+    pub fn is_meta_complete(&self) -> bool {
+        self.technical_difficulty.is_some()
+            && self.physical_difficulty.is_some()
+            && self.minimum_bike.is_some()
+            && self.ideal_bike.is_some()
+            && self.scouted.is_some()
+            && self.direction.is_some()
     }
 }
 

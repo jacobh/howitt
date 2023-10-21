@@ -408,6 +408,12 @@ impl Route {
 
         Ok(route_model.photos.clone().into_iter().map(Photo).collect())
     }
+    async fn is_meta_complete(&self) -> bool {
+        match self.route_description() {
+            Some(description) => description.is_meta_complete(),
+            None => false,
+        }
+    }
     async fn technical_difficulty(&self) -> Option<DifficultyRating> {
         self.route_description()?
             .technical_difficulty

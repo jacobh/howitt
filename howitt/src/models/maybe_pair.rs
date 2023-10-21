@@ -1,3 +1,4 @@
+use itertools::MinMaxResult;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -60,8 +61,27 @@ impl<T> From<T> for MaybePair<T> {
     }
 }
 
-impl<T> From<(T, T)> for MaybePair<T> {
+impl<T> From<(T, T)> for MaybePair<T>
+where
+    T: Eq,
+{
     fn from((a, b): (T, T)) -> Self {
-        MaybePair::Pair(a, b)
+        if a == b {
+            MaybePair::Singleton(a)
+        } else {
+            MaybePair::Pair(a, b)
+        }
+    }
+}
+
+impl<T> TryFrom<MinMaxResult<T>> for MaybePair<T> {
+    type Error = ();
+
+    fn try_from(value: MinMaxResult<T>) -> Result<Self, Self::Error> {
+        match value {
+            MinMaxResult::NoElements => Err(()),
+            MinMaxResult::OneElement(x) => Ok(MaybePair::Singleton(x)),
+            MinMaxResult::MinMax(x, y) => Ok(MaybePair::Pair(x, y)),
+        }
     }
 }
