@@ -1,8 +1,9 @@
 import { css } from "@emotion/react";
 import { Photo as ApiPhoto } from "~/__generated__/graphql";
+import { PhotoSize, generatePhotoUrl } from "~/services/photos";
 
 interface Props {
-  photo: Pick<ApiPhoto, "url" | "caption">;
+  photo: Pick<ApiPhoto, "id" | "caption">;
 }
 
 const photoCss = css`
@@ -16,10 +17,14 @@ const captionCss = css`
   text-align: center;
 `;
 
-export function Photo({ photo: { url, caption } }: Props): React.ReactElement {
+export function Photo({ photo: { id, caption } }: Props): React.ReactElement {
   return (
     <div>
-      <img css={photoCss} src={url} alt={caption ?? undefined}></img>
+      <img
+        css={photoCss}
+        src={generatePhotoUrl({ id }, PhotoSize.Large)}
+        alt={caption ?? undefined}
+      ></img>
       {caption ? <p css={captionCss}>{caption}</p> : <></>}
     </div>
   );
