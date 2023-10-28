@@ -6,9 +6,8 @@ use crate::{
     CubicSmoothingSpline, Real, Result,
 };
 
-impl<'a, T, D> CubicSmoothingSpline<'a, T, D>
+impl<'a, D> CubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     pub(super) fn make_validate(&self) -> Result<()> {
@@ -64,7 +63,7 @@ where
         Ok(())
     }
 
-    pub(super) fn evaluate_validate(&self, xi: ArrayView1<'a, T>) -> Result<()> {
+    pub(super) fn evaluate_validate(&self, xi: ArrayView1<'a, f64>) -> Result<()> {
         if xi.is_empty() {
             return Err(InvalidInputData(
                 "The size of `xi` vector must be greater or equal to 1".to_string(),

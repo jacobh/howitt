@@ -5,9 +5,8 @@ use crate::{CsapsError::InvalidInputData, Real, Result};
 
 use super::GridCubicSmoothingSpline;
 
-impl<'a, T, D> GridCubicSmoothingSpline<'a, T, D>
+impl<'a, D> GridCubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     pub(super) fn make_validate(&self) -> Result<()> {
@@ -18,7 +17,7 @@ where
         Ok(())
     }
 
-    pub(super) fn evaluate_validate(&self, xi: &[ArrayView1<'a, T>]) -> Result<()> {
+    pub(super) fn evaluate_validate(&self, xi: &[ArrayView1<'a, f64>]) -> Result<()> {
         let x_len = self.x.len();
         let xi_len = xi.len();
 

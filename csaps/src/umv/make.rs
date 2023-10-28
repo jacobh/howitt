@@ -1,5 +1,4 @@
-use ndarray::{s, stack, Array1, Array2, Axis, Dimension};
-use sprs::binop::scalar_mul_mat as sprs_mul_s;
+use ndarray::{concatenate, s, Array1, Array2, Axis, Dimension};
 
 use crate::{
     ndarrayext::{diff, to_2d},
@@ -8,16 +7,15 @@ use crate::{
 
 use super::{CubicSmoothingSpline, NdSpline};
 
-impl<'a, T, D> CubicSmoothingSpline<'a, T, D>
+impl<'a, D> CubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     pub(super) fn make_spline(&mut self) -> Result<()> {
-        let one = T::one();
-        let two = T::from(2.0).unwrap();
-        let three = T::from(3.0).unwrap();
-        let six = T::from(6.0).unwrap();
+        let one = 1.0;
+        let two = 2.0;
+        let three = 3.0;
+        let six = 6.0;
 
         let breaks = self.x;
 
@@ -41,7 +39,7 @@ where
         if pcount == 2 {
             drop(dx);
             let yi = y.slice(s![.., 0]).insert_axis(Axis(1));
-            let coeffs = stack![Axis(1), dydx, yi];
+            let coeffs = concatenate![Axis(1), dydx, yi];
 
             self.smooth = Some(one);
             self.spline = Some(NdSpline::new(breaks, coeffs));
@@ -50,7 +48,7 @@ where
         }
 
         // General computing cubic smoothing spline for NxM data (3 and more data points)
-        let ones = |n| Array1::<T>::ones((n,));
+        let ones = |n| Array1::<f64>::ones((n,));
 
         let qtwq = {
             let qt = {
@@ -59,12 +57,12 @@ where
                 let odx_tail = odx.slice(s![1..]).insert_axis(Axis(0)).into_owned();
                 drop(odx);
                 let odx_body = -(&odx_tail + &odx_head);
-                let diags_qt = stack![Axis(0), odx_head, odx_body, odx_tail];
+                let diags_qt = concatenate![Axis(0), odx_head, odx_body, odx_tail];
 
                 sprsext::diags(diags_qt, &[0, 1, 2], (pcount - 2, pcount))
             };
 
-            let diags_sqrw = (ones(pcount) / weights.mapv(T::sqrt)).insert_axis(Axis(0));
+            let diags_sqrw = (ones(pcount) / weights.mapv(f64::sqrt)).insert_axis(Axis(0));
             let sqrw = sprsext::diags(diags_sqrw, &[0], (pcount, pcount));
             let qtw = &qt * &sqrw;
             drop(sqrw);
@@ -78,7 +76,7 @@ where
             let dx_head = dx.slice(s![..-1]).insert_axis(Axis(0)).into_owned();
             let dx_tail = dx.slice(s![1..]).insert_axis(Axis(0)).into_owned();
             let dx_body = (&dx_tail + &dx_head) * two;
-            let diags_r = stack![Axis(0), dx_tail, dx_body, dx_head];
+            let diags_r = concatenate![Axis(0), dx_tail, dx_body, dx_head];
 
             sprsext::diags(diags_r, &[-1, 0, 1], (pcount - 2, pcount - 2))
         };
@@ -94,8 +92,8 @@ where
         // Solve linear system Ax = b for the 2nd derivatives
         let usol = {
             let a = {
-                let a1 = sprs_mul_s(&qtwq, s1);
-                let a2 = sprs_mul_s(&r, smooth);
+                let a1 = &qtwq * s1;
+                let a2 = &r * smooth.into_f64();
                 drop(qtwq);
                 drop(r);
 
@@ -108,11 +106,11 @@ where
             sprsext::solve(&a, &b)
         };
 
-        // Compute and stack spline coefficients
+        // Compute and concat spline coefficients
         let coeffs = {
-            let vpad = |arr: &Array2<T>| -> Array2<T> {
-                let pad = Array2::<T>::zeros((1, arr.shape()[1]));
-                stack(Axis(0), &[pad.view(), arr.view(), pad.view()]).unwrap()
+            let vpad = |arr: &Array2<f64>| -> Array2<f64> {
+                let pad = Array2::<f64>::zeros((1, arr.shape()[1]));
+                concatenate(Axis(0), &[pad.view(), arr.view(), pad.view()]).unwrap()
             };
 
             let dx = dx.insert_axis(Axis(1));
@@ -123,7 +121,7 @@ where
 
                 let diags_w = (ones(pcount) / weights).insert_axis(Axis(0));
                 let w = sprsext::diags(diags_w, &[0], (pcount, pcount));
-                let wd2 = &sprs_mul_s(&w, s1) * &d2;
+                let wd2 = &(&w * s1) * &d2;
 
                 drop(d1);
                 drop(d2);
@@ -142,7 +140,7 @@ where
 
             drop(c3);
 
-            stack![Axis(0), p1, p2, p3, p4].t().to_owned()
+            concatenate![Axis(0), p1, p2, p3, p4].t().to_owned()
         };
 
         self.smooth = Some(smooth);

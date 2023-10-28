@@ -73,10 +73,7 @@ where
 /// Returns values on k-diagonal for given sparse matrix
 ///
 ///
-pub fn diagonal<T>(m: &CsMat<T>, k: isize) -> Array1<T>
-where
-    T: Real,
-{
+pub fn diagonal(m: &CsMat<f64>, k: isize) -> Array1<f64> {
     let (rows, cols) = m.shape();
 
     if m.is_csr() {
@@ -89,7 +86,7 @@ where
 fn diagonal_csr<T>(
     k: isize,
     shape: Shape,
-    indptr: &[usize],
+    indptr: sprs::IndPtrView<usize>,
     indices: &[usize],
     data: &[T],
 ) -> Array1<T>
@@ -111,8 +108,8 @@ where
     for i in 0..diag_size {
         let row = first_row + i;
         let col = first_col + i;
-        let row_begin = indptr[row];
-        let row_end = indptr[row + 1];
+        let row_begin = indptr.raw_storage()[row];
+        let row_end = indptr.raw_storage()[row + 1];
 
         let mut diag_value = T::zero();
 
@@ -131,13 +128,10 @@ where
 /// Solves linear system Ax = b for symmetric CSR matrix A and dense vector(s) b
 ///
 /// A: ref to CSR symmetric sparse matrix
-/// b: MxN stack of b-vectors where M is equal to A rows/cols and N is the data dimensional
+/// b: MxN concat of b-vectors where M is equal to A rows/cols and N is the data dimensional
 ///
-pub fn solve<T>(a: &CsMat<T>, b: &Array2<T>) -> Array2<T>
-where
-    T: Real,
-{
-    let mut x = Array2::<T>::zeros(b.raw_dim());
+pub fn solve(a: &CsMat<f64>, b: &Array2<f64>) -> Array2<f64> {
+    let mut x = Array2::<f64>::zeros(b.raw_dim());
 
     let b_col_iter = b.axis_iter(Axis(1));
     let x_col_iter = x.axis_iter_mut(Axis(1));

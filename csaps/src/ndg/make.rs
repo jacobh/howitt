@@ -4,9 +4,8 @@ use crate::{ndarrayext::to_2d_simple, util::dim_from_vec, CubicSmoothingSpline, 
 
 use super::{util::permute_axes, GridCubicSmoothingSpline, NdGridSpline};
 
-impl<'a, T, D> GridCubicSmoothingSpline<'a, T, D>
+impl<'a, D> GridCubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     pub(super) fn make_spline(&mut self) -> Result<()> {
@@ -17,7 +16,7 @@ where
         let mut coeffs = self.y.to_owned();
         let mut coeffs_shape = coeffs.shape().to_vec();
 
-        let mut smooth: Vec<Option<T>> = vec![None; ndim];
+        let mut smooth: Vec<Option<f64>> = vec![None; ndim];
 
         let permuted_axes: D = permute_axes(ndim);
 

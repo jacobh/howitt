@@ -1,4 +1,4 @@
-use ndarray::{s, stack, Array, Array1, Array2, ArrayView1, ArrayView2, Axis, Dimension};
+use ndarray::{concatenate, s, Array, Array1, Array2, ArrayView1, ArrayView2, Axis, Dimension};
 
 use crate::{
     ndarrayext::{digitize, from_2d},
@@ -28,7 +28,7 @@ where
             let left_bound = &one * T::neg_infinity();
             let right_bound = &one * T::infinity();
 
-            stack![Axis(0), left_bound, mesh, right_bound]
+            concatenate![Axis(0), left_bound, mesh, right_bound]
         };
 
         let mut indices = digitize(&xi, &edges);
@@ -51,7 +51,7 @@ where
             // for all dimensions for 1xM indices array
             let indexed_coeffs: Vec<_> = inds.iter().map(coeffs_by_index).collect();
 
-            stack(Axis(1), &indexed_coeffs).unwrap()
+            concatenate(Axis(1), &indexed_coeffs).unwrap()
         };
 
         // Vectorized computing the spline pieces (polynoms) on the given data sites
@@ -66,12 +66,11 @@ where
     }
 }
 
-impl<'a, T, D> CubicSmoothingSpline<'a, T, D>
+impl<'a, D> CubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
-    pub(super) fn evaluate_spline(&self, xi: ArrayView1<'a, T>) -> Result<Array<T, D>> {
+    pub(super) fn evaluate_spline(&self, xi: ArrayView1<'a, f64>) -> Result<Array<f64, D>> {
         let axis = self.axis.unwrap();
         let mut shape_tmp = self.y.shape().to_owned();
         shape_tmp[axis.0] = xi.len();

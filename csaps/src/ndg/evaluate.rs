@@ -50,12 +50,11 @@ where
     }
 }
 
-impl<'a, T, D> GridCubicSmoothingSpline<'a, T, D>
+impl<'a, D> GridCubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
-    pub(super) fn evaluate_spline(&self, xi: &[ArrayView1<'a, T>]) -> Array<T, D> {
+    pub(super) fn evaluate_spline(&self, xi: &[ArrayView1<'a, f64>]) -> Array<f64, D> {
         self.spline.as_ref().unwrap().evaluate_spline(&xi)
     }
 }

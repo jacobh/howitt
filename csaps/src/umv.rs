@@ -142,33 +142,31 @@ where
 /// let yi = s.evaluate(&xi).unwrap();
 /// ```
 ///
-pub struct CubicSmoothingSpline<'a, T, D>
+pub struct CubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     /// X data sites (also breaks)
-    x: ArrayView1<'a, T>,
+    x: ArrayView1<'a, f64>,
 
     /// Y data values
-    y: ArrayView<'a, T, D>,
+    y: ArrayView<'a, f64, D>,
 
     /// The axis parameter defines axis of Y data for spline computing
     axis: Option<Axis>,
 
     /// The optional data weights
-    weights: Option<ArrayView1<'a, T>>,
+    weights: Option<ArrayView1<'a, f64>>,
 
     /// The optional smoothing parameter
-    smooth: Option<T>,
+    smooth: Option<f64>,
 
     /// `NdSpline` struct with computed spline
-    spline: Option<NdSpline<'a, T>>,
+    spline: Option<NdSpline<'a, f64>>,
 }
 
-impl<'a, T, D> CubicSmoothingSpline<'a, T, D>
+impl<'a, D> CubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     /// Creates `CubicSmoothingSpline` struct from the given `X` data sites and `Y` data values
@@ -183,8 +181,8 @@ where
     ///
     pub fn new<X, Y>(x: X, y: Y) -> Self
     where
-        X: AsArray<'a, T>,
-        Y: AsArray<'a, T, D>,
+        X: AsArray<'a, f64>,
+        Y: AsArray<'a, f64, D>,
     {
         CubicSmoothingSpline {
             x: x.into(),
@@ -238,7 +236,7 @@ where
     ///
     pub fn with_weights<W>(mut self, weights: W) -> Self
     where
-        W: AsArray<'a, T>,
+        W: AsArray<'a, f64>,
     {
         self.invalidate();
         self.weights = Some(weights.into());
@@ -251,7 +249,7 @@ where
     ///
     pub fn with_optional_weights<W>(mut self, weights: Option<W>) -> Self
     where
-        W: AsArray<'a, T>,
+        W: AsArray<'a, f64>,
     {
         self.invalidate();
         self.weights = weights.map(|w| w.into());
@@ -266,14 +264,14 @@ where
     ///  - 0: The smoothing spline is the least-squares straight line fit to the data
     ///  - 1: The cubic spline interpolant with natural boundary condition
     ///
-    pub fn with_smooth(mut self, smooth: T) -> Self {
+    pub fn with_smooth(mut self, smooth: f64) -> Self {
         self.invalidate();
         self.smooth = Some(smooth);
         self
     }
 
     /// Sets the smoothing parameter in `Option` wrap
-    pub fn with_optional_smooth(mut self, smooth: Option<T>) -> Self {
+    pub fn with_optional_smooth(mut self, smooth: Option<f64>) -> Self {
         self.invalidate();
         self.smooth = smooth;
         self
@@ -299,9 +297,9 @@ where
     /// - If the `xi` data is invalid
     /// - If the spline yet has not been computed
     ///
-    pub fn evaluate<X>(&self, xi: X) -> Result<Array<T, D>>
+    pub fn evaluate<X>(&self, xi: X) -> Result<Array<f64, D>>
     where
-        X: AsArray<'a, T>,
+        X: AsArray<'a, f64>,
     {
         let xi = xi.into();
         self.evaluate_validate(xi)?;
@@ -311,12 +309,12 @@ where
     }
 
     /// Returns the smoothing parameter or None
-    pub fn smooth(&self) -> Option<T> {
+    pub fn smooth(&self) -> Option<f64> {
         self.smooth
     }
 
     /// Returns the ref to `NdSpline` struct with data of computed spline or None
-    pub fn spline(&self) -> Option<&NdSpline<'a, T>> {
+    pub fn spline(&self) -> Option<&NdSpline<'a, f64>> {
         self.spline.as_ref()
     }
 

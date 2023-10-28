@@ -137,30 +137,28 @@ where
 ///     .evaluate(&x).unwrap();
 /// ```
 ///
-pub struct GridCubicSmoothingSpline<'a, T, D>
+pub struct GridCubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     /// X data sites (also breaks)
-    x: Vec<ArrayView1<'a, T>>,
+    x: Vec<ArrayView1<'a, f64>>,
 
     /// Y data values
-    y: ArrayView<'a, T, D>,
+    y: ArrayView<'a, f64, D>,
 
     /// The optional data weights
-    weights: Vec<Option<ArrayView1<'a, T>>>,
+    weights: Vec<Option<ArrayView1<'a, f64>>>,
 
     /// The optional smoothing parameter
-    smooth: Vec<Option<T>>,
+    smooth: Vec<Option<f64>>,
 
     /// `NdGridSpline` struct with computed spline
-    spline: Option<NdGridSpline<'a, T, D>>,
+    spline: Option<NdGridSpline<'a, f64, D>>,
 }
 
-impl<'a, T, D> GridCubicSmoothingSpline<'a, T, D>
+impl<'a, D> GridCubicSmoothingSpline<'a, D>
 where
-    T: Real,
     D: Dimension,
 {
     /// Creates `NdGridCubicSmoothingSpline` struct from the given `X` data sites and `Y` data values
@@ -171,9 +169,9 @@ where
     ///   Each data sites must strictly increasing: `x1 < x2 < x3 < ... < xN`.
     /// - `y` -- The Y-data n-d grid values array-like. `ndim` can be from 1 to N.
     ///
-    pub fn new<Y>(x: &[ArrayView1<'a, T>], y: Y) -> Self
+    pub fn new<Y>(x: &[ArrayView1<'a, f64>], y: Y) -> Self
     where
-        Y: AsArray<'a, T, D>,
+        Y: AsArray<'a, f64, D>,
     {
         let ndim = x.len();
 
@@ -196,7 +194,7 @@ where
     ///
     /// `weights` vectors sizes must be equal to `x` data site sizes for each dimension.
     ///
-    pub fn with_weights(mut self, weights: &[Option<ArrayView1<'a, T>>]) -> Self {
+    pub fn with_weights(mut self, weights: &[Option<ArrayView1<'a, f64>>]) -> Self {
         self.invalidate();
         self.weights = weights.to_vec();
         self
@@ -218,7 +216,7 @@ where
     ///
     /// If the smoothing parameter value is None, it will be computed automatically.
     ///
-    pub fn with_smooth(mut self, smooth: &[Option<T>]) -> Self {
+    pub fn with_smooth(mut self, smooth: &[Option<f64>]) -> Self {
         self.invalidate();
         self.smooth = smooth.to_vec();
         self
@@ -238,7 +236,7 @@ where
     ///  - 0: The smoothing spline is the least-squares straight line fit to the data
     ///  - 1: The cubic spline interpolant with natural boundary condition
     ///
-    pub fn with_smooth_fill(mut self, smooth: T) -> Self {
+    pub fn with_smooth_fill(mut self, smooth: f64) -> Self {
         self.invalidate();
         self.smooth = vec![Some(smooth); self.x.len()];
         self
@@ -265,7 +263,7 @@ where
     /// - If the `xi` data is invalid
     /// - If the spline yet has not been computed
     ///
-    pub fn evaluate(&self, xi: &[ArrayView1<'a, T>]) -> Result<Array<T, D>> {
+    pub fn evaluate(&self, xi: &[ArrayView1<'a, f64>]) -> Result<Array<f64, D>> {
         self.evaluate_validate(&xi)?;
         let yi = self.evaluate_spline(&xi);
 
@@ -273,12 +271,12 @@ where
     }
 
     /// Returns the ref to smoothing parameters vector or None
-    pub fn smooth(&self) -> &Vec<Option<T>> {
+    pub fn smooth(&self) -> &Vec<Option<f64>> {
         &self.smooth
     }
 
     /// Returns ref to `NdGridSpline` struct with data of computed spline or None
-    pub fn spline(&self) -> Option<&NdGridSpline<'a, T, D>> {
+    pub fn spline(&self) -> Option<&NdGridSpline<'a, f64, D>> {
         self.spline.as_ref()
     }
 
