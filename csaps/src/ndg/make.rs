@@ -1,24 +1,13 @@
 use ndarray::Dimension;
 
-use crate::{
-    Real,
-    Result,
-    CubicSmoothingSpline,
-    ndarrayext::to_2d_simple,
-    util::dim_from_vec,
-};
+use crate::{ndarrayext::to_2d_simple, util::dim_from_vec, CubicSmoothingSpline, Real, Result};
 
-use super::{
-    GridCubicSmoothingSpline,
-    NdGridSpline,
-    util::permute_axes
-};
-
+use super::{util::permute_axes, GridCubicSmoothingSpline, NdGridSpline};
 
 impl<'a, T, D> GridCubicSmoothingSpline<'a, T, D>
-    where
-        T: Real,
-        D: Dimension
+where
+    T: Real,
+    D: Dimension,
 {
     pub(super) fn make_spline(&mut self) -> Result<()> {
         let ndim = self.x.len();
@@ -52,8 +41,10 @@ impl<'a, T, D> GridCubicSmoothingSpline<'a, T, D>
                 coeffs_shape[ndim_m1] = spline.pieces() * spline.order();
                 let new_shape: D = dim_from_vec(ndim, coeffs_shape);
 
-                spline.coeffs()
-                    .into_shape(new_shape).unwrap()
+                spline
+                    .coeffs()
+                    .into_shape(new_shape)
+                    .unwrap()
                     .permuted_axes(permuted_axes.clone())
                     .to_owned()
             };

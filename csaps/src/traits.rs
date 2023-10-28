@@ -1,6 +1,5 @@
-use ndarray::NdFloat;
 use almost::AlmostEqual;
-
+use ndarray::NdFloat;
 
 /// Floating-point element types `f32` and `f64`.
 ///
