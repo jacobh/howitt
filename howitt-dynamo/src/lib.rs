@@ -6,9 +6,17 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use aws_sdk_dynamodb as dynamodb;
 use derive_more::Constructor;
-use dynamodb::error::{DeleteItemError, PutItemError, QueryError, ScanError};
-use dynamodb::output::{DeleteItemOutput, PutItemOutput};
-use dynamodb::{error::GetItemError, model::AttributeValue, types::SdkError};
+use dynamodb::{
+    error::SdkError,
+    operation::{
+        delete_item::{DeleteItemError, DeleteItemOutput},
+        get_item::GetItemError,
+        put_item::{PutItemError, PutItemOutput},
+        query::QueryError,
+        scan::ScanError,
+    },
+    types::AttributeValue,
+};
 use futures::prelude::*;
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::models::{
