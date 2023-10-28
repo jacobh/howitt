@@ -8,6 +8,8 @@ clap = { version = "4", features = ["derive"] }
 howitt = { path = "../howitt" }
 howitt-fs = { path = "../howitt-fs" }
 howitt-dynamo = { path = "../howitt-dynamo" }
+howitt_clients = { path = "../howitt-clients" }
+howitt_client_types = { path = "../howitt-client-types" }
 anyhow = "*"
 rayon = "*"
 rwgps = { path = "../rwgps" }

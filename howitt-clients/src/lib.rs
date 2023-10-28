@@ -1,14 +1,30 @@
 use async_trait::async_trait;
-use aws_sdk_s3::{operation::head_object::HeadObjectError, primitives::ByteStream};
-use howitt_client_types::{BucketClient, HttpClient, HttpResponse};
+use aws_sdk_s3::{
+    operation::{head_object::HeadObjectError, put_object::PutObjectError},
+    primitives::ByteStream,
+};
+use howitt_client_types::{BucketClient, BucketName, HttpClient, HttpResponse};
 
 #[derive(thiserror::Error, Debug, derive_more::Display)]
-pub struct S3BucketClientError;
+pub enum S3BucketClientError {
+    HeadError(#[from] HeadObjectError),
+    PutError(#[from] PutObjectError),
+}
 
-#[derive(derive_more::Constructor)]
+#[derive(derive_more::Constructor, Debug)]
 pub struct S3BucketClient {
     client: aws_sdk_s3::Client,
-    bucket_name: String,
+    bucket_name: BucketName,
+}
+
+impl S3BucketClient {
+    pub async fn new_from_env(bucket_name: BucketName) -> S3BucketClient {
+        let config = aws_config::load_from_env().await;
+        S3BucketClient {
+            client: aws_sdk_s3::Client::new(&config),
+            bucket_name: bucket_name,
+        }
+    }
 }
 
 #[async_trait]
@@ -19,7 +35,7 @@ impl BucketClient for S3BucketClient {
         let result = self
             .client
             .head_object()
-            .bucket(&self.bucket_name)
+            .bucket(self.bucket_name.to_bucket_name())
             .key(key)
             .send()
             .await
@@ -28,27 +44,35 @@ impl BucketClient for S3BucketClient {
         match result {
             Ok(_) => Ok(true),
             Err(HeadObjectError::NotFound(_)) => Ok(false),
-            Err(_) => Err(S3BucketClientError {}),
+            Err(e) => Err(S3BucketClientError::HeadError(e)),
         }
     }
 
     async fn put_object(&self, key: &str, body: bytes::Bytes) -> Result<(), Self::Error> {
         self.client
             .put_object()
-            .bucket(&self.bucket_name)
+            .bucket(self.bucket_name.to_bucket_name())
             .key(key)
             .body(ByteStream::from(body))
             .send()
             .await
-            .map_err(|_| S3BucketClientError)?;
+            .map_err(|e| e.into_service_error())?;
 
         Ok(())
     }
 }
 
-#[derive(derive_more::Constructor)]
+#[derive(Debug)]
 pub struct ReqwestHttpClient {
     client: reqwest::Client,
+}
+
+impl ReqwestHttpClient {
+    pub fn new() -> ReqwestHttpClient {
+        ReqwestHttpClient {
+            client: reqwest::Client::new(),
+        }
+    }
 }
 
 #[async_trait]

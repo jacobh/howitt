@@ -1,31 +1,40 @@
+use itertools::Itertools;
 use thiserror::Error;
 
-use crate::models::{
-    external_ref::{ExternalId, ExternalRef, RwgpsId},
-    photo::Photo,
-    ModelId,
+use crate::{
+    ext::{futures::FuturesIteratorExt, iter::ResultIterExt},
+    models::{
+        external_ref::{ExternalId, ExternalRef, RwgpsId},
+        photo::Photo,
+        route::RouteModel,
+        ModelId,
+    },
+    repos::Repo,
 };
 
 use howitt_client_types::{BucketClient, HttpClient, HttpResponse};
 
-#[derive(Debug, Error)]
-pub enum PhotoSyncError<BC: BucketClient, HC: HttpClient> {
+#[derive(Debug, derive_more::Display, Error)]
+pub enum PhotoSyncError<BC: BucketClient, HC: HttpClient, RouteRepo: Repo<Model = RouteModel>> {
     PhotoExistsFailed(BC::Error),
     PhotoPutFailed(BC::Error),
     PhotoDownloadFailed(HC::Error),
+    RouteRepoError(RouteRepo::Error),
 }
 
-pub struct PhotoSyncService<BC: BucketClient, HC: HttpClient> {
+pub struct PhotoSyncService<BC: BucketClient, HC: HttpClient, RouteRepo: Repo<Model = RouteModel>> {
     pub bucket_client: BC,
     pub http_client: HC,
+    pub route_repo: RouteRepo,
 }
 
-impl<BC, HC> PhotoSyncService<BC, HC>
+impl<BC, HC, RouteRepo> PhotoSyncService<BC, HC, RouteRepo>
 where
     BC: BucketClient,
     HC: HttpClient,
+    RouteRepo: Repo<Model = RouteModel>,
 {
-    pub type Error = PhotoSyncError<BC, HC>;
+    pub type Error = PhotoSyncError<BC, HC, RouteRepo>;
 
     pub async fn photo_exists<ID: ModelId>(&self, photo: &Photo<ID>) -> Result<bool, Self::Error> {
         self.bucket_client
@@ -64,16 +73,41 @@ where
         if !self.photo_exists(photo).await? {
             let bytes = self.fetch_source_photo(photo).await?;
             self.put_photo(photo, bytes).await?;
+            println!("synced photo: {photo:#?}");
         }
+
+        Ok(())
+    }
+
+    pub async fn sync(&self) -> Result<(), Self::Error> {
+        let routes = self
+            .route_repo
+            .all_models()
+            .await
+            .map_err(PhotoSyncError::RouteRepoError)?;
+
+        let photos = routes
+            .into_iter()
+            .flat_map(|route| route.photos)
+            .collect_vec();
+
+        photos
+            .into_iter()
+            .map(|photo| (photo, self))
+            .map(async move |(photo, sync)| sync.sync_photo(&photo).await)
+            .collect_futures_ordered()
+            .await
+            .into_iter()
+            .collect_result_vec()?;
 
         Ok(())
     }
 }
 
 fn make_key<ID: ModelId>(photo: &Photo<ID>) -> String {
-    let id = photo.id;
+    let id = photo.id.as_ulid();
 
-    format!("/source/{id}.jpg")
+    format!("source/{id}.jpg")
 }
 
 fn make_source_url<ID: ModelId>(photo: &Photo<ID>) -> url::Url {

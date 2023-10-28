@@ -69,6 +69,13 @@ pub trait Repo: Send + Sync {
 
         Ok(())
     }
+
+    async fn all_models(&self) -> Result<Vec<<Self as Repo>::Model>, Self::Error> {
+        let indexes = self.all_indexes().await?;
+
+        self.get_batch(indexes.into_iter().map(|index| index.model_id()).collect())
+            .await
+    }
 }
 
 #[async_trait]

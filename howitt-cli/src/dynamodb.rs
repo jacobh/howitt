@@ -4,8 +4,12 @@ use clap::{arg, Args, Subcommand};
 use howitt::{
     models::{config::ConfigId, point::simplify_points, route::RouteId},
     repos::Repo,
-    services::{generate_cuesheet::generate_cuesheet, sync::rwgps::RwgpsSyncService},
+    services::{
+        generate_cuesheet::generate_cuesheet,
+        sync::{photo::PhotoSyncService, rwgps::RwgpsSyncService},
+    },
 };
+use howitt_clients::{ReqwestHttpClient, S3BucketClient};
 use howitt_dynamo::{
     ConfigRepo, Keys, PointOfInterestRepo, RideModelRepo, RouteModelRepo, SingleTableClient,
 };
@@ -19,6 +23,7 @@ use rwgps_types::RouteSummary;
 pub enum Dynamodb {
     SyncPOIs,
     SyncRwgps(SyncRwgps),
+    SyncPhotos,
     SetStarredRoute(RouteIdArgs),
     ShowConfig,
     ListStarredRoutes,
@@ -89,6 +94,22 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
             };
 
             service.sync(config.user_info.unwrap().id).await?;
+        }
+        Dynamodb::SyncPhotos => {
+            let photo_sync = PhotoSyncService {
+                bucket_client: S3BucketClient::new_from_env(
+                    howitt_client_types::BucketName::Photos,
+                )
+                .await,
+                http_client: ReqwestHttpClient::new(),
+                route_repo: route_model_repo,
+            };
+
+            let result = photo_sync.sync().await;
+
+            dbg!(&result);
+
+            result?
         }
         Dynamodb::SetStarredRoute(RouteIdArgs { route_id }) => {
             let route_id = ulid::Ulid::from_string(route_id)?;

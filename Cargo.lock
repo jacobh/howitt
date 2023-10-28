@@ -1759,6 +1759,8 @@ dependencies = [
  "howitt",
  "howitt-dynamo",
  "howitt-fs",
+ "howitt_client_types",
+ "howitt_clients",
  "inquire",
  "itertools",
  "lazy_static",

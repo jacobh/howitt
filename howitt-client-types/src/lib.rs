@@ -1,5 +1,18 @@
 use bytes::Bytes;
 
+#[derive(Debug)]
+pub enum BucketName {
+    Photos,
+}
+
+impl BucketName {
+    pub fn to_bucket_name(&self) -> &'static str {
+        match self {
+            BucketName::Photos => "howitt-photos",
+        }
+    }
+}
+
 #[async_trait::async_trait]
 pub trait BucketClient {
     type Error;
