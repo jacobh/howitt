@@ -138,6 +138,17 @@ impl RouteModel {
             .as_slice()
     }
 
+    pub fn iter_cum_distance(&self) -> impl Iterator<Item = f64> + '_ {
+        self.point_deltas().iter().map(|delta| delta.distance).scan(
+            0.0,
+            |total_distance, distance| {
+                *total_distance += distance;
+
+                Some(*total_distance)
+            },
+        )
+    }
+
     pub fn segment_summary(&self) -> &SegmentElevationSummary {
         self.summary
             .get_or_init(|| summarize_segment(self.point_deltas()))

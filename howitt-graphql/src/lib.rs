@@ -498,16 +498,7 @@ impl Route {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.as_model(route_repo).await?;
 
-        Ok(route_model
-            .point_deltas()
-            .iter()
-            .map(|delta| delta.distance)
-            .scan(0.0, |total_distance, distance| {
-                *total_distance += distance;
-
-                Some(*total_distance)
-            })
-            .collect())
+        Ok(route_model.iter_cum_distance().collect())
     }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
         let SchemaData {
