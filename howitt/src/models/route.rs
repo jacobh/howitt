@@ -108,6 +108,8 @@ pub struct RouteModel {
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
     pub photos: Vec<Photo<RouteId>>,
     point_deltas: OnceCell<Vec<ElevationPointDelta>>,
+    smoothed_elevation_points: OnceCell<Vec<ElevationPoint>>,
+    smoothed_point_deltas: OnceCell<Vec<ElevationPointDelta>>,
     summary: OnceCell<SegmentElevationSummary>,
 }
 impl RouteModel {
@@ -121,6 +123,8 @@ impl RouteModel {
             point_chunks,
             photos,
             point_deltas: OnceCell::new(),
+            smoothed_point_deltas: OnceCell::new(),
+            smoothed_elevation_points: OnceCell::new(),
             summary: OnceCell::new(),
         }
     }
@@ -153,18 +157,10 @@ impl RouteModel {
             .as_slice()
     }
 
-    pub fn smoothed_point_deltas(&self) -> Vec<ElevationPointDelta> {
-        let points = std::iter::zip(
-            self.iter_elevation_points().cloned(),
-            self.iter_smoothed_elevation(),
-        )
-        .map(|(point, smoothed_elevation)| ElevationPoint {
-            elevation: smoothed_elevation,
-            ..point
-        })
-        .collect_vec();
-
-        generate_point_deltas(points.iter())
+    pub fn smoothed_point_deltas(&self) -> &[ElevationPointDelta] {
+        self.smoothed_point_deltas
+            .get_or_init(|| generate_point_deltas(self.smoothed_elevation_points().iter()))
+            .as_slice()
     }
 
     pub fn iter_cum_distance(&self) -> impl Iterator<Item = f64> + '_ {
@@ -178,15 +174,27 @@ impl RouteModel {
         )
     }
 
-    pub fn iter_smoothed_elevation(&self) -> impl Iterator<Item = f64> + '_ {
-        let distances = self.iter_cum_distance().collect_vec();
+    pub fn smoothed_elevation_points(&self) -> &[ElevationPoint] {
+        self.smoothed_elevation_points
+            .get_or_init(|| {
+                let distances = self.iter_cum_distance().collect_vec();
 
-        let raw_elevations = self
-            .iter_elevation_points()
-            .map(|point| point.elevation)
-            .collect_vec();
+                let raw_elevations = self
+                    .iter_elevation_points()
+                    .map(|point| point.elevation)
+                    .collect_vec();
 
-        smooth_elevations(&distances, &raw_elevations).into_iter()
+                std::iter::zip(
+                    self.iter_elevation_points().cloned(),
+                    smooth_elevations(&distances, &raw_elevations).into_iter(),
+                )
+                .map(|(point, smoothed_elevation)| ElevationPoint {
+                    elevation: smoothed_elevation,
+                    ..point
+                })
+                .collect_vec()
+            })
+            .as_slice()
     }
 
     pub fn segment_summary(&self) -> &SegmentElevationSummary {

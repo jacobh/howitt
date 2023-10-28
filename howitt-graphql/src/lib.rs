@@ -486,7 +486,11 @@ impl Route {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.as_model(route_repo).await?;
 
-        Ok(route_model.iter_smoothed_elevation().collect())
+        Ok(route_model
+            .smoothed_elevation_points()
+            .iter()
+            .map(|point| point.elevation)
+            .collect())
     }
     async fn distance_points<'ctx>(
         &self,
