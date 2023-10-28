@@ -36,6 +36,7 @@ import {
 } from "aws-cdk-lib/aws-cloudfront";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { experimental } from "aws-cdk-lib/aws-cloudfront";
+import { Bucket } from "aws-cdk-lib/aws-s3";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -58,6 +59,11 @@ export class CdkStack extends cdk.Stack {
       indexName: "gsi1",
       partitionKey: { name: "gsi1pk", type: AttributeType.STRING },
       sortKey: { name: "gsi1sk", type: AttributeType.STRING },
+    });
+
+    const photosBucket = new Bucket(this, "howitt-photos", {
+      bucketName: "howitt-photos",
+      publicReadAccess: true,
     });
 
     const apiDomainName = new DomainName(
