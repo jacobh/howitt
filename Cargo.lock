@@ -947,7 +947,7 @@ version = "0.3.0"
 dependencies = [
  "almost",
  "approx 0.3.2",
- "itertools 0.9.0",
+ "itertools",
  "ndarray",
  "num-traits 0.2.17",
  "sprs",
@@ -1150,7 +1150,7 @@ version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79127ed59a85d7687c409e9978547cffb7dc79675355ed22da6b66fd5f6ead01"
 dependencies = [
- "itertools 0.11.0",
+ "itertools",
  "num-traits 0.2.17",
 ]
 
@@ -1615,7 +1615,7 @@ dependencies = [
  "gpx",
  "howitt_derive",
  "insta",
- "itertools 0.11.0",
+ "itertools",
  "md5",
  "num",
  "once_cell",
@@ -1648,7 +1648,7 @@ dependencies = [
  "howitt-dynamo",
  "howitt-fs",
  "inquire",
- "itertools 0.11.0",
+ "itertools",
  "lazy_static",
  "prettytable-rs",
  "rayon",
@@ -1673,7 +1673,7 @@ dependencies = [
  "futures",
  "geo",
  "howitt",
- "itertools 0.11.0",
+ "itertools",
  "serde",
  "serde_dynamo",
  "thiserror",
@@ -1692,7 +1692,7 @@ dependencies = [
  "gpx",
  "gtfs",
  "howitt",
- "itertools 0.11.0",
+ "itertools",
  "lazy_static",
  "project-root",
  "rwgps",
@@ -1717,7 +1717,7 @@ dependencies = [
  "geo",
  "gpx",
  "howitt",
- "itertools 0.11.0",
+ "itertools",
  "rwgps_types",
  "serde",
  "test-case",
@@ -2006,15 +2006,6 @@ dependencies = [
  "hermit-abi",
  "rustix",
  "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "itertools"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "284f18f85651fe11e8a991b2adb42cb078325c996ed026d994719efcfca1d54b"
-dependencies = [
- "either",
 ]
 
 [[package]]
