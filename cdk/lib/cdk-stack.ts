@@ -63,6 +63,7 @@ export class CdkStack extends cdk.Stack {
 
     const photosBucket = new Bucket(this, "howitt-photos", {
       bucketName: "howitt-photos",
+      publicReadAccess: true,
     });
 
     const apiDomainName = new DomainName(
