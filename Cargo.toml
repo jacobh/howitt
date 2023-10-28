@@ -12,7 +12,8 @@ members = [
     "howitt-worker-lambda",
     "rwgps",
     "rwgps-types",
-    "gtfs"
+    "gtfs",
+    "csaps",
 ]
 
 resolver = "2"

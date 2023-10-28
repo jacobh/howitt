@@ -1,0 +1,35 @@
+[package]
+name = "csaps"
+version = "0.3.0"
+authors = ["Eugene Prilepin <esp.home@gmail.com>"]
+
+description = "Cubic spline approximation (smoothing)"
+keywords = ["spline", "interpolation", "approximation", "csaps", "smoothing"]
+categories = ["science"]
+
+homepage = "https://github.com/espdev/csaps-rs"
+repository = "https://github.com/espdev/csaps-rs"
+documentation = "https://docs.rs/csaps"
+readme = "README.md"
+license = "MIT"
+
+edition = "2018"
+
+
+[badges]
+travis-ci = { repository = "espdev/csaps-rs", branch = "master" }
+coveralls = { repository = "espdev/csaps-rs", branch = "master", service = "github" }
+
+
+[dependencies]
+num-traits = "0.2.11"
+ndarray = "0.13.0"
+sprs = "0.7.1"
+sprs-ldl = "0.5.0"
+almost = "0.2.0"
+itertools = "0.9.0"
+thiserror = "1.0.12"
+
+[dev-dependencies]
+approx = "0.3.2"
+ndarray = {version = "0.13", features = ["approx"]}
