@@ -4,7 +4,7 @@ use clap::{arg, Args, Subcommand};
 use howitt::{
     models::{config::ConfigId, point::simplify_points, route::RouteId},
     repos::Repo,
-    services::{generate_cuesheet::generate_cuesheet, rwgps::RwgpsSyncService},
+    services::{generate_cuesheet::generate_cuesheet, sync::rwgps::RwgpsSyncService},
 };
 use howitt_dynamo::{
     ConfigRepo, Keys, PointOfInterestRepo, RideModelRepo, RouteModelRepo, SingleTableClient,
