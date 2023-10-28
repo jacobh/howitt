@@ -73,7 +73,7 @@ where
 fn make_key<ID: ModelId>(photo: &Photo<ID>) -> String {
     let id = photo.id;
 
-    format!("/photos/{id}.jpg")
+    format!("/source/{id}.jpg")
 }
 
 fn make_source_url<ID: ModelId>(photo: &Photo<ID>) -> url::Url {
@@ -87,7 +87,7 @@ fn make_source_url<ID: ModelId>(photo: &Photo<ID>) -> url::Url {
     .unwrap();
 
     url::Url::parse(&format!(
-        "https://ridewithgps.com/photos/{rwgps_photo_id}/large.jpg"
+        "https://ridewithgps.com/photos/{rwgps_photo_id}/full.jpg"
     ))
     .unwrap()
 }

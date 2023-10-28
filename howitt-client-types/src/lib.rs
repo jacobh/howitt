@@ -6,7 +6,7 @@ pub trait BucketClient {
 
     async fn key_exists(&self, key: &str) -> Result<bool, Self::Error>;
 
-    async fn put_object(&self, key: &str, body: bytes::Bytes) -> Result<bool, Self::Error>;
+    async fn put_object(&self, key: &str, body: bytes::Bytes) -> Result<(), Self::Error>;
 }
 
 pub struct HttpResponse {

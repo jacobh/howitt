@@ -1,0 +1,17 @@
+[package]
+name = "howitt_clients"
+version = "0.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+howitt_client_types = { path = "../howitt-client-types" }
+reqwest = "*"
+derive_more = "*"
+async-trait = "*"
+url = "*"
+aws-config = "0.56.1"
+aws-sdk-s3 = "0.33.0"
+thiserror = "*"
+bytes = "*"
