@@ -4,6 +4,7 @@
 #![feature(async_fn_in_trait)]
 #![feature(exclusive_range_pattern)]
 #![feature(adt_const_params)]
+#![feature(inherent_associated_types)]
 
 extern crate self as howitt;
 

@@ -10,6 +10,8 @@ members = [
     "howitt-web",
     "howitt-web-lambda",
     "howitt-worker-lambda",
+    "howitt-clients",
+    "howitt-client-types",
     "rwgps",
     "rwgps-types",
     "gtfs",

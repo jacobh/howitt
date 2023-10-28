@@ -23,6 +23,7 @@ ulid = { version = "1", features = ["serde"] }
 md5 = "*"
 howitt_derive = { path = "../howitt_derive" }
 rwgps_types = { path = "../rwgps-types" }
+howitt_client_types = { path = "../howitt-client-types" }
 csaps = { path = "../csaps" }
 futures = "*"
 ordered-float = "*"
@@ -34,6 +35,7 @@ num = "*"
 url = { version = "*", features = ["serde"] }
 scc = "*"
 almost = "*"
+bytes = "*"
 
 [dev-dependencies]
 insta = { version = "*", features = ["toml"] }
