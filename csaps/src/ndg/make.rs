@@ -1,6 +1,6 @@
 use ndarray::Dimension;
 
-use crate::{ndarrayext::to_2d_simple, util::dim_from_vec, CubicSmoothingSpline, Real, Result};
+use crate::{ndarrayext::to_2d_simple, util::dim_from_vec, CubicSmoothingSpline, Result};
 
 use super::{util::permute_axes, GridCubicSmoothingSpline, NdGridSpline};
 
