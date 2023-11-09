@@ -29,6 +29,36 @@ scalar!(ModelId<RideId>, "RideId");
 scalar!(ModelId<RouteId>, "RouteId");
 scalar!(ModelId<PhotoId>, "PhotoId");
 
+#[derive(InputObject)]
+pub struct QueryRouteFilters {
+    is_published: Option<bool>,
+    has_all_tags: Option<Vec<String>>,
+}
+
+impl QueryRouteFilters {
+    fn route_is_selected(&self, route: &howitt::models::route::Route) -> bool {
+        let is_published_passes = match self.is_published {
+            Some(is_published) => is_published == route.published_at().is_some(),
+            None => true,
+        };
+
+        let has_all_tags_passes = self
+            .has_all_tags
+            .clone()
+            .unwrap_or_default()
+            .into_iter()
+            .map(Tag::Custom)
+            .all(|required_tag| route.tags.contains(&required_tag));
+
+        is_published_passes && has_all_tags_passes
+    }
+}
+
+#[derive(InputObject)]
+pub struct QueryRoutesInput {
+    filters: Vec<QueryRouteFilters>,
+}
+
 pub struct Query;
 
 #[Object]
@@ -63,20 +93,22 @@ impl Query {
             .map(Route)
             .collect())
     }
-    async fn published_routes<'ctx>(
+    async fn query_routes<'ctx>(
         &self,
         ctx: &Context<'ctx>,
+        input: QueryRoutesInput,
     ) -> Result<Vec<Route>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-
-        let routes = route_repo.all_indexes().await?;
+        let routes = self.starred_routes(ctx).await?;
 
         Ok(routes
             .into_iter()
-            .filter(|route| route.published_at().is_some())
-            .map(ModelRef::from_index)
-            .map(Route)
-            .collect())
+            .filter(|route| {
+                input
+                    .filters
+                    .iter()
+                    .all(|filter| filter.route_is_selected(route.0.as_index()))
+            })
+            .collect_vec())
     }
     async fn route<'ctx>(
         &self,
@@ -398,6 +430,9 @@ impl Route {
     }
     async fn description(&self) -> Option<&str> {
         self.route_description()?.description.as_deref()
+    }
+    async fn tags(&self) -> Option<&Vec<String>> {
+        Some(&self.route_description()?.tags)
     }
     async fn photos<'ctx>(
         &self,
