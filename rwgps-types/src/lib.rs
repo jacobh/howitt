@@ -498,7 +498,7 @@ pub struct Photo {
     pub lat: Value,
     pub lng: Value,
     pub published: bool,
-    pub captured_at: chrono::DateTime<chrono::Utc>,
+    pub captured_at: Option<chrono::DateTime<chrono::Utc>>,
     pub user_id: usize,
     pub updated_at: chrono::DateTime<chrono::Utc>,
     pub width: usize,
