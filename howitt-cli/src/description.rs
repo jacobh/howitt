@@ -56,9 +56,9 @@ const DIRECTIONS: [Direction; 3] = [
 ];
 
 pub fn generate_description() {
-    fn bike_prompt(type_: &str) -> Option<BikeSpec> {
+    fn bike_prompt(type_: &str, default: bool) -> Option<BikeSpec> {
         if !inquire::Confirm::new(&format!("Specify {type_} now?"))
-            .with_default(true)
+            .with_default(default)
             .prompt()
             .unwrap()
         {
@@ -133,8 +133,8 @@ pub fn generate_description() {
         .prompt()
         .ok();
     let description = None;
-    let minimum_bike = bike_prompt("minimum bike");
-    let ideal_bike = bike_prompt("ideal bike");
+    let minimum_bike = bike_prompt("minimum bike", true);
+    let ideal_bike = bike_prompt("ideal bike", false);
     let scouted = inquire::Select::new("Scouted", SCOUTEDS.to_vec())
         .prompt()
         .ok();
@@ -142,7 +142,7 @@ pub fn generate_description() {
         .prompt()
         .ok();
     let published_at = if inquire::Confirm::new("Publish now?")
-        .with_default(true)
+        .with_default(false)
         .prompt()
         .unwrap()
     {
@@ -170,5 +170,8 @@ pub fn generate_description() {
         tags,
     };
 
-    println!("\n\n\n\n{}", toml::to_string_pretty(&description).unwrap());
+    println!(
+        "\n\n[backcountry_segment]\n{}",
+        toml::to_string_pretty(&description).unwrap()
+    );
 }
