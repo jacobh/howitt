@@ -95,22 +95,38 @@ const sidebarChildrenCss = makeMqs([
   `,
 ]);
 
+const titlePostfixCss = css`
+  margin-left: 8px;
+`;
+
+interface Props {
+  title: string;
+  titleLinkTo?: string;
+  titlePostfix?: string;
+}
+
 export function SidebarContainer({
   title,
-  showBack,
+  titlePostfix,
+  titleLinkTo,
   children,
-}: PropsWithChildren<{ title: string; showBack?: boolean }>): JSX.Element {
+}: PropsWithChildren<Props>): JSX.Element {
   return (
     <div css={sidebarContainerOuterCss}>
       <div css={sidebarContainerInnerCss}>
         <h3 css={sidebarTitleCss}>
-          {showBack && (
-            <span css={{ display: "inline-flex" }}>
-              <Link to="/">Routes</Link>
-              <span css={{ padding: "0 6px" }}>/</span>
-            </span>
+          {titleLinkTo ? (
+            <Link to={titleLinkTo} css={{ flexShrink: 1 }}>
+              {title}
+            </Link>
+          ) : (
+            <span css={{ flexShrink: 1 }}>{title}</span>
           )}
-          <span css={{ flexShrink: 1 }}>{title}</span>
+          {titlePostfix ? (
+            <span css={titlePostfixCss}>{titlePostfix}</span>
+          ) : (
+            <></>
+          )}
         </h3>
         <hr />
         <div css={sidebarChildrenCss}>{children}</div>

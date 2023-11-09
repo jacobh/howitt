@@ -8,10 +8,11 @@ import { css } from "@emotion/react";
 import { COLORS } from "~/styles/theme";
 import { isNotNil } from "~/services/isNotNil";
 import { sortBy } from "lodash";
+import { useSearchParams } from "@remix-run/react";
 
 const HOME_QUERY = gql(`
-  query homeQuery {
-    starredRoutes {
+  query homeQuery($input: QueryRoutesInput!) {
+    queryRoutes(input: $input) {
       id
       name
       distance
@@ -44,7 +45,29 @@ const routeTitleCss = css`
   line-height: 1.75rem; /* 28px */
 `;
 
+function extractTags(params: URLSearchParams): string[] | undefined {
+  const tags = params.get("tags");
+
+  if (isNotNil(tags)) {
+    return tags.split(",");
+  }
+
+  return undefined;
+}
+
 export default function Index(): React.ReactElement {
+  const [searchParams] = useSearchParams();
+
+  const tags = extractTags(searchParams);
+
+  const filters = isNotNil(tags) ? [{ hasSomeTags: tags }] : [];
+
+  const { data } = useQuery(HOME_QUERY, {
+    variables: {
+      input: { filters },
+    },
+  });
+
   const [clickedRouteId, setClickedRouteId] = useState<string | undefined>(
     undefined
   );
@@ -57,15 +80,13 @@ export default function Index(): React.ReactElement {
     { routeId: string; distanceFromCenter: number }[] | undefined
   >(undefined);
 
-  const { data } = useQuery(HOME_QUERY);
-
   const routeIdMap: Record<
     string,
-    Exclude<typeof data, undefined>["starredRoutes"][number]
+    Exclude<typeof data, undefined>["queryRoutes"][number]
   > = useMemo(
     () =>
       Object.fromEntries(
-        (data?.starredRoutes ?? []).map((route) => [route.id, route])
+        (data?.queryRoutes ?? []).map((route) => [route.id, route])
       ),
     [data]
   );
@@ -77,7 +98,7 @@ export default function Index(): React.ReactElement {
         .filter(isNotNil)
     : Object.values(routeIdMap);
 
-  const mapRoutes = (data?.starredRoutes ?? []).map((route) => ({
+  const mapRoutes = (data?.queryRoutes ?? []).map((route) => ({
     route,
     style:
       hoveredRouteId === route.id || clickedRouteId === route.id
@@ -87,7 +108,13 @@ export default function Index(): React.ReactElement {
 
   return (
     <Container>
-      <SidebarContainer title="Routes">
+      <SidebarContainer
+        title="Routes"
+        titleLinkTo={isNotNil(tags) ? "/" : undefined}
+        titlePostfix={
+          isNotNil(tags) ? tags.map((tag) => `#${tag}`).join(" ") : undefined
+        }
+      >
         {clickedRouteId ? (
           <div
             css={clickedRouteItemContainerCss}

@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { useParams } from "@remix-run/react";
+import { Link, useParams } from "@remix-run/react";
 import { gql } from "~/__generated__";
 import { DisplayedRoute, Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
@@ -23,6 +23,7 @@ query RouteQuery($routeId: RouteId!) {
     externalRef {
       canonicalUrl
     }
+    tags
     distance
     elevationAscentM
     elevationDescentM
@@ -97,6 +98,10 @@ const contentSectionCss = css`
   margin: 24px 0;
 `;
 
+const tagLinkCss = css`
+  margin-right: 8px;
+`;
+
 export default function Route(): React.ReactElement {
   const params = useParams();
 
@@ -130,13 +135,28 @@ export default function Route(): React.ReactElement {
 
   return (
     <Container>
-      <SidebarContainer title={data?.route?.name ?? ""} showBack>
+      <SidebarContainer
+        title="Routes"
+        titleLinkTo="/"
+        titlePostfix={["/", data?.route?.name ?? ""].join(" ")}
+      >
         <div css={routeContentContainerCss}>
           {data?.route ? (
             <>
               <section css={{ marginTop: "2px" }}>
                 <RouteVitals route={data.route} />
               </section>
+              {isNotNil(data.route.tags) ? (
+                <section css={contentSectionCss}>
+                  {data.route.tags.map((tag) => (
+                    <Link to={`/?tags=${tag}`} key={tag} css={tagLinkCss}>
+                      #{tag}
+                    </Link>
+                  ))}
+                </section>
+              ) : (
+                <></>
+              )}
               {data.route.externalRef ? (
                 <section css={contentSectionCss}>
                   <p css={{ color: COLORS.darkGrey }}>
