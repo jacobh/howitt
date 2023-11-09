@@ -33,6 +33,7 @@ scalar!(ModelId<PhotoId>, "PhotoId");
 pub struct QueryRouteFilters {
     is_published: Option<bool>,
     has_all_tags: Option<Vec<String>>,
+    has_some_tags: Option<Vec<String>>,
 }
 
 impl QueryRouteFilters {
@@ -50,7 +51,15 @@ impl QueryRouteFilters {
             .map(Tag::Custom)
             .all(|required_tag| route.tags.contains(&required_tag));
 
-        is_published_passes && has_all_tags_passes
+        let has_some_tags_passes = self
+            .has_all_tags
+            .clone()
+            .unwrap_or_default()
+            .into_iter()
+            .map(Tag::Custom)
+            .any(|required_tag| route.tags.contains(&required_tag));
+
+        is_published_passes && has_all_tags_passes && has_some_tags_passes
     }
 }
 
