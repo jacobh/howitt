@@ -1,4 +1,4 @@
-use std::{collections::HashSet, error::Error, marker::PhantomData};
+use std::{collections::HashSet, error::Error, iter, marker::PhantomData};
 
 use anyhow::anyhow;
 use either::Either;
@@ -157,22 +157,34 @@ where
             .flatten();
 
         let tags: HashSet<Tag> = HashSet::from_iter(
-            [
-                if route.name.contains("[BCS]") {
-                    Some(Tag::BackcountrySegment)
-                } else {
-                    None
-                },
-                if let Some(description) = description.as_ref() {
+            iter::empty()
+                .chain(
+                    [
+                        if route.name.contains("[BCS]") {
+                            Some(Tag::BackcountrySegment)
+                        } else {
+                            None
+                        },
+                        if let Some(description) = description.as_ref() {
+                            description
+                                .published_at
+                                .map(|published_at| Tag::Published { published_at })
+                        } else {
+                            None
+                        },
+                    ]
+                    .into_iter()
+                    .flatten(),
+                )
+                .chain(description.as_ref().map_or(Vec::new(), |description| {
                     description
-                        .published_at
-                        .map(|published_at| Tag::Published { published_at })
-                } else {
-                    None
-                },
-            ]
-            .into_iter()
-            .flatten(),
+                        .tags
+                        .clone()
+                        .into_iter()
+                        .map(Tag::Custom)
+                        .collect_vec()
+                }))
+                .into_iter(),
         );
 
         let points = route

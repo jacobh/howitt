@@ -128,6 +128,8 @@ pub struct RouteDescription {
     pub ideal_bike: Option<BikeSpec>,
     pub scouted: Option<Scouted>,
     pub direction: Option<Direction>,
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 impl RouteDescription {

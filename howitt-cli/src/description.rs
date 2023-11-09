@@ -151,6 +151,13 @@ pub fn generate_description() {
         None
     };
 
+    let tags = inquire::Text::new("Tags (comma separated)")
+        .prompt()
+        .unwrap()
+        .split(",")
+        .map(String::from)
+        .collect_vec();
+
     let description = RouteDescription {
         technical_difficulty,
         physical_difficulty,
@@ -160,6 +167,7 @@ pub fn generate_description() {
         ideal_bike,
         scouted,
         direction,
+        tags,
     };
 
     println!("\n\n\n\n{}", toml::to_string_pretty(&description).unwrap());

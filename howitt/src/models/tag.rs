@@ -6,4 +6,5 @@ pub enum Tag {
     Published {
         published_at: chrono::DateTime<chrono::Utc>,
     },
+    Custom(String),
 }
