@@ -26,7 +26,7 @@ import Fill from "ol/style/Fill";
 import { css } from "@emotion/react";
 import BaseEvent from "ol/events/Event";
 import { isNotNil } from "~/services/isNotNil";
-import { debounce, isEqual, min } from "lodash";
+import { debounce, isEqual, min, some } from "lodash";
 
 export interface DisplayedRoute {
   route: Pick<Route, "id" | "points">;
@@ -250,6 +250,26 @@ export function Map({
     const map = existingMap;
 
     const layers = map.getLayers().getArray();
+
+    // cleanup any routes that have been dropped
+    for (const layer of layers) {
+      if (layer instanceof VectorLayer) {
+        const vectorLayer = layer as VectorLayer<any>;
+
+        const layerRouteId = vectorLayer.getProperties().routeId;
+
+        if (isNotNil(layerRouteId)) {
+          const isLayerRouteInCurrentRender = some(
+            routes,
+            ({ route }) => route.id === layerRouteId
+          );
+
+          if (!isLayerRouteInCurrentRender) {
+            map.removeLayer(layer);
+          }
+        }
+      }
+    }
 
     for (const { route, style } of routes ?? []) {
       // console.log(route.id);
