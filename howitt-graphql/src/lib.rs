@@ -43,21 +43,17 @@ impl QueryRouteFilters {
             None => true,
         };
 
-        let has_all_tags_passes = self
-            .has_all_tags
-            .clone()
-            .unwrap_or_default()
-            .into_iter()
-            .map(Tag::Custom)
-            .all(|required_tag| route.tags.contains(&required_tag));
+        let has_all_tags_passes = self.has_all_tags.clone().map_or(true, |tags| {
+            tags.into_iter()
+                .map(Tag::Custom)
+                .all(|required_tag| route.tags.contains(&required_tag))
+        });
 
-        let has_some_tags_passes = self
-            .has_all_tags
-            .clone()
-            .unwrap_or_default()
-            .into_iter()
-            .map(Tag::Custom)
-            .any(|required_tag| route.tags.contains(&required_tag));
+        let has_some_tags_passes = self.has_some_tags.clone().map_or(true, |tags| {
+            tags.into_iter()
+                .map(Tag::Custom)
+                .any(|required_tag| route.tags.contains(&required_tag))
+        });
 
         is_published_passes && has_all_tags_passes && has_some_tags_passes
     }
