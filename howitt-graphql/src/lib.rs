@@ -527,8 +527,7 @@ impl Route {
         let route_model = self.0.as_model(route_repo).await?;
 
         Ok(route_model
-            .smoothed_elevation_points()
-            .iter()
+            .iter_elevation_points()
             .map(|point| point.elevation)
             .collect())
     }

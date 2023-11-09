@@ -10,7 +10,6 @@ use crate::{
     models::{external_ref::ExternalRef, point::ElevationPoint},
     services::{
         nearby::{nearby_routes, NearbyRoute},
-        smoothing::smooth_elevations,
         summarize_segment::summarize_segment,
     },
 };
@@ -108,8 +107,6 @@ pub struct RouteModel {
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
     pub photos: Vec<Photo<RouteId>>,
     point_deltas: OnceCell<Vec<ElevationPointDelta>>,
-    smoothed_elevation_points: OnceCell<Vec<ElevationPoint>>,
-    smoothed_point_deltas: OnceCell<Vec<ElevationPointDelta>>,
     summary: OnceCell<SegmentElevationSummary>,
 }
 impl RouteModel {
@@ -123,28 +120,12 @@ impl RouteModel {
             point_chunks,
             photos,
             point_deltas: OnceCell::new(),
-            smoothed_point_deltas: OnceCell::new(),
-            smoothed_elevation_points: OnceCell::new(),
             summary: OnceCell::new(),
         }
     }
 
     pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
-        let points = PointChunk::iter_points(&self.point_chunks).collect_vec();
-        let deltas = generate_point_deltas(points.iter());
-
-        std::iter::zip(points, deltas)
-            .with_position()
-            .filter_map(|(position, (point, delta))| match position {
-                itertools::Position::First | itertools::Position::Only => Some(point),
-                itertools::Position::Middle | itertools::Position::Last => {
-                    if almost::zero(delta.distance) {
-                        None
-                    } else {
-                        Some(point)
-                    }
-                }
-            })
+        PointChunk::iter_points(&self.point_chunks)
     }
 
     pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
@@ -154,12 +135,6 @@ impl RouteModel {
     pub fn point_deltas(&self) -> &[ElevationPointDelta] {
         self.point_deltas
             .get_or_init(|| generate_point_deltas(self.iter_elevation_points()))
-            .as_slice()
-    }
-
-    pub fn smoothed_point_deltas(&self) -> &[ElevationPointDelta] {
-        self.smoothed_point_deltas
-            .get_or_init(|| generate_point_deltas(self.smoothed_elevation_points().iter()))
             .as_slice()
     }
 
@@ -174,32 +149,9 @@ impl RouteModel {
         )
     }
 
-    pub fn smoothed_elevation_points(&self) -> &[ElevationPoint] {
-        self.smoothed_elevation_points
-            .get_or_init(|| {
-                let distances = self.iter_cum_distance().collect_vec();
-
-                let raw_elevations = self
-                    .iter_elevation_points()
-                    .map(|point| point.elevation)
-                    .collect_vec();
-
-                std::iter::zip(
-                    self.iter_elevation_points().cloned(),
-                    smooth_elevations(&distances, &raw_elevations).into_iter(),
-                )
-                .map(|(point, smoothed_elevation)| ElevationPoint {
-                    elevation: smoothed_elevation,
-                    ..point
-                })
-                .collect_vec()
-            })
-            .as_slice()
-    }
-
     pub fn segment_summary(&self) -> &SegmentElevationSummary {
         self.summary
-            .get_or_init(|| summarize_segment(&self.smoothed_point_deltas()))
+            .get_or_init(|| summarize_segment(&self.point_deltas()))
     }
 }
 

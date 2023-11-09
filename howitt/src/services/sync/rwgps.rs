@@ -20,6 +20,7 @@ use crate::{
         IndexItem,
     },
     repos::Repo,
+    services::smoothing::smooth_elevation_points,
 };
 
 const SYNC_VERSION: usize = 2;
@@ -201,6 +202,8 @@ where
             })
             .map(|(point, elevation)| ElevationPoint { point, elevation })
             .collect_vec();
+
+        let points = smooth_elevation_points(points);
 
         let photos = route
             .photos
