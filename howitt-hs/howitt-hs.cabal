@@ -21,6 +21,14 @@ executable howitt-hs
     main-is:          Main.hs
     -- other-modules:
     -- other-extensions:
-    build-depends:    base ^>=4.17.2.1
+    build-depends:    base ^>=4.17.2.1 , amazonka, amazonka-dynamodb, aeson, text
     hs-source-dirs:   app
     default-language: GHC2021
+
+-- For amazonka
+-- Multiple subdirs in a single `source-repository-package` stanza are supported by cabal-install >= 3.2.0.0.
+source-repository-package
+    type: git
+    location: https://github.com/brendanhay/amazonka
+    tag: 85e0289f8dc23c54b00f7f1a09845be7e032a1eb
+    subdir: lib/amazonka lib/amazonka-core lib/services/amazonka-dynamodb
