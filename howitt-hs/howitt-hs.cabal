@@ -1,0 +1,26 @@
+cabal-version:      3.4
+name:               howitt-hs
+version:            0.1.0.0
+-- synopsis:
+-- description:
+homepage:           https://github.com/jacobh/howitt
+license:            MIT
+license-file:       LICENSE
+author:             Jacob Haslehurst
+maintainer:         jacob@haslehurst.net
+-- copyright:
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+executable howitt-hs
+    import:           warnings
+    main-is:          Main.hs
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    base ^>=4.17.2.1
+    hs-source-dirs:   app
+    default-language: GHC2021
