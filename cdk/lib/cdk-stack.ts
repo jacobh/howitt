@@ -19,7 +19,12 @@ import {
   AttributeType,
   BillingMode,
 } from "aws-cdk-lib/aws-dynamodb";
-import { Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import {
+  Policy,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Duration } from "aws-cdk-lib";
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
@@ -37,6 +42,24 @@ import {
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { experimental } from "aws-cdk-lib/aws-cloudfront";
 import { Bucket } from "aws-cdk-lib/aws-s3";
+import {
+  AmiHardwareType,
+  AsgCapacityProvider,
+  Cluster,
+  ContainerImage,
+  Ec2Service,
+  Ec2TaskDefinition,
+  EcsOptimizedImage,
+  TaskDefinition,
+} from "aws-cdk-lib/aws-ecs";
+import {
+  InstanceType,
+  LaunchTemplate,
+  UserData,
+  Vpc,
+} from "aws-cdk-lib/aws-ec2";
+import { AutoScalingGroup } from "aws-cdk-lib/aws-autoscaling";
+import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
 
@@ -47,6 +70,70 @@ console.log(PROJECT_ROOT_DIR);
 export class CdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const vpc = Vpc.fromLookup(this, "Vpc", {
+      isDefault: true,
+    });
+
+    // // ---
+    // // ECS
+    // // ---
+
+    // const cluster = new Cluster(this, "howitt-cluster", { vpc });
+
+    // // Or add customized capacity. Be sure to start the Amazon ECS-optimized AMI.
+    // const autoScalingGroup = new AutoScalingGroup(this, "ASG", {
+    //   vpc,
+    //   launchTemplate: new LaunchTemplate(this, "howitt-cluster-arm-template", {
+    //     machineImage: EcsOptimizedImage.amazonLinux2023(AmiHardwareType.ARM),
+    //     instanceType: new InstanceType("t4g.small"),
+    //     userData: UserData.forLinux(),
+    //     role: new Role(this, "howitt-cluster-role", {
+    //       assumedBy: new ServicePrincipal("ec2.amazonaws.com"),
+    //     }),
+    //   }),
+    //   minCapacity: 1,
+    //   maxCapacity: 1,
+    // });
+
+    // const capacityProvider = new AsgCapacityProvider(
+    //   this,
+    //   "AsgCapacityProvider",
+    //   {
+    //     autoScalingGroup,
+    //   }
+    // );
+    // cluster.addAsgCapacityProvider(capacityProvider);
+
+    // const howittApiWebImage = new DockerImageAsset(
+    //   this,
+    //   "howitt-api-web-image",
+    //   {
+    //     directory: path.join(__dirname, "../.."),
+    //     file: "howitt-web.dockerfile",
+    //     platform: Platform.LINUX_ARM64,
+    //   }
+    // );
+
+    // const howittApiTaskDef = new Ec2TaskDefinition(
+    //   this,
+    //   "howitt-api-web-task-def",
+    //   {}
+    // );
+
+    // howittApiTaskDef.addContainer("howitt-api-web-container", {
+    //   image: ContainerImage.fromDockerImageAsset(howittApiWebImage),
+    //   memoryLimitMiB: 256,
+    // });
+
+    // new Ec2Service(this, "howitt-api-web-service", {
+    //   cluster,
+    //   taskDefinition: howittApiTaskDef,
+    // });
+
+    // ---
+    // Dynamo
+    // ---
 
     const dynamoTable = new Table(this, "howitt-dynamodb", {
       tableName: "howitt",
@@ -61,9 +148,19 @@ export class CdkStack extends cdk.Stack {
       sortKey: { name: "gsi1sk", type: AttributeType.STRING },
     });
 
+    // ---
+    // S3
+    // ---
+
     const photosBucket = new Bucket(this, "howitt-photos", {
       bucketName: "howitt-photos",
       publicReadAccess: true,
+      blockPublicAccess: {
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false,
+      },
     });
 
     const apiDomainName = new DomainName(
@@ -92,6 +189,7 @@ export class CdkStack extends cdk.Stack {
 
     const webLambda = new RustFunction(this, "howitt-web-lambda", {
       manifestPath: PROJECT_ROOT_DIR,
+      binaryName: "howitt-web-lambda",
       architecture: Architecture.ARM_64,
       bundling: {
         architecture: Architecture.ARM_64,
