@@ -17,7 +17,7 @@ chrono = "*"
 futures = "*"
 ulid = "*"
 serde = { version = "*", features = ["derive"] }
-derive_more = "*"
+derive_more = { version = "0.99.17" }
 itertools = "*"
 thiserror = "*"
 url = "*"

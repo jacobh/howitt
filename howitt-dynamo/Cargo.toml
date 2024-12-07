@@ -10,7 +10,7 @@ anyhow = "*"
 async-trait = "*"
 aws-config = "0.56.1"
 aws-sdk-dynamodb = "0.33.0"
-derive_more = "*"
+derive_more = { version = "0.99.17" }
 futures = "*"
 geo = "*"
 howitt = { path = "../howitt" }

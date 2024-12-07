@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
 
-use super::{external_ref::ExternallySourced, point::PointChunk, IndexModel, ModelUlid};
+use super::{external_ref::ExternallySourced, point::PointChunk, IndexModel, ModelName, ModelUlid};
 
-pub type RideId = ModelUlid<"RIDE">;
+pub type RideId = ModelUlid<{ ModelName::Ride }>;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Ride {

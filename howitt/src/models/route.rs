@@ -22,10 +22,10 @@ use super::{
     segment_summary::SegmentElevationSummary,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
-    IndexItem, ModelUlid,
+    IndexItem, ModelName, ModelUlid,
 };
 
-pub type RouteId = ModelUlid<"ROUTE">;
+pub type RouteId = ModelUlid<{ ModelName::Route }>;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Route {

@@ -12,6 +12,6 @@ chrono = { version = "*", features = ["serde"] }
 geo = "*"
 gpx = "*"
 serde_json = "*"
-derive_more = "*"
+derive_more = { version = "0.99.17" }
 async-trait = "*"
 serde_with = { version = "*", features = ["chrono"] }

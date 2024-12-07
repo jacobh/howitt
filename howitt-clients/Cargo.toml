@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 howitt_client_types = { path = "../howitt-client-types" }
 reqwest = "*"
-derive_more = "*"
+derive_more = { version = "0.99.17" }
 async-trait = "*"
 url = "*"
 aws-config = "0.56.1"

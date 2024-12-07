@@ -1,4 +1,9 @@
-use std::{borrow::Cow, hash::Hash, marker::PhantomData, sync::Arc};
+use std::{
+    borrow::Cow,
+    hash::Hash,
+    marker::{ConstParamTy, PhantomData},
+    sync::Arc,
+};
 
 use anyhow::anyhow;
 use futures::FutureExt;
@@ -294,10 +299,30 @@ pub trait ModelId:
     fn model_name() -> &'static str;
 }
 
-#[derive(derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy)]
-pub struct ModelUlid<const NAME: &'static str>(ulid::Ulid);
+#[derive(ConstParamTy, PartialEq, Eq, Clone, Copy)]
+pub enum ModelName {
+    Photo,
+    Checkpoint,
+    Ride,
+    Route,
+    Segment,
+}
+impl ModelName {
+    const fn to_str(self) -> &'static str {
+        match self {
+            ModelName::Photo => "PHOTO",
+            ModelName::Checkpoint => "CHECKPOINT",
+            ModelName::Ride => "RIDE",
+            ModelName::Route => "ROUTE",
+            ModelName::Segment => "SEGMENT",
+        }
+    }
+}
 
-impl<const NAME: &'static str> ModelUlid<NAME> {
+#[derive(derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy)]
+pub struct ModelUlid<const NAME: ModelName>(ulid::Ulid);
+
+impl<const NAME: ModelName> ModelUlid<NAME> {
     pub fn new() -> ModelUlid<NAME> {
         ModelUlid::<NAME>(ulid::Ulid::new())
     }
@@ -318,25 +343,25 @@ impl<const NAME: &'static str> ModelUlid<NAME> {
     }
 }
 
-impl<const NAME: &'static str> ModelId for ModelUlid<NAME> {
+impl<const NAME: ModelName> ModelId for ModelUlid<NAME> {
     fn model_name() -> &'static str {
-        NAME
+        NAME.to_str()
     }
 }
 
-impl<const NAME: &'static str> std::fmt::Debug for ModelUlid<NAME> {
+impl<const NAME: ModelName> std::fmt::Debug for ModelUlid<NAME> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}#{}", NAME, self.0)
+        write!(f, "{}#{}", NAME.to_str(), self.0)
     }
 }
 
-impl<const NAME: &'static str> std::fmt::Display for ModelUlid<NAME> {
+impl<const NAME: ModelName> std::fmt::Display for ModelUlid<NAME> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}#{}", NAME, self.0)
+        write!(f, "{}#{}", NAME.to_str(), self.0)
     }
 }
 
-impl<const NAME: &'static str> Serialize for ModelUlid<NAME> {
+impl<const NAME: ModelName> Serialize for ModelUlid<NAME> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -345,7 +370,7 @@ impl<const NAME: &'static str> Serialize for ModelUlid<NAME> {
     }
 }
 
-impl<'de, const NAME: &'static str> Deserialize<'de> for ModelUlid<NAME> {
+impl<'de, const NAME: ModelName> Deserialize<'de> for ModelUlid<NAME> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -360,7 +385,7 @@ impl<'de, const NAME: &'static str> Deserialize<'de> for ModelUlid<NAME> {
         let name = parts[0];
         let id = parts[1];
 
-        if name != NAME {
+        if name != NAME.to_str() {
             return Err(serde::de::Error::custom(
                 "model name component of ID did not match",
             ));

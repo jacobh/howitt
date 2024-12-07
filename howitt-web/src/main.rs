@@ -9,8 +9,10 @@ use howitt_graphql::{
     credentials::Credentials,
     Query,
 };
-use http::StatusCode;
-use warp::{http::Response as HttpResponse, Filter, Rejection};
+use warp::{
+    http::{Response as HttpResponse, StatusCode},
+    Filter, Rejection,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
