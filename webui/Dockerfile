@@ -1,10 +1,10 @@
-FROM public.ecr.aws/lambda/nodejs:14-arm64
+FROM node:18
 
-RUN yum install tar gzip bash -y
+RUN apt install tar gzip bash -y
 
-RUN npm install -g n
-RUN n 7
+RUN npm install -g npm@10
 
+WORKDIR /app
 COPY package.json .
 COPY package-lock.json .
 
