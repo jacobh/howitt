@@ -90,7 +90,7 @@ async fn main() -> Result<(), anyhow::Error> {
             ))
         });
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], 8000)).await;
 
     Ok(())
 }
