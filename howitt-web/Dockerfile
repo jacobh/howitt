@@ -1,6 +1,8 @@
 FROM rustlang/rust:nightly as build
 
-COPY . .
+WORKDIR /app
+
+COPY .. .
 
 RUN cargo build --bin howitt-web
 
