@@ -35,7 +35,7 @@ function ClientStyleCacheProvider({
 
 function Client(): JSX.Element {
   const httpLink = createHttpLink({
-    uri: "https://howitt-api.haslehurst.net/graphql",
+    uri: "http://k3s.haslehurst.net:30181/",
   });
 
   const authLink = setContext((_, { headers }) => {
