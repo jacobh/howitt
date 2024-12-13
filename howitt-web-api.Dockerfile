@@ -1,6 +1,8 @@
 # nightly
 FROM rustlang/rust@sha256:7b1617a8bdc149cdd8c70f6ca1d512959c0803c176daa9b45761aa1d8776aa23 as nightly
 
+ENV RUSTFLAGS='-C target-cpu=znver2'
+
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 
 RUN cargo binstall cargo-chef
