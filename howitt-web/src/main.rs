@@ -90,7 +90,9 @@ async fn main() -> Result<(), anyhow::Error> {
             ))
         });
 
-    warp::serve(routes).run(([0, 0, 0, 0], 8000)).await;
+    warp::serve(routes.with(warp::compression::gzip()))
+        .run(([0, 0, 0, 0], 8000))
+        .await;
 
     Ok(())
 }
