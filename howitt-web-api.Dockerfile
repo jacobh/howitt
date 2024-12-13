@@ -32,6 +32,8 @@ RUN cargo build  --release --bin howitt-web
 
 FROM debian:bookworm-slim AS runtime
 
+RUN apt-get install ca-certificates
+
 WORKDIR /app
 
 COPY --from=builder /app/target/release/howitt-web /usr/local/bin
