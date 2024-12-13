@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: howitt-webui
+  name: howitt-webui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: howitt-webui
+  template:
+    metadata:
+      labels:
+        service: howitt-webui
+    spec:
+      containers:
+        - image: ghcr.io/jacobh/howitt-webui:main
+          imagePullPolicy: Always
+          name: howitt-webui
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: VERSION
+              value: '1'
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: howitt-web-api
+  name: howitt-web-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: howitt-web-api
+  template:
+    metadata:
+      labels:
+        service: howitt-web-api
+    spec:
+      containers:
+        - image: ghcr.io/jacobh/howitt-web-api:main
+          imagePullPolicy: Always
+          name: howitt-web-api
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          env:
+            - name: AWS_REGION
+              value: ap-southeast-2
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: VERSION
+              value: '1'
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always
