@@ -32,7 +32,7 @@ RUN cargo build  --release --bin howitt-web
 
 FROM debian:bookworm-slim AS runtime
 
-RUN apt-get install ca-certificates
+RUN apt install ca-certificates
 
 WORKDIR /app
 
