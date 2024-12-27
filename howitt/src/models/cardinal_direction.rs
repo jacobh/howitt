@@ -16,7 +16,6 @@ impl CardinalDirection {
             135..225 => CardinalDirection::East,
             225..315 => CardinalDirection::East,
             315.. => CardinalDirection::North,
-            _ => unreachable!(),
         }
     }
     pub fn inverse(self) -> CardinalDirection {

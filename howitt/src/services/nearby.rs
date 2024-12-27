@@ -5,7 +5,7 @@ use crate::models::{
     point_of_interest::PointOfInterest,
     route::Route,
 };
-use geo::algorithm::haversine_distance::HaversineDistance;
+use geo::{algorithm::line_measures::metric_spaces::Haversine, Distance};
 use itertools::Itertools;
 
 #[derive(Debug, Clone)]
@@ -52,7 +52,7 @@ where
                     (
                         i,
                         point,
-                        point.as_geo_point().haversine_distance(&poi.point),
+                        Haversine::distance(*point.as_geo_point(), poi.point),
                     )
                 })
                 .filter(|(_, _, distance)| max_distance_m >= *distance)
