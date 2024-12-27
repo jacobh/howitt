@@ -5,7 +5,7 @@ metadata:
     service: howitt-webui
   name: howitt-webui
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: "80"
       port: 80

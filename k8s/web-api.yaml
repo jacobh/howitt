@@ -5,7 +5,7 @@ metadata:
     service: howitt-web-api
   name: howitt-web-api
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: "80"
       port: 80
