@@ -1,10 +1,36 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+ name: howittplains-http
+spec:
+ acme:
+   email: jacob@haslehurst.net
+   # We use the staging server here for testing to avoid hitting
+   server: https://acme-v02.api.letsencrypt.org/directory
+   privateKeySecretRef:
+     # if not existing, it will register a new account and stores it
+     name: howittplains-issuer-account-key
+   solvers:
+     - http01:
+         # The ingressClass used to create the necessary ingress routes
+         ingress:
+           class: traefik
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: howitt
+  annotations:
+   cert-manager.io/issuer: "howittplains-http"
 spec:
+  tls:
+   - hosts:
+       - howittplains.net
+       - www.howittplains.net
+       - api.howittplains.net
+     secretName: tls-howittplains-ingress-http
   rules:
-  - host: howitt.haslehurst.net
+  - host: howittplains.net
     http:
       paths:
       - path: /
@@ -14,7 +40,17 @@ spec:
             name: howitt-webui
             port:
               number: 80
-  - host: howitt-api2.haslehurst.net
+  - host: www.howittplains.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: howitt-webui
+            port:
+              number: 80
+  - host: api.howittplains.net
     http:
       paths:
       - path: /
