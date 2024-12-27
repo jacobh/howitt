@@ -8,6 +8,7 @@ impl<'a, D> GridCubicSmoothingSpline<'a, D>
 where
     D: Dimension,
 {
+    #[allow(deprecated)]
     pub(super) fn make_spline(&mut self) -> Result<()> {
         let ndim = self.x.len();
         let ndim_m1 = ndim - 1;

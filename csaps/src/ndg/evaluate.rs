@@ -10,6 +10,7 @@ where
     D: Dimension,
 {
     /// Implements evaluating the spline on the given mesh of Xi-sites
+    #[allow(deprecated)]
     pub(super) fn evaluate_spline(&self, xi: &[ArrayView1<'a, T>]) -> Array<T, D> {
         let mut coeffs = self.coeffs.to_owned();
         let mut coeffs_shape = coeffs.shape().to_vec();

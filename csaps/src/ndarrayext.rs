@@ -27,6 +27,7 @@ where
     &tail - &head
 }
 
+#[allow(deprecated)]
 pub fn to_2d<'a, T: 'a, D, I>(data: I, axis: Axis) -> Result<ArrayView2<'a, T>>
 where
     D: Dimension,
@@ -59,6 +60,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 pub fn to_2d_simple<'a, T: 'a, D>(data: ArrayView<'a, T, D>) -> Result<ArrayView2<'a, T>>
 where
     D: Dimension,
@@ -78,6 +80,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 pub fn from_2d<'a, T: 'a, D, S, I>(
     data: I,
     shape: S,

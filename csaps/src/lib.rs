@@ -117,7 +117,6 @@
 //! The algorithm of sparse matrices mutliplication in sprs crate is not optimized for large diagonal
 //! matrices which causes a poor performance of computation of smoothing splines.
 //! See [issue](https://github.com/vbarrielle/sprs/issues/184) for details.
-//!
 
 mod errors;
 mod ndarrayext;
