@@ -75,62 +75,6 @@ export class CdkStack extends cdk.Stack {
       isDefault: true,
     });
 
-    // // ---
-    // // ECS
-    // // ---
-
-    // const cluster = new Cluster(this, "howitt-cluster", { vpc });
-
-    // // Or add customized capacity. Be sure to start the Amazon ECS-optimized AMI.
-    // const autoScalingGroup = new AutoScalingGroup(this, "ASG", {
-    //   vpc,
-    //   launchTemplate: new LaunchTemplate(this, "howitt-cluster-arm-template", {
-    //     machineImage: EcsOptimizedImage.amazonLinux2023(AmiHardwareType.ARM),
-    //     instanceType: new InstanceType("t4g.small"),
-    //     userData: UserData.forLinux(),
-    //     role: new Role(this, "howitt-cluster-role", {
-    //       assumedBy: new ServicePrincipal("ec2.amazonaws.com"),
-    //     }),
-    //   }),
-    //   minCapacity: 1,
-    //   maxCapacity: 1,
-    // });
-
-    // const capacityProvider = new AsgCapacityProvider(
-    //   this,
-    //   "AsgCapacityProvider",
-    //   {
-    //     autoScalingGroup,
-    //   }
-    // );
-    // cluster.addAsgCapacityProvider(capacityProvider);
-
-    // const howittApiWebImage = new DockerImageAsset(
-    //   this,
-    //   "howitt-api-web-image",
-    //   {
-    //     directory: path.join(__dirname, "../.."),
-    //     file: "howitt-web.dockerfile",
-    //     platform: Platform.LINUX_ARM64,
-    //   }
-    // );
-
-    // const howittApiTaskDef = new Ec2TaskDefinition(
-    //   this,
-    //   "howitt-api-web-task-def",
-    //   {}
-    // );
-
-    // howittApiTaskDef.addContainer("howitt-api-web-container", {
-    //   image: ContainerImage.fromDockerImageAsset(howittApiWebImage),
-    //   memoryLimitMiB: 256,
-    // });
-
-    // new Ec2Service(this, "howitt-api-web-service", {
-    //   cluster,
-    //   taskDefinition: howittApiTaskDef,
-    // });
-
     // ---
     // Dynamo
     // ---
