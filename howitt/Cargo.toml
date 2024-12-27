@@ -13,6 +13,7 @@ derive_more = { version = "0.99.17" }
 chrono = "*"
 time = "*"
 serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
 itertools = "*"
 uuid = { version = "1", features = ["v4", "serde"] }
 anyhow = "*"
