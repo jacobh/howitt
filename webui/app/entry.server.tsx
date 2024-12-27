@@ -18,7 +18,7 @@ export default function handleRequest(
 ): Response {
   const client = new ApolloClient({
     ssrMode: true,
-    uri: "http://howitt-api2.haslehurst.net/",
+    uri: "https://api.howittplains.net/",
     cache: new InMemoryCache(),
   });
 
