@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into routes (\n                id,\n                created_at,\n                name,\n                external_ref,\n                sample_points,\n                points,\n                distance_m,\n                description,\n                published_at,\n                technical_difficulty,\n                physical_difficulty,\n                minimum_bike,\n                ideal_bike,\n                scouted,\n                direction,\n                tags\n            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Text",
+        "Jsonb",
+        "Jsonb",
+        "Jsonb",
+        "Int4",
+        "Text",
+        "Timestamptz",
+        "Varchar",
+        "Varchar",
+        "Jsonb",
+        "Jsonb",
+        "Varchar",
+        "Varchar",
+        "VarcharArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "043de4eebf589b993b3876bbe009dcfdd6d5915ffb36a63625d99ef0caf255d3"
+}

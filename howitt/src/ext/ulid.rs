@@ -24,5 +24,9 @@ pub fn generate_ulid<TZ: chrono::TimeZone, T: serde::Serialize>(
 }
 
 pub fn uuid_into_ulid(uuid: Uuid) -> ulid::Ulid {
-    ulid::Ulid::from_bytes(uuid.to_bytes_le())
+    ulid::Ulid::from_bytes(uuid.into_bytes())
+}
+
+pub fn ulid_into_uuid(ulid: ulid::Ulid) -> Uuid {
+    Uuid::from_bytes(ulid.to_bytes())
 }

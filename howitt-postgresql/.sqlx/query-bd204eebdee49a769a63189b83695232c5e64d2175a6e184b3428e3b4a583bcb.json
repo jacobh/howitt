@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select id, name, external_ref, distance_m, sample_points, description, published_at, technical_difficulty, physical_difficulty, minimum_bike, ideal_bike, scouted, direction, tags from routes",
+  "query": "select * from routes",
   "describe": {
     "columns": [
       {
@@ -10,18 +10,18 @@
       },
       {
         "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
         "name": "name",
         "type_info": "Text"
       },
       {
-        "ordinal": 2,
+        "ordinal": 3,
         "name": "external_ref",
         "type_info": "Jsonb"
-      },
-      {
-        "ordinal": 3,
-        "name": "distance_m",
-        "type_info": "Int4"
       },
       {
         "ordinal": 4,
@@ -30,46 +30,56 @@
       },
       {
         "ordinal": 5,
+        "name": "points",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "distance_m",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
         "name": "description",
         "type_info": "Text"
       },
       {
-        "ordinal": 6,
+        "ordinal": 8,
         "name": "published_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 9,
         "name": "technical_difficulty",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 8,
+        "ordinal": 10,
         "name": "physical_difficulty",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 11,
         "name": "minimum_bike",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 10,
+        "ordinal": 12,
         "name": "ideal_bike",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 11,
+        "ordinal": 13,
         "name": "scouted",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 12,
+        "ordinal": 14,
         "name": "direction",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 13,
+        "ordinal": 15,
         "name": "tags",
         "type_info": "VarcharArray"
       }
@@ -80,7 +90,9 @@
     "nullable": [
       false,
       false,
+      false,
       true,
+      false,
       false,
       false,
       true,
@@ -94,5 +106,5 @@
       false
     ]
   },
-  "hash": "bda5f4056307eb013d425fc26e4d36218aa822475ab054b74ad6e9b742113d2a"
+  "hash": "bd204eebdee49a769a63189b83695232c5e64d2175a6e184b3428e3b4a583bcb"
 }

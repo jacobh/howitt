@@ -2,9 +2,11 @@ use std::collections::HashSet;
 
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
-use howitt::ext::ulid::uuid_into_ulid;
+use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
+use howitt::models::point::PointChunk;
 use howitt::models::route::Route;
 use howitt::models::route_description::RouteDescription;
+use itertools::Itertools;
 use sqlx::PgPool;
 
 use howitt::models::{route::RouteModel, Model};
@@ -16,6 +18,83 @@ use uuid::Uuid;
 pub enum PostgresRepoError {
     Sqlx(#[from] sqlx::Error),
     SerdeJson(#[from] serde_json::Error),
+}
+
+struct RouteRow {
+    id: Uuid,
+    created_at: DateTime<Utc>,
+    name: String,
+    external_ref: Option<serde_json::Value>,
+    distance_m: i32,
+    sample_points: serde_json::Value,
+    points: serde_json::Value,
+    description: Option<String>,
+    published_at: Option<DateTime<Utc>>,
+    technical_difficulty: Option<String>,
+    physical_difficulty: Option<String>,
+    minimum_bike: Option<serde_json::Value>,
+    ideal_bike: Option<serde_json::Value>,
+    scouted: Option<String>,
+    direction: Option<String>,
+    tags: Vec<String>,
+}
+
+impl TryFrom<RouteRow> for Route {
+    type Error = PostgresRepoError;
+
+    fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
+        Ok(Route {
+            id: sqlx::Either::Left(uuid_into_ulid(row.id)),
+            name: row.name,
+            distance: row.distance_m as f64,
+            sample_points: Some(serde_json::from_value(row.sample_points)?),
+            description: Some(RouteDescription {
+                description: row.description,
+                published_at: row.published_at,
+                technical_difficulty: row
+                    .technical_difficulty
+                    .map(serde_json::Value::String)
+                    .map(serde_json::from_value)
+                    .transpose()?,
+                physical_difficulty: row
+                    .physical_difficulty
+                    .map(serde_json::Value::String)
+                    .map(serde_json::from_value)
+                    .transpose()?,
+                minimum_bike: row.minimum_bike.map(serde_json::from_value).transpose()?,
+                ideal_bike: row.ideal_bike.map(serde_json::from_value).transpose()?,
+                scouted: row
+                    .scouted
+                    .map(serde_json::Value::String)
+                    .map(serde_json::from_value)
+                    .transpose()?,
+                direction: row
+                    .direction
+                    .map(serde_json::Value::String)
+                    .map(serde_json::from_value)
+                    .transpose()?,
+                tags: row.tags,
+            }),
+            external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
+            tags: HashSet::default(),
+        })
+    }
+}
+
+impl TryFrom<RouteRow> for RouteModel {
+    type Error = PostgresRepoError;
+
+    fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
+        let points = row.points.clone();
+        let route = Route::try_from(row)?;
+        let point_chunks = vec![PointChunk {
+            model_id: route.id(),
+            idx: 0,
+            points: serde_json::from_value(points)?,
+        }];
+
+        Ok(RouteModel::new(route, point_chunks, vec![]))
+    }
 }
 
 pub struct PostgresRouteRepo {
@@ -32,81 +111,114 @@ impl Repo for PostgresRouteRepo {
     ) -> Result<Vec<<RouteModel as Model>::IndexItem>, PostgresRepoError> {
         let mut conn = self.pool.acquire().await.unwrap();
 
-        struct RouteIndexRow {
-            id: Uuid,
-            name: String,
-            external_ref: Option<serde_json::Value>,
-            distance_m: i32,
-            sample_points: serde_json::Value,
-            description: Option<String>,
-            published_at: Option<DateTime<Utc>>,
-            technical_difficulty: Option<String>,
-            physical_difficulty: Option<String>,
-            minimum_bike: Option<serde_json::Value>,
-            ideal_bike: Option<serde_json::Value>,
-            scouted: Option<String>,
-            direction: Option<String>,
-            tags: Vec<String>,
-        }
-
-        let query = sqlx::query_as!(
-            RouteIndexRow,
-            r#"select id, name, external_ref, distance_m, sample_points, description, published_at, technical_difficulty, physical_difficulty, minimum_bike, ideal_bike, scouted, direction, tags from routes"#
-        );
+        let query = sqlx::query_as!(RouteRow, r#"select * from routes"#);
 
         Ok(query
             .fetch_all(conn.as_mut())
             .await?
             .into_iter()
-            .map(|row| -> Result<Route, PostgresRepoError> {
-                Ok(Route {
-                    id: sqlx::Either::Left(uuid_into_ulid(row.id)),
-                    name: row.name,
-                    distance: row.distance_m as f64,
-                    sample_points: Some(serde_json::from_value(row.sample_points)?),
-                    description: Some(RouteDescription {
-                        description: row.description,
-                        published_at: row.published_at,
-                        technical_difficulty: row
-                            .technical_difficulty
-                            .map(serde_json::Value::String)
-                            .map(serde_json::from_value)
-                            .transpose()?,
-                        physical_difficulty: row
-                            .physical_difficulty
-                            .map(serde_json::Value::String)
-                            .map(serde_json::from_value)
-                            .transpose()?,
-                        minimum_bike: row.minimum_bike.map(serde_json::from_value).transpose()?,
-                        ideal_bike: row.ideal_bike.map(serde_json::from_value).transpose()?,
-                        scouted: row
-                            .scouted
-                            .map(serde_json::Value::String)
-                            .map(serde_json::from_value)
-                            .transpose()?,
-                        direction: row
-                            .direction
-                            .map(serde_json::Value::String)
-                            .map(serde_json::from_value)
-                            .transpose()?,
-                        tags: row.tags,
-                    }),
-                    external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
-                    tags: HashSet::default(),
-                })
-            })
+            .map(Route::try_from)
             .collect_result_vec()?)
     }
-    async fn get(&self, _id: <RouteModel as Model>::Id) -> Result<RouteModel, PostgresRepoError> {
-        unimplemented!()
+    async fn get(&self, id: <RouteModel as Model>::Id) -> Result<RouteModel, PostgresRepoError> {
+        let mut conn = self.pool.acquire().await.unwrap();
+
+        let query = sqlx::query_as!(
+            RouteRow,
+            r#"select * from routes where id = $1"#,
+            ulid_into_uuid(*id.as_ulid())
+        );
+
+        Ok(RouteModel::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
     async fn get_index(
         &self,
-        _id: <RouteModel as Model>::Id,
+        id: <RouteModel as Model>::Id,
     ) -> Result<<RouteModel as Model>::IndexItem, PostgresRepoError> {
-        unimplemented!()
+        Ok(self.get(id).await?.route)
     }
-    async fn put(&self, _model: RouteModel) -> Result<(), PostgresRepoError> {
-        unimplemented!()
+    async fn put(&self, model: RouteModel) -> Result<(), PostgresRepoError> {
+        let mut conn = self.pool.acquire().await.unwrap();
+
+        let RouteModel {
+            route,
+            point_chunks,
+            ..
+        } = model;
+
+        let points = PointChunk::into_iter_points(point_chunks).collect_vec();
+
+        let query = sqlx::query!(
+            r#"insert into routes (
+                id,
+                created_at,
+                name,
+                external_ref,
+                sample_points,
+                points,
+                distance_m,
+                description,
+                published_at,
+                technical_difficulty,
+                physical_difficulty,
+                minimum_bike,
+                ideal_bike,
+                scouted,
+                direction,
+                tags
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)"#,
+            ulid_into_uuid(*route.id().as_ulid()),
+            Utc::now(),
+            route.name,
+            route.external_ref.map(serde_json::to_value).transpose()?,
+            route.sample_points.map(serde_json::to_value).transpose()?,
+            serde_json::to_value(points)?,
+            route.distance as i32,
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.description.clone()),
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.published_at.clone()),
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.technical_difficulty)
+                .map(|x| x.to_string()),
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.physical_difficulty)
+                .map(|x| x.to_string()),
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.minimum_bike.clone())
+                .map(serde_json::to_value)
+                .transpose()?,
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.ideal_bike.clone())
+                .map(serde_json::to_value)
+                .transpose()?,
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.scouted)
+                .map(|x| x.to_string()),
+            route
+                .description
+                .as_ref()
+                .and_then(|x| x.direction)
+                .map(|x| x.to_string()),
+            route.description.as_ref().map(|x| &*x.tags),
+        );
+
+        query.execute(conn.as_mut()).await?;
+
+        Ok(())
     }
 }

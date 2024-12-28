@@ -1,0 +1,112 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select * from routes where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "external_ref",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 4,
+        "name": "sample_points",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "points",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "distance_m",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "published_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "technical_difficulty",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "physical_difficulty",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 11,
+        "name": "minimum_bike",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 12,
+        "name": "ideal_bike",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 13,
+        "name": "scouted",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 14,
+        "name": "direction",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 15,
+        "name": "tags",
+        "type_info": "VarcharArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "240a7fbb65b504d472f809f00e0486f9c3041f460ee385bec75c463131e5322c"
+}
