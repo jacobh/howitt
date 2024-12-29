@@ -2,16 +2,39 @@ use std::collections::HashSet;
 
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
+use howitt::ext::serde::json::unwrap_string_value;
 use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::point::PointChunk;
 use howitt::models::route::Route;
 use howitt::models::route_description::RouteDescription;
 use itertools::Itertools;
-use sqlx::PgPool;
+use sqlx::pool::PoolConnection;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::{PgPool, Postgres};
 
 use howitt::models::{route::RouteModel, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
+
+#[derive(Debug)]
+pub struct PostgresClient {
+    pool: PgPool,
+}
+
+impl PostgresClient {
+    pub async fn connect(url: &str) -> Result<PostgresClient, PostgresRepoError> {
+        Ok(PostgresClient {
+            pool: PgPoolOptions::new()
+                .max_connections(10)
+                .connect(url)
+                .await?,
+        })
+    }
+
+    async fn acquire(&self) -> Result<PoolConnection<Postgres>, PostgresRepoError> {
+        Ok(self.pool.acquire().await?)
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 #[error("Postgres Repo Error")]
@@ -97,8 +120,9 @@ impl TryFrom<RouteRow> for RouteModel {
     }
 }
 
+#[derive(Debug, derive_more::Constructor)]
 pub struct PostgresRouteRepo {
-    pool: PgPool,
+    client: PostgresClient,
 }
 
 #[async_trait::async_trait]
@@ -109,7 +133,7 @@ impl Repo for PostgresRouteRepo {
     async fn all_indexes(
         &self,
     ) -> Result<Vec<<RouteModel as Model>::IndexItem>, PostgresRepoError> {
-        let mut conn = self.pool.acquire().await.unwrap();
+        let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(RouteRow, r#"select * from routes"#);
 
@@ -121,7 +145,7 @@ impl Repo for PostgresRouteRepo {
             .collect_result_vec()?)
     }
     async fn get(&self, id: <RouteModel as Model>::Id) -> Result<RouteModel, PostgresRepoError> {
-        let mut conn = self.pool.acquire().await.unwrap();
+        let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(
             RouteRow,
@@ -138,7 +162,7 @@ impl Repo for PostgresRouteRepo {
         Ok(self.get(id).await?.route)
     }
     async fn put(&self, model: RouteModel) -> Result<(), PostgresRepoError> {
-        let mut conn = self.pool.acquire().await.unwrap();
+        let mut conn = self.client.acquire().await.unwrap();
 
         let RouteModel {
             route,
@@ -186,12 +210,16 @@ impl Repo for PostgresRouteRepo {
                 .description
                 .as_ref()
                 .and_then(|x| x.technical_difficulty)
-                .map(|x| x.to_string()),
+                .map(serde_json::to_value)
+                .transpose()?
+                .map(unwrap_string_value),
             route
                 .description
                 .as_ref()
                 .and_then(|x| x.physical_difficulty)
-                .map(|x| x.to_string()),
+                .map(serde_json::to_value)
+                .transpose()?
+                .map(unwrap_string_value),
             route
                 .description
                 .as_ref()
@@ -208,13 +236,17 @@ impl Repo for PostgresRouteRepo {
                 .description
                 .as_ref()
                 .and_then(|x| x.scouted)
-                .map(|x| x.to_string()),
+                .map(serde_json::to_value)
+                .transpose()?
+                .map(unwrap_string_value),
             route
                 .description
                 .as_ref()
                 .and_then(|x| x.direction)
-                .map(|x| x.to_string()),
-            route.description.as_ref().map(|x| &*x.tags),
+                .map(serde_json::to_value)
+                .transpose()?
+                .map(unwrap_string_value),
+            route.description.as_ref().map(|x| &*x.tags).unwrap_or(&[]),
         );
 
         query.execute(conn.as_mut()).await?;
