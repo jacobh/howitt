@@ -46,3 +46,16 @@ pub mod compressed_bytes {
         bincode::deserialize(&bytes).map_err(serde::de::Error::custom)
     }
 }
+
+pub mod json {
+    pub fn into_string_value(value: serde_json::Value) -> Option<String> {
+        match value {
+            serde_json::Value::String(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn unwrap_string_value(value: serde_json::Value) -> String {
+        into_string_value(value).unwrap()
+    }
+}
