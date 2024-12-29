@@ -1,0 +1,1 @@
+alter table routes add column is_starred boolean not null default false;

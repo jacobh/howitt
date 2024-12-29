@@ -82,6 +82,11 @@
         "ordinal": 15,
         "name": "tags",
         "type_info": "VarcharArray"
+      },
+      {
+        "ordinal": 16,
+        "name": "is_starred",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -105,6 +110,7 @@
       true,
       true,
       true,
+      false,
       false
     ]
   },
