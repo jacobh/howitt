@@ -3,6 +3,10 @@ use itertools::Itertools;
 use crate::models::point::{generate_point_deltas, ElevationPoint};
 
 pub fn smooth_elevations(cum_distances: &[f64], elevations: &[f64]) -> Vec<f64> {
+    if elevations.len() < 2 {
+        return elevations.to_vec();
+    }
+
     let spline = csaps::CubicSmoothingSpline::new(&cum_distances, &elevations)
         .with_smooth(0.000002)
         .make()
