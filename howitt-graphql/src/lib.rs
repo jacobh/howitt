@@ -8,11 +8,10 @@ use async_graphql::*;
 use chrono::{DateTime, Utc};
 use context::SchemaData;
 use derive_more::From;
-use howitt::models::config::ConfigId;
 use howitt::models::photo::PhotoId;
 use howitt::models::point::ElevationPoint;
 use howitt::models::ride::RideId;
-use howitt::models::route::RouteId;
+use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
 use howitt::models::Model;
 use howitt::models::{point_of_interest::PointOfInterestId, ModelRef};
@@ -82,19 +81,17 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Route>, async_graphql::Error> {
-        let SchemaData {
-            config_repo,
-            route_repo,
-            ..
-        } = ctx.data()?;
+        let SchemaData { route_repo, .. } = ctx.data()?;
 
-        let config = config_repo.get(ConfigId).await?;
-
-        let routes = route_repo.get_index_batch(config.starred_route_ids).await?;
+        let routes = route_repo
+            .filter_models(RouteFilter {
+                is_starred: Some(true),
+            })
+            .await?;
 
         Ok(routes
             .into_iter()
-            .map(ModelRef::from_index)
+            .map(ModelRef::from_model)
             .map(Route)
             .collect())
     }

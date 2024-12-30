@@ -106,6 +106,10 @@ pub trait AnyhowRepo: Send + Sync {
         &self,
         ids: Vec<<<Self as AnyhowRepo>::Model as Model>::Id>,
     ) -> Result<Vec<<<Self as AnyhowRepo>::Model as Model>::IndexItem>, anyhow::Error>;
+    async fn filter_models(
+        &self,
+        filter: <Self::Model as Model>::Filter,
+    ) -> Result<Vec<Self::Model>, anyhow::Error>;
     async fn put(&self, model: <Self as AnyhowRepo>::Model) -> Result<(), anyhow::Error>;
 }
 
@@ -132,6 +136,12 @@ where
     }
     async fn get_index_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T::IndexItem>, anyhow::Error> {
         Ok(Repo::get_index_batch(self, ids).await?)
+    }
+    async fn filter_models(
+        &self,
+        filter: <Self::Model as Model>::Filter,
+    ) -> Result<Vec<Self::Model>, anyhow::Error> {
+        Ok(Repo::filter_models(self, filter).await?)
     }
     async fn put(&self, model: T) -> Result<(), anyhow::Error> {
         Ok(Repo::put(self, model).await?)

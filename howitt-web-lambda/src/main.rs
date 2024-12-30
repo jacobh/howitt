@@ -15,9 +15,6 @@ use warp::{http::Response as HttpResponse, Filter};
 async fn main() {
     let single_table_client = SingleTableClient::new_from_env().await;
 
-    let config_repo: ConfigRepo = Arc::new(CachingRepo::new(howitt_dynamo::ConfigRepo::new(
-        single_table_client.clone(),
-    )));
     let poi_repo: PointOfInterestRepo = Arc::new(CachingRepo::new(
         howitt_dynamo::PointOfInterestRepo::new(single_table_client.clone()),
     ));
@@ -30,7 +27,6 @@ async fn main() {
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(SchemaData {
-            config_repo,
             poi_repo,
             route_repo,
             ride_repo,

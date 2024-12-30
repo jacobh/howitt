@@ -2,12 +2,13 @@ use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
-use howitt::repos::{CachingRepo, ConfigRepo, PointOfInterestRepo, RideModelRepo, RouteModelRepo};
-use howitt_dynamo::SingleTableClient;
 use howitt_graphql::{
     context::{RequestData, SchemaData},
     credentials::Credentials,
     Query,
+};
+use howitt_postgresql::{
+    PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
 };
 use warp::{
     http::{Response as HttpResponse, StatusCode},
@@ -16,24 +17,18 @@ use warp::{
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let single_table_client = SingleTableClient::new_from_env().await;
+    let pg = PostgresClient::connect(
+        &std::env::var("DATABASE_URL")
+            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
+    )
+    .await?;
 
-    let config_repo: ConfigRepo = Arc::new(CachingRepo::new(howitt_dynamo::ConfigRepo::new(
-        single_table_client.clone(),
-    )));
-    let poi_repo: PointOfInterestRepo = Arc::new(CachingRepo::new(
-        howitt_dynamo::PointOfInterestRepo::new(single_table_client.clone()),
-    ));
-    let route_repo: RouteModelRepo = Arc::new(CachingRepo::new(
-        howitt_dynamo::RouteModelRepo::new(single_table_client.clone()),
-    ));
-    let ride_repo: RideModelRepo = Arc::new(CachingRepo::new(howitt_dynamo::RideModelRepo::new(
-        single_table_client.clone(),
-    )));
+    let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
+    let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
+    let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(SchemaData {
-            config_repo,
             poi_repo,
             route_repo,
             ride_repo,
