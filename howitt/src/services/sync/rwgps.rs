@@ -2,6 +2,7 @@ use std::{collections::HashSet, error::Error, iter, marker::PhantomData};
 
 use anyhow::anyhow;
 use either::Either;
+use futures::prelude::*;
 use itertools::Itertools;
 use rwgps_types::{RouteSummary, TripSummary};
 
@@ -323,27 +324,31 @@ where
         dbg!(route_sync_candidates.len());
         dbg!(ride_sync_candidates.len());
 
-        let results = route_sync_candidates
+        let futures = route_sync_candidates
             .into_iter()
             .map(|candidate| (candidate, self))
             .map(async move |((summary, existing_route), sync_service)| {
                 sync_service.sync_route(summary.id, existing_route).await
-            })
-            .collect_futures_ordered()
-            .await;
+            });
+
+        let stream = stream::iter(futures);
+
+        let results = stream.buffered(10).collect::<Vec<_>>().await;
 
         dbg!(results.len());
 
         results.into_iter().collect_result_vec()?;
 
-        let results = ride_sync_candidates
+        let futures = ride_sync_candidates
             .into_iter()
             .map(|candidate| (candidate, self))
             .map(async move |((summary, existing_route), sync_service)| {
                 sync_service.sync_ride(summary.id, existing_route).await
-            })
-            .collect_futures_ordered()
-            .await;
+            });
+
+        let stream = stream::iter(futures);
+
+        let results = stream.buffered(10).collect::<Vec<_>>().await;
 
         dbg!(results.len());
 
