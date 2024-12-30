@@ -86,7 +86,9 @@ impl Repo for PostgresPointOfInterestRepo {
                 name,
                 type,
                 point
-            ) values ($1, $2, $3, $4, $5)"#,
+            ) values ($1, $2, $3, $4, $5)
+             on conflict (id) do update set name = $3, type = $4, point = $5
+             "#,
             ulid_into_uuid(*model.id().as_ulid()),
             Utc::now(),
             model.name,
