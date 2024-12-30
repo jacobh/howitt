@@ -334,7 +334,7 @@ impl Terminus {
             .all_indexes()
             .await?
             .into_iter()
-            .filter(|route| route.tags.contains(&Tag::BackcountrySegment))
+            .filter(|route| route.tags.contains(&Tag::Starred))
             .collect_vec();
 
         Ok(route
