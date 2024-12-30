@@ -334,6 +334,10 @@ where
     type Model = M;
     type Error = DynamoRepoError;
 
+    async fn filter_models(&self, _filter: M::Filter) -> Result<Vec<M>, DynamoRepoError> {
+        unimplemented!()
+    }
+
     async fn all_indexes(&self) -> Result<Vec<M::IndexItem>, DynamoRepoError> {
         let items = self
             .client()

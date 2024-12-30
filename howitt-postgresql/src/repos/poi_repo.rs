@@ -40,6 +40,19 @@ impl Repo for PostgresPointOfInterestRepo {
     type Model = PointOfInterest;
     type Error = PostgresRepoError;
 
+    async fn filter_models(&self, _filter: ()) -> Result<Vec<PointOfInterest>, PostgresRepoError> {
+        let mut conn = self.client.acquire().await.unwrap();
+
+        let query = sqlx::query_as!(PointOfInterestRow, r#"select * from points_of_interest"#);
+
+        Ok(query
+            .fetch_all(conn.as_mut())
+            .await?
+            .into_iter()
+            .map(PointOfInterest::try_from)
+            .collect_result_vec()?)
+    }
+
     async fn all_indexes(
         &self,
     ) -> Result<Vec<<PointOfInterest as Model>::IndexItem>, PostgresRepoError> {

@@ -20,6 +20,7 @@ pub struct Ride {
 
 impl IndexModel for Ride {
     type Id = RideId;
+    type Filter = ();
 
     fn id(&self) -> Self::Id {
         self.id
@@ -50,6 +51,7 @@ impl crate::models::Model for RideModel {
     type Id = RideId;
     type IndexItem = Ride;
     type OtherItem = RideItem;
+    type Filter = ();
 
     fn id(&self) -> RideId {
         self.ride.id

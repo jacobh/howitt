@@ -165,6 +165,7 @@ impl crate::models::Model for RouteModel {
     type Id = RouteId;
     type IndexItem = Route;
     type OtherItem = RouteItem;
+    type Filter = ();
 
     fn id(&self) -> RouteId {
         self.route.id()

@@ -34,6 +34,7 @@ pub trait Model: Send + Sync + Sized + Clone + 'static {
     type Id: ModelId;
     type IndexItem: IndexItem<Id = Self::Id>;
     type OtherItem: OtherItem<Id = Self::Id>;
+    type Filter: Send + Sync + Sized + Clone + 'static;
 
     fn model_name() -> &'static str {
         Self::Id::model_name()
@@ -70,6 +71,7 @@ pub trait Model: Send + Sync + Sized + Clone + 'static {
 
 pub trait IndexModel {
     type Id: ModelId;
+    type Filter: Send + Sync + Sized + Clone + 'static;
 
     fn id(&self) -> Self::Id;
 }
@@ -86,16 +88,26 @@ where
     }
 }
 
-impl<T, ID> Model for T
+impl<T, ID, F> Model for T
 where
-    T: IndexModel<Id = ID> + Serialize + DeserializeOwned + Send + Sync + Sized + Clone + 'static,
+    T: IndexModel<Id = ID, Filter = F>
+        + Serialize
+        + DeserializeOwned
+        + Send
+        + Sync
+        + Sized
+        + Clone
+        + 'static,
     ID: ModelId + 'static,
+    F: Send + Sync + Sized + Clone + 'static,
 {
     type Id = ID;
 
     type IndexItem = T;
 
     type OtherItem = EmptyOtherItem<ID>;
+
+    type Filter = F;
 
     fn id(&self) -> Self::Id {
         self.id()

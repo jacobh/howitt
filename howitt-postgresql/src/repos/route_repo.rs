@@ -104,6 +104,19 @@ impl Repo for PostgresRouteRepo {
     type Model = RouteModel;
     type Error = PostgresRepoError;
 
+    async fn filter_models(&self, _filter: ()) -> Result<Vec<RouteModel>, PostgresRepoError> {
+        let mut conn = self.client.acquire().await.unwrap();
+
+        let query = sqlx::query_as!(RouteRow, r#"select * from routes"#);
+
+        Ok(query
+            .fetch_all(conn.as_mut())
+            .await?
+            .into_iter()
+            .map(RouteModel::try_from)
+            .collect_result_vec()?)
+    }
+
     async fn all_indexes(
         &self,
     ) -> Result<Vec<<RouteModel as Model>::IndexItem>, PostgresRepoError> {

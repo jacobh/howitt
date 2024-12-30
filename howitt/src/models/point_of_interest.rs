@@ -58,6 +58,7 @@ pub struct PointOfInterest {
 
 impl IndexModel for PointOfInterest {
     type Id = PointOfInterestId;
+    type Filter = ();
 
     fn id(&self) -> PointOfInterestId {
         PointOfInterestId::from(self.id)

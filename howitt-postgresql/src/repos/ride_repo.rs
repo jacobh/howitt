@@ -66,6 +66,19 @@ impl Repo for PostgresRideRepo {
     type Model = RideModel;
     type Error = PostgresRepoError;
 
+    async fn filter_models(&self, _filter: ()) -> Result<Vec<RideModel>, PostgresRepoError> {
+        let mut conn = self.client.acquire().await.unwrap();
+
+        let query = sqlx::query_as!(RideRow, r#"select * from rides"#);
+
+        Ok(query
+            .fetch_all(conn.as_mut())
+            .await?
+            .into_iter()
+            .map(RideModel::try_from)
+            .collect_result_vec()?)
+    }
+
     async fn all_indexes(&self) -> Result<Vec<<RideModel as Model>::IndexItem>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 

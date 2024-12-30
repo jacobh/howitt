@@ -70,6 +70,11 @@ pub trait Repo: Send + Sync {
         Ok(())
     }
 
+    async fn filter_models(
+        &self,
+        filter: <Self::Model as Model>::Filter,
+    ) -> Result<Vec<Self::Model>, Self::Error>;
+
     async fn all_models(&self) -> Result<Vec<<Self as Repo>::Model>, Self::Error> {
         let indexes = self.all_indexes().await?;
 
@@ -222,6 +227,16 @@ where
     }
     async fn put(&self, _model: <Self as Repo>::Model) -> Result<(), Self::Error> {
         unimplemented!()
+    }
+    async fn filter_models(
+        &self,
+        filter: <Self::Model as Model>::Filter,
+    ) -> Result<Vec<Self::Model>, Self::Error> {
+        self.repo
+            .filter_models(filter)
+            .await
+            .map_err(Arc::new)
+            .map_err(CachingRepoError::Upstream)
     }
 }
 

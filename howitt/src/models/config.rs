@@ -26,6 +26,7 @@ pub struct Config {
 
 impl IndexModel for Config {
     type Id = ConfigId;
+    type Filter = ();
 
     fn id(&self) -> ConfigId {
         ConfigId
