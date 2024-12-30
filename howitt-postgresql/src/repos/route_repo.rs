@@ -5,7 +5,7 @@ use howitt::ext::iter::ResultIterExt;
 use howitt::ext::serde::json::unwrap_string_value;
 use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::point::PointChunk;
-use howitt::models::route::Route;
+use howitt::models::route::{Route, RouteFilter};
 use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
 use itertools::Itertools;
@@ -73,7 +73,17 @@ impl TryFrom<RouteRow> for Route {
                 tags: row.tags.clone(),
             }),
             external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
-            tags: row.tags.into_iter().map(Tag::Custom).collect(),
+            tags: [
+                row.tags.into_iter().map(Tag::Custom),
+                if row.is_starred {
+                    Some(Tag::Starred)
+                } else {
+                    None
+                },
+            ]
+            .into_iter()
+            .flatten()
+            .collect(),
         })
     }
 }
@@ -104,10 +114,19 @@ impl Repo for PostgresRouteRepo {
     type Model = RouteModel;
     type Error = PostgresRepoError;
 
-    async fn filter_models(&self, _filter: ()) -> Result<Vec<RouteModel>, PostgresRepoError> {
+    async fn filter_models(
+        &self,
+        filter: RouteFilter,
+    ) -> Result<Vec<RouteModel>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let query = sqlx::query_as!(RouteRow, r#"select * from routes"#);
+        let RouteFilter { is_starred } = filter;
+
+        let query = sqlx::query_as!(
+            RouteRow,
+            r#"select * from routes where is_starred = $1 or is_starred is null"#,
+            is_starred
+        );
 
         Ok(query
             .fetch_all(conn.as_mut())

@@ -102,6 +102,11 @@ impl ExternallySourced for Route {
 }
 
 #[derive(Debug, Clone)]
+pub struct RouteFilter {
+    pub is_starred: Option<bool>,
+}
+
+#[derive(Debug, Clone)]
 pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
@@ -165,7 +170,7 @@ impl crate::models::Model for RouteModel {
     type Id = RouteId;
     type IndexItem = Route;
     type OtherItem = RouteItem;
-    type Filter = ();
+    type Filter = RouteFilter;
 
     fn id(&self) -> RouteId {
         self.route.id()
