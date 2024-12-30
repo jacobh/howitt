@@ -73,17 +73,18 @@ impl TryFrom<RouteRow> for Route {
                 tags: row.tags.clone(),
             }),
             external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
-            tags: [
-                row.tags.into_iter().map(Tag::Custom),
-                if row.is_starred {
-                    Some(Tag::Starred)
-                } else {
-                    None
-                },
-            ]
-            .into_iter()
-            .flatten()
-            .collect(),
+            tags: std::iter::empty()
+                .chain(row.tags.into_iter().map(Tag::Custom))
+                .chain(
+                    if row.is_starred {
+                        vec![Tag::Starred]
+                    } else {
+                        vec![]
+                    }
+                    .into_iter(),
+                )
+                .into_iter()
+                .collect(),
         })
     }
 }
