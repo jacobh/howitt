@@ -4,7 +4,7 @@ on: push
 
 jobs:
     test:
-        runs-on: buildjet-8vcpu-ubuntu-2204-arm
+        runs-on: ubuntu-latest
         environment: Production
 
         steps:
