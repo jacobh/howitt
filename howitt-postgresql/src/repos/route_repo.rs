@@ -70,10 +70,10 @@ impl TryFrom<RouteRow> for Route {
                     .map(serde_json::Value::String)
                     .map(serde_json::from_value)
                     .transpose()?,
-                tags: row.tags,
+                tags: row.tags.clone(),
             }),
             external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
-            tags: HashSet::default(),
+            tags: row.tags.into_iter().map(Tag::Custom).collect(),
         })
     }
 }
