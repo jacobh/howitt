@@ -10,14 +10,16 @@ use howitt::{
     },
 };
 use howitt_clients::{ReqwestHttpClient, S3BucketClient};
-use howitt_dynamo::{Keys, PointOfInterestRepo, RideModelRepo, RouteModelRepo, SingleTableClient};
 use howitt_fs::{load_huts, load_stations, load_user_config};
+use howitt_postgresql::{
+    PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
+};
 use itertools::Itertools;
 use rwgps::RwgpsClient;
 use rwgps_types::RouteSummary;
 
 #[derive(Subcommand)]
-pub enum Dynamodb {
+pub enum Postgres {
     SyncPOIs,
     SyncRwgps(SyncRwgps),
     SyncPhotos,
@@ -26,7 +28,6 @@ pub enum Dynamodb {
     GetRoute(RouteIdArgs),
     GenerateCuesheet(RouteIdArgs),
     ListPOIs,
-    DeleteAll,
 }
 
 #[derive(Args)]
@@ -42,14 +43,14 @@ pub struct SyncRwgps {
     force_sync_rwgps_id: Option<usize>,
 }
 
-pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
-    let client = SingleTableClient::new_from_env().await;
-    let point_of_interest_repo = PointOfInterestRepo::new(client.clone());
-    let route_model_repo = RouteModelRepo::new(client.clone());
-    let ride_model_repo = RideModelRepo::new(client.clone());
+pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
+    let pg = PostgresClient::connect("postgres://jacob@localhost/howitt").await?;
+    let point_of_interest_repo = PostgresPointOfInterestRepo::new(pg.clone());
+    let route_model_repo = PostgresRouteRepo::new(pg.clone());
+    let ride_model_repo = PostgresRideRepo::new(pg.clone());
 
     match command {
-        Dynamodb::SyncPOIs => {
+        Postgres::SyncPOIs => {
             let stations = load_stations()?;
             let huts = load_huts()?;
 
@@ -58,7 +59,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             println!("done");
         }
-        Dynamodb::SyncRwgps(SyncRwgps {
+        Postgres::SyncRwgps(SyncRwgps {
             force_sync_bcs,
             force_sync_rwgps_id,
         }) => {
@@ -84,7 +85,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             service.sync(config.user_info.unwrap().id).await?;
         }
-        Dynamodb::SyncPhotos => {
+        Postgres::SyncPhotos => {
             let photo_sync = PhotoSyncService {
                 bucket_client: S3BucketClient::new_from_env(
                     howitt_client_types::BucketName::Photos,
@@ -100,7 +101,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             result?
         }
-        Dynamodb::GetRoute(RouteIdArgs { route_id }) => {
+        Postgres::GetRoute(RouteIdArgs { route_id }) => {
             let model = route_model_repo
                 .get(RouteId::from(ulid::Ulid::from_str(&route_id).unwrap()))
                 .await?;
@@ -110,7 +111,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             dbg!(simplify_points(&points, 50).len());
         }
-        Dynamodb::GenerateCuesheet(RouteIdArgs { route_id }) => {
+        Postgres::GenerateCuesheet(RouteIdArgs { route_id }) => {
             let model = route_model_repo
                 .get(RouteId::from(ulid::Ulid::from_str(route_id).unwrap()))
                 .await?;
@@ -122,7 +123,7 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             dbg!(cuesheet);
         }
-        Dynamodb::ListStarredRoutes => {
+        Postgres::ListStarredRoutes => {
             unimplemented!()
             // let routes = route_model_repo.get_batch(config.starred_route_ids).await?;
 
@@ -139,32 +140,13 @@ pub async fn handle(command: &Dynamodb) -> Result<(), anyhow::Error> {
 
             // table.printstd();
         }
-        Dynamodb::ListRoutes => {
+        Postgres::ListRoutes => {
             let routes = route_model_repo.all_indexes().await?;
             dbg!(routes);
         }
-        Dynamodb::ListPOIs => {
+        Postgres::ListPOIs => {
             let pois = point_of_interest_repo.all_indexes().await?;
             dbg!(pois);
-        }
-        Dynamodb::DeleteAll => {
-            let items = client.scan_keys().await?;
-            let keys: Vec<Keys> = items
-                .iter()
-                .map(Keys::from_item)
-                .collect::<Result<Vec<_>, _>>()?;
-            dbg!(keys.len());
-
-            //// DANGEROUS only uncomment when you want to delete everything
-
-            // let results = keys.into_iter()
-            //     .map(|keys| (keys, client.clone()))
-            //     .map(async move |(keys, client)| client.delete(keys).await)
-            //     .collect::<FuturesUnordered<_>>()
-            //     .collect::<Vec<_>>()
-            //     .await;
-
-            // dbg!(results);
         }
     }
 

@@ -16,8 +16,8 @@ use rwgps_types::Route;
 use crate::json::prettyprintln;
 
 mod description;
-mod dynamodb;
 mod json;
+mod postgres;
 mod rwgps;
 
 #[derive(Parser)]
@@ -37,7 +37,7 @@ enum Commands {
     #[clap(subcommand)]
     Rwgps(crate::rwgps::Rwgps),
     #[clap(subcommand)]
-    Dynamodb(crate::dynamodb::Dynamodb),
+    Pg(crate::postgres::Postgres),
     #[clap(subcommand)]
     Description(crate::description::Description),
 }
@@ -143,7 +143,7 @@ async fn main() -> Result<(), anyhow::Error> {
             }
         }
         Commands::Rwgps(command) => crate::rwgps::handle(command).await?,
-        Commands::Dynamodb(command) => crate::dynamodb::handle(command).await?,
+        Commands::Pg(command) => crate::postgres::handle(command).await?,
         Commands::Description(command) => crate::description::handle(command).await?,
     }
 

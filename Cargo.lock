@@ -2001,7 +2001,6 @@ dependencies = [
  "geo",
  "gpx",
  "howitt",
- "howitt-dynamo",
  "howitt-fs",
  "howitt-postgresql",
  "howitt_client_types",
