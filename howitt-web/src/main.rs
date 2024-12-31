@@ -2,17 +2,20 @@ use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
-use howitt_graphql::{
-    context::{RequestData, SchemaData},
-    credentials::Credentials,
-    Query,
-};
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
 };
 use warp::{
     http::{Response as HttpResponse, StatusCode},
     Filter, Rejection,
+};
+
+mod graphql;
+
+use graphql::{
+    context::{RequestData, SchemaData},
+    credentials::Credentials,
+    Query,
 };
 
 #[tokio::main]

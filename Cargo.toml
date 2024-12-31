@@ -5,7 +5,6 @@ members = [
     "howitt_derive",
     "howitt-cli",
     "howitt-fs",
-    "howitt-graphql",
     "howitt-postgresql",
     "howitt-web",
     "howitt-clients",

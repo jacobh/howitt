@@ -1,6 +1,6 @@
 use howitt::repos::{PointOfInterestRepo, RideModelRepo, RouteModelRepo};
 
-use crate::credentials::Credentials;
+use super::credentials::Credentials;
 
 pub struct SchemaData {
     pub poi_repo: PointOfInterestRepo,

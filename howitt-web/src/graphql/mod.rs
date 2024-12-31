@@ -1,5 +1,3 @@
-#![feature(async_closure)]
-
 pub mod context;
 pub mod credentials;
 pub mod roles;
