@@ -8,10 +8,14 @@ use std::{
 use anyhow::anyhow;
 use futures::FutureExt;
 use itertools::Itertools;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use tokio::sync::OnceCell;
+use uuid::Uuid;
 
-use crate::repos::AnyhowRepo;
+use crate::{
+    ext::ulid::{ulid_into_uuid, uuid_into_ulid},
+    repos::AnyhowRepo,
+};
 
 pub mod cardinal_direction;
 pub mod config;
@@ -29,6 +33,7 @@ pub mod segment_summary;
 pub mod slope_end;
 pub mod tag;
 pub mod terminus;
+pub mod user;
 
 pub trait Model: Send + Sync + Sized + Clone + 'static {
     type Id: ModelId;
@@ -78,7 +83,7 @@ pub trait IndexModel {
 
 impl<T, ID> IndexItem for T
 where
-    T: IndexModel<Id = ID> + 'static + Serialize + DeserializeOwned + Send + Sync + Sized + Clone,
+    T: IndexModel<Id = ID> + 'static + Send + Sync + Sized + Clone,
     ID: ModelId,
 {
     type Id = ID;
@@ -90,14 +95,7 @@ where
 
 impl<T, ID, F> Model for T
 where
-    T: IndexModel<Id = ID, Filter = F>
-        + Serialize
-        + DeserializeOwned
-        + Send
-        + Sync
-        + Sized
-        + Clone
-        + 'static,
+    T: IndexModel<Id = ID, Filter = F> + Send + Sync + Sized + Clone + 'static,
     ID: ModelId + 'static,
     F: Send + Sync + Sized + Clone + 'static,
 {
@@ -129,13 +127,13 @@ where
     }
 }
 
-pub trait IndexItem: 'static + Send + Sync + Clone + Serialize + DeserializeOwned {
+pub trait IndexItem: 'static + Send + Sync + Clone {
     type Id: ModelId;
 
     fn model_id(&self) -> Self::Id;
 }
 
-pub trait OtherItem: 'static + Send + Sync + Clone + Serialize + DeserializeOwned {
+pub trait OtherItem: 'static + Send + Sync + Clone {
     type Id: ModelId;
 
     fn model_id(&self) -> Self::Id;
@@ -206,8 +204,6 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(untagged)]
 pub enum ItemCow<'a, M>
 where
     M: Model,
@@ -283,7 +279,7 @@ where
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct EmptyOtherItem<ID>(PhantomData<ID>);
 
 impl<ID> OtherItem for EmptyOtherItem<ID>
@@ -318,6 +314,7 @@ pub enum ModelName {
     Ride,
     Route,
     Segment,
+    User,
 }
 impl ModelName {
     const fn to_str(self) -> &'static str {
@@ -327,6 +324,7 @@ impl ModelName {
             ModelName::Ride => "RIDE",
             ModelName::Route => "ROUTE",
             ModelName::Segment => "SEGMENT",
+            ModelName::User => "USER",
         }
     }
 }
@@ -406,6 +404,18 @@ impl<'de, const NAME: ModelName> Deserialize<'de> for ModelUlid<NAME> {
         std::str::FromStr::from_str(id)
             .map(ModelUlid::<NAME>)
             .map_err(serde::de::Error::custom)
+    }
+}
+
+impl<const NAME: ModelName> From<Uuid> for ModelUlid<NAME> {
+    fn from(value: Uuid) -> Self {
+        Self::from(uuid_into_ulid(value))
+    }
+}
+
+impl<const NAME: ModelName> From<ModelUlid<NAME>> for Uuid {
+    fn from(value: ModelUlid<NAME>) -> Self {
+        ulid_into_uuid(*value.as_ulid())
     }
 }
 

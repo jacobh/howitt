@@ -1,8 +1,13 @@
 use std::{convert::identity, str::FromStr};
 
+use chrono::Utc;
 use clap::{arg, Args, Subcommand};
 use howitt::{
-    models::{point::simplify_points, route::RouteId},
+    models::{
+        point::simplify_points,
+        route::RouteId,
+        user::{hash_password, User, UserId},
+    },
     repos::Repo,
     services::{
         generate_cuesheet::generate_cuesheet,
@@ -13,6 +18,7 @@ use howitt_clients::{ReqwestHttpClient, S3BucketClient};
 use howitt_fs::{load_huts, load_stations, load_user_config};
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
+    PostgresUserRepo,
 };
 use itertools::Itertools;
 use rwgps::RwgpsClient;
@@ -28,6 +34,8 @@ pub enum Postgres {
     GetRoute(RouteIdArgs),
     GenerateCuesheet(RouteIdArgs),
     ListPOIs,
+    CreateUser,
+    ListUsers,
 }
 
 #[derive(Args)]
@@ -44,10 +52,15 @@ pub struct SyncRwgps {
 }
 
 pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
-    let pg = PostgresClient::connect("postgres://jacob@localhost/howitt").await?;
+    let pg = PostgresClient::connect(
+        &std::env::var("DATABASE_URL")
+            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
+    )
+    .await?;
     let point_of_interest_repo = PostgresPointOfInterestRepo::new(pg.clone());
     let route_model_repo = PostgresRouteRepo::new(pg.clone());
     let ride_model_repo = PostgresRideRepo::new(pg.clone());
+    let user_repo = PostgresUserRepo::new(pg.clone());
 
     match command {
         Postgres::SyncPOIs => {
@@ -147,6 +160,31 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
         Postgres::ListPOIs => {
             let pois = point_of_interest_repo.all_indexes().await?;
             dbg!(pois);
+        }
+        Postgres::CreateUser => {
+            let username = inquire::Text::new("username").prompt()?;
+            let email = inquire::Text::new("email").prompt()?;
+            let password = inquire::Password::new("password").prompt()?;
+            let created_at = Utc::now();
+
+            let password = hash_password(&password)?;
+
+            let user = User {
+                id: UserId::from_datetime(created_at),
+                username,
+                email,
+                password,
+                created_at,
+                linked_accounts: vec![],
+            };
+
+            user_repo.put(user).await?;
+
+            dbg!("done");
+        }
+        Postgres::ListUsers => {
+            let users = user_repo.all_models().await?;
+            dbg!(users);
         }
     }
 

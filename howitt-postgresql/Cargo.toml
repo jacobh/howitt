@@ -27,3 +27,4 @@ sqlx = { version = "0.8", features = [
     "json",
     "chrono",
 ] }
+argon2 = "0.5.3"

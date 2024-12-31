@@ -1,10 +1,8 @@
 use crate::ext::futures::FuturesIteratorExt;
+use crate::models::user::User;
 use crate::models::IndexItem;
 use async_trait::async_trait;
-use itertools::Itertools;
 use std::sync::Arc;
-use thiserror::Error;
-use tokio::sync::OnceCell;
 
 use crate::ext::iter::ResultIterExt;
 use crate::models::{
@@ -148,109 +146,8 @@ where
     }
 }
 
-pub struct CachingRepo<R: Repo<Model = M, Error = E>, M: Model, E> {
-    repo: R,
-    index_cache: OnceCell<Result<std::collections::HashMap<M::Id, M::IndexItem>, Arc<E>>>,
-    model_cache: scc::HashMap<M::Id, OnceCell<Result<Arc<M>, Arc<E>>>>,
-}
-
-impl<R, M, E> CachingRepo<R, M, E>
-where
-    R: Repo<Model = M, Error = E>,
-    M: Model,
-{
-    pub fn new(repo: R) -> CachingRepo<R, M, E> {
-        CachingRepo {
-            repo,
-            index_cache: OnceCell::new(),
-            model_cache: scc::HashMap::new(),
-        }
-    }
-
-    async fn indexes(&self) -> Result<&std::collections::HashMap<M::Id, M::IndexItem>, Arc<E>> {
-        self.index_cache
-            .get_or_init(async || {
-                let indexes = self.repo.all_indexes().await?;
-
-                Ok(std::collections::HashMap::from_iter(
-                    indexes.into_iter().map(|x| (x.model_id(), x)),
-                ))
-            })
-            .await
-            .as_ref()
-            .map_err(|e| e.clone())
-    }
-
-    async fn get_model(&self, id: M::Id) -> Result<Arc<M>, Arc<E>> {
-        self.model_cache
-            .entry_async(id)
-            .await
-            .or_insert_with(OnceCell::new)
-            .get()
-            .get_or_init(async || self.repo.get(id).await.map(Arc::new).map_err(Arc::new))
-            .await
-            .clone()
-    }
-}
-
-#[derive(Error, Debug)]
-#[error("Caching repo error")]
-pub enum CachingRepoError<E: std::error::Error> {
-    Upstream(#[from] Arc<E>),
-    IndexMissing,
-}
-
-#[async_trait]
-impl<R, M, E> Repo for CachingRepo<R, M, E>
-where
-    R: Repo<Model = M, Error = E>,
-    M: Model,
-    E: std::error::Error + Send + Sync + 'static,
-{
-    type Model = M;
-    type Error = CachingRepoError<E>;
-
-    async fn all_indexes(
-        &self,
-    ) -> Result<Vec<<<Self as Repo>::Model as Model>::IndexItem>, Self::Error> {
-        let indexes = self.indexes().await.map_err(|e| e.clone())?;
-
-        Ok(indexes.clone().into_values().collect_vec())
-    }
-    async fn get(
-        &self,
-        id: <<Self as Repo>::Model as Model>::Id,
-    ) -> Result<<Self as Repo>::Model, Self::Error> {
-        let model = self.get_model(id).await?;
-        Ok((*model).clone())
-    }
-    async fn get_index(
-        &self,
-        id: <<Self as Repo>::Model as Model>::Id,
-    ) -> Result<<<Self as Repo>::Model as Model>::IndexItem, Self::Error> {
-        let indexes = self.indexes().await.map_err(|e| e.clone())?;
-
-        match indexes.get(&id) {
-            Some(index) => Ok(index.clone()),
-            None => Err(CachingRepoError::IndexMissing),
-        }
-    }
-    async fn put(&self, _model: <Self as Repo>::Model) -> Result<(), Self::Error> {
-        unimplemented!()
-    }
-    async fn filter_models(
-        &self,
-        filter: <Self::Model as Model>::Filter,
-    ) -> Result<Vec<Self::Model>, Self::Error> {
-        self.repo
-            .filter_models(filter)
-            .await
-            .map_err(Arc::new)
-            .map_err(CachingRepoError::Upstream)
-    }
-}
-
 pub type ConfigRepo = Arc<dyn AnyhowRepo<Model = Config>>;
 pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<Model = PointOfInterest>>;
 pub type RouteModelRepo = Arc<dyn AnyhowRepo<Model = RouteModel>>;
 pub type RideModelRepo = Arc<dyn AnyhowRepo<Model = RideModel>>;
+pub type UserRepo = Arc<dyn AnyhowRepo<Model = User>>;
