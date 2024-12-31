@@ -6,9 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-derive_more = { version = "0.99.17" }
-geo = "*"
-gpx = "*"
 reqwest = { version = "0.11", default-features = false, features = [
     "json",
     "native-tls-vendored",
@@ -19,6 +16,5 @@ serde_path_to_error = "0.1"
 thiserror = "*"
 tokio = { version = "1", features = ["full"] }
 url = "*"
-chrono = { version = "*", features = ["serde"] }
 rwgps_types = { path = "../rwgps-types" }
 async-trait = "*"

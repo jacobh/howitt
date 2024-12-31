@@ -22,7 +22,6 @@ coveralls = { repository = "espdev/csaps-rs", branch = "master", service = "gith
 
 
 [dependencies]
-num-traits = "*"
 ndarray = "*"
 sprs = "*"
 sprs-ldl = "*"
@@ -31,5 +30,4 @@ itertools = "*"
 thiserror = "*"
 
 [dev-dependencies]
-approx = "*"
 ndarray = { version = "*", features = ["approx"] }

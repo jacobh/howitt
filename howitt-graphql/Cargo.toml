@@ -8,14 +8,8 @@ edition = "2021"
 [dependencies]
 async-graphql = { version = "5", features = ["uuid", "chrono", "url"] }
 howitt = { path = "../howitt" }
-rwgps_types = { path = "../rwgps-types" }
-anyhow = "*"
-gpx = "*"
 geo = "*"
-uuid = { version = "1", features = ["v4", "serde"] }
 chrono = "*"
-futures = "*"
-ulid = "*"
 serde = { version = "*", features = ["derive"] }
 derive_more = { version = "0.99.17" }
 itertools = "*"

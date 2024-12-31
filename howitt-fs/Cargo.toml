@@ -9,11 +9,9 @@ edition = "2021"
 howitt = { path = "../howitt" }
 walkdir = "2"
 gtfs = { path = "../gtfs" }
-rwgps = { path = "../rwgps" }
 rwgps_types = { path = "../rwgps-types" }
 itertools = "*"
 anyhow = "*"
-serde = { version = "1", features = ["derive"] }
 toml = "*"
 serde_json = "*"
 lazy_static = "*"
@@ -21,6 +19,5 @@ dirs = "*"
 project-root = "*"
 shapefile = "*"
 geo = "*"
-uuid = "*"
 chrono = "*"
 gpx = "*"
