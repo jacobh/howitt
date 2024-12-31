@@ -9,7 +9,7 @@ edition = "2021"
 thiserror = "*"
 gpx = { version = "*", features = ["use-serde"] }
 geo = { version = "*", features = ["serde"] }
-derive_more = { version = "0.99.17" }
+derive_more = { version = "1", features = ["full"] }
 chrono = "*"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }

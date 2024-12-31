@@ -9,11 +9,11 @@ pub struct Cuesheet {
 
 #[derive(Debug, Serialize, Deserialize, derive_more::Display)]
 pub enum CueStop {
-    #[display(fmt = "Start")]
+    #[display("Start")]
     Start,
-    #[display(fmt = "End")]
+    #[display("End")]
     End,
-    #[display(fmt = "{} ({})", "_0.name", "_0.point_of_interest_type")]
+    #[display("{} ({})", "_0.name", "_0.point_of_interest_type")]
     POI(PointOfInterest),
 }
 

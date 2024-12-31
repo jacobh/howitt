@@ -15,6 +15,7 @@ use crate::{
 use howitt_client_types::{BucketClient, HttpClient, HttpResponse};
 
 #[derive(Debug, derive_more::Display, Error)]
+#[display("{:#?}", "_0")]
 pub enum PhotoSyncError<BC: BucketClient, HC: HttpClient, RouteRepo: Repo<Model = RouteModel>> {
     PhotoExistsFailed(BC::Error),
     PhotoPutFailed(BC::Error),

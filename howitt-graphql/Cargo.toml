@@ -11,7 +11,7 @@ howitt = { path = "../howitt" }
 geo = "*"
 chrono = "*"
 serde = { version = "*", features = ["derive"] }
-derive_more = { version = "0.99.17" }
+derive_more = { version = "1", features = ["full"] }
 itertools = "*"
 thiserror = "*"
 url = "*"
