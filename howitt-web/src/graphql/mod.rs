@@ -402,7 +402,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<f64, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
+        let route_model = self.0.to_model(route_repo).await?;
 
         Ok(route_model.segment_summary().data.elevation_ascent_m)
     }
@@ -411,7 +411,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<f64, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
+        let route_model = self.0.to_model(route_repo).await?.clone();
 
         Ok(route_model.segment_summary().data.elevation_descent_m)
     }
@@ -439,7 +439,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Photo<RouteId>>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
+        let route_model = self.0.to_model(route_repo).await?;
 
         Ok(route_model.photos.clone().into_iter().map(Photo).collect())
     }
@@ -498,7 +498,7 @@ impl Route {
     }
     async fn points_count<'ctx>(&self, ctx: &Context<'ctx>) -> Result<usize, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
+        let route_model = self.0.to_model(route_repo).await?;
 
         Ok(route_model.iter_geo_points().count())
     }
@@ -507,7 +507,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
+        let route_model = self.0.to_model(route_repo).await?;
 
         Ok(route_model
             .iter_geo_points()
@@ -519,7 +519,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
+        let route_model = self.0.to_model(route_repo).await?;
 
         Ok(route_model
             .iter_elevation_points()
@@ -531,7 +531,7 @@ impl Route {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.as_model(route_repo).await?;
+        let route_model = self.0.to_model(route_repo).await?;
 
         Ok(route_model.iter_cum_distance().collect())
     }

@@ -8,10 +8,10 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 warp = { version = "0.3", features = ["compression"] }
-async-graphql-warp = "5"
+async-graphql-warp = "7"
 howitt-postgresql = { path = "../howitt-postgresql" }
 anyhow = "*"
-async-graphql = { version = "5", features = ["uuid", "chrono", "url"] }
+async-graphql = { version = "7", features = ["uuid", "chrono", "url"] }
 howitt = { path = "../howitt" }
 geo = "*"
 chrono = "*"
