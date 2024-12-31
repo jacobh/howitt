@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 thiserror = "*"
-zip = "0.5"
+zip = "2"
 csv = "1.1.6"
 serde = { version = "1", features = ["derive"] }
