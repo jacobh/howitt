@@ -20,6 +20,7 @@ derive_more = { version = "1", features = ["full"] }
 itertools = "*"
 thiserror = "*"
 url = "*"
+serde_json = "*"
 
 [dev-dependencies]
 test-case = "3.1.0"

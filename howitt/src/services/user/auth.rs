@@ -1,6 +1,7 @@
 use chrono::{Months, Utc};
 use derive_more::derive::{Constructor, From, Into};
 use jsonwebtoken::{decode, DecodingKey, EncodingKey, Header, Validation};
+use serde::Serialize;
 use thiserror::Error;
 
 use crate::{
@@ -10,7 +11,7 @@ use crate::{
 
 use super::password::verify_password;
 
-#[derive(Debug, Constructor)]
+#[derive(Debug, Constructor, Clone)]
 pub struct UserAuthService {
     user_repo: UserRepo,
     jwt_secret: String,
@@ -31,10 +32,10 @@ pub enum LoginFailed {
     PasswordVerificationFailed,
 }
 
-#[derive(Debug, From, Into)]
+#[derive(Debug, From, Into, Serialize)]
 pub struct JwtString(String);
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Login {
     pub session: UserSession,
     pub token: JwtString,

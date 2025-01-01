@@ -2133,6 +2133,7 @@ dependencies = [
  "howitt-postgresql",
  "itertools 0.13.0",
  "serde",
+ "serde_json",
  "test-case",
  "thiserror 2.0.9",
  "tokio",

@@ -1,15 +1,19 @@
+#![feature(async_closure)]
 use std::{convert::Infallible, sync::Arc};
 
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
+use auth::login_route;
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
+    PostgresUserRepo,
 };
 use warp::{
     http::{Response as HttpResponse, StatusCode},
     Filter, Rejection,
 };
 
+mod auth;
 mod graphql;
 
 use graphql::{
@@ -29,6 +33,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
     let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
     let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
+    let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(SchemaData {
@@ -52,7 +57,8 @@ async fn main() -> Result<(), anyhow::Error> {
                 .and_then(|s| Credentials::parse_auth_header_value(s).ok())
         });
 
-    let graphql_post = auth_header_filter
+    let graphql_post = warp::path::end()
+        .and(auth_header_filter)
         .and(async_graphql_warp::graphql(schema))
         .and_then(
             |credentials,
@@ -73,6 +79,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let routes = graphiql
         .or(graphql_post)
+        .or(login_route(user_repo))
         .with(cors)
         .recover(|err: Rejection| async move {
             if let Some(GraphQLBadRequest(err)) = err.find() {
