@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::ulid::ulid_into_uuid;
 
-use howitt::models::user::UserId;
+use howitt::models::user::{UserFilter, UserId};
 use howitt::models::{user::User, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
@@ -46,10 +46,14 @@ impl Repo for PostgresUserRepo {
     type Model = User;
     type Error = PostgresRepoError;
 
-    async fn filter_models(&self, _filter: ()) -> Result<Vec<User>, PostgresRepoError> {
+    async fn filter_models(&self, filter: UserFilter) -> Result<Vec<User>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let query = sqlx::query_as!(UserRow, r#"select * from users"#);
+        let query = sqlx::query_as!(
+            UserRow,
+            r#"select * from users where username = $1 or $1 is null"#,
+            filter.username
+        );
 
         Ok(query
             .fetch_all(conn.as_mut())

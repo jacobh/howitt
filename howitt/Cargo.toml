@@ -35,6 +35,7 @@ url = { version = "*", features = ["serde"] }
 almost = "*"
 bytes = "*"
 argon2 = "0.5.3"
+jsonwebtoken = { version = "9", default-features = false }
 
 [dev-dependencies]
 insta = { version = "*", features = ["toml"] }

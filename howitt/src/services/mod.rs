@@ -6,3 +6,4 @@ pub mod num;
 pub mod smoothing;
 pub mod summarize_segment;
 pub mod sync;
+pub mod user;

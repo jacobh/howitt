@@ -1,10 +1,6 @@
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHashString, SaltString},
-    Argon2, PasswordHasher,
-};
-use chrono::{DateTime, Utc};
+use argon2::password_hash::PasswordHashString;
+use chrono::{serde::ts_seconds, DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
 use super::{IndexModel, ModelName, ModelUlid};
 
@@ -25,31 +21,26 @@ pub enum LinkedAccount {
     Rwgps(usize),
 }
 
+#[derive(Debug, Clone)]
+pub struct UserFilter {
+    pub username: Option<String>,
+}
+
 impl IndexModel for User {
     type Id = UserId;
-    type Filter = ();
+    type Filter = UserFilter;
 
     fn id(&self) -> UserId {
         UserId::from(self.id)
     }
 }
 
-#[derive(Debug, Error)]
-#[error("Password hasher failed")]
-pub enum PasswordHashError {
-    Argon2(argon2::password_hash::Error),
-}
-
-pub fn hash_password(password: &str) -> Result<PasswordHashString, PasswordHashError> {
-    let salt = SaltString::generate(&mut OsRng);
-
-    // Argon2 with default params (Argon2id v19)
-    let argon2 = Argon2::default();
-
-    // Hash password to PHC string ($argon2id$v=19$...)
-    let password_hash = argon2
-        .hash_password(password.as_bytes(), &salt)
-        .map_err(PasswordHashError::Argon2)?;
-
-    Ok(password_hash.serialize())
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserSession {
+    #[serde(rename = "sub")]
+    pub user_id: UserId,
+    #[serde(rename = "exp", with = "ts_seconds")]
+    pub expiry: DateTime<Utc>,
+    #[serde(rename = "iat", with = "ts_seconds")]
+    pub issued_at: DateTime<Utc>,
 }

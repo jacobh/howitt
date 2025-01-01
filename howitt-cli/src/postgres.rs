@@ -1,4 +1,4 @@
-use std::{convert::identity, str::FromStr};
+use std::{convert::identity, str::FromStr, sync::Arc};
 
 use chrono::Utc;
 use clap::{arg, Args, Subcommand};
@@ -6,12 +6,13 @@ use howitt::{
     models::{
         point::simplify_points,
         route::RouteId,
-        user::{hash_password, User, UserId},
+        user::{User, UserId},
     },
     repos::Repo,
     services::{
         generate_cuesheet::generate_cuesheet,
         sync::{photo::PhotoSyncService, rwgps::RwgpsSyncService},
+        user::{auth::UserAuthService, password::hash_password},
     },
 };
 use howitt_clients::{ReqwestHttpClient, S3BucketClient};
@@ -36,6 +37,8 @@ pub enum Postgres {
     ListPOIs,
     CreateUser,
     ListUsers,
+    Login,
+    VerifyToken(VerifyTokenArgs),
 }
 
 #[derive(Args)]
@@ -49,6 +52,11 @@ pub struct SyncRwgps {
     force_sync_bcs: bool,
     #[arg(long)]
     force_sync_rwgps_id: Option<usize>,
+}
+
+#[derive(Args)]
+pub struct VerifyTokenArgs {
+    token: String,
 }
 
 pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
@@ -185,6 +193,25 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
         Postgres::ListUsers => {
             let users = user_repo.all_models().await?;
             dbg!(users);
+        }
+        Postgres::Login => {
+            let service = UserAuthService::new(Arc::new(user_repo), String::from("asdf123"));
+
+            let username = inquire::Text::new("username").prompt()?;
+            let password = inquire::Password::new("password")
+                .without_confirmation()
+                .prompt()?;
+
+            let res = service.login(&username, &password).await;
+
+            dbg!(res);
+        }
+        Postgres::VerifyToken(VerifyTokenArgs { token }) => {
+            let service = UserAuthService::new(Arc::new(user_repo), String::from("asdf123"));
+
+            let res = service.verify(&token).await;
+
+            dbg!(res);
         }
     }
 

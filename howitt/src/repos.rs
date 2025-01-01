@@ -82,7 +82,7 @@ pub trait Repo: Send + Sync {
 }
 
 #[async_trait]
-pub trait AnyhowRepo: Send + Sync {
+pub trait AnyhowRepo: Send + Sync + std::fmt::Debug {
     type Model: Model + Sized;
 
     async fn all_indexes(
@@ -114,7 +114,7 @@ pub trait AnyhowRepo: Send + Sync {
 #[async_trait]
 impl<R, T, E> AnyhowRepo for R
 where
-    R: Repo<Model = T, Error = E>,
+    R: Repo<Model = T, Error = E> + std::fmt::Debug,
     T: Model + 'static,
     E: std::error::Error + Send + Sync + 'static,
 {
