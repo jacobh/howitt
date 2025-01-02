@@ -46,10 +46,13 @@ export default function Login(): React.ReactElement {
       e.preventDefault();
 
       try {
-        const res = await axios.post("http://localhost:8000/auth/login/", {
-          username,
-          password,
-        });
+        const res = await axios.post(
+          "https://api.howittplains.net/auth/login/",
+          {
+            username,
+            password,
+          }
+        );
 
         if (typeof res.data?.token === "string") {
           window.localStorage.setItem("token", res.data.token);
