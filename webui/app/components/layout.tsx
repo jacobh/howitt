@@ -11,13 +11,23 @@ const containerCss = makeMqs([
 
     width: 100vw;
     height: 100vh;
+
+    grid-template-areas:
+      "map"
+      "nav"
+      "sidebar";
+
+    grid-template-rows: 66vh 50px minmax(calc(34vh - 50px), auto);
   `,
   css``,
   css``,
   css``,
   css`
-    grid-auto-flow: column;
+    grid-template-rows: 50px min-content;
     grid-template-columns: minmax(640px, 40%) 1fr;
+    grid-template-areas:
+      "nav nav"
+      "sidebar map";
   `,
   css``,
 ]);
@@ -26,34 +36,74 @@ export function Container({ children }: PropsWithChildren): JSX.Element {
   return <div css={containerCss}>{children}</div>;
 }
 
+type NavProps = {
+  username?: string;
+};
+
+const navCss = makeMqs([
+  css`
+    grid-area: nav;
+    height: 50px;
+    display: flex;
+    line-height: 50px;
+    box-shadow: 0px -1px 4px #9d9d9d;
+    z-index: 1;
+    padding: 0px 1.5vw;
+  `,
+  css``,
+  css``,
+  css``,
+  css`
+    box-shadow: 0px -1px 5px #9d9d9d;
+  `,
+]);
+
+const logoCss = css`
+  font-size: 22px !important;
+  line-height: 50px !important;
+`;
+
+const userInfoCss = css`
+  margin-left: auto;
+  height: 100%;
+`;
+
+export function Nav({ username }: NavProps): JSX.Element {
+  return (
+    <nav css={navCss}>
+      <h2 css={logoCss}>Howitt Plains</h2>
+      <div css={userInfoCss}>
+        {username ? <span>{username}</span> : <Link to="/login">Login</Link>}
+      </div>
+    </nav>
+  );
+}
+
 const sidebarContainerOuterCss = makeMqs([
   css`
-    grid-row: 2;
+    grid-area: sidebar;
     width: 100vw;
   `,
   css``,
   css``,
   css``,
   css`
-    grid-row: unset;
     width: 100%;
-    height: 100vh;
+    height: calc(100vh - 50px);
   `,
 ]);
 
 const mapContainerCss = makeMqs([
   css`
-    grid-row: 1;
+    grid-area: map;
     width: 100vw;
-    height: 66vh;
+    height: 100%;
   `,
   css``,
   css``,
   css``,
   css`
-    grid-row: unset;
     width: 100%;
-    height: 100vh;
   `,
 ]);
 
@@ -72,7 +122,7 @@ const sidebarContainerInnerCss = makeMqs([
   `,
   css`
     padding: max(18px, 1vw) 6%;
-    height: 100vh;
+    height: inherit;
     display: flex;
     flex-direction: column;
   `,
@@ -89,7 +139,6 @@ const sidebarChildrenCss = makeMqs([
   css``,
   css``,
   css`
-    height: auto;
     overflow-x: hidden;
     overflow-y: scroll;
   `,
@@ -103,6 +152,7 @@ interface Props {
   title: string;
   titleLinkTo?: string;
   titlePostfix?: string;
+  username?: string;
 }
 
 export function SidebarContainer({

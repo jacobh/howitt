@@ -2,7 +2,12 @@ import { DEFAULT_VIEW, Map } from "../components/map";
 import { useQuery } from "@apollo/client";
 import { gql } from "../__generated__/gql";
 import { useMemo, useState } from "react";
-import { Container, MapContainer, SidebarContainer } from "~/components/layout";
+import {
+  Container,
+  MapContainer,
+  SidebarContainer,
+  Nav,
+} from "~/components/layout";
 import { RouteItem } from "~/components/RouteItem";
 import { css } from "@emotion/react";
 import { COLORS } from "~/styles/theme";
@@ -108,6 +113,7 @@ export default function Index(): React.ReactElement {
 
   return (
     <Container>
+      <Nav />
       <SidebarContainer
         title="Routes"
         titleLinkTo={isNotNil(tags) ? "/" : undefined}
