@@ -7,7 +7,12 @@ import { ElevationProfile } from "~/components/ElevationProfile";
 import { Photo } from "./Photo";
 import { isNotNil } from "~/services/isNotNil";
 import { NearbyRoutes } from "./NearbyRoutes";
-import { Container, MapContainer, SidebarContainer } from "~/components/layout";
+import {
+  Container,
+  MapContainer,
+  Nav,
+  SidebarContainer,
+} from "~/components/layout";
 import { RouteVitals } from "~/components/RouteVitals";
 import { makeMqs } from "~/styles/mediaQueries";
 import { css } from "@emotion/react";
@@ -135,6 +140,7 @@ export default function Route(): React.ReactElement {
 
   return (
     <Container>
+      <Nav />
       <SidebarContainer
         title="Routes"
         titleLinkTo="/"
