@@ -8,6 +8,7 @@ use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
     PostgresUserRepo,
 };
+use slog::Drain;
 use warp::{
     http::{Response as HttpResponse, StatusCode},
     Filter, Rejection,
@@ -22,6 +23,14 @@ use graphql::{
     Query,
 };
 
+fn new_logger() -> slog::Logger {
+    let decorator = slog_term::TermDecorator::new().build();
+    let drain = slog_term::FullFormat::new(decorator).build().fuse();
+    let drain = slog_async::Async::new(drain).build().fuse();
+
+    slog::Logger::root(drain, slog::o!())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let pg = PostgresClient::connect(
@@ -29,6 +38,8 @@ async fn main() -> Result<(), anyhow::Error> {
             .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
     )
     .await?;
+
+    let logger = new_logger();
 
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
     let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
@@ -93,7 +104,15 @@ async fn main() -> Result<(), anyhow::Error> {
                 "INTERNAL_SERVER_ERROR".to_string(),
                 StatusCode::INTERNAL_SERVER_ERROR,
             ))
-        });
+        })
+        .with(warp::log::custom(move |info| {
+            let method = info.method().as_str();
+            let path = info.path();
+            let status = info.status().as_u16();
+            let duration_ms = info.elapsed().as_millis();
+
+            slog::info!(logger, "{method} {path}", method = method, path = path; "status" => status, "ms" => duration_ms);
+        }));
 
     warp::serve(routes.with(warp::compression::gzip()))
         .run(([0, 0, 0, 0], 8000))
