@@ -13,11 +13,11 @@ const containerCss = makeMqs([
     height: 100vh;
 
     grid-template-areas:
-      "map"
       "nav"
+      "map"
       "sidebar";
 
-    grid-template-rows: 66vh 50px minmax(calc(34vh - 50px), auto);
+    grid-template-rows: 50px 66vh minmax(calc(34vh - 50px), auto);
   `,
   css``,
   css``,
@@ -46,20 +46,14 @@ const navCss = makeMqs([
     height: 50px;
     display: flex;
     line-height: 50px;
-    box-shadow: 0px -1px 4px #9d9d9d;
+    box-shadow: 0px -1px 5px #9d9d9d;
     z-index: 1;
     padding: 0px 1.5vw;
-  `,
-  css``,
-  css``,
-  css``,
-  css`
-    box-shadow: 0px -1px 5px #9d9d9d;
   `,
 ]);
 
 const logoCss = css`
-  font-size: 22px !important;
+  font-size: 20px !important;
   line-height: 50px !important;
 `;
 
@@ -83,6 +77,8 @@ const sidebarContainerOuterCss = makeMqs([
   css`
     grid-area: sidebar;
     width: 100vw;
+    box-shadow: 0px -1px 5px #9d9d9d;
+    z-index: 1;
   `,
   css``,
   css``,
@@ -90,6 +86,7 @@ const sidebarContainerOuterCss = makeMqs([
   css`
     width: 100%;
     height: calc(100vh - 50px);
+    box-shadow: none;
   `,
 ]);
 
