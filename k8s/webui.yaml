@@ -37,8 +37,10 @@ spec:
             - containerPort: 80
               protocol: TCP
           env:
+            - name: GRAPHQL_URL
+              value: http://howitt-web-api/
             - name: VERSION
-              value: '2'
+              value: '3'
       imagePullSecrets:
         - name: regcred
       restartPolicy: Always
