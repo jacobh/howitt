@@ -4,21 +4,23 @@ import type { AppLoadContext, EntryContext } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-// import { getDataFromTree } from "@apollo/client/react/ssr";
 
 import { createEmotionCache } from "~/styles/createEmotionCache";
 import { ServerStyleContext } from "~/styles/server.context";
+import { getDataFromTree } from "@apollo/client/react/ssr";
 
-export default function handleRequest(
+export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
   loadContext: AppLoadContext
-): Response {
+): Promise<Response> {
+  const graphqlUrl = process.env.GRAPHQL_URL ?? "https://api.howittplains.net/";
+
   const client = new ApolloClient({
     ssrMode: true,
-    uri: "https://api.howittplains.net/",
+    uri: graphqlUrl,
     cache: new InMemoryCache(),
   });
 
@@ -32,6 +34,8 @@ export default function handleRequest(
       </CacheProvider>
     </ApolloProvider>
   );
+
+  await getDataFromTree(App);
 
   const html = renderToString(
     <ServerStyleContext.Provider value={null}>
