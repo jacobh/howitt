@@ -112,24 +112,33 @@ export default function Index(): React.ReactElement {
     [data]
   );
 
-  const sidebarRoutes = isNotNil(visibleRouteIds)
-    ? sortBy(visibleRouteIds, ({ distanceFromCenter }) => distanceFromCenter)
-        .filter(({ routeId }) => routeId !== clickedRouteId)
-        .map(({ routeId }) => routeIdMap[routeId])
-        .filter(isNotNil)
-    : Object.values(routeIdMap);
+  const sidebarRoutes = useMemo(
+    () =>
+      isNotNil(visibleRouteIds)
+        ? sortBy(
+            visibleRouteIds,
+            ({ distanceFromCenter }) => distanceFromCenter
+          )
+            .filter(({ routeId }) => routeId !== clickedRouteId)
+            .map(({ routeId }) => routeIdMap[routeId])
+            .filter(isNotNil)
+        : Object.values(routeIdMap),
+    [clickedRouteId, routeIdMap, visibleRouteIds]
+  );
 
-  const mapRoutes = (data2?.queryRoutes ?? data?.queryRoutes ?? []).map(
-    (route) => ({
-      route: {
-        id: route.id,
-        points: (route as any).points ?? (route as any).samplePoints,
-      },
-      style:
-        hoveredRouteId === route.id || clickedRouteId === route.id
-          ? ("highlighted" as const)
-          : undefined,
-    })
+  const mapRoutes = useMemo(
+    () =>
+      (data2?.queryRoutes ?? data?.queryRoutes ?? []).map((route) => ({
+        route: {
+          id: route.id,
+          points: (route as any).points ?? (route as any).samplePoints,
+        },
+        style:
+          hoveredRouteId === route.id || clickedRouteId === route.id
+            ? ("highlighted" as const)
+            : undefined,
+      })),
+    [clickedRouteId, data?.queryRoutes, data2?.queryRoutes, hoveredRouteId]
   );
 
   return (
