@@ -1,6 +1,5 @@
 pub mod context;
 pub mod credentials;
-pub mod roles;
 
 use async_graphql::*;
 use chrono::{DateTime, Utc};
