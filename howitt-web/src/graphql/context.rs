@@ -1,6 +1,7 @@
-use howitt::repos::{PointOfInterestRepo, RideModelRepo, RouteModelRepo};
-
-use super::credentials::Credentials;
+use howitt::{
+    repos::{PointOfInterestRepo, RideModelRepo, RouteModelRepo},
+    services::user::auth::Login,
+};
 
 pub struct SchemaData {
     pub poi_repo: PointOfInterestRepo,
@@ -9,5 +10,5 @@ pub struct SchemaData {
 }
 
 pub struct RequestData {
-    pub credentials: Option<Credentials>,
+    pub login: Option<Login>,
 }

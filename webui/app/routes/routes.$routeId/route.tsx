@@ -77,9 +77,6 @@ query RouteQuery($routeId: RouteId!) {
       }
     }
   }
-  viewer {
-    role
-  }
 }
 `);
 

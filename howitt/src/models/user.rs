@@ -35,7 +35,7 @@ impl IndexModel for User {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserSession {
     #[serde(rename = "sub")]
     pub user_id: UserId,

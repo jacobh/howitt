@@ -1,7 +1,7 @@
 import { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
-  schema: "https://howitt-api.haslehurst.net/graphql",
+  schema: "https://api.howittplains.net/",
   documents: ["app/**/*.tsx"],
   generates: {
     "./app/__generated__/": {

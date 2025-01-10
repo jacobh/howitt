@@ -4,6 +4,7 @@ use std::{convert::Infallible, sync::Arc};
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use auth::login_route;
+use howitt::services::user::auth::{Login, UserAuthService};
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
     PostgresUserRepo,
@@ -16,6 +17,7 @@ use warp::{
 
 mod auth;
 mod graphql;
+mod rejections;
 
 use graphql::{
     context::{RequestData, SchemaData},
@@ -46,6 +48,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
 
+    let auth_service = UserAuthService::new(user_repo.clone(), "asdf123".to_string());
+
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(SchemaData {
             poi_repo,
@@ -61,23 +65,39 @@ async fn main() -> Result<(), anyhow::Error> {
         .allow_methods(vec!["GET", "POST"])
         .allow_headers(vec!["content-type", "authorization"]);
 
-    let auth_header_filter =
-        warp::header::optional::<String>("authorization").map(|auth_header: Option<String>| {
-            auth_header
-                .as_deref()
-                .and_then(|s| Credentials::parse_auth_header_value(s).ok())
-        });
+    let auth_header_filter = warp::header::optional::<String>("authorization")
+        .and(warp::any().map(move || auth_service.clone()))
+        .and_then(
+            async |auth_header: Option<String>,
+                   auth_service: UserAuthService|
+                   -> Result<Option<Login>, warp::reject::Rejection> {
+                let credentials = auth_header
+                    .as_deref()
+                    .and_then(|s| Credentials::parse_auth_header_value(s).ok());
+
+                match credentials {
+                    Some(Credentials::BearerToken(token)) => {
+                        Ok(Some(auth_service.verify(&token).await.map_err(|err| {
+                            dbg!(err);
+                            warp::reject::custom(rejections::LoginVerificationFailed)
+                        })?))
+                    }
+                    Some(Credentials::Key(_)) => Ok(None),
+                    None => Ok(None),
+                }
+            },
+        );
 
     let graphql_post = warp::path::end()
         .and(auth_header_filter)
         .and(async_graphql_warp::graphql(schema))
         .and_then(
-            |credentials,
+            |login,
              (schema, mut request): (
                 Schema<Query, EmptyMutation, EmptySubscription>,
                 async_graphql::Request,
             )| async move {
-                request = request.data(RequestData { credentials });
+                request = request.data(RequestData { login });
                 Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
             },
         );

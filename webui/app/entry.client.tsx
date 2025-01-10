@@ -39,12 +39,12 @@ function Client(): JSX.Element {
   });
 
   const authLink = setContext((_, { headers }) => {
-    const apiKey = window.localStorage.getItem("apiKey");
+    const token = window.localStorage.getItem("token");
 
     return {
       headers: {
         ...headers,
-        authorization: apiKey ? `Key ${apiKey}` : "",
+        authorization: token ? `Bearer ${token}` : "",
       },
     };
   });

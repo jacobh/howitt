@@ -4,7 +4,7 @@ pub mod roles;
 
 use async_graphql::*;
 use chrono::{DateTime, Utc};
-use context::SchemaData;
+use context::{RequestData, SchemaData};
 use derive_more::From;
 use howitt::models::photo::PhotoId;
 use howitt::models::point::ElevationPoint;
@@ -14,8 +14,8 @@ use howitt::models::tag::Tag;
 use howitt::models::Model;
 use howitt::models::{point_of_interest::PointOfInterestId, ModelRef};
 use howitt::services::generate_cuesheet::generate_cuesheet;
+use howitt::services::user::auth::Login;
 use itertools::Itertools;
-use roles::Role;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, From)]
@@ -65,8 +65,16 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn viewer(&self) -> Viewer {
-        Viewer
+    async fn viewer<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Option<Viewer>, async_graphql::Error> {
+        let RequestData { login } = ctx.data()?;
+
+        match login {
+            Some(login) => Ok(Some(Viewer(login.clone()))),
+            None => Ok(None),
+        }
     }
 
     async fn routes<'ctx>(&self) -> Result<Vec<Route>, async_graphql::Error> {
@@ -146,12 +154,12 @@ impl Query {
     }
 }
 
-pub struct Viewer;
+pub struct Viewer(Login);
 
 #[Object]
 impl Viewer {
-    async fn role<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Role, async_graphql::Error> {
-        Role::from_context(ctx).await
+    async fn id(&self) -> String {
+        self.0.session.user_id.to_string()
     }
 }
 

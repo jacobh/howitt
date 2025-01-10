@@ -32,10 +32,10 @@ pub enum LoginFailed {
     PasswordVerificationFailed,
 }
 
-#[derive(Debug, From, Into, Serialize)]
+#[derive(Debug, From, Into, Serialize, Clone)]
 pub struct JwtString(String);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Login {
     pub session: UserSession,
     pub token: JwtString,
