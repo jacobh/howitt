@@ -1,13 +1,20 @@
 import { CacheProvider } from "@emotion/react";
 import createEmotionServer from "@emotion/server/create-instance";
-import type { AppLoadContext, EntryContext } from "@remix-run/node";
+import { type AppLoadContext, type EntryContext } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import {
+  ApolloClient,
+  ApolloProvider,
+  createHttpLink,
+  InMemoryCache,
+} from "@apollo/client";
+import * as cookie from "cookie";
 
 import { createEmotionCache } from "~/styles/createEmotionCache";
 import { ServerStyleContext } from "~/styles/server.context";
 import { getDataFromTree } from "@apollo/client/react/ssr";
+import { setContext } from "@apollo/client/link/context";
 
 export default async function handleRequest(
   request: Request,
@@ -16,11 +23,26 @@ export default async function handleRequest(
   remixContext: EntryContext,
   loadContext: AppLoadContext
 ): Promise<Response> {
-  const graphqlUrl = process.env.GRAPHQL_URL ?? "https://api.howittplains.net/";
+  const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
+
+  const httpLink = createHttpLink({
+    uri: process.env.GRAPHQL_URL ?? "https://api.howittplains.net/",
+  });
+
+  const authLink = setContext(async (_, { headers }) => {
+    const { token } = cookieData;
+
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  });
 
   const client = new ApolloClient({
     ssrMode: true,
-    uri: graphqlUrl,
+    link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
   });
 

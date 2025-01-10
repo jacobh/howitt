@@ -12,6 +12,7 @@ import { CacheProvider } from "@emotion/react";
 
 import { ClientStyleContext } from "~/styles/client.context";
 import { createEmotionCache } from "~/styles/createEmotionCache";
+import Cookies from "js-cookie";
 
 interface ClientCacheProviderProps {
   children: React.ReactNode;
@@ -39,7 +40,7 @@ function Client(): JSX.Element {
   });
 
   const authLink = setContext((_, { headers }) => {
-    const token = window.localStorage.getItem("token");
+    const token = Cookies.get("token");
 
     return {
       headers: {

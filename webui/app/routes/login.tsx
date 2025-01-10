@@ -1,6 +1,7 @@
 import { css } from "@emotion/react";
 import { useNavigate } from "@remix-run/react";
 import axios from "axios";
+import Cookies from "js-cookie";
 import { FormEvent, useCallback, useState } from "react";
 
 const containerCss = css`
@@ -55,7 +56,7 @@ export default function Login(): React.ReactElement {
         );
 
         if (typeof res.data?.token === "string") {
-          window.localStorage.setItem("token", res.data.token);
+          Cookies.set("token", res.data.token);
           navigate("/");
         } else {
           setError("Something went wrong, try again");
