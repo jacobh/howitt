@@ -7,7 +7,6 @@ use itertools::Itertools;
 use rwgps_types::{RouteSummary, TripSummary};
 
 use crate::{
-    ext::futures::FuturesIteratorExt,
     ext::iter::ResultIterExt,
     models::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
