@@ -15,7 +15,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { sortBy } from "lodash";
 import { useSearchParams } from "@remix-run/react";
 
-const HOME_QUERY = gql(`
+const HOME_QUERY_NO_POINTS = gql(`
   query homeQuery($input: QueryRoutesInput!) {
     queryRoutes(input: $input) {
       id
@@ -24,6 +24,15 @@ const HOME_QUERY = gql(`
       isMetaComplete
       elevationAscentM
       elevationDescentM
+      samplePoints
+    }
+  }
+`);
+
+const HOME_QUERY_WITH_POINTS = gql(`
+  query homeQueryPointOnly($input: QueryRoutesInput!) {
+    queryRoutes(input: $input) {
+      id
       points
     }
   }
@@ -67,10 +76,17 @@ export default function Index(): React.ReactElement {
 
   const filters = isNotNil(tags) ? [{ hasSomeTags: tags }] : [];
 
-  const { data } = useQuery(HOME_QUERY, {
+  const { data } = useQuery(HOME_QUERY_NO_POINTS, {
     variables: {
       input: { filters },
     },
+  });
+
+  const { data: data2 } = useQuery(HOME_QUERY_WITH_POINTS, {
+    variables: {
+      input: { filters },
+    },
+    ssr: false,
   });
 
   const [clickedRouteId, setClickedRouteId] = useState<string | undefined>(
@@ -103,13 +119,18 @@ export default function Index(): React.ReactElement {
         .filter(isNotNil)
     : Object.values(routeIdMap);
 
-  const mapRoutes = (data?.queryRoutes ?? []).map((route) => ({
-    route,
-    style:
-      hoveredRouteId === route.id || clickedRouteId === route.id
-        ? ("highlighted" as const)
-        : undefined,
-  }));
+  const mapRoutes = (data2?.queryRoutes ?? data?.queryRoutes ?? []).map(
+    (route) => ({
+      route: {
+        id: route.id,
+        points: (route as any).points ?? (route as any).samplePoints,
+      },
+      style:
+        hoveredRouteId === route.id || clickedRouteId === route.id
+          ? ("highlighted" as const)
+          : undefined,
+    })
+  );
 
   return (
     <Container>

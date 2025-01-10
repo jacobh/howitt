@@ -287,12 +287,26 @@ export function Map({
               new Feature({ geometry: lineString, routeId: route.id }),
             ],
           }),
-          properties: { routeId: route.id },
+          properties: { routeId: route.id, points: route.points.length },
         });
 
         map.addLayer(layer);
       } else {
         layer = existingLayer;
+      }
+
+      if (layer.getProperties().points !== route.points.length) {
+        const newLineString = new LineString(route.points);
+
+        layer.setSource(
+          new VectorSource({
+            features: [
+              new Feature({ geometry: newLineString, routeId: route.id }),
+            ],
+          })
+        );
+
+        layer.setProperties({ routeId: route.id, points: route.points.length });
       }
 
       let color;
