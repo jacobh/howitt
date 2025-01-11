@@ -2,6 +2,7 @@ import { css } from "@emotion/react";
 import { Link } from "@remix-run/react";
 
 import { PropsWithChildren } from "react";
+import { FragmentType, gql, useFragment } from "~/__generated__";
 import { makeMqs } from "~/styles/mediaQueries";
 
 const containerCss = makeMqs([
@@ -36,8 +37,17 @@ export function Container({ children }: PropsWithChildren): JSX.Element {
   return <div css={containerCss}>{children}</div>;
 }
 
+export const ViewerInfoFragment = gql(`
+  fragment viewerInfo on Viewer {
+      id
+      profile {
+        username
+      }
+  }
+`);
+
 type NavProps = {
-  username?: string;
+  viewer?: FragmentType<typeof ViewerInfoFragment> | null;
 };
 
 const navCss = makeMqs([
@@ -62,12 +72,18 @@ const userInfoCss = css`
   height: 100%;
 `;
 
-export function Nav({ username }: NavProps): JSX.Element {
+export function Nav(props: NavProps): JSX.Element {
+  const viewer = useFragment(ViewerInfoFragment, props.viewer);
+
   return (
     <nav css={navCss}>
       <h2 css={logoCss}>Howitt Plains</h2>
       <div css={userInfoCss}>
-        {username ? <span>{username}</span> : <Link to="/login">Login</Link>}
+        {viewer ? (
+          <span>{viewer.profile.username}</span>
+        ) : (
+          <Link to="/login">Login</Link>
+        )}
       </div>
     </nav>
   );

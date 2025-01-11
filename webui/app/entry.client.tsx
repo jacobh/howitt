@@ -36,7 +36,7 @@ function ClientStyleCacheProvider({
 
 function Client(): JSX.Element {
   const httpLink = createHttpLink({
-    uri: "https://api.howittplains.net/",
+    uri: (window as any).__ENV__.GRAPHQL_URL ?? "https://api.howittplains.net/",
   });
 
   const authLink = setContext((_, { headers }) => {

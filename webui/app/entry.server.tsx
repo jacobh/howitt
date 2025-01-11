@@ -78,6 +78,13 @@ export default async function handleRequest(
           ).replace(/</g, "\\u003c")}`, // The replace call escapes the < character to prevent cross-site scripting attacks that are possible via the presence of </script> in a string literal
         }}
       />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.__ENV__=${JSON.stringify({
+            GRAPHQL_URL: process.env.GRAPHQL_URL,
+          }).replace(/</g, "\\u003c")}`,
+        }}
+      />
     </ServerStyleContext.Provider>
   );
 

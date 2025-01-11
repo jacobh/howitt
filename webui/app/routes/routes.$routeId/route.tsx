@@ -77,6 +77,9 @@ query RouteQuery($routeId: RouteId!) {
       }
     }
   }
+  viewer {
+    ...viewerInfo
+  }
 }
 `);
 
@@ -137,7 +140,7 @@ export default function Route(): React.ReactElement {
 
   return (
     <Container>
-      <Nav />
+      <Nav viewer={data?.viewer} />
       <SidebarContainer
         title="Routes"
         titleLinkTo="/"

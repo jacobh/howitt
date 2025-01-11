@@ -26,6 +26,9 @@ const HOME_QUERY_NO_POINTS = gql(`
       elevationDescentM
       samplePoints
     }
+    viewer {
+      ...viewerInfo
+    }
   }
 `);
 
@@ -143,7 +146,7 @@ export default function Index(): React.ReactElement {
 
   return (
     <Container>
-      <Nav />
+      <Nav viewer={data?.viewer} />
       <SidebarContainer
         title="Routes"
         titleLinkTo={isNotNil(tags) ? "/" : undefined}
