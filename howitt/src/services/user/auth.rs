@@ -57,13 +57,11 @@ impl UserAuthService {
     ) -> Result<Result<Login, LoginFailed>, UserAuthServiceError> {
         let user = self
             .user_repo
-            .filter_models(UserFilter {
+            .find_model(UserFilter {
                 username: Some(username.to_string()),
             })
             .await
-            .map_err(UserAuthServiceError::UserRepo)?
-            .into_iter()
-            .nth(0);
+            .map_err(UserAuthServiceError::UserRepo)?;
 
         match user {
             Some(user) => match verify_password(&user, password) {

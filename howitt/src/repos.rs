@@ -73,6 +73,15 @@ pub trait Repo: Send + Sync {
         filter: <Self::Model as Model>::Filter,
     ) -> Result<Vec<Self::Model>, Self::Error>;
 
+    async fn find_model(
+        &self,
+        filter: <Self::Model as Model>::Filter,
+    ) -> Result<Option<Self::Model>, Self::Error> {
+        let models = self.filter_models(filter).await?;
+
+        Ok(models.into_iter().nth(0))
+    }
+
     async fn all_models(&self) -> Result<Vec<<Self as Repo>::Model>, Self::Error> {
         let indexes = self.all_indexes().await?;
 
@@ -108,6 +117,10 @@ pub trait AnyhowRepo: Send + Sync + std::fmt::Debug {
         &self,
         filter: <Self::Model as Model>::Filter,
     ) -> Result<Vec<Self::Model>, anyhow::Error>;
+    async fn find_model(
+        &self,
+        filter: <Self::Model as Model>::Filter,
+    ) -> Result<Option<Self::Model>, anyhow::Error>;
     async fn put(&self, model: <Self as AnyhowRepo>::Model) -> Result<(), anyhow::Error>;
 }
 
@@ -140,6 +153,12 @@ where
         filter: <Self::Model as Model>::Filter,
     ) -> Result<Vec<Self::Model>, anyhow::Error> {
         Ok(Repo::filter_models(self, filter).await?)
+    }
+    async fn find_model(
+        &self,
+        filter: <Self::Model as Model>::Filter,
+    ) -> Result<Option<Self::Model>, anyhow::Error> {
+        Ok(Repo::find_model(self, filter).await?)
     }
     async fn put(&self, model: T) -> Result<(), anyhow::Error> {
         Ok(Repo::put(self, model).await?)

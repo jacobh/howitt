@@ -1,6 +1,7 @@
 use async_graphql::*;
 use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
+use howitt::models::user::UserFilter;
 use howitt::models::ModelRef;
 use itertools::Itertools;
 
@@ -9,6 +10,7 @@ use crate::graphql::context::{RequestData, SchemaData};
 use super::point_of_interest::PointOfInterest;
 use super::ride::Ride;
 use super::route::Route;
+use super::user::UserProfile;
 use super::viewer::Viewer;
 use super::ModelId;
 
@@ -137,5 +139,20 @@ impl Query {
     }
     async fn point_of_interest(&self, _ctx: &Context<'_>, _id: usize) -> Option<PointOfInterest> {
         None
+    }
+    async fn user_with_username<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        username: String,
+    ) -> Result<Option<UserProfile>, async_graphql::Error> {
+        let SchemaData { user_repo, .. } = ctx.data()?;
+
+        let user = user_repo
+            .find_model(UserFilter {
+                username: Some(username),
+            })
+            .await?;
+
+        Ok(user.map(UserProfile))
     }
 }
