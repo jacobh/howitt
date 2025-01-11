@@ -55,6 +55,7 @@ async fn main() -> Result<(), anyhow::Error> {
             poi_repo,
             route_repo,
             ride_repo,
+            user_repo: user_repo.clone(),
         })
         .finish();
 

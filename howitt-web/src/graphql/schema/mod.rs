@@ -2,6 +2,7 @@ use async_graphql::{scalar, Object};
 use derive_more::derive::From;
 use howitt::models::{
     photo::PhotoId, point_of_interest::PointOfInterestId, ride::RideId, route::RouteId,
+    user::UserId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -12,6 +13,7 @@ pub mod point_of_interest;
 pub mod query;
 pub mod ride;
 pub mod route;
+pub mod user;
 pub mod viewer;
 
 #[derive(Serialize, Deserialize, From)]
@@ -21,6 +23,7 @@ scalar!(ModelId<PointOfInterestId>, "PointOfInterestId");
 scalar!(ModelId<RideId>, "RideId");
 scalar!(ModelId<RouteId>, "RouteId");
 scalar!(ModelId<PhotoId>, "PhotoId");
+scalar!(ModelId<UserId>, "UserId");
 
 pub struct ExternalRef(howitt::models::external_ref::ExternalRef);
 
