@@ -1,17 +1,16 @@
-FROM node:18
+FROM oven/bun
 
 RUN apt install tar gzip bash -y
 
-RUN npm install -g npm@10
+RUN bun install -g npm@10
 
 WORKDIR /app
-COPY package.json .
-COPY package-lock.json .
+COPY package.json bun.lockb ./
 
-RUN npm install
+RUN bun install
 
 COPY . .
 
-RUN npm run build
+RUN bun run build
 
-ENTRYPOINT [ "/bin/bash", "-c", "PORT=80 npm run start" ]
+ENTRYPOINT [ "/bin/bash", "-c", "PORT=80 bun run start" ]
