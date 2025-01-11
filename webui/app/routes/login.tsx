@@ -1,8 +1,10 @@
+import { useQuery } from "@apollo/client";
 import { css } from "@emotion/react";
 import { useNavigate } from "@remix-run/react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { FormEvent, useCallback, useState } from "react";
+import { gql } from "~/__generated__";
 
 const containerCss = css`
   display: grid;
@@ -35,8 +37,22 @@ const submitCss = css`
   padding: 4px 8px;
 `;
 
+const LoginQuery = gql(`
+  query LoginViewerInfo {
+    viewer {
+      id
+      profile {
+        username
+      }
+    ...viewerInfo
+    }
+  }  
+`);
+
 export default function Login(): React.ReactElement {
   const navigate = useNavigate();
+
+  const { refetch } = useQuery(LoginQuery);
 
   const [username, setUsername] = useState<string | undefined>();
   const [password, setPassword] = useState<string | undefined>();
@@ -57,6 +73,7 @@ export default function Login(): React.ReactElement {
 
         if (typeof res.data?.token === "string") {
           Cookies.set("token", res.data.token);
+          await refetch();
           navigate("/");
         } else {
           setError("Something went wrong, try again");
@@ -67,7 +84,7 @@ export default function Login(): React.ReactElement {
         setPassword("");
       }
     },
-    [username, password, navigate]
+    [username, password, navigate, refetch]
   );
 
   return (
