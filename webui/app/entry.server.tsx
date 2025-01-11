@@ -81,7 +81,7 @@ export default async function handleRequest(
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__ENV__=${JSON.stringify({
-            GRAPHQL_URL: process.env.GRAPHQL_URL,
+            CLIENT_GRAPHQL_URL: process.env.CLIENT_GRAPHQL_URL,
           }).replace(/</g, "\\u003c")}`,
         }}
       />
