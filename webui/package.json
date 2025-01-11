@@ -6,7 +6,7 @@
     "dev": "remix dev",
     "start": "remix-serve build/index.js",
     "typecheck": "tsc",
-    "gql-codegen": "graphql-codegen",
+    "gql-codegen": "graphql-codegen && npm run format",
     "gql-watch": "graphql-codegen -w",
     "format": "prettier --write app lambdaExpressServer.ts"
   },
