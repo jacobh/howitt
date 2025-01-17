@@ -1,5 +1,5 @@
-use rwgps_types::Route;
 use rwgps_types::config::UserConfig;
+use rwgps_types::Route;
 
 use crate::dirs::CONFIG_DIRPATH;
 

@@ -22,7 +22,7 @@ pub fn summarize_segment<T: DeltaData>(
 
 #[cfg(test)]
 mod tests {
-    use crate::models::point::{ElevationPoint, generate_point_deltas};
+    use crate::models::point::{generate_point_deltas, ElevationPoint};
     use crate::services::num::Round2;
 
     use super::*;

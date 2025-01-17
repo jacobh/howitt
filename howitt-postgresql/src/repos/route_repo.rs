@@ -8,7 +8,7 @@ use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
 use itertools::Itertools;
 
-use howitt::models::{Model, route::RouteModel};
+use howitt::models::{route::RouteModel, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
 

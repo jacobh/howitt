@@ -14,9 +14,9 @@ use howitt::models::{
     point_of_interest::{PointOfInterest, PointOfInterestType},
 };
 use project_root::get_project_root;
-use shapefile::{Point, PolygonRing, dbase::FieldValue, record::polygon::GenericPolygon};
+use shapefile::{dbase::FieldValue, record::polygon::GenericPolygon, Point, PolygonRing};
 
-use geo::{LineString, Polygon, centroid::Centroid};
+use geo::{centroid::Centroid, LineString, Polygon};
 
 mod dirs;
 mod rwgps;

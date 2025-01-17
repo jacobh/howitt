@@ -1,6 +1,6 @@
 use chrono::{Months, Utc};
 use derive_more::derive::{Constructor, From, Into};
-use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode};
+use jsonwebtoken::{decode, DecodingKey, EncodingKey, Header, Validation};
 use serde::Serialize;
 use thiserror::Error;
 

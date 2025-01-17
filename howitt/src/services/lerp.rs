@@ -251,7 +251,7 @@ mod tests {
 
     use crate::services::num::Round2;
 
-    use super::{Lerp, LerpData, LerpNode, LerpNodes, Lerped, lerp_data_vec};
+    use super::{lerp_data_vec, Lerp, LerpData, LerpNode, LerpNodes, Lerped};
 
     #[test]
     fn test_lerped() {

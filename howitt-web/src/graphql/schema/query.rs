@@ -1,18 +1,18 @@
 use async_graphql::*;
-use howitt::models::ModelRef;
 use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
 use howitt::models::user::UserFilter;
+use howitt::models::ModelRef;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
 
-use super::ModelId;
 use super::point_of_interest::PointOfInterest;
 use super::ride::Ride;
 use super::route::Route;
 use super::user::UserProfile;
 use super::viewer::Viewer;
+use super::ModelId;
 
 #[derive(InputObject)]
 pub struct QueryRouteFilters {

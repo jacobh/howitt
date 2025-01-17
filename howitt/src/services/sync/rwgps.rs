@@ -9,14 +9,14 @@ use rwgps_types::{RouteSummary, TripSummary};
 use crate::{
     ext::iter::ResultIterExt,
     models::{
-        IndexItem,
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         photo::{Photo, PhotoId},
-        point::{ElevationPoint, PointChunk, TemporalElevationPoint, simplify_points},
+        point::{simplify_points, ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RideModel},
         route::{Route, RouteId, RouteModel},
         route_description::RouteDescription,
         tag::Tag,
+        IndexItem,
     },
     repos::Repo,
     services::smoothing::smooth_elevation_points,

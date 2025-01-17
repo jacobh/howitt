@@ -6,8 +6,8 @@ use howitt::models::ride::{RideFilter, RideId};
 use itertools::Itertools;
 
 use howitt::models::{
-    Model,
     ride::{Ride, RideModel},
+    Model,
 };
 use howitt::repos::Repo;
 use uuid::Uuid;

@@ -1,12 +1,12 @@
 use crate::ext::futures::FuturesIteratorExt;
-use crate::models::IndexItem;
 use crate::models::user::User;
+use crate::models::IndexItem;
 use async_trait::async_trait;
 use std::sync::Arc;
 
 use crate::ext::iter::ResultIterExt;
 use crate::models::{
-    Model, config::Config, point_of_interest::PointOfInterest, ride::RideModel, route::RouteModel,
+    config::Config, point_of_interest::PointOfInterest, ride::RideModel, route::RouteModel, Model,
 };
 
 #[async_trait]

@@ -9,7 +9,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use howitt::services::{
     detect_segments::detect_segments,
-    nearby::{NearbyPointOfInterest, nearby_points_of_interest},
+    nearby::{nearby_points_of_interest, NearbyPointOfInterest},
 };
 use rwgps_types::Route;
 

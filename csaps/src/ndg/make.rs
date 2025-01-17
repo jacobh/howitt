@@ -1,8 +1,8 @@
 use ndarray::Dimension;
 
-use crate::{CubicSmoothingSpline, Result, ndarrayext::to_2d_simple, util::dim_from_vec};
+use crate::{ndarrayext::to_2d_simple, util::dim_from_vec, CubicSmoothingSpline, Result};
 
-use super::{GridCubicSmoothingSpline, NdGridSpline, util::permute_axes};
+use super::{util::permute_axes, GridCubicSmoothingSpline, NdGridSpline};
 
 impl<'a, D> GridCubicSmoothingSpline<'a, D>
 where

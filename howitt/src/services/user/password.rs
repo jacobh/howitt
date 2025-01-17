@@ -1,6 +1,6 @@
 use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHashString, SaltString},
     Argon2, PasswordHasher, PasswordVerifier,
-    password_hash::{PasswordHashString, SaltString, rand_core::OsRng},
 };
 use thiserror::Error;
 

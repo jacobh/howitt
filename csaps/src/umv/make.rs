@@ -1,9 +1,8 @@
-use ndarray::{Array1, Array2, Axis, Dimension, concatenate, s};
+use ndarray::{concatenate, s, Array1, Array2, Axis, Dimension};
 
 use crate::{
-    Real, Result,
     ndarrayext::{diff, to_2d},
-    sprsext,
+    sprsext, Real, Result,
 };
 
 use super::{CubicSmoothingSpline, NdSpline};

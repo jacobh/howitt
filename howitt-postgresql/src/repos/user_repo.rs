@@ -1,11 +1,11 @@
-use argon2::PasswordHash;
 use argon2::password_hash::Encoding;
+use argon2::PasswordHash;
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::ulid::ulid_into_uuid;
 
 use howitt::models::user::{UserFilter, UserId};
-use howitt::models::{Model, user::User};
+use howitt::models::{user::User, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
 

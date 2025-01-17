@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
-use quote::{ToTokens, quote};
+use quote::{quote, ToTokens};
 use syn::{
-    Data, DataStruct, DeriveInput, FieldValue, Fields, Token, parse_quote, punctuated::Punctuated,
+    parse_quote, punctuated::Punctuated, Data, DataStruct, DeriveInput, FieldValue, Fields, Token,
 };
 
 pub fn expand_round2(input: DeriveInput) -> syn::Result<TokenStream> {

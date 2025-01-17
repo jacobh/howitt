@@ -1,6 +1,6 @@
 use async_graphql::{Context, Enum, Object};
 use howitt::{
-    models::{ModelRef, point::ElevationPoint, route::RouteId, tag::Tag},
+    models::{point::ElevationPoint, route::RouteId, tag::Tag, ModelRef},
     services::generate_cuesheet::generate_cuesheet,
 };
 use itertools::Itertools;
@@ -8,10 +8,10 @@ use itertools::Itertools;
 use crate::graphql::context::SchemaData;
 
 use super::{
-    ExternalRef, ModelId,
     cue::Cue,
     geo::{PointDelta, SlopeEnd},
     photo::Photo,
+    ExternalRef, ModelId,
 };
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]

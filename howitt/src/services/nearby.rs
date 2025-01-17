@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 
 use crate::models::{
-    point::{ElevationPoint, ElevationPointDelta, Point, closest_point, simplify_points},
+    point::{closest_point, simplify_points, ElevationPoint, ElevationPointDelta, Point},
     point_of_interest::PointOfInterest,
     route::Route,
 };
-use geo::{Distance, algorithm::line_measures::metric_spaces::Haversine};
+use geo::{algorithm::line_measures::metric_spaces::Haversine, Distance};
 use itertools::Itertools;
 
 #[derive(Debug, Clone)]

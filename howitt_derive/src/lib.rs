@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use syn::{DeriveInput, parse_macro_input};
+use syn::{parse_macro_input, DeriveInput};
 
 mod round2;
 use round2::expand_round2;

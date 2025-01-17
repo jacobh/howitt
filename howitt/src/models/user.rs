@@ -1,5 +1,5 @@
 use argon2::password_hash::PasswordHashString;
-use chrono::{DateTime, Utc, serde::ts_seconds};
+use chrono::{serde::ts_seconds, DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::{IndexModel, ModelName, ModelUlid};
