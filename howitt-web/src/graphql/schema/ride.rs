@@ -1,6 +1,7 @@
 use async_graphql::{Context, Object};
 use chrono::{DateTime, Utc};
-use howitt::models::ride::RideId;
+use howitt::models::{point::Point, ride::RideId};
+use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
@@ -29,11 +30,15 @@ impl Ride {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
-        // let SchemaData {
-        //     ride_points_repo, ..
-        // } = ctx.data()?;
-        // let ride_model = ride_repo.get(self.0.id).await?;
+        let SchemaData {
+            ride_points_repo, ..
+        } = ctx.data()?;
+        let ride_points = ride_points_repo.get(self.0.id).await?;
 
-        Ok(vec![])
+        Ok(ride_points
+            .points
+            .into_iter()
+            .map(|point| point.into_x_y_vec())
+            .collect_vec())
     }
 }

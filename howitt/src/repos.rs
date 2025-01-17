@@ -1,4 +1,5 @@
 use crate::ext::futures::FuturesIteratorExt;
+use crate::models::ride::RidePoints;
 use crate::models::user::User;
 use crate::models::IndexItem;
 use async_trait::async_trait;
@@ -169,4 +170,5 @@ pub type ConfigRepo = Arc<dyn AnyhowRepo<Model = Config>>;
 pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<Model = PointOfInterest>>;
 pub type RouteModelRepo = Arc<dyn AnyhowRepo<Model = RouteModel>>;
 pub type RideRepo = Arc<dyn AnyhowRepo<Model = Ride>>;
+pub type RidePointsRepo = Arc<dyn AnyhowRepo<Model = RidePoints>>;
 pub type UserRepo = Arc<dyn AnyhowRepo<Model = User>>;

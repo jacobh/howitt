@@ -6,8 +6,8 @@ use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use auth::login_route;
 use howitt::services::user::auth::{Login, UserAuthService};
 use howitt_postgresql::{
-    PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
-    PostgresUserRepo,
+    PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
+    PostgresRouteRepo, PostgresUserRepo,
 };
 use slog::Drain;
 use warp::{
@@ -46,6 +46,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
     let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
     let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
+    let ride_points_repo = Arc::new(PostgresRidePointsRepo::new(pg.clone()));
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
 
     let auth_service = UserAuthService::new(user_repo.clone(), "asdf123".to_string());
@@ -55,6 +56,7 @@ async fn main() -> Result<(), anyhow::Error> {
             poi_repo,
             route_repo,
             ride_repo,
+            ride_points_repo,
             user_repo: user_repo.clone(),
         })
         .finish();
@@ -136,7 +138,7 @@ async fn main() -> Result<(), anyhow::Error> {
         }));
 
     warp::serve(routes.with(warp::compression::gzip()))
-        .run(([0, 0, 0, 0], 8000))
+        .run(([127, 0, 0, 1], 8000))
         .await;
 
     Ok(())
