@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select * from ride_points where ride_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "ride_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "points",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "748792c23d57c08af4fc391447c8073033be3a7eac291742053bdcd83d297ce0"
+}
