@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use aws_config::BehaviorVersion;
 use aws_sdk_s3::{
     operation::{head_object::HeadObjectError, put_object::PutObjectError},
     primitives::ByteStream,
@@ -19,7 +20,7 @@ pub struct S3BucketClient {
 
 impl S3BucketClient {
     pub async fn new_from_env(bucket_name: BucketName) -> S3BucketClient {
-        let config = aws_config::load_from_env().await;
+        let config = aws_config::load_defaults(BehaviorVersion::latest()).await;
         S3BucketClient {
             client: aws_sdk_s3::Client::new(&config),
             bucket_name: bucket_name,
