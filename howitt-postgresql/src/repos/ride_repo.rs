@@ -23,6 +23,7 @@ struct RideRow {
     distance_m: i32,
     started_at: DateTime<Utc>,
     finished_at: DateTime<Utc>,
+    user_id: Uuid,
 }
 
 impl TryFrom<RideRow> for Ride {

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select id, created_at, name, external_ref, distance_m, sample_points, description, published_at, technical_difficulty, physical_difficulty, minimum_bike, ideal_bike, scouted, direction, tags, is_starred from routes",
+  "query": "select id,\n                created_at,\n                name,\n                external_ref,\n                distance_m,\n                sample_points,\n                description,\n                published_at,\n                technical_difficulty,\n                physical_difficulty,\n                minimum_bike,\n                ideal_bike,\n                scouted,\n                direction,\n                tags,\n                is_starred,\n                user_id\n            from routes",
   "describe": {
     "columns": [
       {
@@ -82,6 +82,11 @@
         "ordinal": 15,
         "name": "is_starred",
         "type_info": "Bool"
+      },
+      {
+        "ordinal": 16,
+        "name": "user_id",
+        "type_info": "Uuid"
       }
     ],
     "parameters": {
@@ -103,8 +108,9 @@
       true,
       true,
       false,
+      false,
       false
     ]
   },
-  "hash": "f5e8b7310a71f7614bd324a51f9b9380ab4dcf7051d96d1b8c9dbf3352a9213e"
+  "hash": "a453474dbfb640a22c78263d0ff65826c6fd85aeda1972ce125ba9092e674b2a"
 }
