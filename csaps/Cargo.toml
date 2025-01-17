@@ -13,7 +13,7 @@ documentation = "https://docs.rs/csaps"
 readme = "README.md"
 license = "MIT"
 
-edition = "2024"
+edition = "2021"
 
 
 [badges]
