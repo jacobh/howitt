@@ -1,7 +1,7 @@
 use std::{convert::identity, str::FromStr, sync::Arc};
 
 use chrono::Utc;
-use clap::{arg, Args, Subcommand};
+use clap::{Args, Subcommand, arg};
 use howitt::{
     models::{
         point::simplify_points,

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{external_ref::ExternalRef, ModelName, ModelUlid};
+use super::{ModelName, ModelUlid, external_ref::ExternalRef};
 
 pub type PhotoId = ModelUlid<{ ModelName::Photo }>;
 

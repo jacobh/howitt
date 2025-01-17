@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
 
 use super::{
-    external_ref::ExternallySourced, point::PointChunk, user::UserId, IndexModel, ModelName,
-    ModelUlid,
+    IndexModel, ModelName, ModelUlid, external_ref::ExternallySourced, point::PointChunk,
+    user::UserId,
 };
 
 pub type RideId = ModelUlid<{ ModelName::Ride }>;

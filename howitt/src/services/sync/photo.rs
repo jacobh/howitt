@@ -4,10 +4,10 @@ use thiserror::Error;
 use crate::{
     ext::{futures::FuturesIteratorExt, iter::ResultIterExt},
     models::{
+        ModelId,
         external_ref::{ExternalId, ExternalRef, RwgpsId},
         photo::Photo,
         route::RouteModel,
-        ModelId,
     },
     repos::Repo,
 };

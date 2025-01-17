@@ -1,5 +1,5 @@
 use async_graphql::{Enum, Object};
-use howitt::models::{point_of_interest::PointOfInterestId, Model};
+use howitt::models::{Model, point_of_interest::PointOfInterestId};
 
 use super::ModelId;
 

@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::models::point::{generate_point_deltas, ElevationPoint};
+use crate::models::point::{ElevationPoint, generate_point_deltas};
 
 pub fn smooth_elevations(cum_distances: &[f64], elevations: &[f64]) -> Vec<f64> {
     if elevations.len() < 2 {

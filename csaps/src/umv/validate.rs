@@ -1,9 +1,9 @@
 use ndarray::{ArrayView1, Axis, Dimension};
 
 use crate::{
-    validate::{validate_data_sites, validate_smooth_value},
     CsapsError::InvalidInputData,
     CubicSmoothingSpline, Result,
+    validate::{validate_data_sites, validate_smooth_value},
 };
 
 impl<'a, D> CubicSmoothingSpline<'a, D>

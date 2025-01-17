@@ -1,4 +1,4 @@
-use futures::{prelude::*, stream::FuturesOrdered, Future};
+use futures::{Future, prelude::*, stream::FuturesOrdered};
 
 pub trait FuturesIteratorExt<T> {
     fn collect_futures_ordered(self) -> impl std::future::Future<Output = Vec<T>>;

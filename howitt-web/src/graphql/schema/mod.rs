@@ -1,4 +1,4 @@
-use async_graphql::{scalar, Object};
+use async_graphql::{Object, scalar};
 use derive_more::derive::From;
 use howitt::models::{
     photo::PhotoId, point_of_interest::PointOfInterestId, ride::RideId, route::RouteId,

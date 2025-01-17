@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use crate::services::num::Round2;
 
 use super::{
-    segment_summary::{ElevationSummary, SummaryData},
     ModelId,
+    segment_summary::{ElevationSummary, SummaryData},
 };
 
 pub trait Point: std::fmt::Debug + Clone {
@@ -535,15 +535,12 @@ mod tests {
 
         let delta = PointDelta::from_points(&p1, &p2);
 
-        assert_eq!(
-            delta.round2(),
-            PointDelta {
-                distance: 5622.13,
-                bearing: 211.02,
-                data: ElevationDelta {
-                    elevation_gain: 664.6
-                }
+        assert_eq!(delta.round2(), PointDelta {
+            distance: 5622.13,
+            bearing: 211.02,
+            data: ElevationDelta {
+                elevation_gain: 664.6
             }
-        )
+        })
     }
 }

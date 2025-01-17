@@ -1,8 +1,8 @@
 use ndarray::{Array, ArrayView1, Dimension};
 
-use crate::{ndarrayext::to_2d_simple, util::dim_from_vec, NdSpline, Real};
+use crate::{NdSpline, Real, ndarrayext::to_2d_simple, util::dim_from_vec};
 
-use super::{util::permute_axes, GridCubicSmoothingSpline, NdGridSpline};
+use super::{GridCubicSmoothingSpline, NdGridSpline, util::permute_axes};
 
 impl<'a, T, D> NdGridSpline<'a, T, D>
 where

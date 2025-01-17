@@ -1,15 +1,15 @@
 use ndarray::{
-    s, Array, Array1, ArrayView, ArrayView2, AsArray, Axis, Dimension, IntoDimension, Ix1, Ix2,
-    Slice,
+    Array, Array1, ArrayView, ArrayView2, AsArray, Axis, Dimension, IntoDimension, Ix1, Ix2, Slice,
+    s,
 };
 
 use almost;
 use itertools::Itertools;
 
 use crate::{
-    util::dim_from_vec,
     CsapsError::{ReshapeFrom2d, ReshapeTo2d},
     Real, Result,
+    util::dim_from_vec,
 };
 
 pub fn diff<'a, T: 'a, D, V>(data: V, axis: Option<Axis>) -> Array<T, D>
@@ -161,7 +161,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::ndarrayext::*;
-    use ndarray::{array, Array1, Axis, Ix1, Ix2, Ix3};
+    use ndarray::{Array1, Axis, Ix1, Ix2, Ix3, array};
     use std::f64;
 
     #[test]
@@ -188,25 +188,22 @@ mod tests {
     fn test_diff_3d() {
         let a = array![[[1., 2., 3.], [1., 2., 3.]], [[1., 2., 3.], [1., 2., 3.]]];
 
-        assert_eq!(
-            diff(&a, None),
-            array![[[1., 1.], [1., 1.]], [[1., 1.], [1., 1.]]]
-        );
+        assert_eq!(diff(&a, None), array![[[1., 1.], [1., 1.]], [[1., 1.], [
+            1., 1.
+        ]]]);
 
-        assert_eq!(
-            diff(&a, Some(Axis(0))),
-            array![[[0., 0., 0.], [0., 0., 0.]]]
-        );
+        assert_eq!(diff(&a, Some(Axis(0))), array![[[0., 0., 0.], [
+            0., 0., 0.
+        ]]]);
 
-        assert_eq!(
-            diff(&a, Some(Axis(1))),
-            array![[[0., 0., 0.]], [[0., 0., 0.]]]
-        );
+        assert_eq!(diff(&a, Some(Axis(1))), array![[[0., 0., 0.]], [[
+            0., 0., 0.
+        ]]]);
 
-        assert_eq!(
-            diff(&a, Some(Axis(2))),
-            array![[[1., 1.], [1., 1.]], [[1., 1.], [1., 1.]]]
-        );
+        assert_eq!(diff(&a, Some(Axis(2))), array![[[1., 1.], [1., 1.]], [
+            [1., 1.],
+            [1., 1.]
+        ]]);
     }
 
     #[test]
@@ -220,14 +217,15 @@ mod tests {
     fn test_to_2d_from_2d() {
         let a = array![[1, 2, 3, 4], [5, 6, 7, 8]];
 
-        assert_eq!(
-            to_2d(&a, Axis(0)).unwrap(),
-            array![[1, 5], [2, 6], [3, 7], [4, 8]]
-        );
-        assert_eq!(
-            to_2d(&a, Axis(1)).unwrap(),
-            array![[1, 2, 3, 4], [5, 6, 7, 8]]
-        );
+        assert_eq!(to_2d(&a, Axis(0)).unwrap(), array![
+            [1, 5],
+            [2, 6],
+            [3, 7],
+            [4, 8]
+        ]);
+        assert_eq!(to_2d(&a, Axis(1)).unwrap(), array![[1, 2, 3, 4], [
+            5, 6, 7, 8
+        ]]);
     }
 
     #[test]
@@ -237,10 +235,12 @@ mod tests {
         // FIXME: incompatible memory layout
         // assert_eq!(to_2d(&a, Axis(0)).unwrap(), array![[1, 7], [2, 8], [3, 9], [4, 10], [5, 11], [6, 12]]);
         // assert_eq!(to_2d(&a, Axis(1)).unwrap(), array![[1, 4], [2, 5], [3, 6], [7, 10], [8, 11], [9, 12]]);
-        assert_eq!(
-            to_2d(&a, Axis(2)).unwrap(),
-            array![[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
-        );
+        assert_eq!(to_2d(&a, Axis(2)).unwrap(), array![
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+            [10, 11, 12]
+        ]);
     }
 
     #[test]
@@ -252,19 +252,20 @@ mod tests {
     #[test]
     fn test_to_2d_simple_from_2d() {
         let a = array![[1, 2, 3, 4], [5, 6, 7, 8]];
-        assert_eq!(
-            to_2d_simple(a.view()).unwrap(),
-            array![[1, 2, 3, 4], [5, 6, 7, 8]]
-        );
+        assert_eq!(to_2d_simple(a.view()).unwrap(), array![[1, 2, 3, 4], [
+            5, 6, 7, 8
+        ]]);
     }
 
     #[test]
     fn test_to_2d_simple_from_3d() {
         let a = array![[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]];
-        assert_eq!(
-            to_2d_simple(a.view()).unwrap(),
-            array![[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
-        );
+        assert_eq!(to_2d_simple(a.view()).unwrap(), array![
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+            [10, 11, 12]
+        ]);
     }
 
     #[test]
@@ -387,10 +388,9 @@ mod tests {
 
         let indices = digitize(&xi, &edges);
 
-        assert_eq!(
-            indices,
-            array![1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3]
-        )
+        assert_eq!(indices, array![
+            1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3
+        ])
     }
 
     #[test]
@@ -405,14 +405,15 @@ mod tests {
 
     #[test]
     fn test_digitize_not_increased() {
-        let xi = array![1., 2., 1., 3., 3., 2., 1., 4., 5., 5., 4., 4., 3., 3., 2., 1.];
+        let xi = array![
+            1., 2., 1., 3., 3., 2., 1., 4., 5., 5., 4., 4., 3., 3., 2., 1.
+        ];
         let edges = array![f64::NEG_INFINITY, 2., 3., 4., 5., f64::INFINITY];
 
         let indices = digitize(&xi, &edges);
 
-        assert_eq!(
-            indices,
-            array![0, 1, 0, 2, 2, 1, 0, 3, 4, 4, 3, 3, 2, 2, 1, 0]
-        )
+        assert_eq!(indices, array![
+            0, 1, 0, 2, 2, 1, 0, 3, 4, 4, 3, 3, 2, 2, 1, 0
+        ])
     }
 }

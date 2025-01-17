@@ -9,20 +9,20 @@ use serde::{Deserialize, Serialize};
 use crate::{
     models::{external_ref::ExternalRef, point::ElevationPoint},
     services::{
-        nearby::{nearby_routes, NearbyRoute},
+        nearby::{NearbyRoute, nearby_routes},
         summarize_segment::summarize_segment,
     },
 };
 
 use super::{
+    IndexItem, ModelName, ModelUlid,
     external_ref::ExternallySourced,
     photo::Photo,
-    point::{generate_point_deltas, ElevationPointDelta, PointChunk},
+    point::{ElevationPointDelta, PointChunk, generate_point_deltas},
     route_description::RouteDescription,
     segment_summary::SegmentElevationSummary,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
-    IndexItem, ModelName, ModelUlid,
 };
 
 pub type RouteId = ModelUlid<{ ModelName::Route }>;

@@ -1,7 +1,7 @@
 #![feature(async_closure)]
 use std::{convert::Infallible, sync::Arc};
 
-use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema, http::GraphiQLSource};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use auth::login_route;
 use howitt::services::user::auth::{Login, UserAuthService};
@@ -11,8 +11,8 @@ use howitt_postgresql::{
 };
 use slog::Drain;
 use warp::{
-    http::{Response as HttpResponse, StatusCode},
     Filter, Rejection,
+    http::{Response as HttpResponse, StatusCode},
 };
 
 mod auth;
@@ -20,9 +20,9 @@ mod graphql;
 mod rejections;
 
 use graphql::{
+    Query,
     context::{RequestData, SchemaData},
     credentials::Credentials,
-    Query,
 };
 
 fn new_logger() -> slog::Logger {

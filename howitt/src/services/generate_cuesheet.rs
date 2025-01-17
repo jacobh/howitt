@@ -2,12 +2,12 @@ use itertools::{Itertools, Position};
 
 use crate::models::{
     cuesheet::{Cue, CueStop, Cuesheet},
-    point::{generate_point_deltas, ElevationPoint},
+    point::{ElevationPoint, generate_point_deltas},
     point_of_interest::PointOfInterest,
 };
 
 use super::{
-    nearby::{nearby_points_of_interest, NearbyPointOfInterest},
+    nearby::{NearbyPointOfInterest, nearby_points_of_interest},
     summarize_segment::summarize_segment,
 };
 

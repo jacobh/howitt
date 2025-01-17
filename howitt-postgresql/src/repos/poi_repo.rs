@@ -3,7 +3,7 @@ use howitt::ext::iter::ResultIterExt;
 use howitt::ext::serde::json::unwrap_string_value;
 use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 
-use howitt::models::{point_of_interest::PointOfInterest, Model};
+use howitt::models::{Model, point_of_interest::PointOfInterest};
 use howitt::repos::Repo;
 use uuid::Uuid;
 
