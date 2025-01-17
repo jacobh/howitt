@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
 
+#[allow(dead_code)]
 struct PointOfInterestRow {
     id: Uuid,
     created_at: DateTime<Utc>,

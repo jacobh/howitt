@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
 
+#[allow(dead_code)]
 struct RouteIndexRow {
     id: Uuid,
     created_at: DateTime<Utc>,
@@ -87,6 +88,7 @@ impl TryFrom<RouteIndexRow> for Route {
     }
 }
 
+#[allow(dead_code)]
 struct RouteRow {
     id: Uuid,
     created_at: DateTime<Utc>,

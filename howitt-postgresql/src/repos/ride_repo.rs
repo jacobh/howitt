@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
 
+#[allow(dead_code)]
 struct RideRow {
     id: Uuid,
     name: Option<String>,
