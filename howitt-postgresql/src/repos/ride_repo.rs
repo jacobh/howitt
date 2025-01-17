@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::point::PointChunk;
-use howitt::models::ride::RideId;
+use howitt::models::ride::{RideFilter, RideId};
 use itertools::Itertools;
 
 use howitt::models::{
@@ -67,14 +67,43 @@ impl Repo for PostgresRideRepo {
     type Model = RideModel;
     type Error = PostgresRepoError;
 
-    async fn filter_models(&self, _filter: ()) -> Result<Vec<RideModel>, PostgresRepoError> {
+    async fn filter_models(&self, filter: RideFilter) -> Result<Vec<RideModel>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let query = sqlx::query_as!(RideRow, r#"select * from rides"#);
+        let rides = match filter {
+            RideFilter::User {
+                user_id,
+                started_at_gte: Some(started_at_gte),
+            } => {
+                sqlx::query_as!(
+                    RideRow,
+                    r#"select * from rides where user_id = $1 and started_at >= $2"#,
+                    ulid_into_uuid(*user_id.as_ulid()),
+                    started_at_gte
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
+            RideFilter::User {
+                user_id,
+                started_at_gte: None,
+            } => {
+                sqlx::query_as!(
+                    RideRow,
+                    r#"select * from rides where user_id = $1"#,
+                    ulid_into_uuid(*user_id.as_ulid()),
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
+            RideFilter::All => {
+                sqlx::query_as!(RideRow, r#"select * from rides"#)
+                    .fetch_all(conn.as_mut())
+                    .await
+            }
+        }?;
 
-        Ok(query
-            .fetch_all(conn.as_mut())
-            .await?
+        Ok(rides
             .into_iter()
             .map(RideModel::try_from)
             .collect_result_vec()?)

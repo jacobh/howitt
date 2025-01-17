@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
 
-use super::{external_ref::ExternallySourced, point::PointChunk, IndexModel, ModelName, ModelUlid};
+use super::{
+    external_ref::ExternallySourced, point::PointChunk, user::UserId, IndexModel, ModelName,
+    ModelUlid,
+};
 
 pub type RideId = ModelUlid<{ ModelName::Ride }>;
 
@@ -33,6 +36,15 @@ impl ExternallySourced for Ride {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum RideFilter {
+    All,
+    User {
+        user_id: UserId,
+        started_at_gte: Option<DateTime<Utc>>,
+    },
+}
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct RideModel {
     pub ride: Ride,
@@ -51,7 +63,7 @@ impl crate::models::Model for RideModel {
     type Id = RideId;
     type IndexItem = Ride;
     type OtherItem = RideItem;
-    type Filter = ();
+    type Filter = RideFilter;
 
     fn id(&self) -> RideId {
         self.ride.id
