@@ -12,7 +12,7 @@ use crate::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         photo::{Photo, PhotoId},
         point::{simplify_points, ElevationPoint, PointChunk, TemporalElevationPoint},
-        ride::{Ride, RideId, RideModel},
+        ride::{Ride, RideId, RidePoints},
         route::{Route, RouteId, RouteModel},
         route_description::RouteDescription,
         tag::Tag,
@@ -26,22 +26,25 @@ const SYNC_VERSION: usize = 2;
 
 pub struct RwgpsSyncService<
     RouteRepo: Repo<Model = RouteModel>,
-    RideRepo: Repo<Model = RideModel>,
+    RideRepo: Repo<Model = Ride>,
+    RidePointsRepo: Repo<Model = RidePoints>,
     RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
     RwgpsClientError: Into<anyhow::Error>,
     ForceSyncRouteFn: Fn(&RouteSummary) -> bool,
 > {
     pub route_repo: RouteRepo,
     pub ride_repo: RideRepo,
+    pub ride_points_repo: RidePointsRepo,
     pub rwgps_client: RwgpsClient,
     pub rwgps_error: PhantomData<RwgpsClientError>,
     pub should_force_sync_route_fn: Option<ForceSyncRouteFn>,
 }
 
-impl<R1, R2, C, E, F> RwgpsSyncService<R1, R2, C, E, F>
+impl<R1, R2, R3, C, E, F> RwgpsSyncService<R1, R2, R3, C, E, F>
 where
     R1: Repo<Model = RouteModel>,
-    R2: Repo<Model = RideModel>,
+    R2: Repo<Model = Ride>,
+    R3: Repo<Model = RidePoints>,
     C: rwgps_types::client::RwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
     F: Fn(&RouteSummary) -> bool,
@@ -49,12 +52,14 @@ where
     pub fn new(
         route_repo: R1,
         ride_repo: R2,
+        ride_points_repo: R3,
         rwgps_client: C,
         should_force_sync_route_fn: Option<F>,
-    ) -> RwgpsSyncService<R1, R2, C, E, F> {
+    ) -> RwgpsSyncService<R1, R2, R3, C, E, F> {
         RwgpsSyncService {
             route_repo,
             ride_repo,
+            ride_points_repo,
             rwgps_client,
             rwgps_error: PhantomData,
             should_force_sync_route_fn,
@@ -295,23 +300,23 @@ where
             .max()
             .ok_or(anyhow!("no points"))?;
 
-        let model = RideModel {
-            ride: Ride {
-                id,
-                name: ride.name,
-                distance: ride.distance,
-                started_at,
-                finished_at,
-                external_ref: Some(ExternalRef {
-                    id: ExternalId::Rwgps(RwgpsId::Trip(ride.id)),
-                    updated_at: ride.updated_at,
-                    sync_version: Some(SYNC_VERSION),
-                }),
-            },
-            point_chunks: PointChunk::new_chunks(id, points),
+        let ride = Ride {
+            id,
+            name: ride.name,
+            distance: ride.distance,
+            started_at,
+            finished_at,
+            external_ref: Some(ExternalRef {
+                id: ExternalId::Rwgps(RwgpsId::Trip(ride.id)),
+                updated_at: ride.updated_at,
+                sync_version: Some(SYNC_VERSION),
+            }),
         };
 
-        self.ride_repo.put(model).await?;
+        let ride_points = RidePoints { id, points };
+
+        self.ride_repo.put(ride).await?;
+        self.ride_points_repo.put(ride_points).await?;
 
         Ok(())
     }

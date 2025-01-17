@@ -18,8 +18,8 @@ use howitt::{
 use howitt_clients::{ReqwestHttpClient, S3BucketClient};
 use howitt_fs::{load_huts, load_stations, load_user_config};
 use howitt_postgresql::{
-    PostgresClient, PostgresPointOfInterestRepo, PostgresRideRepo, PostgresRouteRepo,
-    PostgresUserRepo,
+    PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
+    PostgresRouteRepo, PostgresUserRepo,
 };
 use itertools::Itertools;
 use rwgps::RwgpsClient;
@@ -67,7 +67,8 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
     .await?;
     let point_of_interest_repo = PostgresPointOfInterestRepo::new(pg.clone());
     let route_model_repo = PostgresRouteRepo::new(pg.clone());
-    let ride_model_repo = PostgresRideRepo::new(pg.clone());
+    let ride_repo = PostgresRideRepo::new(pg.clone());
+    let ride_points_repo = PostgresRidePointsRepo::new(pg.clone());
     let user_repo = PostgresUserRepo::new(pg.clone());
 
     match command {
@@ -89,7 +90,8 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
 
             let service = RwgpsSyncService {
                 route_repo: route_model_repo,
-                ride_repo: ride_model_repo,
+                ride_repo,
+                ride_points_repo,
                 rwgps_client,
                 rwgps_error: std::marker::PhantomData,
                 should_force_sync_route_fn: Some(|summary: &RouteSummary| {

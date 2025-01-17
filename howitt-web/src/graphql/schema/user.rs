@@ -33,7 +33,7 @@ impl UserProfile {
             })
             .await?;
 
-        let rides = rides.into_iter().map(|ride| Ride(ride.ride)).collect_vec();
+        let rides = rides.into_iter().map(|ride| Ride(ride)).collect_vec();
 
         Ok(rides)
     }

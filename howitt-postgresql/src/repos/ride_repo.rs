@@ -2,14 +2,9 @@ use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::filters::TemporalFilter;
-use howitt::models::point::PointChunk;
 use howitt::models::ride::{RideFilter, RideId};
-use itertools::Itertools;
 
-use howitt::models::{
-    ride::{Ride, RideModel},
-    Model,
-};
+use howitt::models::{ride::Ride, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
 
@@ -43,22 +38,6 @@ impl TryFrom<RideRow> for Ride {
     }
 }
 
-impl TryFrom<RideRow> for RideModel {
-    type Error = PostgresRepoError;
-
-    fn try_from(row: RideRow) -> Result<Self, Self::Error> {
-        let points = row.points.clone();
-        let ride = Ride::try_from(row)?;
-        let point_chunks = vec![PointChunk {
-            model_id: ride.id(),
-            idx: 0,
-            points: serde_json::from_value(points)?,
-        }];
-
-        Ok(RideModel { ride, point_chunks })
-    }
-}
-
 #[derive(Debug, derive_more::Constructor)]
 pub struct PostgresRideRepo {
     client: PostgresClient,
@@ -66,10 +45,10 @@ pub struct PostgresRideRepo {
 
 #[async_trait::async_trait]
 impl Repo for PostgresRideRepo {
-    type Model = RideModel;
+    type Model = Ride;
     type Error = PostgresRepoError;
 
-    async fn filter_models(&self, filter: RideFilter) -> Result<Vec<RideModel>, PostgresRepoError> {
+    async fn filter_models(&self, filter: RideFilter) -> Result<Vec<Ride>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let rides = match filter {
@@ -120,13 +99,10 @@ impl Repo for PostgresRideRepo {
             }
         }?;
 
-        Ok(rides
-            .into_iter()
-            .map(RideModel::try_from)
-            .collect_result_vec()?)
+        Ok(rides.into_iter().map(Ride::try_from).collect_result_vec()?)
     }
 
-    async fn all_indexes(&self) -> Result<Vec<<RideModel as Model>::IndexItem>, PostgresRepoError> {
+    async fn all_indexes(&self) -> Result<Vec<<Ride as Model>::IndexItem>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(RideRow, r#"select * from rides"#);
@@ -138,7 +114,7 @@ impl Repo for PostgresRideRepo {
             .map(Ride::try_from)
             .collect_result_vec()?)
     }
-    async fn get(&self, id: <RideModel as Model>::Id) -> Result<RideModel, PostgresRepoError> {
+    async fn get(&self, id: <Ride as Model>::Id) -> Result<Ride, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(
@@ -147,22 +123,16 @@ impl Repo for PostgresRideRepo {
             ulid_into_uuid(*id.as_ulid())
         );
 
-        Ok(RideModel::try_from(query.fetch_one(conn.as_mut()).await?)?)
+        Ok(Ride::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
     async fn get_index(
         &self,
-        id: <RideModel as Model>::Id,
-    ) -> Result<<RideModel as Model>::IndexItem, PostgresRepoError> {
-        Ok(self.get(id).await?.ride)
+        id: <Ride as Model>::Id,
+    ) -> Result<<Ride as Model>::IndexItem, PostgresRepoError> {
+        Ok(self.get(id).await?)
     }
-    async fn put(&self, model: RideModel) -> Result<(), PostgresRepoError> {
+    async fn put(&self, ride: Ride) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
-
-        let RideModel {
-            ride, point_chunks, ..
-        } = model;
-
-        let points = PointChunk::into_iter_points(point_chunks).collect_vec();
 
         let query = sqlx::query!(
             r#"insert into rides (
@@ -179,7 +149,7 @@ impl Repo for PostgresRideRepo {
             ride.name,
             Utc::now(),
             ride.external_ref.map(serde_json::to_value).transpose()?,
-            serde_json::to_value(points)?,
+            serde_json::json!([]),
             ride.distance as i32,
             ride.started_at,
             ride.finished_at,

@@ -29,12 +29,11 @@ impl Ride {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
-        let SchemaData { ride_repo, .. } = ctx.data()?;
-        let ride_model = ride_repo.get(self.0.id).await?;
+        // let SchemaData {
+        //     ride_points_repo, ..
+        // } = ctx.data()?;
+        // let ride_model = ride_repo.get(self.0.id).await?;
 
-        Ok(ride_model
-            .iter_geo_points()
-            .map(|point| vec![point.x(), point.y()])
-            .collect())
+        Ok(vec![])
     }
 }
