@@ -21,6 +21,7 @@ pub mod cardinal_direction;
 pub mod config;
 pub mod cuesheet;
 pub mod external_ref;
+pub mod filters;
 pub mod maybe_pair;
 pub mod photo;
 pub mod point;

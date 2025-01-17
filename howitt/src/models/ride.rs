@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
 
 use super::{
-    external_ref::ExternallySourced, point::PointChunk, user::UserId, IndexModel, ModelName,
-    ModelUlid,
+    external_ref::ExternallySourced, filters::TemporalFilter, point::PointChunk, user::UserId,
+    IndexModel, ModelName, ModelUlid,
 };
 
 pub type RideId = ModelUlid<{ ModelName::Ride }>;
@@ -41,7 +41,7 @@ pub enum RideFilter {
     All,
     User {
         user_id: UserId,
-        started_at_gte: Option<DateTime<Utc>>,
+        started_at: Option<TemporalFilter>,
     },
 }
 

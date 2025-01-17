@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
+use howitt::models::filters::TemporalFilter;
 use howitt::models::point::PointChunk;
 use howitt::models::ride::{RideFilter, RideId};
 use itertools::Itertools;
@@ -74,25 +75,40 @@ impl Repo for PostgresRideRepo {
         let rides = match filter {
             RideFilter::User {
                 user_id,
-                started_at_gte: Some(started_at_gte),
+                started_at: Some(TemporalFilter::Before {before, last}),
             } => {
                 sqlx::query_as!(
                     RideRow,
-                    r#"select * from rides where user_id = $1 and started_at >= $2"#,
+                    r#"select * from rides where user_id = $1 and started_at < $2 order by started_at desc limit $3"#,
                     ulid_into_uuid(*user_id.as_ulid()),
-                    started_at_gte
+                    before,
+                    last.unwrap_or(100_000) as i32
                 )
                 .fetch_all(conn.as_mut())
                 .await
             }
             RideFilter::User {
                 user_id,
-                started_at_gte: None,
+                started_at: Some(TemporalFilter::After {after, first}),
+            } => {
+                sqlx::query_as!(
+                    RideRow,
+                    r#"select * from rides where user_id = $1 and started_at > $2 order by started_at asc limit $3"#,
+                    ulid_into_uuid(*user_id.as_ulid()),
+                    after,
+                    first.unwrap_or(100_000) as i32
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
+            RideFilter::User {
+                user_id,
+                started_at: None,
             } => {
                 sqlx::query_as!(
                     RideRow,
                     r#"select * from rides where user_id = $1"#,
-                    ulid_into_uuid(*user_id.as_ulid()),
+                    ulid_into_uuid(*user_id.as_ulid())
                 )
                 .fetch_all(conn.as_mut())
                 .await
