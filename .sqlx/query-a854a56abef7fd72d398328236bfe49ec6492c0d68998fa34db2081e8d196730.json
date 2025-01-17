@@ -25,26 +25,21 @@
       },
       {
         "ordinal": 4,
-        "name": "points",
-        "type_info": "Jsonb"
-      },
-      {
-        "ordinal": 5,
         "name": "distance_m",
         "type_info": "Int4"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "started_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "finished_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "user_id",
         "type_info": "Uuid"
       }
@@ -57,7 +52,6 @@
       true,
       false,
       true,
-      false,
       false,
       false,
       false,
