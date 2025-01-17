@@ -62,7 +62,6 @@ impl RideModel {
 impl crate::models::Model for RideModel {
     type Id = RideId;
     type IndexItem = Ride;
-    type OtherItem = RideItem;
     type Filter = RideFilter;
 
     fn id(&self) -> RideId {
@@ -72,48 +71,6 @@ impl crate::models::Model for RideModel {
     fn as_index(&self) -> &Self::IndexItem {
         &self.ride
     }
-
-    fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>) {
-        (
-            self.ride,
-            self.point_chunks.into_iter().map(RideItem::from).collect(),
-        )
-    }
-
-    fn from_parts(
-        ride: Self::IndexItem,
-        other: Vec<Self::OtherItem>,
-    ) -> Result<Self, anyhow::Error> {
-        Ok(RideModel {
-            ride,
-            point_chunks: other
-                .into_iter()
-                .filter_map(RideItem::into_point_chunk)
-                .collect(),
-        })
-    }
-
-    // fn into_items(self) -> impl Iterator<Item = Self::Item> {
-    //     [RideItem::from(self.ride)]
-    //         .into_iter()
-    //         .chain(self.point_chunks.into_iter().map(RideItem::from))
-    // }
-
-    // fn from_items(items: Vec<Self::Item>) -> Result<Self, anyhow::Error> {
-    //     Ok(RideModel {
-    //         ride: items
-    //             .iter()
-    //             .filter_map(RideItem::as_ride)
-    //             .nth(0)
-    //             .ok_or(anyhow!("couldnt find meta"))?
-    //             .clone(),
-    //         point_chunks: items
-    //             .iter()
-    //             .filter_map(RideItem::as_point_chunk)
-    //             .cloned()
-    //             .collect_vec(),
-    //     })
-    // }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, From)]
@@ -121,13 +78,7 @@ impl crate::models::Model for RideModel {
 pub enum RideItem {
     PointChunk(PointChunk<RideId, TemporalElevationPoint>),
 }
-impl RideItem {
-    fn into_point_chunk(self) -> Option<PointChunk<RideId, TemporalElevationPoint>> {
-        match self {
-            RideItem::PointChunk(chunk) => Some(chunk),
-        }
-    }
-}
+
 impl crate::models::OtherItem for RideItem {
     type Id = RideId;
 

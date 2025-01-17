@@ -169,7 +169,6 @@ impl PartialEq for RouteModel {
 impl crate::models::Model for RouteModel {
     type Id = RouteId;
     type IndexItem = Route;
-    type OtherItem = RouteItem;
     type Filter = RouteFilter;
 
     fn id(&self) -> RouteId {
@@ -178,41 +177,6 @@ impl crate::models::Model for RouteModel {
 
     fn as_index(&self) -> &Self::IndexItem {
         &self.route
-    }
-
-    fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>) {
-        (
-            self.route,
-            [
-                self.point_chunks
-                    .into_iter()
-                    .map(RouteItem::from)
-                    .collect_vec(),
-                self.photos.into_iter().map(RouteItem::from).collect(),
-            ]
-            .concat(),
-        )
-    }
-
-    fn from_parts(
-        route: Self::IndexItem,
-        other: Vec<Self::OtherItem>,
-    ) -> Result<Self, anyhow::Error> {
-        let photos = other
-            .iter()
-            .filter_map(RouteItem::as_photo)
-            .cloned()
-            .collect();
-
-        Ok(RouteModel::new(
-            route,
-            other
-                .clone()
-                .into_iter()
-                .filter_map(RouteItem::into_point_chunk)
-                .collect(),
-            photos,
-        ))
     }
 }
 

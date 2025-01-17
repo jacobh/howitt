@@ -39,7 +39,6 @@ pub mod user;
 pub trait Model: Send + Sync + Sized + Clone + 'static {
     type Id: ModelId;
     type IndexItem: IndexItem<Id = Self::Id>;
-    type OtherItem: OtherItem<Id = Self::Id>;
     type Filter: Send + Sync + Sized + Clone + 'static;
 
     fn model_name() -> &'static str {
@@ -48,31 +47,6 @@ pub trait Model: Send + Sync + Sized + Clone + 'static {
     fn id(&self) -> Self::Id;
 
     fn as_index(&self) -> &Self::IndexItem;
-
-    fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>);
-
-    fn from_parts(
-        index: Self::IndexItem,
-        other: Vec<Self::OtherItem>,
-    ) -> Result<Self, anyhow::Error>;
-
-    fn into_items(self) -> Vec<ItemCow<'static, Self>> {
-        let (index, other) = self.into_parts();
-
-        [ItemCow::from_index(index)]
-            .into_iter()
-            .chain(other.into_iter().map(ItemCow::from_other))
-            .collect()
-    }
-
-    fn from_items(items: Vec<ItemCow<'static, Self>>) -> Result<Self, anyhow::Error> {
-        let (index, others) = ItemCow::group_items(items)?;
-
-        Self::from_parts(
-            index.into_owned(),
-            others.into_iter().map(Cow::into_owned).collect(),
-        )
-    }
 }
 
 pub trait IndexModel {
@@ -104,8 +78,6 @@ where
 
     type IndexItem = T;
 
-    type OtherItem = EmptyOtherItem<ID>;
-
     type Filter = F;
 
     fn id(&self) -> Self::Id {
@@ -114,17 +86,6 @@ where
 
     fn as_index(&self) -> &Self::IndexItem {
         self
-    }
-
-    fn into_parts(self) -> (Self::IndexItem, Vec<Self::OtherItem>) {
-        (self, vec![])
-    }
-
-    fn from_parts(
-        index: Self::IndexItem,
-        _other: Vec<Self::OtherItem>,
-    ) -> Result<Self, anyhow::Error> {
-        Ok(index)
     }
 }
 
@@ -211,81 +172,6 @@ where
             .as_ref()
             .map(Clone::clone)
             .map_err(Clone::clone)
-    }
-}
-
-pub enum ItemCow<'a, M>
-where
-    M: Model,
-{
-    Index(Cow<'a, M::IndexItem>),
-    Other(Cow<'a, M::OtherItem>),
-}
-
-type GroupedItemCows<'a, M> = (
-    Cow<'a, <M as Model>::IndexItem>,
-    Vec<Cow<'a, <M as Model>::OtherItem>>,
-);
-
-impl<'a, M> ItemCow<'a, M>
-where
-    M: Model,
-{
-    fn from_index(index: M::IndexItem) -> ItemCow<'static, M> {
-        ItemCow::Index(Cow::Owned(index))
-    }
-
-    fn from_other(other: M::OtherItem) -> ItemCow<'static, M> {
-        ItemCow::Other(Cow::Owned(other))
-    }
-
-    // fn as_index(&self) -> Option<&M::IndexItem> {
-    //     match self {
-    //         ItemCow::Index(item) => Some(item.as_ref()),
-    //         ItemCow::Other(_) => None,
-    //     }
-    // }
-
-    fn group_items(
-        items: impl IntoIterator<Item = Self>,
-    ) -> Result<GroupedItemCows<'a, M>, anyhow::Error> {
-        let (indexes, others) =
-            items
-                .into_iter()
-                .fold((vec![], vec![]), |(mut indexes, mut others), item| {
-                    match item {
-                        ItemCow::Index(index) => indexes.push(index),
-                        ItemCow::Other(other) => others.push(other),
-                    };
-                    (indexes, others)
-                });
-
-        let index = indexes
-            .into_iter()
-            .collect_tuple::<(Cow<'_, M::IndexItem>,)>()
-            .map(|(idx,)| idx)
-            .ok_or(anyhow!("could not find single indexitem"))?;
-
-        Ok((index, others))
-    }
-
-    pub fn model_id(&self) -> M::Id {
-        match self {
-            ItemCow::Index(item) => item.model_id(),
-            ItemCow::Other(item) => item.model_id(),
-        }
-    }
-    pub fn item_name(&self) -> Option<String> {
-        match self {
-            ItemCow::Index(_) => None,
-            ItemCow::Other(item) => Some(item.item_name()),
-        }
-    }
-    pub fn item_id(&self) -> Option<String> {
-        match self {
-            ItemCow::Index(_) => None,
-            ItemCow::Other(item) => Some(item.item_id()),
-        }
     }
 }
 
