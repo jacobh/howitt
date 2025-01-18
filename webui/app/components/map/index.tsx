@@ -337,6 +337,73 @@ export function Map({
       }
     }
 
+    for (const ride of rides ?? []) {
+      // console.log(route.id);
+      const existingLayer = layers
+        .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
+        .find((layer) => layer.getProperties().rideId === ride.id);
+      let layer: VectorLayer<any>;
+
+      if (existingLayer === undefined) {
+        const lineString = new LineString(ride.points);
+
+        layer = new VectorLayer({
+          source: new VectorSource({
+            features: [new Feature({ geometry: lineString, rideId: ride.id })],
+          }),
+          properties: { rideId: ride.id, points: ride.points.length },
+        });
+
+        console.log("adding layer");
+        map.addLayer(layer);
+      } else {
+        layer = existingLayer;
+      }
+
+      if (layer.getProperties().points !== ride.points.length) {
+        const newLineString = new LineString(ride.points);
+
+        layer.setSource(
+          new VectorSource({
+            features: [
+              new Feature({ geometry: newLineString, rideId: ride.id }),
+            ],
+          })
+        );
+
+        layer.setProperties({ rideId: ride.id, points: ride.points.length });
+      }
+
+      const color = "#29892e";
+
+      // let color;
+
+      // switch (style) {
+      //   case "muted":
+      //     color = "#808080";
+      //     break;
+      //   case "highlighted":
+      //     color = "#39abbf";
+      //     break;
+      //   default:
+      //     color = "#a54331";
+      //     break;
+      // }
+
+      layer.setStyle(
+        new Style({
+          stroke: new Stroke({ color, width: 4 }),
+        })
+      );
+
+      // if (initialView?.type === "route" && initialView.rideId === ride.id) {
+      //   map.getView().fit(new LineString(ride.points), {
+      //     padding: [100, 100, 100, 100],
+      //     duration: 0,
+      //   });
+      // }
+    }
+
     for (const checkpoint of checkpoints ?? []) {
       console.log(checkpoint.name);
       const existingLayer = layers.find(
@@ -358,7 +425,15 @@ export function Map({
         );
       }
     }
-  }, [routes, checkpoints, existingMap, initialView, hutStyle, stationStyle]);
+  }, [
+    routes,
+    checkpoints,
+    existingMap,
+    initialView,
+    hutStyle,
+    stationStyle,
+    rides,
+  ]);
 
   return <div css={mapCss} id="map" />;
 }

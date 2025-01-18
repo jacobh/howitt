@@ -27,7 +27,7 @@ impl UserProfile {
             .filter_models(RideFilter::User {
                 user_id: self.0.id,
                 started_at: Some(howitt::models::filters::TemporalFilter::After {
-                    after: Utc::now() - Duration::days(90),
+                    after: Utc::now() - Duration::days(365),
                     first: None,
                 }),
             })

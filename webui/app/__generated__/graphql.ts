@@ -221,6 +221,7 @@ export enum TerminusEnd {
 export type UserProfile = {
   __typename?: "UserProfile";
   id: Scalars["UserId"]["output"];
+  recentRides: Array<Ride>;
   username: Scalars["String"]["output"];
 };
 
@@ -295,6 +296,12 @@ export type UserProfileQueryQuery = {
     __typename?: "UserProfile";
     id: any;
     username: string;
+    recentRides: Array<{
+      __typename?: "Ride";
+      id: any;
+      finishedAt: any;
+      points: Array<Array<number>>;
+    }>;
   } | null;
   viewer?:
     | ({ __typename?: "Viewer" } & {
@@ -681,6 +688,24 @@ export const UserProfileQueryDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "username" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "recentRides" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "finishedAt" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "points" },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },

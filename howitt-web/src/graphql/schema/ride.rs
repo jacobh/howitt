@@ -41,7 +41,7 @@ impl Ride {
             .fetch(
                 self.0.id,
                 PointsFetcherParams {
-                    target: SimplifyTarget::PointPerKm(10),
+                    target: SimplifyTarget::PointPerKm(8),
                 },
             )
             .await?;

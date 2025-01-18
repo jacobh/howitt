@@ -44,7 +44,8 @@ impl<Redis: RedisClient> SimplifiedRidePointsFetcher<Redis> {
 
         let RidePoints { points, .. } = self.ride_points_repo.get(id).await?;
 
-        let simplified = simplify_points(&points, params.target);
+        let simplified =
+            tokio::task::spawn_blocking(move || simplify_points(&points, params.target)).await?;
 
         let serialized = bincode::serialize(&simplified)?;
 

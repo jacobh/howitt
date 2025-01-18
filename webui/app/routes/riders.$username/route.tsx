@@ -14,6 +14,11 @@ const USER_PROFILE_QUERY = gql(`
     userWithUsername(username: $username) {
         id
         username
+        recentRides {
+          id
+          finishedAt
+          points
+        }
     }
     viewer {
       ...viewerInfo
@@ -26,6 +31,7 @@ export default function UserProfile(): React.ReactElement {
 
   const { data, loading } = useQuery(USER_PROFILE_QUERY, {
     variables: { username: params.username ?? "" },
+    ssr: false,
   });
 
   return (
@@ -45,6 +51,7 @@ export default function UserProfile(): React.ReactElement {
             type: "view",
             view: DEFAULT_VIEW,
           }}
+          rides={data?.userWithUsername?.recentRides}
         />
       </MapContainer>
     </Container>

@@ -6,9 +6,9 @@ use crate::models::point::Point;
 
 #[derive(Debug, Display, Clone)]
 pub enum SimplifyTarget {
-    #[display("TOTAL_POINTS#{}", "_0")]
+    #[display("TOTAL_POINTS#{}", _0)]
     TotalPoints(usize),
-    #[display("POINTS_PER_KM#{}", "_0")]
+    #[display("POINTS_PER_KM#{}", _0)]
     PointPerKm(usize),
 }
 
@@ -38,7 +38,11 @@ pub fn simplify_linestring(
         SimplifyTarget::PointPerKm(points_per_km) => {
             let length_km = linestring.length::<Haversine>() / 1000.0;
 
-            (length_km * (points_per_km as f64)) as usize
+            let max_points = (length_km * (points_per_km as f64)) as usize;
+
+            // dbg!(length_km, max_points);
+
+            max_points
         }
     };
 
@@ -52,7 +56,7 @@ pub fn simplify_linestring(
         oversimplified,
     } = state.unwrap_or_default();
 
-    let epsilon = (lower + upper.unwrap_or(0.0005 * f64::powi(2.0, (i + 1) as i32))) / 2.0;
+    let epsilon = (lower + upper.unwrap_or(0.0001 * f64::powi(2.0, (i + 1) as i32))) / 2.0;
 
     let simplified = Simplify::simplify(&linestring, &epsilon);
     let count = simplified.coords_count();
@@ -60,7 +64,7 @@ pub fn simplify_linestring(
     if count == max_points {
         // bang on target, return simplified
         simplified
-    } else if i >= 50 {
+    } else if i >= 20 {
         oversimplified.unwrap_or(simplified)
     } else if count > max_points {
         // too many points
@@ -73,7 +77,7 @@ pub fn simplify_linestring(
                 i: i + 1,
             }),
         )
-    } else if i > 0 {
+    } else {
         let oversimplified = oversimplified.unwrap_or(LineString::new(vec![]));
         let oversimplified = Some(
             if simplified.coords_count() > oversimplified.coords_count() {
@@ -93,9 +97,6 @@ pub fn simplify_linestring(
                 oversimplified,
             }),
         )
-    } else {
-        // initial epsilon was good enough to get us below the limit
-        simplified
     }
 }
 
