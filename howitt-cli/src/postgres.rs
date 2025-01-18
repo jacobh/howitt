@@ -10,7 +10,7 @@ use howitt::{
     repos::Repo,
     services::{
         generate_cuesheet::generate_cuesheet,
-        simplify_points::simplify_points,
+        simplify_points::{simplify_points, SimplifyTarget},
         sync::{photo::PhotoSyncService, rwgps::RwgpsSyncService},
         user::{auth::UserAuthService, password::hash_password},
     },
@@ -132,7 +132,7 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
 
             let points = model.iter_elevation_points().cloned().collect_vec();
 
-            dbg!(simplify_points(&points, 50).len());
+            dbg!(simplify_points(&points, SimplifyTarget::TotalPoints(50)).len());
         }
         Postgres::GenerateCuesheet(RouteIdArgs { route_id }) => {
             let model = route_model_repo

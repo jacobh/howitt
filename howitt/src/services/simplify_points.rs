@@ -3,6 +3,11 @@ use geo::LineString;
 
 use crate::models::point::Point;
 
+pub enum SimplifyTarget {
+    TotalPoints(usize),
+    PointPerKm(usize),
+}
+
 pub struct SimplifyState {
     epsilon: (f64, Option<f64>),
     i: usize,
@@ -21,9 +26,18 @@ impl Default for SimplifyState {
 
 pub fn simplify_linestring(
     linestring: LineString,
-    max_points: usize,
+    target: SimplifyTarget,
     state: Option<SimplifyState>,
 ) -> LineString {
+    let max_points = match target {
+        SimplifyTarget::TotalPoints(points) => points,
+        SimplifyTarget::PointPerKm(points_per_km) => {
+            let length_km = linestring.length::<Haversine>() / 1000.0;
+
+            (length_km * (points_per_km as f64)) as usize
+        }
+    };
+
     if linestring.coords_count() <= max_points {
         return linestring;
     }
@@ -48,7 +62,7 @@ pub fn simplify_linestring(
         // too many points
         simplify_linestring(
             linestring,
-            max_points,
+            SimplifyTarget::TotalPoints(max_points),
             Some(SimplifyState {
                 epsilon: (epsilon, upper),
                 oversimplified,
@@ -68,7 +82,7 @@ pub fn simplify_linestring(
         // not enough points and we're not using the default epsilon. search our way back to the limit
         simplify_linestring(
             linestring,
-            max_points,
+            SimplifyTarget::TotalPoints(max_points),
             Some(SimplifyState {
                 epsilon: (lower, Some(epsilon)),
                 i: i + 1,
@@ -81,10 +95,10 @@ pub fn simplify_linestring(
     }
 }
 
-pub fn simplify_points<P: Point>(points: &[P], target_points: usize) -> Vec<P> {
+pub fn simplify_points<P: Point>(points: &[P], target: SimplifyTarget) -> Vec<P> {
     let linestring = LineString::from_iter(points.iter().map(|p| *p.as_geo_point()));
 
-    let simplified = simplify_linestring(linestring, target_points, None);
+    let simplified = simplify_linestring(linestring, target, None);
 
     simplified
         .points()

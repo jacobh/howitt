@@ -8,7 +8,7 @@ use crate::models::{
 use geo::{algorithm::line_measures::metric_spaces::Haversine, Distance};
 use itertools::Itertools;
 
-use super::simplify_points::simplify_points;
+use super::simplify_points::{simplify_points, SimplifyTarget};
 
 #[derive(Debug, Clone)]
 pub struct NearbyPointOfInterest<'point, 'poi, P>
@@ -83,7 +83,7 @@ const MAX_DISTANCE: f64 = 25_000.0;
 
 pub fn nearby_routes<'a, 'b>(route: &'a Route, routes: &'b [Route]) -> Vec<NearbyRoute<'a, 'b>> {
     let sample_points = match &route.sample_points {
-        Some(sample_points) => simplify_points(sample_points, 10),
+        Some(sample_points) => simplify_points(sample_points, SimplifyTarget::TotalPoints(10)),
         None => vec![],
     };
 

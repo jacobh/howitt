@@ -19,7 +19,10 @@ use crate::{
         IndexItem,
     },
     repos::Repo,
-    services::{simplify_points::simplify_points, smoothing::smooth_elevation_points},
+    services::{
+        simplify_points::{simplify_points, SimplifyTarget},
+        smoothing::smooth_elevation_points,
+    },
 };
 
 const SYNC_VERSION: usize = 2;
@@ -240,7 +243,7 @@ where
                 name: route.name.replace("[BCS]", "").trim().to_string(),
                 distance: route.distance.unwrap_or(0.0),
                 description,
-                sample_points: Some(simplify_points(&points, 50)),
+                sample_points: Some(simplify_points(&points, SimplifyTarget::TotalPoints(50))),
                 external_ref: Some(ExternalRef {
                     id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
                     sync_version: Some(SYNC_VERSION),
