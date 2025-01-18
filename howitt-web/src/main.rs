@@ -4,7 +4,11 @@ use std::{convert::Infallible, sync::Arc};
 use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
 use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
 use auth::login_route;
-use howitt::services::user::auth::{Login, UserAuthService};
+use howitt::services::{
+    fetchers::SimplifiedRidePointsFetcher,
+    user::auth::{Login, UserAuthService},
+};
+use howitt_clients::RedisClient;
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
     PostgresRouteRepo, PostgresUserRepo,
@@ -41,6 +45,11 @@ async fn main() -> Result<(), anyhow::Error> {
     )
     .await?;
 
+    let redis = RedisClient::connect(
+        &std::env::var("REDIS_URL").unwrap_or(String::from("redis://127.0.0.1/")),
+    )
+    .await?;
+
     let logger = new_logger();
 
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
@@ -50,6 +59,10 @@ async fn main() -> Result<(), anyhow::Error> {
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
 
     let auth_service = UserAuthService::new(user_repo.clone(), "asdf123".to_string());
+    let simplified_ride_points_fetcher = SimplifiedRidePointsFetcher {
+        ride_points_repo: ride_points_repo.clone(),
+        redis_client: redis,
+    };
 
     let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(SchemaData {
@@ -58,6 +71,7 @@ async fn main() -> Result<(), anyhow::Error> {
             ride_repo,
             ride_points_repo,
             user_repo: user_repo.clone(),
+            simplified_ride_points_fetcher,
         })
         .finish();
 

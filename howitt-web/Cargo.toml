@@ -13,6 +13,7 @@ howitt-postgresql = { path = "../howitt-postgresql" }
 anyhow = "*"
 async-graphql = { version = "7", features = ["uuid", "chrono", "url"] }
 howitt = { path = "../howitt" }
+howitt_clients = { path = "../howitt-clients" }
 geo = "*"
 chrono = "*"
 serde = { version = "*", features = ["derive"] }

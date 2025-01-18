@@ -38,6 +38,5 @@ pub trait RedisClient {
     type Error: std::error::Error + Send + Sync + 'static;
 
     async fn get_bytes(&self, key: &str) -> Result<Option<bytes::Bytes>, Self::Error>;
-    async fn put_bytes(&self, key: &str, bytes: impl Into<bytes::Bytes>)
-        -> Result<(), Self::Error>;
+    async fn set_bytes(&self, key: &str, bytes: bytes::Bytes) -> Result<(), Self::Error>;
 }

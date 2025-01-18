@@ -48,7 +48,7 @@ impl<Redis: RedisClient> SimplifiedRidePointsFetcher<Redis> {
 
         let serialized = bincode::serialize(&simplified)?;
 
-        self.redis_client.put_bytes(&key, serialized).await?;
+        self.redis_client.set_bytes(&key, serialized.into()).await?;
 
         Ok(simplified)
     }

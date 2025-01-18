@@ -1,7 +1,8 @@
 use howitt::{
     repos::{PointOfInterestRepo, RidePointsRepo, RideRepo, RouteModelRepo, UserRepo},
-    services::user::auth::Login,
+    services::{fetchers::SimplifiedRidePointsFetcher, user::auth::Login},
 };
+use howitt_clients::RedisClient;
 
 pub struct SchemaData {
     pub poi_repo: PointOfInterestRepo,
@@ -9,6 +10,7 @@ pub struct SchemaData {
     pub ride_repo: RideRepo,
     pub ride_points_repo: RidePointsRepo,
     pub user_repo: UserRepo,
+    pub simplified_ride_points_fetcher: SimplifiedRidePointsFetcher<RedisClient>,
 }
 
 pub struct RequestData {
