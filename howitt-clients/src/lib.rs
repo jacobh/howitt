@@ -1,12 +1,9 @@
-use async_once_cell::OnceCell;
-
 use async_trait::async_trait;
 use aws_config::BehaviorVersion;
 use aws_sdk_s3::{
     operation::{head_object::HeadObjectError, put_object::PutObjectError},
     primitives::ByteStream,
 };
-use derive_more::derive::Constructor;
 use howitt_client_types::{BucketClient, BucketName, HttpClient, HttpResponse};
 use redis::{AsyncCommands, IntoConnectionInfo};
 

@@ -1,5 +1,5 @@
 use chrono::{DateTime, TimeZone, Utc};
-use geo::{CoordsIter, GeodesicBearing, LineString, Simplify};
+use geo::GeodesicBearing;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 

@@ -42,6 +42,11 @@ spec:
                 secretKeyRef:
                   name: howitt-db
                   key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: howitt-db
+                  key: REDIS_URL
             - name: AWS_REGION
               value: ap-southeast-2
             - name: AWS_ACCESS_KEY_ID

@@ -46,7 +46,7 @@ async fn main() -> Result<(), anyhow::Error> {
     .await?;
 
     let redis = RedisClient::connect(
-        &std::env::var("REDIS_URL").unwrap_or(String::from("redis://127.0.0.1/")),
+        std::env::var("REDIS_URL").unwrap_or(String::from("redis://127.0.0.1/")),
     )
     .await?;
 
