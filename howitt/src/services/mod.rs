@@ -1,4 +1,5 @@
 pub mod detect_segments;
+pub mod fetchers;
 pub mod generate_cuesheet;
 pub mod lerp;
 pub mod nearby;

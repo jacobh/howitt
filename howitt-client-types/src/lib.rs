@@ -32,3 +32,12 @@ pub trait HttpClient {
 
     async fn get(&self, url: url::Url) -> Result<HttpResponse, Self::Error>;
 }
+
+#[async_trait::async_trait]
+pub trait RedisClient {
+    type Error: std::error::Error + Send + Sync + 'static;
+
+    async fn get_bytes(&self, key: &str) -> Result<Option<bytes::Bytes>, Self::Error>;
+    async fn put_bytes(&self, key: &str, bytes: impl Into<bytes::Bytes>)
+        -> Result<(), Self::Error>;
+}

@@ -1,10 +1,14 @@
+use derive_more::derive::Display;
 use geo::prelude::*;
 use geo::LineString;
 
 use crate::models::point::Point;
 
+#[derive(Debug, Display, Clone)]
 pub enum SimplifyTarget {
+    #[display("TOTAL_POINTS#{}", "_0")]
     TotalPoints(usize),
+    #[display("POINTS_PER_KM#{}", "_0")]
     PointPerKm(usize),
 }
 
