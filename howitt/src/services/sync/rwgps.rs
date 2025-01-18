@@ -11,7 +11,7 @@ use crate::{
     models::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         photo::{Photo, PhotoId},
-        point::{simplify_points, ElevationPoint, PointChunk, TemporalElevationPoint},
+        point::{ElevationPoint, PointChunk, TemporalElevationPoint},
         ride::{Ride, RideId, RidePoints},
         route::{Route, RouteId, RouteModel},
         route_description::RouteDescription,
@@ -19,7 +19,7 @@ use crate::{
         IndexItem,
     },
     repos::Repo,
-    services::smoothing::smooth_elevation_points,
+    services::{simplify_points::simplify_points, smoothing::smooth_elevation_points},
 };
 
 const SYNC_VERSION: usize = 2;

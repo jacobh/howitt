@@ -1,12 +1,14 @@
 use std::borrow::Cow;
 
 use crate::models::{
-    point::{closest_point, simplify_points, ElevationPoint, ElevationPointDelta, Point},
+    point::{closest_point, ElevationPoint, ElevationPointDelta, Point},
     point_of_interest::PointOfInterest,
     route::Route,
 };
 use geo::{algorithm::line_measures::metric_spaces::Haversine, Distance};
 use itertools::Itertools;
+
+use super::simplify_points::simplify_points;
 
 #[derive(Debug, Clone)]
 pub struct NearbyPointOfInterest<'point, 'poi, P>

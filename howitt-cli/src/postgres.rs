@@ -4,13 +4,13 @@ use chrono::Utc;
 use clap::{arg, Args, Subcommand};
 use howitt::{
     models::{
-        point::simplify_points,
         route::RouteId,
         user::{User, UserId},
     },
     repos::Repo,
     services::{
         generate_cuesheet::generate_cuesheet,
+        simplify_points::simplify_points,
         sync::{photo::PhotoSyncService, rwgps::RwgpsSyncService},
         user::{auth::UserAuthService, password::hash_password},
     },
