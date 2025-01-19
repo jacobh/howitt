@@ -32,6 +32,7 @@ impl Ride {
     async fn points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
+        points_per_km: usize,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let SchemaData {
             simplified_ride_points_fetcher,
@@ -41,7 +42,7 @@ impl Ride {
             .fetch(
                 self.0.id,
                 PointsFetcherParams {
-                    target: SimplifyTarget::PointPerKm(8),
+                    target: SimplifyTarget::PointPerKm(points_per_km),
                 },
             )
             .await?;

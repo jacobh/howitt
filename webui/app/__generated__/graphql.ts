@@ -161,6 +161,10 @@ export type Ride = {
   startedAt: Scalars["DateTime"]["output"];
 };
 
+export type RidePointsArgs = {
+  pointsPerKm: Scalars["Int"]["input"];
+};
+
 export type Route = {
   __typename?: "Route";
   cues: Array<Cue>;
@@ -237,42 +241,6 @@ export type ViewerInfoFragment = {
   profile: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "ViewerInfoFragment" };
 
-export type HomeQueryQueryVariables = Exact<{
-  input: QueryRoutesInput;
-}>;
-
-export type HomeQueryQuery = {
-  __typename?: "Query";
-  queryRoutes: Array<{
-    __typename?: "Route";
-    id: any;
-    name: string;
-    distance: number;
-    isMetaComplete: boolean;
-    elevationAscentM: number;
-    elevationDescentM: number;
-    samplePoints: Array<Array<number>>;
-  }>;
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
-};
-
-export type HomeQueryPointOnlyQueryVariables = Exact<{
-  input: QueryRoutesInput;
-}>;
-
-export type HomeQueryPointOnlyQuery = {
-  __typename?: "Query";
-  queryRoutes: Array<{
-    __typename?: "Route";
-    id: any;
-    points: Array<Array<number>>;
-  }>;
-};
-
 export type LoginViewerInfoQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoginViewerInfoQuery = {
@@ -288,6 +256,7 @@ export type LoginViewerInfoQuery = {
 
 export type UserProfileQueryQueryVariables = Exact<{
   username: Scalars["String"]["input"];
+  pointsPerKm: Scalars["Int"]["input"];
 }>;
 
 export type UserProfileQueryQuery = {
@@ -385,6 +354,42 @@ export type RouteQueryQuery = {
     | null;
 };
 
+export type HomeQueryQueryVariables = Exact<{
+  input: QueryRoutesInput;
+}>;
+
+export type HomeQueryQuery = {
+  __typename?: "Query";
+  queryRoutes: Array<{
+    __typename?: "Route";
+    id: any;
+    name: string;
+    distance: number;
+    isMetaComplete: boolean;
+    elevationAscentM: number;
+    elevationDescentM: number;
+    samplePoints: Array<Array<number>>;
+  }>;
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
+};
+
+export type HomeQueryPointOnlyQueryVariables = Exact<{
+  input: QueryRoutesInput;
+}>;
+
+export type HomeQueryPointOnlyQuery = {
+  __typename?: "Query";
+  queryRoutes: Array<{
+    __typename?: "Route";
+    id: any;
+    points: Array<Array<number>>;
+  }>;
+};
+
 export const ViewerInfoFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -414,167 +419,6 @@ export const ViewerInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<ViewerInfoFragment, unknown>;
-export const HomeQueryDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "query",
-      name: { kind: "Name", value: "homeQuery" },
-      variableDefinitions: [
-        {
-          kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "input" },
-          },
-          type: {
-            kind: "NonNullType",
-            type: {
-              kind: "NamedType",
-              name: { kind: "Name", value: "QueryRoutesInput" },
-            },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "queryRoutes" },
-            arguments: [
-              {
-                kind: "Argument",
-                name: { kind: "Name", value: "input" },
-                value: {
-                  kind: "Variable",
-                  name: { kind: "Name", value: "input" },
-                },
-              },
-            ],
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "name" } },
-                { kind: "Field", name: { kind: "Name", value: "distance" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "isMetaComplete" },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "elevationAscentM" },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "elevationDescentM" },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "samplePoints" },
-                },
-              ],
-            },
-          },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "viewer" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                {
-                  kind: "FragmentSpread",
-                  name: { kind: "Name", value: "viewerInfo" },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "viewerInfo" },
-      typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "Viewer" },
-      },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "profile" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "username" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<HomeQueryQuery, HomeQueryQueryVariables>;
-export const HomeQueryPointOnlyDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "query",
-      name: { kind: "Name", value: "homeQueryPointOnly" },
-      variableDefinitions: [
-        {
-          kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "input" },
-          },
-          type: {
-            kind: "NonNullType",
-            type: {
-              kind: "NamedType",
-              name: { kind: "Name", value: "QueryRoutesInput" },
-            },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "queryRoutes" },
-            arguments: [
-              {
-                kind: "Argument",
-                name: { kind: "Name", value: "input" },
-                value: {
-                  kind: "Variable",
-                  name: { kind: "Name", value: "input" },
-                },
-              },
-            ],
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "points" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<
-  HomeQueryPointOnlyQuery,
-  HomeQueryPointOnlyQueryVariables
->;
 export const LoginViewerInfoDocument = {
   kind: "Document",
   definitions: [
@@ -666,6 +510,17 @@ export const UserProfileQueryDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "pointsPerKm" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+          },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -702,6 +557,16 @@ export const UserProfileQueryDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "points" },
+                        arguments: [
+                          {
+                            kind: "Argument",
+                            name: { kind: "Name", value: "pointsPerKm" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "pointsPerKm" },
+                            },
+                          },
+                        ],
                       },
                     ],
                   },
@@ -1047,3 +912,164 @@ export const RouteQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<RouteQueryQuery, RouteQueryQueryVariables>;
+export const HomeQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "homeQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "QueryRoutesInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "queryRoutes" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "distance" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "isMetaComplete" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "elevationAscentM" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "elevationDescentM" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "samplePoints" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<HomeQueryQuery, HomeQueryQueryVariables>;
+export const HomeQueryPointOnlyDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "homeQueryPointOnly" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "QueryRoutesInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "queryRoutes" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "points" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  HomeQueryPointOnlyQuery,
+  HomeQueryPointOnlyQueryVariables
+>;

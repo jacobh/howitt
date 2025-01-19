@@ -10,14 +10,14 @@ import {
 import { useParams } from "@remix-run/react";
 
 const USER_PROFILE_QUERY = gql(`
-  query UserProfileQuery($username: String!) {
+  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
     userWithUsername(username: $username) {
         id
         username
         recentRides {
           id
           finishedAt
-          points
+          points(pointsPerKm: $pointsPerKm)
         }
     }
     viewer {
@@ -30,7 +30,11 @@ export default function UserProfile(): React.ReactElement {
   const params = useParams();
 
   const { data, loading } = useQuery(USER_PROFILE_QUERY, {
-    variables: { username: params.username ?? "" },
+    variables: { username: params.username ?? "", pointsPerKm: 1 },
+  });
+
+  const { data: data2 } = useQuery(USER_PROFILE_QUERY, {
+    variables: { username: params.username ?? "", pointsPerKm: 8 },
     ssr: false,
   });
 
@@ -51,7 +55,10 @@ export default function UserProfile(): React.ReactElement {
             type: "view",
             view: DEFAULT_VIEW,
           }}
-          rides={data?.userWithUsername?.recentRides}
+          rides={
+            data2?.userWithUsername?.recentRides ??
+            data?.userWithUsername?.recentRides
+          }
         />
       </MapContainer>
     </Container>
