@@ -144,3 +144,8 @@ jobs:
           working-directory: ./k8s
           run: |
             kubectl apply -f web-api.yaml,webui.yaml,ingress.yml
+
+        - name: Wait for deployments to be ready
+          run: |
+            kubectl rollout status deployment/howitt-web-api
+            kubectl rollout status deployment/howitt-webui
