@@ -206,14 +206,14 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
 
             let res = service.login(&username, &password).await;
 
-            dbg!(res);
+            let _ = dbg!(res)?;
         }
         Postgres::VerifyToken(VerifyTokenArgs { token }) => {
             let service = UserAuthService::new(Arc::new(user_repo), String::from("asdf123"));
 
             let res = service.verify(&token).await;
 
-            dbg!(res);
+            let _ = dbg!(res)?;
         }
     }
 

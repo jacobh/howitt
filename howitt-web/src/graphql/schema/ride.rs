@@ -1,4 +1,4 @@
-use async_graphql::{Context, Json, Object};
+use async_graphql::{Context, Object};
 use chrono::{DateTime, Utc};
 use howitt::{
     models::{point::Point, ride::RideId},
