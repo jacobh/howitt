@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 
 pub type TripId = ModelUlid<{ ModelName::Trip }>;
 
+#[derive(Debug, Clone)]
 pub struct Trip {
     pub id: TripId,
     pub created_at: DateTime<Utc>,
