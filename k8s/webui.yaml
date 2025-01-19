@@ -30,7 +30,7 @@ spec:
         service: howitt-webui
     spec:
       containers:
-        - image: ghcr.io/jacobh/howitt-webui:main
+        - image: ghcr.io/jacobh/howitt-webui:main@${GITHUB_SHA}
           imagePullPolicy: Always
           name: howitt-webui
           ports:
@@ -39,8 +39,6 @@ spec:
           env:
             - name: GRAPHQL_URL
               value: http://howitt-web-api/
-            - name: VERSION
-              value: '3'
       imagePullSecrets:
         - name: regcred
       restartPolicy: Always

@@ -30,7 +30,7 @@ spec:
         service: howitt-web-api
     spec:
       containers:
-        - image: ghcr.io/jacobh/howitt-web-api:main
+        - image: ghcr.io/jacobh/howitt-web-api:main@${GITHUB_SHA}
           imagePullPolicy: Always
           name: howitt-web-api
           ports:
@@ -59,8 +59,6 @@ spec:
                 secretKeyRef:
                   name: aws
                   key: AWS_SECRET_ACCESS_KEY
-            - name: VERSION
-              value: '1'
       imagePullSecrets:
         - name: regcred
       restartPolicy: Always
