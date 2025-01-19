@@ -29,18 +29,48 @@ const navCss = makeMqs([
   `,
 ]);
 
-const logoCss = css`
-  font-size: 20px !important;
-  line-height: 50px !important;
+const logoCss = makeMqs([
+  css`
+    font-size: 20px !important;
+    line-height: 50px !important;
 
-  a {
-    text-decoration: none;
+    margin-right: 2vw;
 
-    &:hover {
-      text-decoration: underline;
+    a {
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
-  }
-`;
+  `,
+  css``,
+  css``,
+  css``,
+  css`
+    margin-right: 1.8vw;
+  `,
+  css`
+    margin-right: 1.5vw;
+  `,
+]);
+
+const navLinkCss = makeMqs([
+  css`
+    font-size: 18px !important;
+    line-height: 50px !important;
+
+    margin-right: 1.5vw;
+  `,
+  css``,
+  css``,
+  css`
+    margin-right: 0.9vw;
+  `,
+  css`
+    margin-right: 0.8vw;
+  `,
+]);
 
 const userInfoCss = css`
   margin-left: auto;
@@ -55,6 +85,12 @@ export function Nav(props: NavProps): JSX.Element {
       <h2 css={logoCss}>
         <Link to="/">Howitt Plains</Link>
       </h2>
+      <h3 css={navLinkCss}>
+        <Link to="/routes">Routes</Link>
+      </h3>
+      <h3 css={navLinkCss}>
+        <Link to="/riders">Riders</Link>
+      </h3>
       <div css={userInfoCss}>
         {viewer ? (
           <Link to={`/riders/${viewer.profile.username}`}>
