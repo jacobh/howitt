@@ -155,4 +155,14 @@ impl Query {
 
         Ok(user.map(UserProfile))
     }
+    async fn public_users<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<UserProfile>, async_graphql::Error> {
+        let SchemaData { user_repo, .. } = ctx.data()?;
+
+        let users = user_repo.all_indexes().await?;
+
+        Ok(users.into_iter().map(UserProfile).collect_vec())
+    }
 }

@@ -116,6 +116,7 @@ export type Query = {
   __typename?: "Query";
   pointOfInterest?: Maybe<PointOfInterest>;
   pointsOfInterest: Array<PointOfInterest>;
+  publicUsers: Array<UserProfile>;
   queryRoutes: Array<Route>;
   rides: Array<Ride>;
   route?: Maybe<Route>;
@@ -279,6 +280,28 @@ export type UserProfileQueryQuery = {
     | null;
 };
 
+export type PublicUsersQueryVariables = Exact<{ [key: string]: never }>;
+
+export type PublicUsersQuery = {
+  __typename?: "Query";
+  publicUsers: Array<
+    { __typename?: "UserProfile"; id: any } & {
+      " $fragmentRefs"?: { UserItemFragment: UserItemFragment };
+    }
+  >;
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
+};
+
+export type UserItemFragment = {
+  __typename?: "UserProfile";
+  id: any;
+  username: string;
+} & { " $fragmentName"?: "UserItemFragment" };
+
 export type RouteQueryQueryVariables = Exact<{
   routeId: Scalars["RouteId"]["input"];
 }>;
@@ -419,6 +442,26 @@ export const ViewerInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<ViewerInfoFragment, unknown>;
+export const UserItemFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "userItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "UserProfile" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "username" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UserItemFragment, unknown>;
 export const LoginViewerInfoDocument = {
   kind: "Document",
   definitions: [
@@ -619,6 +662,87 @@ export const UserProfileQueryDocument = {
   UserProfileQueryQuery,
   UserProfileQueryQueryVariables
 >;
+export const PublicUsersDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "publicUsers" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "publicUsers" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "userItem" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "userItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "UserProfile" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "username" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PublicUsersQuery, PublicUsersQueryVariables>;
 export const RouteQueryDocument = {
   kind: "Document",
   definitions: [

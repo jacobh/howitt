@@ -43,6 +43,7 @@ export default function UserProfile(): React.ReactElement {
       <Nav viewer={data?.viewer} />
       <SidebarContainer
         title="Riders"
+        titleLinkTo="/riders"
         titlePostfix={["/", data?.userWithUsername?.username ?? ""].join(" ")}
       >
         {!loading && !data?.userWithUsername?.username ? (
