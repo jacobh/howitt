@@ -31,6 +31,7 @@ pub mod segment_summary;
 pub mod slope_end;
 pub mod tag;
 pub mod terminus;
+pub mod trip;
 pub mod user;
 
 pub trait Model: Send + Sync + Sized + Clone + 'static {
@@ -208,6 +209,7 @@ pub enum ModelName {
     Route,
     Segment,
     User,
+    Trip,
 }
 impl ModelName {
     const fn to_str(self) -> &'static str {
@@ -218,6 +220,7 @@ impl ModelName {
             ModelName::Route => "ROUTE",
             ModelName::Segment => "SEGMENT",
             ModelName::User => "USER",
+            ModelName::Trip => "TRIP",
         }
     }
 }
