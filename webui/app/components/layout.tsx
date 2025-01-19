@@ -80,7 +80,9 @@ export function Nav(props: NavProps): JSX.Element {
       <h2 css={logoCss}>Howitt Plains</h2>
       <div css={userInfoCss}>
         {viewer ? (
-          <span>{viewer.profile.username}</span>
+          <Link to={`/riders/${viewer.profile.username}`}>
+            {viewer.profile.username}
+          </Link>
         ) : (
           <Link to="/login">Login</Link>
         )}
