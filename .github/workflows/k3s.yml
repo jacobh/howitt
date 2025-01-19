@@ -137,8 +137,8 @@ jobs:
         - name: Update image tags
           working-directory: ./k8s
           run: |
-            sed -i "s/:main.*/:main@sha256-${{ github.sha }}/" web-api.yaml
-            sed -i "s/:main.*/:main@sha256-${{ github.sha }}/" webui.yaml
+            sed -i "s/:main.*/:sha256-${{ github.sha }}/" web-api.yaml
+            sed -i "s/:main.*/:sha256-${{ github.sha }}/" webui.yaml
 
         - name: Deploy to Kubernetes
           working-directory: ./k8s
