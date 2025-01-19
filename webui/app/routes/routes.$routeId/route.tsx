@@ -13,7 +13,7 @@ import {
   Nav,
   SidebarContainer,
 } from "~/components/layout";
-import { RouteVitals } from "~/components/RouteVitals";
+import { RouteVitals } from "~/components/routes/RouteVitals";
 import { makeMqs } from "~/styles/mediaQueries";
 import { css } from "@emotion/react";
 import { COLORS } from "~/styles/theme";

@@ -8,7 +8,7 @@ import {
   SidebarContainer,
   Nav,
 } from "~/components/layout";
-import { RouteItem } from "~/components/RouteItem";
+import { RouteItem } from "~/components/routes/RouteItem";
 import { css } from "@emotion/react";
 import { COLORS } from "~/styles/theme";
 import { isNotNil } from "~/services/isNotNil";
