@@ -17,7 +17,7 @@ const USER_PROFILE_QUERY = gql(`
         recentRides {
           id
           finishedAt
-          points(pointsPerKm: $pointsPerKm)
+          pointsJson(pointsPerKm: $pointsPerKm)
         }
     }
     viewer {

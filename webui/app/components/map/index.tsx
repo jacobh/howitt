@@ -35,7 +35,7 @@ export interface DisplayedRoute {
 
 interface MapProps {
   routes?: DisplayedRoute[];
-  rides?: Pick<Ride, "id" | "points">[];
+  rides?: Pick<Ride, "id" | "pointsJson">[];
   checkpoints?: Pick<
     PointOfInterest,
     "name" | "point" | "pointOfInterestType"
@@ -345,13 +345,13 @@ export function Map({
       let layer: VectorLayer<any>;
 
       if (existingLayer === undefined) {
-        const lineString = new LineString(ride.points);
+        const lineString = new LineString(JSON.parse(ride.pointsJson));
 
         layer = new VectorLayer({
           source: new VectorSource({
             features: [new Feature({ geometry: lineString, rideId: ride.id })],
           }),
-          properties: { rideId: ride.id, points: ride.points.length },
+          properties: { rideId: ride.id, points: ride.pointsJson.length },
         });
 
         console.log("adding layer");
@@ -360,8 +360,8 @@ export function Map({
         layer = existingLayer;
       }
 
-      if (layer.getProperties().points !== ride.points.length) {
-        const newLineString = new LineString(ride.points);
+      if (layer.getProperties().points !== ride.pointsJson.length) {
+        const newLineString = new LineString(JSON.parse(ride.pointsJson));
 
         layer.setSource(
           new VectorSource({
@@ -371,7 +371,10 @@ export function Map({
           })
         );
 
-        layer.setProperties({ rideId: ride.id, points: ride.points.length });
+        layer.setProperties({
+          rideId: ride.id,
+          points: ride.pointsJson.length,
+        });
       }
 
       const color = "#29892e";

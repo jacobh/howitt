@@ -159,10 +159,15 @@ export type Ride = {
   id: Scalars["RideId"]["output"];
   name: Scalars["String"]["output"];
   points: Array<Array<Scalars["Float"]["output"]>>;
+  pointsJson: Scalars["String"]["output"];
   startedAt: Scalars["DateTime"]["output"];
 };
 
 export type RidePointsArgs = {
+  pointsPerKm: Scalars["Int"]["input"];
+};
+
+export type RidePointsJsonArgs = {
   pointsPerKm: Scalars["Int"]["input"];
 };
 
@@ -270,7 +275,7 @@ export type UserProfileQueryQuery = {
       __typename?: "Ride";
       id: any;
       finishedAt: any;
-      points: Array<Array<number>>;
+      pointsJson: string;
     }>;
   } | null;
   viewer?:
@@ -599,7 +604,7 @@ export const UserProfileQueryDocument = {
                       },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "points" },
+                        name: { kind: "Name", value: "pointsJson" },
                         arguments: [
                           {
                             kind: "Argument",

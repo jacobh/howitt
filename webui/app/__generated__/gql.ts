@@ -18,7 +18,7 @@ const documents = {
     types.ViewerInfoFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
     types.LoginViewerInfoDocument,
-  "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          finishedAt\n          points(pointsPerKm: $pointsPerKm)\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
+  "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          finishedAt\n          pointsJson(pointsPerKm: $pointsPerKm)\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.UserProfileQueryDocument,
   "\n  query publicUsers {\n    publicUsers {\n        id\n        ...userItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.PublicUsersDocument,
@@ -62,8 +62,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          finishedAt\n          points(pointsPerKm: $pointsPerKm)\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"
-): (typeof documents)["\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          finishedAt\n          points(pointsPerKm: $pointsPerKm)\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
+  source: "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          finishedAt\n          pointsJson(pointsPerKm: $pointsPerKm)\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"
+): (typeof documents)["\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          finishedAt\n          pointsJson(pointsPerKm: $pointsPerKm)\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

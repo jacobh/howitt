@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object};
+use async_graphql::{Context, Json, Object};
 use chrono::{DateTime, Utc};
 use howitt::{
     models::{point::Point, ride::RideId},
@@ -51,5 +51,14 @@ impl Ride {
             .into_iter()
             .map(|point| point.into_x_y_vec())
             .collect_vec())
+    }
+    async fn points_json<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        points_per_km: usize,
+    ) -> Result<String, async_graphql::Error> {
+        let points = self.points(ctx, points_per_km).await?;
+
+        Ok(serde_json::to_string(&points)?)
     }
 }
