@@ -65,6 +65,14 @@ const navCss = makeMqs([
 const logoCss = css`
   font-size: 20px !important;
   line-height: 50px !important;
+
+  a {
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const userInfoCss = css`
@@ -77,7 +85,9 @@ export function Nav(props: NavProps): JSX.Element {
 
   return (
     <nav css={navCss}>
-      <h2 css={logoCss}>Howitt Plains</h2>
+      <h2 css={logoCss}>
+        <Link to="/">Howitt Plains</Link>
+      </h2>
       <div css={userInfoCss}>
         {viewer ? (
           <Link to={`/riders/${viewer.profile.username}`}>
