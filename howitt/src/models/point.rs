@@ -71,7 +71,7 @@ impl Point for geo::Point {
     fn delta(&self, _: &Self) -> Self::DeltaData {}
 }
 
-impl<'a> Point for &'a geo::Point {
+impl Point for &geo::Point {
     type DeltaData = ();
 
     fn as_geo_point(&self) -> &geo::Point {
@@ -139,7 +139,7 @@ impl Point for ElevationPoint {
     }
 }
 
-impl<'a> Point for &'a ElevationPoint {
+impl Point for &ElevationPoint {
     type DeltaData = ElevationDelta;
 
     fn as_geo_point(&self) -> &geo::Point {

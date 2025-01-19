@@ -97,7 +97,7 @@ struct LerpNodeRef<'a, T: Lerp> {
     nodes: &'a LerpNodes<T>,
 }
 
-impl<'a, T> LerpNodeRef<'a, T>
+impl<T> LerpNodeRef<'_, T>
 where
     T: Lerp,
 {
@@ -131,7 +131,7 @@ struct LerpNodeRefWindow<'a, T: Lerp> {
     node2: LerpNodeRef<'a, T>,
 }
 
-impl<'a, T> LerpNodeRefWindow<'a, T>
+impl<T> LerpNodeRefWindow<'_, T>
 where
     T: Lerp,
 {

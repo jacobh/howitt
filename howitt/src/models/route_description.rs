@@ -195,6 +195,6 @@ rear_suspension = ["rigid", {mm=100}]"#;
     fn it_parses_example() {
         let result = RouteDescription::parse(TEST_DESCRIPTION.to_owned());
 
-        assert_eq!(result.is_ok(), true)
+        assert!(result.is_ok())
     }
 }

@@ -24,7 +24,7 @@ impl S3BucketClient {
         let config = aws_config::load_defaults(BehaviorVersion::latest()).await;
         S3BucketClient {
             client: aws_sdk_s3::Client::new(&config),
-            bucket_name: bucket_name,
+            bucket_name,
         }
     }
 }
@@ -74,6 +74,12 @@ impl ReqwestHttpClient {
         ReqwestHttpClient {
             client: reqwest::Client::new(),
         }
+    }
+}
+
+impl Default for ReqwestHttpClient {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

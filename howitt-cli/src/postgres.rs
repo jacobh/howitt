@@ -126,7 +126,7 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
         }
         Postgres::GetRoute(RouteIdArgs { route_id }) => {
             let model = route_model_repo
-                .get(RouteId::from(ulid::Ulid::from_str(&route_id).unwrap()))
+                .get(RouteId::from(ulid::Ulid::from_str(route_id).unwrap()))
                 .await?;
             dbg!(&model.route);
 
@@ -211,7 +211,7 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
         Postgres::VerifyToken(VerifyTokenArgs { token }) => {
             let service = UserAuthService::new(Arc::new(user_repo), String::from("asdf123"));
 
-            let res = service.verify(&token).await;
+            let res = service.verify(token).await;
 
             let _ = dbg!(res)?;
         }

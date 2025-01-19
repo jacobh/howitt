@@ -7,7 +7,7 @@ use crate::{
 
 use super::{CubicSmoothingSpline, NdSpline};
 
-impl<'a, D> CubicSmoothingSpline<'a, D>
+impl<D> CubicSmoothingSpline<'_, D>
 where
     D: Dimension,
 {

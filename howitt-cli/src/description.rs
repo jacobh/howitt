@@ -74,8 +74,8 @@ pub fn generate_description() {
             "Tyre width (max)",
             TYRE_WIDTHS
                 .iter()
+                .filter(|&width| width >= &tyre_width_min)
                 .cloned()
-                .filter(|width| width >= &tyre_width_min)
                 .collect_vec(),
         )
         .prompt()
@@ -90,8 +90,8 @@ pub fn generate_description() {
             "Front suspension (min)",
             SUSPENSION_TRAVELS
                 .iter()
+                .filter(|&travel| travel >= &front_suspension_min)
                 .cloned()
-                .filter(|travel| travel >= &front_suspension_min)
                 .collect_vec(),
         )
         .prompt()
@@ -106,8 +106,8 @@ pub fn generate_description() {
             "Rear suspension (min)",
             SUSPENSION_TRAVELS
                 .iter()
+                .filter(|&travel| travel >= &rear_suspension_min)
                 .cloned()
-                .filter(|travel| travel >= &rear_suspension_min)
                 .collect_vec(),
         )
         .prompt()

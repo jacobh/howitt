@@ -22,7 +22,7 @@ where
     pub point_of_interest: Cow<'poi, PointOfInterest>,
 }
 
-impl<'point, 'poi, P> NearbyPointOfInterest<'point, 'poi, P>
+impl<P> NearbyPointOfInterest<'_, '_, P>
 where
     P: Point + std::fmt::Debug + ToOwned,
     <P as ToOwned>::Owned: std::fmt::Debug,

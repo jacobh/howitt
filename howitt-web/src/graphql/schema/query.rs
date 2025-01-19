@@ -28,13 +28,13 @@ impl QueryRouteFilters {
             None => true,
         };
 
-        let has_all_tags_passes = self.has_all_tags.clone().map_or(true, |tags| {
+        let has_all_tags_passes = self.has_all_tags.clone().is_none_or(|tags| {
             tags.into_iter()
                 .map(Tag::Custom)
                 .all(|required_tag| route.tags.contains(&required_tag))
         });
 
-        let has_some_tags_passes = self.has_some_tags.clone().map_or(true, |tags| {
+        let has_some_tags_passes = self.has_some_tags.clone().is_none_or(|tags| {
             tags.into_iter()
                 .map(Tag::Custom)
                 .any(|required_tag| route.tags.contains(&required_tag))

@@ -23,6 +23,7 @@ where
         xi: ArrayView1<'a, T>,
     ) -> Array2<T> {
         let edges = {
+            #[allow(clippy::reversed_empty_ranges)]
             let mesh = breaks.slice(s![1..-1]);
             let one = Array1::<T>::ones((1,));
             let left_bound = &one * T::neg_infinity();

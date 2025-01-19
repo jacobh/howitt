@@ -74,15 +74,11 @@ impl TryFrom<RouteIndexRow> for Route {
             external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
             tags: std::iter::empty()
                 .chain(row.tags.into_iter().map(Tag::Custom))
-                .chain(
-                    if row.is_starred {
-                        vec![Tag::Starred]
-                    } else {
-                        vec![]
-                    }
-                    .into_iter(),
-                )
-                .into_iter()
+                .chain(if row.is_starred {
+                    vec![Tag::Starred]
+                } else {
+                    vec![]
+                })
                 .collect(),
         })
     }
@@ -149,15 +145,11 @@ impl TryFrom<RouteRow> for Route {
             external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
             tags: std::iter::empty()
                 .chain(row.tags.into_iter().map(Tag::Custom))
-                .chain(
-                    if row.is_starred {
-                        vec![Tag::Starred]
-                    } else {
-                        vec![]
-                    }
-                    .into_iter(),
-                )
-                .into_iter()
+                .chain(if row.is_starred {
+                    vec![Tag::Starred]
+                } else {
+                    vec![]
+                })
                 .collect(),
         })
     }

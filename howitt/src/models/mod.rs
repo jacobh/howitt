@@ -267,6 +267,12 @@ impl<const NAME: ModelName> std::fmt::Display for ModelUlid<NAME> {
     }
 }
 
+impl<const NAME: ModelName> Default for ModelUlid<NAME> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const NAME: ModelName> Serialize for ModelUlid<NAME> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

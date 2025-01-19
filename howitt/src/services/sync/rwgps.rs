@@ -186,8 +186,7 @@ where
                         .into_iter()
                         .map(Tag::Custom)
                         .collect_vec()
-                }))
-                .into_iter(),
+                })),
         );
 
         let points = route

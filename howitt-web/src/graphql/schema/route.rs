@@ -163,23 +163,19 @@ impl Terminus {
                     .termini()
                     .map(|t| t.map_points(|p| p.clone()).closest_terminus(closest_point));
 
-                if let Some(closest_terminus) = closest_terminus {
-                    Some(NearbyRoute {
-                        delta: PointDelta::from(delta),
-                        closest_terminus_delta: PointDelta::from(
-                            howitt::models::point::PointDelta::from_points(
-                                terminus.point(),
-                                closest_terminus.point(),
-                            ),
+                closest_terminus.map(|closest_terminus| NearbyRoute {
+                    delta: PointDelta::from(delta),
+                    closest_terminus_delta: PointDelta::from(
+                        howitt::models::point::PointDelta::from_points(
+                            terminus.point(),
+                            closest_terminus.point(),
                         ),
-                        closest_terminus: Terminus {
-                            terminus: closest_terminus,
-                            route: ModelRef::from_index(route.clone()),
-                        },
-                    })
-                } else {
-                    None
-                }
+                    ),
+                    closest_terminus: Terminus {
+                        terminus: closest_terminus,
+                        route: ModelRef::from_index(route.clone()),
+                    },
+                })
             })
             .collect_vec())
     }

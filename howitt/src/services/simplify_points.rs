@@ -38,11 +38,7 @@ pub fn simplify_linestring(
         SimplifyTarget::PointPerKm(points_per_km) => {
             let length_km = linestring.length::<Haversine>() / 1000.0;
 
-            let max_points = (length_km * (points_per_km as f64)) as usize;
-
-            // dbg!(length_km, max_points);
-
-            max_points
+            (length_km * (points_per_km as f64)) as usize
         }
     };
 

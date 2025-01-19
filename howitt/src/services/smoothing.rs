@@ -52,13 +52,10 @@ pub fn smooth_elevation_points(points: Vec<ElevationPoint>) -> Vec<ElevationPoin
 
     let raw_elevations = points.iter().map(|point| point.elevation).collect_vec();
 
-    std::iter::zip(
-        points,
-        smooth_elevations(&distances, &raw_elevations).into_iter(),
-    )
-    .map(|(point, smoothed_elevation)| ElevationPoint {
-        elevation: smoothed_elevation,
-        ..point
-    })
-    .collect_vec()
+    std::iter::zip(points, smooth_elevations(&distances, &raw_elevations))
+        .map(|(point, smoothed_elevation)| ElevationPoint {
+            elevation: smoothed_elevation,
+            ..point
+        })
+        .collect_vec()
 }
