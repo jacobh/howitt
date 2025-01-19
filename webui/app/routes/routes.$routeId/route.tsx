@@ -143,7 +143,7 @@ export default function Route(): React.ReactElement {
       <Nav viewer={data?.viewer} />
       <SidebarContainer
         title="Routes"
-        titleLinkTo="/"
+        titleLinkTo="/routes"
         titlePostfix={["/", data?.route?.name ?? ""].join(" ")}
       >
         <div css={routeContentContainerCss}>
