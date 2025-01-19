@@ -50,6 +50,8 @@ async fn main() -> Result<(), anyhow::Error> {
     )
     .await?;
 
+    let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
+
     let logger = new_logger();
 
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
@@ -58,7 +60,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let ride_points_repo = Arc::new(PostgresRidePointsRepo::new(pg.clone()));
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
 
-    let auth_service = UserAuthService::new(user_repo.clone(), "asdf123".to_string());
+    let auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
+    let auth_service2 = auth_service.clone();
     let simplified_ride_points_fetcher = SimplifiedRidePointsFetcher {
         ride_points_repo: ride_points_repo.clone(),
         redis_client: redis,
@@ -82,7 +85,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .allow_headers(vec!["content-type", "authorization"]);
 
     let auth_header_filter = warp::header::optional::<String>("authorization")
-        .and(warp::any().map(move || auth_service.clone()))
+        .and(warp::any().map(move || auth_service2.clone()))
         .and_then(
             async |auth_header: Option<String>,
                    auth_service: UserAuthService|
@@ -126,7 +129,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let routes = graphiql
         .or(graphql_post)
-        .or(login_route(user_repo))
+        .or(login_route(auth_service.clone()))
         .with(cors)
         .recover(|err: Rejection| async move {
             if let Some(GraphQLBadRequest(err)) = err.find() {

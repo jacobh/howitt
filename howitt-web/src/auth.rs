@@ -1,4 +1,4 @@
-use howitt::{repos::UserRepo, services::user::auth::UserAuthService};
+use howitt::services::user::auth::UserAuthService;
 use serde::{Deserialize, Serialize};
 use warp::Filter;
 
@@ -9,10 +9,8 @@ struct LoginParams {
 }
 
 pub fn login_route(
-    user_repo: UserRepo,
+    auth_service: UserAuthService,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-    let auth_service = UserAuthService::new(user_repo, "asdf123".to_string());
-
     warp::path!("auth" / "login")
         .and(warp::post())
         .and(warp::any().map(move || auth_service.clone()))
