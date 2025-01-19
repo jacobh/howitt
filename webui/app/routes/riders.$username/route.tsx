@@ -29,7 +29,7 @@ const USER_PROFILE_QUERY = gql(`
 export default function UserProfile(): React.ReactElement {
   const params = useParams();
 
-  const { data, loading } = useQuery(USER_PROFILE_QUERY, {
+  const { data } = useQuery(USER_PROFILE_QUERY, {
     variables: { username: params.username ?? "", pointsPerKm: 1 },
   });
 
