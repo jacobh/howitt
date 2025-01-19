@@ -1,6 +1,5 @@
+use super::{ride::RideId, user::UserId, IndexModel, ModelName, ModelUlid};
 use chrono::{DateTime, Utc};
-
-use super::{ride::RideId, user::UserId, ModelName, ModelUlid};
 
 pub type TripId = ModelUlid<{ ModelName::Trip }>;
 
@@ -10,4 +9,19 @@ pub struct Trip {
     pub name: String,
     pub user_id: UserId,
     pub ride_ids: Vec<RideId>,
+}
+
+#[derive(Debug, Clone)]
+pub enum TripFilter {
+    All,
+    User(UserId),
+}
+
+impl IndexModel for Trip {
+    type Id = TripId;
+    type Filter = TripFilter;
+
+    fn id(&self) -> Self::Id {
+        self.id
+    }
 }
