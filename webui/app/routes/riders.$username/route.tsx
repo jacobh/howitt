@@ -46,9 +46,11 @@ export default function UserProfile(): React.ReactElement {
         titleLinkTo="/riders"
         titlePostfix={["/", data?.userWithUsername?.username ?? ""].join(" ")}
       >
-        {!loading && !data?.userWithUsername?.username ? (
+        {data?.userWithUsername?.username ? (
+          <p>Last year of rides shown</p>
+        ) : (
           <h3>User not found</h3>
-        ) : null}
+        )}
       </SidebarContainer>
       <MapContainer>
         <Map
