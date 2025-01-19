@@ -3,12 +3,11 @@ name = "howitt-web"
 version = "0.0.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-warp = { version = "0.3", features = ["compression"] }
-async-graphql-warp = "7"
+axum = "*"
+tower-http = { version = "*", features = ["compression-gzip", "cors", "trace"] }
+async-graphql-axum = "7"                                                         # Replace async-graphql-warp
 howitt-postgresql = { path = "../howitt-postgresql" }
 anyhow = "*"
 async-graphql = { version = "7", features = ["uuid", "chrono", "url"] }
@@ -25,6 +24,7 @@ serde_json = "*"
 slog = "2.7.0"
 slog-term = "2.9.1"
 slog-async = "2.8.0"
+async-trait = "*"
 
 [dev-dependencies]
 test-case = "3.1.0"

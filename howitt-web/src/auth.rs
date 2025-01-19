@@ -1,6 +1,6 @@
+use axum::{extract::State, routing::post, Json, Router};
 use howitt::services::user::auth::UserAuthService;
 use serde::{Deserialize, Serialize};
-use warp::Filter;
 
 #[derive(Serialize, Deserialize)]
 struct LoginParams {
@@ -8,25 +8,25 @@ struct LoginParams {
     password: String,
 }
 
-pub fn login_route(
-    auth_service: UserAuthService,
-) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-    warp::path!("auth" / "login")
-        .and(warp::post())
-        .and(warp::any().map(move || auth_service.clone()))
-        .and(warp::body::json::<LoginParams>())
-        .then(
-            async move |auth_service: UserAuthService,
-                        LoginParams { username, password }|
-                        -> Result<_, String> {
-                let res = auth_service.clone().login(&username, &password).await;
+#[derive(Serialize)]
+struct ErrorResponse {
+    err: &'static str,
+}
 
-                match res {
-                    Ok(Ok(login)) => Ok(warp::reply::json(&login)),
-                    _ => Ok(warp::reply::json(
-                        &serde_json::json!({"err": "login failed"}),
-                    )),
-                }
-            },
-        )
+async fn login_handler(
+    State(auth_service): State<UserAuthService>,
+    Json(params): Json<LoginParams>,
+) -> Json<serde_json::Value> {
+    let res = auth_service.login(&params.username, &params.password).await;
+
+    match res {
+        Ok(Ok(login)) => Json(serde_json::to_value(login).unwrap()),
+        _ => Json(serde_json::json!({ "err": "login failed" })),
+    }
+}
+
+pub fn login_routes(auth_service: UserAuthService) -> Router {
+    Router::new()
+        .route("/auth/login", post(login_handler))
+        .with_state(auth_service)
 }

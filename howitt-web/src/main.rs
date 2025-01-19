@@ -1,9 +1,18 @@
 #![feature(async_closure)]
-use std::{convert::Infallible, sync::Arc};
+use std::net::SocketAddr;
+use std::sync::Arc;
 
-use async_graphql::{http::GraphiQLSource, EmptyMutation, EmptySubscription, Schema};
-use async_graphql_warp::{GraphQLBadRequest, GraphQLResponse};
-use auth::login_route;
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
+use auth::login_routes;
+use axum::{
+    extract::{FromRequestParts, State},
+    http::{header::AUTHORIZATION, request::Parts, Method, StatusCode},
+    middleware::{self, Next},
+    response::{Html, IntoResponse},
+    routing::get,
+    Router,
+};
 use howitt::services::{
     fetchers::SimplifiedRidePointsFetcher,
     user::auth::{Login, UserAuthService},
@@ -14,14 +23,13 @@ use howitt_postgresql::{
     PostgresRouteRepo, PostgresUserRepo,
 };
 use slog::Drain;
-use warp::{
-    http::{Response as HttpResponse, StatusCode},
-    Filter, Rejection,
+use tower_http::{
+    compression::CompressionLayer,
+    cors::{Any, CorsLayer},
 };
 
 mod auth;
 mod graphql;
-mod rejections;
 
 use graphql::{
     context::{RequestData, SchemaData},
@@ -35,6 +43,58 @@ fn new_logger() -> slog::Logger {
     let drain = slog_async::Async::new(drain).build().fuse();
 
     slog::Logger::root(drain, slog::o!())
+}
+
+// Custom extractor for auth
+struct OptionalLogin(Option<Login>);
+
+#[async_trait::async_trait]
+impl<S> FromRequestParts<S> for OptionalLogin
+where
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let auth_service = parts
+            .extensions
+            .get::<UserAuthService>()
+            .expect("UserAuthService missing from request extensions");
+
+        let auth_header = parts
+            .headers
+            .get(AUTHORIZATION)
+            .and_then(|h| h.to_str().ok());
+
+        let credentials = auth_header.and_then(|s| Credentials::parse_auth_header_value(s).ok());
+
+        match credentials {
+            Some(Credentials::BearerToken(token)) => match auth_service.verify(&token).await {
+                Ok(login) => Ok(OptionalLogin(Some(login))),
+                Err(_) => Ok(OptionalLogin(None)),
+            },
+            Some(Credentials::Key(_)) => Ok(OptionalLogin(None)),
+            None => Ok(OptionalLogin(None)),
+        }
+    }
+}
+
+async fn graphql_handler(
+    State(schema): State<Schema<Query, EmptyMutation, EmptySubscription>>,
+    OptionalLogin(login): OptionalLogin,
+    req: GraphQLRequest,
+) -> GraphQLResponse {
+    let mut request = req.into_inner();
+    request = request.data(RequestData { login });
+    schema.execute(request).await.into()
+}
+
+async fn graphiql_handler() -> impl IntoResponse {
+    Html(
+        async_graphql::http::GraphiQLSource::build()
+            .endpoint("/")
+            .finish(),
+    )
 }
 
 #[tokio::main]
@@ -53,6 +113,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
     let logger = new_logger();
+    let logger_clone = logger.clone();
 
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
     let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
@@ -61,7 +122,6 @@ async fn main() -> Result<(), anyhow::Error> {
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
 
     let auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
-    let auth_service2 = auth_service.clone();
     let simplified_ride_points_fetcher = SimplifiedRidePointsFetcher {
         ride_points_repo: ride_points_repo.clone(),
         redis_client: redis,
@@ -79,83 +139,57 @@ async fn main() -> Result<(), anyhow::Error> {
 
     println!("GraphiQL IDE: http://localhost:8000");
 
-    let cors = warp::cors()
-        .allow_any_origin()
-        .allow_methods(vec!["GET", "POST"])
-        .allow_headers(vec!["content-type", "authorization"]);
-
-    let auth_header_filter = warp::header::optional::<String>("authorization")
-        .and(warp::any().map(move || auth_service2.clone()))
-        .and_then(
-            async |auth_header: Option<String>,
-                   auth_service: UserAuthService|
-                   -> Result<Option<Login>, warp::reject::Rejection> {
-                let credentials = auth_header
-                    .as_deref()
-                    .and_then(|s| Credentials::parse_auth_header_value(s).ok());
-
-                match credentials {
-                    Some(Credentials::BearerToken(token)) => {
-                        Ok(Some(auth_service.verify(&token).await.map_err(|err| {
-                            dbg!(err);
-                            warp::reject::custom(rejections::LoginVerificationFailed)
-                        })?))
-                    }
-                    Some(Credentials::Key(_)) => Ok(None),
-                    None => Ok(None),
-                }
-            },
+    // Build our middleware stack
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(
+            vec![Method::GET, Method::POST]
+                .into_iter()
+                .collect::<Vec<_>>(),
+        )
+        .allow_headers(
+            vec![AUTHORIZATION, axum::http::header::CONTENT_TYPE]
+                .into_iter()
+                .collect::<Vec<_>>(),
         );
 
-    let graphql_post = warp::path::end()
-        .and(auth_header_filter)
-        .and(async_graphql_warp::graphql(schema))
-        .and_then(
-            |login,
-             (schema, mut request): (
-                Schema<Query, EmptyMutation, EmptySubscription>,
-                async_graphql::Request,
-            )| async move {
-                request = request.data(RequestData { login });
-                Ok::<_, Infallible>(GraphQLResponse::from(schema.execute(request).await))
-            },
-        );
+    let auth_layer = middleware::from_fn(
+        move |req: axum::http::Request<axum::body::Body>, next: Next<axum::body::Body>| {
+            let logger = logger_clone.clone();
+            async move {
+                let start = std::time::Instant::now();
+                let method = req.method().clone();
+                let uri = req.uri().clone();
 
-    let graphiql = warp::path::end().and(warp::get()).map(|| {
-        HttpResponse::builder()
-            .header("content-type", "text/html")
-            .body(GraphiQLSource::build().endpoint("/").finish())
-    });
+                let response = next.run(req).await;
 
-    let routes = graphiql
-        .or(graphql_post)
-        .or(login_route(auth_service.clone()))
-        .with(cors)
-        .recover(|err: Rejection| async move {
-            if let Some(GraphQLBadRequest(err)) = err.find() {
-                return Ok::<_, Infallible>(warp::reply::with_status(
-                    err.to_string(),
-                    StatusCode::BAD_REQUEST,
-                ));
+                let duration_ms = start.elapsed().as_millis();
+                let status = response.status().as_u16();
+
+                slog::info!(logger, "{} {}", method, uri;
+                    "status" => status,
+                    "ms" => duration_ms
+                );
+
+                Ok(response)
             }
+        },
+    );
 
-            Ok(warp::reply::with_status(
-                "INTERNAL_SERVER_ERROR".to_string(),
-                StatusCode::INTERNAL_SERVER_ERROR,
-            ))
-        })
-        .with(warp::log::custom(move |info| {
-            let method = info.method().as_str();
-            let path = info.path();
-            let status = info.status().as_u16();
-            let duration_ms = info.elapsed().as_millis();
+    // Create the router
+    let app = Router::new()
+        .route("/", get(graphiql_handler).post(graphql_handler))
+        .merge(login_routes(auth_service.clone()))
+        .layer(cors)
+        .layer(CompressionLayer::new())
+        .with_state(schema.clone())
+        .layer(auth_layer);
 
-            slog::info!(logger, "{method} {path}", method = method, path = path; "status" => status, "ms" => duration_ms);
-        }));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
+    println!("Listening on {}", addr);
 
-    warp::serve(routes.with(warp::compression::gzip()))
-        .run(([0, 0, 0, 0], 8000))
-        .await;
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 
     Ok(())
 }
