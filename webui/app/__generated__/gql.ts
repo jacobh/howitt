@@ -14,7 +14,7 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 const documents = {
-  "\n  fragment viewerInfo on Viewer {\n      id\n      profile {\n        username\n      }\n  }\n":
+  "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ":
     types.ViewerInfoFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
     types.LoginViewerInfoDocument,
@@ -46,8 +46,8 @@ export function gql(source: string): unknown;
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment viewerInfo on Viewer {\n      id\n      profile {\n        username\n      }\n  }\n"
-): (typeof documents)["\n  fragment viewerInfo on Viewer {\n      id\n      profile {\n        username\n      }\n  }\n"];
+  source: "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  "
+): (typeof documents)["\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
