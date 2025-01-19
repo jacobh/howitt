@@ -324,6 +324,11 @@ impl Route {
             .map(howitt::models::point::Point::into_x_y_vec)
             .collect())
     }
+    async fn points_json<'ctx>(&self, ctx: &Context<'ctx>) -> Result<String, async_graphql::Error> {
+        let points = self.points(ctx).await?;
+
+        Ok(serde_json::to_string(&points)?)
+    }
     async fn elevation_points<'ctx>(
         &self,
         ctx: &Context<'ctx>,

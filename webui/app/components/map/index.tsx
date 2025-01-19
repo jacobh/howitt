@@ -29,7 +29,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { debounce, isEqual, min, some } from "lodash";
 
 export interface DisplayedRoute {
-  route: Pick<Route, "id" | "points">;
+  route: Pick<Route, "id" | "pointsJson">;
   style?: "default" | "muted" | "highlighted";
 }
 
@@ -279,7 +279,7 @@ export function Map({
       let layer: VectorLayer<any>;
 
       if (existingLayer === undefined) {
-        const lineString = new LineString(route.points);
+        const lineString = new LineString(JSON.parse(route.pointsJson));
 
         layer = new VectorLayer({
           source: new VectorSource({
@@ -287,7 +287,7 @@ export function Map({
               new Feature({ geometry: lineString, routeId: route.id }),
             ],
           }),
-          properties: { routeId: route.id, points: route.points.length },
+          properties: { routeId: route.id, points: route.pointsJson.length },
         });
 
         map.addLayer(layer);
@@ -295,8 +295,8 @@ export function Map({
         layer = existingLayer;
       }
 
-      if (layer.getProperties().points !== route.points.length) {
-        const newLineString = new LineString(route.points);
+      if (layer.getProperties().points !== route.pointsJson.length) {
+        const newLineString = new LineString(JSON.parse(route.pointsJson));
 
         layer.setSource(
           new VectorSource({
@@ -306,7 +306,10 @@ export function Map({
           })
         );
 
-        layer.setProperties({ routeId: route.id, points: route.points.length });
+        layer.setProperties({
+          routeId: route.id,
+          points: route.pointsJson.length,
+        });
       }
 
       let color;
@@ -330,7 +333,7 @@ export function Map({
       );
 
       if (initialView?.type === "route" && initialView.routeId === route.id) {
-        map.getView().fit(new LineString(route.points), {
+        map.getView().fit(new LineString(JSON.parse(route.pointsJson)), {
           padding: [100, 100, 100, 100],
           duration: 0,
         });

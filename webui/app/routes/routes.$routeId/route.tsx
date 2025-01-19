@@ -32,7 +32,7 @@ query RouteQuery($routeId: RouteId!) {
     distance
     elevationAscentM
     elevationDescentM
-    points
+    pointsJson
     elevationPoints
     distancePoints
     description
@@ -68,7 +68,7 @@ query RouteQuery($routeId: RouteId!) {
           route {
             id
             name
-            points
+            pointsJson
             distance
             elevationAscentM
             elevationDescentM

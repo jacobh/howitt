@@ -191,6 +191,7 @@ export type Route = {
   physicalDifficulty?: Maybe<DifficultyRating>;
   points: Array<Array<Scalars["Float"]["output"]>>;
   pointsCount: Scalars["Int"]["output"];
+  pointsJson: Scalars["String"]["output"];
   samplePoints: Array<Array<Scalars["Float"]["output"]>>;
   samplePointsCount: Scalars["Int"]["output"];
   scouted?: Maybe<Scouted>;
@@ -321,7 +322,7 @@ export type RouteQueryQuery = {
     distance: number;
     elevationAscentM: number;
     elevationDescentM: number;
-    points: Array<Array<number>>;
+    pointsJson: string;
     elevationPoints: Array<number>;
     distancePoints: Array<number>;
     description?: string | null;
@@ -366,7 +367,7 @@ export type RouteQueryQuery = {
             __typename?: "Route";
             id: any;
             name: string;
-            points: Array<Array<number>>;
+            pointsJson: string;
             distance: number;
             elevationAscentM: number;
             elevationDescentM: number;
@@ -411,11 +412,7 @@ export type HomeQueryPointOnlyQueryVariables = Exact<{
 
 export type HomeQueryPointOnlyQuery = {
   __typename?: "Query";
-  queryRoutes: Array<{
-    __typename?: "Route";
-    id: any;
-    points: Array<Array<number>>;
-  }>;
+  queryRoutes: Array<{ __typename?: "Route"; id: any; pointsJson: string }>;
 };
 
 export const ViewerInfoFragmentDoc = {
@@ -815,7 +812,7 @@ export const RouteQueryDocument = {
                   kind: "Field",
                   name: { kind: "Name", value: "elevationDescentM" },
                 },
-                { kind: "Field", name: { kind: "Name", value: "points" } },
+                { kind: "Field", name: { kind: "Name", value: "pointsJson" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "elevationPoints" },
@@ -960,7 +957,7 @@ export const RouteQueryDocument = {
                                           kind: "Field",
                                           name: {
                                             kind: "Name",
-                                            value: "points",
+                                            value: "pointsJson",
                                           },
                                         },
                                         {
@@ -1190,7 +1187,7 @@ export const HomeQueryPointOnlyDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "points" } },
+                { kind: "Field", name: { kind: "Name", value: "pointsJson" } },
               ],
             },
           },

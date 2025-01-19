@@ -36,7 +36,7 @@ const HOME_QUERY_WITH_POINTS = gql(`
   query homeQueryPointOnly($input: QueryRoutesInput!) {
     queryRoutes(input: $input) {
       id
-      points
+      pointsJson
     }
   }
 `);
@@ -134,7 +134,9 @@ export default function Routes(): React.ReactElement {
       (data2?.queryRoutes ?? data?.queryRoutes ?? []).map((route) => ({
         route: {
           id: route.id,
-          points: (route as any).points ?? (route as any).samplePoints,
+          pointsJson:
+            (route as any).pointsJson ??
+            JSON.stringify((route as any).samplePoints),
         },
         style:
           hoveredRouteId === route.id || clickedRouteId === route.id
