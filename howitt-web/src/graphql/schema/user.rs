@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
-use super::{ride::Ride, ModelId};
+use super::{ride::Ride, trip::Trip, ModelId};
 
 pub struct UserProfile(pub howitt::models::user::User);
 
@@ -36,5 +36,8 @@ impl UserProfile {
         let rides = rides.into_iter().map(|ride| Ride(ride)).collect_vec();
 
         Ok(rides)
+    }
+    async fn trips(&self) -> Result<Vec<Trip>, async_graphql::Error> {
+        Ok(vec![])
     }
 }
