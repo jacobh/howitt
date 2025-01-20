@@ -20,12 +20,10 @@ use howitt_postgresql::{
     PostgresRouteRepo, PostgresUserRepo,
 };
 use http::{header, request::Parts, Method, StatusCode};
-use slog::Drain;
 use tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
-    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
-    LatencyUnit,
+    trace::TraceLayer,
 };
 
 mod auth;
@@ -36,20 +34,11 @@ use graphql::{
     credentials::Credentials,
     schema::{build_schema, Schema},
 };
-use tracing::Level;
 
 #[derive(axum_macros::FromRef, Clone)]
 struct AppState {
     pub schema: Schema,
     pub user_auth_service: UserAuthService,
-}
-
-fn new_logger() -> slog::Logger {
-    let decorator = slog_term::TermDecorator::new().build();
-    let drain = slog_term::FullFormat::new(decorator).build().fuse();
-    let drain = slog_async::Async::new(drain).build().fuse();
-
-    slog::Logger::root(drain, slog::o!())
 }
 
 // Custom extractor for auth
@@ -119,8 +108,6 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
-    let logger = new_logger();
-
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
     let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
     let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
@@ -146,7 +133,6 @@ async fn main() -> Result<(), anyhow::Error> {
         user_auth_service,
     };
 
-    // Create the router
     let app = Router::new()
         .route("/", get(graphiql_handler).post(graphql_handler))
         .route("/auth/login", post(login_handler))
@@ -155,12 +141,22 @@ async fn main() -> Result<(), anyhow::Error> {
             tower::ServiceBuilder::new()
                 .layer(
                     TraceLayer::new_for_http()
-                        .make_span_with(DefaultMakeSpan::new().include_headers(true))
-                        .on_request(DefaultOnRequest::new().level(Level::INFO))
+                        .make_span_with(|request: &axum::http::Request<_>| {
+                            tracing::info_span!(
+                                "http_request",
+                                path = %request.uri().path(),
+                                method = %request.method(),
+                            )
+                        })
                         .on_response(
-                            DefaultOnResponse::new()
-                                .level(Level::INFO)
-                                .latency_unit(LatencyUnit::Millis),
+                            |resp: &http::Response<_>,
+                             latency: std::time::Duration,
+                             _span: &tracing::Span| {
+                                tracing::info!(
+                                    latency = %format!("{}ms", latency.as_millis()),
+                                    status = %resp.status(),
+                                );
+                            },
                         ),
                 )
                 .layer(CompressionLayer::new())
