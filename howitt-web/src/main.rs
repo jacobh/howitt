@@ -4,13 +4,11 @@ use std::sync::Arc;
 
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use auth::login_routes;
+use auth::login_handler;
 use axum::{
-    extract::{FromRequestParts, State},
-    http::{header::AUTHORIZATION, request::Parts, Method, StatusCode},
-    middleware::{self, Next},
+    extract::{FromRef, FromRequestParts, State},
     response::{Html, IntoResponse},
-    routing::get,
+    routing::{get, post},
     Router,
 };
 use howitt::services::{
@@ -22,6 +20,7 @@ use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
     PostgresRouteRepo, PostgresUserRepo,
 };
+use http::{header, request::Parts, StatusCode};
 use slog::Drain;
 use tower_http::{
     compression::CompressionLayer,
@@ -37,6 +36,24 @@ use graphql::{
     Query,
 };
 
+#[derive(Clone)]
+struct AppState {
+    pub schema: Schema<Query, EmptyMutation, EmptySubscription>,
+    pub user_auth_service: UserAuthService,
+}
+
+impl FromRef<AppState> for Schema<Query, EmptyMutation, EmptySubscription> {
+    fn from_ref(state: &AppState) -> Self {
+        state.schema.clone()
+    }
+}
+
+impl FromRef<AppState> for UserAuthService {
+    fn from_ref(state: &AppState) -> Self {
+        state.user_auth_service.clone()
+    }
+}
+
 fn new_logger() -> slog::Logger {
     let decorator = slog_term::TermDecorator::new().build();
     let drain = slog_term::FullFormat::new(decorator).build().fuse();
@@ -49,27 +66,26 @@ fn new_logger() -> slog::Logger {
 struct OptionalLogin(Option<Login>);
 
 #[async_trait::async_trait]
-impl<S> FromRequestParts<S> for OptionalLogin
-where
-    S: Send + Sync,
-{
+impl FromRequestParts<AppState> for OptionalLogin {
     type Rejection = StatusCode;
 
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let auth_service = parts
-            .extensions
-            .get::<UserAuthService>()
-            .expect("UserAuthService missing from request extensions");
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let AppState {
+            user_auth_service, ..
+        } = state;
 
         let auth_header = parts
             .headers
-            .get(AUTHORIZATION)
+            .get(header::AUTHORIZATION)
             .and_then(|h| h.to_str().ok());
 
         let credentials = auth_header.and_then(|s| Credentials::parse_auth_header_value(s).ok());
 
         match credentials {
-            Some(Credentials::BearerToken(token)) => match auth_service.verify(&token).await {
+            Some(Credentials::BearerToken(token)) => match user_auth_service.verify(&token).await {
                 Ok(login) => Ok(OptionalLogin(Some(login))),
                 Err(_) => Ok(OptionalLogin(None)),
             },
@@ -113,7 +129,6 @@ async fn main() -> Result<(), anyhow::Error> {
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
     let logger = new_logger();
-    let logger_clone = logger.clone();
 
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
     let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
@@ -121,7 +136,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let ride_points_repo = Arc::new(PostgresRidePointsRepo::new(pg.clone()));
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
 
-    let auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
+    let user_auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
     let simplified_ride_points_fetcher = SimplifiedRidePointsFetcher {
         ride_points_repo: ride_points_repo.clone(),
         redis_client: redis,
@@ -137,53 +152,55 @@ async fn main() -> Result<(), anyhow::Error> {
         })
         .finish();
 
+    let app_state = AppState {
+        schema,
+        user_auth_service,
+    };
+
     println!("GraphiQL IDE: http://localhost:8000");
 
-    // Build our middleware stack
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(
-            vec![Method::GET, Method::POST]
-                .into_iter()
-                .collect::<Vec<_>>(),
-        )
-        .allow_headers(
-            vec![AUTHORIZATION, axum::http::header::CONTENT_TYPE]
-                .into_iter()
-                .collect::<Vec<_>>(),
-        );
+    // // Build our middleware stack
+    // let cors = CorsLayer::new()
+    //     .allow_origin(Any)
+    //     .allow_methods(Any)
+    //     .allow_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE]);
+    // // .allow_headers(
+    // //     vec![AUTHORIZATION, axum::http::header::CONTENT_TYPE]
+    // //         .into_iter()
+    // //         .collect::<Vec<_>>(),
+    // // );
 
-    let auth_layer = middleware::from_fn(
-        move |req: axum::http::Request<axum::body::Body>, next: Next<axum::body::Body>| {
-            let logger = logger_clone.clone();
-            async move {
-                let start = std::time::Instant::now();
-                let method = req.method().clone();
-                let uri = req.uri().clone();
+    // let auth_layer = middleware::from_fn(
+    //     move |req: axum::http::Request<axum::body::Body>, next: Next<axum::body::Body>| {
+    //         let logger = logger_clone.clone();
+    //         async move {
+    //             let start = std::time::Instant::now();
+    //             let method = req.method().clone();
+    //             let uri = req.uri().clone();
 
-                let response = next.run(req).await;
+    //             let response = next.run(req).await;
 
-                let duration_ms = start.elapsed().as_millis();
-                let status = response.status().as_u16();
+    //             let duration_ms = start.elapsed().as_millis();
+    //             let status = response.status().as_u16();
 
-                slog::info!(logger, "{} {}", method, uri;
-                    "status" => status,
-                    "ms" => duration_ms
-                );
+    //             slog::info!(logger, "{} {}", method, uri;
+    //                 "status" => status,
+    //                 "ms" => duration_ms
+    //             );
 
-                Ok(response)
-            }
-        },
-    );
+    //             Ok(response)
+    //         }
+    //     },
+    // );
 
     // Create the router
     let app = Router::new()
         .route("/", get(graphiql_handler).post(graphql_handler))
-        .merge(login_routes(auth_service.clone()))
-        .layer(cors)
-        .layer(CompressionLayer::new())
-        .with_state(schema.clone())
-        .layer(auth_layer);
+        .route("/auth/login", post(login_handler))
+        .with_state(app_state);
+    // .layer(cors)
+    // .layer(CompressionLayer::new())
+    // .layer(auth_layer);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
     println!("Listening on {}", addr);

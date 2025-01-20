@@ -2203,6 +2203,7 @@ dependencies = [
  "howitt",
  "howitt-postgresql",
  "howitt_clients",
+ "http 1.2.0",
  "itertools 0.14.0",
  "serde",
  "serde_json",
