@@ -64,7 +64,7 @@ export default function Login(): React.ReactElement {
 
       try {
         const res = await axios.post(
-          "https://api.howittplains.net/auth/login/",
+          "https://api.howittplains.net/auth/login",
           {
             username,
             password,
