@@ -5,7 +5,7 @@ use std::sync::Arc;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use auth::login_handler;
 use axum::{
-    extract::{FromRequestParts, State},
+    extract::{OptionalFromRequestParts, State},
     response::{Html, IntoResponse},
     routing::{get, post},
     Router,
@@ -41,16 +41,13 @@ struct AppState {
     pub user_auth_service: UserAuthService,
 }
 
-// Custom extractor for auth
-struct OptionalLogin(Option<Login>);
-
-impl FromRequestParts<AppState> for OptionalLogin {
+impl OptionalFromRequestParts<AppState> for Login {
     type Rejection = StatusCode;
 
     async fn from_request_parts(
         parts: &mut Parts,
         state: &AppState,
-    ) -> Result<Self, Self::Rejection> {
+    ) -> Result<Option<Login>, Self::Rejection> {
         let AppState {
             user_auth_service, ..
         } = state;
@@ -64,18 +61,18 @@ impl FromRequestParts<AppState> for OptionalLogin {
 
         match credentials {
             Some(Credentials::BearerToken(token)) => match user_auth_service.verify(&token).await {
-                Ok(login) => Ok(OptionalLogin(Some(login))),
-                Err(_) => Ok(OptionalLogin(None)),
+                Ok(login) => Ok(Some(login)),
+                Err(_) => Ok(None),
             },
-            Some(Credentials::Key(_)) => Ok(OptionalLogin(None)),
-            None => Ok(OptionalLogin(None)),
+            Some(Credentials::Key(_)) => Ok(None),
+            None => Ok(None),
         }
     }
 }
 
 async fn graphql_handler(
     State(schema): State<Schema>,
-    OptionalLogin(login): OptionalLogin,
+    login: Option<Login>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     let mut request = req.into_inner();
