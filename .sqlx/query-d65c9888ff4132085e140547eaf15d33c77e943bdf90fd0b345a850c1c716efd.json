@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    INSERT INTO trip_rides (\n                        trip_id,\n                        ride_id\n                    ) VALUES ($1, $2)\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d65c9888ff4132085e140547eaf15d33c77e943bdf90fd0b345a850c1c716efd"
+}
