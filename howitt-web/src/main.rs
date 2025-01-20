@@ -2,91 +2,29 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use auth::login_handler;
 use axum::{
-    extract::{OptionalFromRequestParts, State},
-    response::{Html, IntoResponse},
     routing::{get, post},
     Router,
 };
-use howitt::services::{
-    fetchers::SimplifiedRidePointsFetcher,
-    user::auth::{Login, UserAuthService},
-};
+use howitt::services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAuthService};
 use howitt_clients::RedisClient;
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
     PostgresRouteRepo, PostgresUserRepo,
 };
-use http::{header, request::Parts, Method, StatusCode};
+use http::{header, Method};
 use tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
 
-mod auth;
+mod app_state;
+mod extractors;
 mod graphql;
+mod handlers;
 
-use graphql::{
-    context::{RequestData, SchemaData},
-    credentials::Credentials,
-    schema::{build_schema, Schema},
-};
-
-#[derive(axum_macros::FromRef, Clone)]
-struct AppState {
-    pub schema: Schema,
-    pub user_auth_service: UserAuthService,
-}
-
-impl OptionalFromRequestParts<AppState> for Login {
-    type Rejection = StatusCode;
-
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &AppState,
-    ) -> Result<Option<Login>, Self::Rejection> {
-        let AppState {
-            user_auth_service, ..
-        } = state;
-
-        let auth_header = parts
-            .headers
-            .get(header::AUTHORIZATION)
-            .and_then(|h| h.to_str().ok());
-
-        let credentials = auth_header.and_then(|s| Credentials::parse_auth_header_value(s).ok());
-
-        match credentials {
-            Some(Credentials::BearerToken(token)) => match user_auth_service.verify(&token).await {
-                Ok(login) => Ok(Some(login)),
-                Err(_) => Ok(None),
-            },
-            Some(Credentials::Key(_)) => Ok(None),
-            None => Ok(None),
-        }
-    }
-}
-
-async fn graphql_handler(
-    State(schema): State<Schema>,
-    login: Option<Login>,
-    req: GraphQLRequest,
-) -> GraphQLResponse {
-    let mut request = req.into_inner();
-    request = request.data(RequestData { login });
-    schema.execute(request).await.into()
-}
-
-async fn graphiql_handler() -> impl IntoResponse {
-    Html(
-        async_graphql::http::GraphiQLSource::build()
-            .endpoint("/")
-            .finish(),
-    )
-}
+use graphql::{context::SchemaData, schema::build_schema};
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -125,14 +63,17 @@ async fn main() -> Result<(), anyhow::Error> {
         simplified_ride_points_fetcher,
     });
 
-    let app_state = AppState {
+    let app_state = app_state::AppState {
         schema,
         user_auth_service,
     };
 
     let app = Router::new()
-        .route("/", get(graphiql_handler).post(graphql_handler))
-        .route("/auth/login", post(login_handler))
+        .route(
+            "/",
+            get(handlers::graphql::graphiql_handler).post(handlers::graphql::graphql_handler),
+        )
+        .route("/auth/login", post(handlers::auth::login_handler))
         .with_state(app_state)
         .layer(
             tower::ServiceBuilder::new()
