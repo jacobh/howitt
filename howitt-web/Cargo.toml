@@ -32,6 +32,9 @@ slog-term = "2.9.1"
 slog-async = "2.8.0"
 async-trait = "*"
 http = "1.2.0"
+tracing = "*"
+tracing-subscriber = "*"
+
 
 [dev-dependencies]
 test-case = "3.1.0"

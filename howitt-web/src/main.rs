@@ -19,11 +19,13 @@ use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
     PostgresRouteRepo, PostgresUserRepo,
 };
-use http::{header, request::Parts, StatusCode};
+use http::{header, request::Parts, Method, StatusCode};
 use slog::Drain;
 use tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
+    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
+    LatencyUnit,
 };
 
 mod auth;
@@ -34,6 +36,7 @@ use graphql::{
     credentials::Credentials,
     schema::{build_schema, Schema},
 };
+use tracing::Level;
 
 #[derive(axum_macros::FromRef, Clone)]
 struct AppState {
@@ -101,6 +104,8 @@ async fn graphiql_handler() -> impl IntoResponse {
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
+    tracing_subscriber::fmt::init();
+
     let pg = PostgresClient::connect(
         &std::env::var("DATABASE_URL")
             .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
@@ -141,25 +146,31 @@ async fn main() -> Result<(), anyhow::Error> {
         user_auth_service,
     };
 
-    println!("GraphiQL IDE: http://localhost:8000");
-
-    // // Build our middleware stack
-    // let cors = CorsLayer::new()
-    //     .allow_origin(Any)
-    //     .allow_methods(Any)
-    //     .allow_headers(vec![header::AUTHORIZATION, header::CONTENT_TYPE]);
-    // // .allow_headers(
-    // //     vec![AUTHORIZATION, axum::http::header::CONTENT_TYPE]
-    // //         .into_iter()
-    // //         .collect::<Vec<_>>(),
-    // // );
-
     // Create the router
     let app = Router::new()
         .route("/", get(graphiql_handler).post(graphql_handler))
         .route("/auth/login", post(login_handler))
         .with_state(app_state)
-        .layer(tower::ServiceBuilder::new().layer(CompressionLayer::new()));
+        .layer(
+            tower::ServiceBuilder::new()
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(DefaultMakeSpan::new().include_headers(true))
+                        .on_request(DefaultOnRequest::new().level(Level::INFO))
+                        .on_response(
+                            DefaultOnResponse::new()
+                                .level(Level::INFO)
+                                .latency_unit(LatencyUnit::Millis),
+                        ),
+                )
+                .layer(CompressionLayer::new())
+                .layer(
+                    CorsLayer::new()
+                        .allow_origin(Any)
+                        .allow_methods([Method::GET, Method::POST])
+                        .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE]),
+                ),
+        );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
     println!("Listening on {}", addr);
