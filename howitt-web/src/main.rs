@@ -2,7 +2,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use auth::login_handler;
 use axum::{
@@ -33,16 +32,16 @@ mod graphql;
 use graphql::{
     context::{RequestData, SchemaData},
     credentials::Credentials,
-    Query,
+    schema::{build_schema, Schema},
 };
 
 #[derive(Clone)]
 struct AppState {
-    pub schema: Schema<Query, EmptyMutation, EmptySubscription>,
+    pub schema: Schema,
     pub user_auth_service: UserAuthService,
 }
 
-impl FromRef<AppState> for Schema<Query, EmptyMutation, EmptySubscription> {
+impl FromRef<AppState> for Schema {
     fn from_ref(state: &AppState) -> Self {
         state.schema.clone()
     }
@@ -96,7 +95,7 @@ impl FromRequestParts<AppState> for OptionalLogin {
 }
 
 async fn graphql_handler(
-    State(schema): State<Schema<Query, EmptyMutation, EmptySubscription>>,
+    State(schema): State<Schema>,
     OptionalLogin(login): OptionalLogin,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
@@ -142,15 +141,13 @@ async fn main() -> Result<(), anyhow::Error> {
         redis_client: redis,
     };
 
-    let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
-        .data(SchemaData {
-            poi_repo,
-            route_repo,
-            ride_repo,
-            user_repo: user_repo.clone(),
-            simplified_ride_points_fetcher,
-        })
-        .finish();
+    let schema = build_schema(SchemaData {
+        poi_repo,
+        route_repo,
+        ride_repo,
+        user_repo,
+        simplified_ride_points_fetcher,
+    });
 
     let app_state = AppState {
         schema,

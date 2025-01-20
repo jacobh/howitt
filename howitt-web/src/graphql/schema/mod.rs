@@ -6,6 +6,8 @@ use howitt::models::{
 };
 use serde::{Deserialize, Serialize};
 
+use super::context::SchemaData;
+
 pub mod cue;
 pub mod geo;
 pub mod photo;
@@ -34,4 +36,20 @@ impl ExternalRef {
     async fn canonical_url(&self) -> url::Url {
         self.0.id.canonical_url()
     }
+}
+
+pub type Schema = async_graphql::Schema<
+    query::Query,
+    async_graphql::EmptyMutation,
+    async_graphql::EmptySubscription,
+>;
+
+pub fn build_schema(data: SchemaData) -> Schema {
+    Schema::build(
+        query::Query,
+        async_graphql::EmptyMutation,
+        async_graphql::EmptySubscription,
+    )
+    .data(data)
+    .finish()
 }
