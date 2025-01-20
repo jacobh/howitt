@@ -6,11 +6,17 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 axum = "*"
-tower-http = { version = "*", features = ["compression-gzip", "cors", "trace"] }
-async-graphql-axum = "7"                                                         # Replace async-graphql-warp
+axum-macros = "*"
+tower = "*"
+tower-http = { version = "*", features = ["full"] }
+async-graphql-axum = { git = "https://github.com/async-graphql/async-graphql.git" }
 howitt-postgresql = { path = "../howitt-postgresql" }
 anyhow = "*"
-async-graphql = { version = "7", features = ["uuid", "chrono", "url"] }
+async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", features = [
+    "uuid",
+    "chrono",
+    "url",
+] }
 howitt = { path = "../howitt" }
 howitt_clients = { path = "../howitt-clients" }
 geo = "*"

@@ -5,7 +5,7 @@ use std::sync::Arc;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use auth::login_handler;
 use axum::{
-    extract::{FromRef, FromRequestParts, State},
+    extract::{FromRequestParts, State},
     response::{Html, IntoResponse},
     routing::{get, post},
     Router,
@@ -35,22 +35,10 @@ use graphql::{
     schema::{build_schema, Schema},
 };
 
-#[derive(Clone)]
+#[derive(axum_macros::FromRef, Clone)]
 struct AppState {
     pub schema: Schema,
     pub user_auth_service: UserAuthService,
-}
-
-impl FromRef<AppState> for Schema {
-    fn from_ref(state: &AppState) -> Self {
-        state.schema.clone()
-    }
-}
-
-impl FromRef<AppState> for UserAuthService {
-    fn from_ref(state: &AppState) -> Self {
-        state.user_auth_service.clone()
-    }
 }
 
 fn new_logger() -> slog::Logger {
@@ -64,7 +52,6 @@ fn new_logger() -> slog::Logger {
 // Custom extractor for auth
 struct OptionalLogin(Option<Login>);
 
-#[async_trait::async_trait]
 impl FromRequestParts<AppState> for OptionalLogin {
     type Rejection = StatusCode;
 
@@ -167,37 +154,12 @@ async fn main() -> Result<(), anyhow::Error> {
     // //         .collect::<Vec<_>>(),
     // // );
 
-    // let auth_layer = middleware::from_fn(
-    //     move |req: axum::http::Request<axum::body::Body>, next: Next<axum::body::Body>| {
-    //         let logger = logger_clone.clone();
-    //         async move {
-    //             let start = std::time::Instant::now();
-    //             let method = req.method().clone();
-    //             let uri = req.uri().clone();
-
-    //             let response = next.run(req).await;
-
-    //             let duration_ms = start.elapsed().as_millis();
-    //             let status = response.status().as_u16();
-
-    //             slog::info!(logger, "{} {}", method, uri;
-    //                 "status" => status,
-    //                 "ms" => duration_ms
-    //             );
-
-    //             Ok(response)
-    //         }
-    //     },
-    // );
-
     // Create the router
     let app = Router::new()
         .route("/", get(graphiql_handler).post(graphql_handler))
         .route("/auth/login", post(login_handler))
-        .with_state(app_state);
-    // .layer(cors)
-    // .layer(CompressionLayer::new())
-    // .layer(auth_layer);
+        .with_state(app_state)
+        .layer(tower::ServiceBuilder::new().layer(CompressionLayer::new()));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
     println!("Listening on {}", addr);
