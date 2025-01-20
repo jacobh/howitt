@@ -11,8 +11,7 @@ reqwest = "*"
 derive_more = { version = "1", features = ["full"] }
 async-trait = "*"
 url = "*"
-aws-config = "1.5"
-aws-sdk-s3 = "1.67"
 thiserror = "*"
 bytes = "*"
 redis = { version = "*", features = ["aio", "tokio-comp"] }
+object_store = { version = "*", features = ["aws"] }

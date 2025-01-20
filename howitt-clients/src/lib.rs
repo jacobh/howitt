@@ -1,65 +1,46 @@
 use async_trait::async_trait;
-use aws_config::BehaviorVersion;
-use aws_sdk_s3::{
-    operation::{head_object::HeadObjectError, put_object::PutObjectError},
-    primitives::ByteStream,
-};
 use howitt_client_types::{BucketClient, BucketName, HttpClient, HttpResponse};
+use object_store::{aws::AmazonS3, ObjectStore};
 use redis::{AsyncCommands, IntoConnectionInfo};
-
-#[derive(thiserror::Error, Debug, derive_more::Display)]
-pub enum S3BucketClientError {
-    HeadError(#[from] HeadObjectError),
-    PutError(#[from] PutObjectError),
-}
 
 #[derive(derive_more::Constructor, Debug)]
 pub struct S3BucketClient {
-    client: aws_sdk_s3::Client,
-    bucket_name: BucketName,
+    client: AmazonS3,
 }
 
 impl S3BucketClient {
     pub async fn new_from_env(bucket_name: BucketName) -> S3BucketClient {
-        let config = aws_config::load_defaults(BehaviorVersion::latest()).await;
-        S3BucketClient {
-            client: aws_sdk_s3::Client::new(&config),
-            bucket_name,
-        }
+        let access_key_id =
+            std::env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID must be set");
+        let secret_access_key =
+            std::env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY must be set");
+
+        let client = object_store::aws::AmazonS3Builder::new()
+            .with_region("ap-southeast-4")
+            .with_access_key_id(access_key_id)
+            .with_secret_access_key(secret_access_key)
+            .with_bucket_name(bucket_name.to_bucket_name())
+            .build()
+            .unwrap();
+
+        S3BucketClient { client }
     }
 }
 
 #[async_trait]
 impl BucketClient for S3BucketClient {
-    type Error = S3BucketClientError;
+    type Error = object_store::Error;
 
     async fn key_exists(&self, key: &str) -> Result<bool, Self::Error> {
-        let result = self
-            .client
-            .head_object()
-            .bucket(self.bucket_name.to_bucket_name())
-            .key(key)
-            .send()
-            .await
-            .map_err(|e| e.into_service_error());
-
-        match result {
+        match self.client.head(&key.into()).await {
             Ok(_) => Ok(true),
-            Err(HeadObjectError::NotFound(_)) => Ok(false),
-            Err(e) => Err(S3BucketClientError::HeadError(e)),
+            Err(object_store::Error::NotFound { .. }) => Ok(false),
+            Err(e) => Err(e),
         }
     }
 
     async fn put_object(&self, key: &str, body: bytes::Bytes) -> Result<(), Self::Error> {
-        self.client
-            .put_object()
-            .bucket(self.bucket_name.to_bucket_name())
-            .key(key)
-            .body(ByteStream::from(body))
-            .send()
-            .await
-            .map_err(|e| e.into_service_error())?;
-
+        self.client.put(&key.into(), body.into()).await?;
         Ok(())
     }
 }
