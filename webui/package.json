@@ -52,5 +52,8 @@
   },
   "engines": {
     "node": ">=14"
+  },
+  "overrides": {
+    "@emotion/utils": "^1.4"
   }
 }
