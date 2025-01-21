@@ -1,15 +1,22 @@
 import { SerializedStyles, css } from "@emotion/react";
 import { Link, useSearchParams } from "@remix-run/react";
-import { Route } from "~/__generated__/graphql";
+import { FragmentType, gql, useFragment } from "~/__generated__";
 import { COLORS } from "~/styles/theme";
 import { RouteVitals, routeSubtitleArrowCss } from "./RouteVitals";
 
+export const RouteItemFragment = gql(`
+    fragment routeItem on Route {
+        id
+        name
+        distance
+        elevationAscentM
+        elevationDescentM
+        isMetaComplete
+    }
+`);
+
 interface Props {
-  route: Pick<
-    Route,
-    "id" | "name" | "distance" | "elevationAscentM" | "elevationDescentM"
-  > &
-    Partial<Route>;
+  route: FragmentType<typeof RouteItemFragment>;
   routeTitleCss?: SerializedStyles;
   titlePostfix?: string;
 }
@@ -36,11 +43,12 @@ const routeVitalsCss = css`
 `;
 
 export function RouteItem({
-  route,
+  route: routeFragment,
   titlePostfix,
   routeTitleCss,
 }: Props): JSX.Element {
   const [searchParams] = useSearchParams();
+  const route = useFragment(RouteItemFragment, routeFragment);
 
   return (
     <div className="route-item" css={routeItemCss}>

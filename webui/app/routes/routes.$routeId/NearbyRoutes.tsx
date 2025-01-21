@@ -4,17 +4,29 @@ import { CardinalSubset, cardinalFromDegree } from "cardinal-direction";
 import { sortBy } from "lodash";
 import { RouteItem } from "~/components/routes/RouteItem";
 import { css } from "@emotion/react";
+import { FragmentType, gql, useFragment } from "~/__generated__";
+
+export const NearbyRoutesFragment = gql(`
+  fragment nearbyRoutesInfo on Terminus {
+    bearing
+    nearbyRoutes {
+      delta {
+        distance
+        bearing
+      }
+      closestTerminus {
+        bearing
+        route {
+          id
+          ...routeItem
+        }
+      }
+    }
+  }
+`);
 
 interface Props {
-  terminus?: Pick<Terminus, "bearing">;
-  nearbyRoutes: (Pick<NearbyRoute, "delta"> & {
-    closestTerminus: Pick<Terminus, "bearing"> & {
-      route: Pick<
-        Route,
-        "id" | "name" | "distance" | "elevationAscentM" | "elevationDescentM"
-      >;
-    };
-  })[];
+  terminus: FragmentType<typeof NearbyRoutesFragment>;
 }
 
 const routeItemContainerCss = css`
@@ -26,10 +38,12 @@ const routeItemContainerCss = css`
 `;
 
 export function NearbyRoutes({
-  terminus,
-  nearbyRoutes,
+  terminus: terminusFragment,
 }: Props): React.ReactNode {
-  if (nearbyRoutes.length === 0) {
+  const terminus = useFragment(NearbyRoutesFragment, terminusFragment);
+  const { nearbyRoutes } = terminus;
+
+  if (terminus.nearbyRoutes.length === 0) {
     return null;
   }
 

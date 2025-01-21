@@ -19,12 +19,8 @@ const HOME_QUERY_NO_POINTS = gql(`
   query homeQuery($input: QueryRoutesInput!) {
     queryRoutes(input: $input) {
       id
-      name
-      distance
-      isMetaComplete
-      elevationAscentM
-      elevationDescentM
       samplePoints
+      ...routeItem
     }
     viewer {
       ...viewerInfo

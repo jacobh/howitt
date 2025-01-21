@@ -57,24 +57,17 @@ query RouteQuery($routeId: RouteId!) {
     }
     termini {
       bearing
+
       nearbyRoutes {
-        delta {
-          distance
-          bearing
-          elevationGain
-        }
         closestTerminus {
-          bearing
           route {
             id
-            name
             pointsJson
-            distance
-            elevationAscentM
-            elevationDescentM
           }
         }
       }
+
+      ...nearbyRoutesInfo
     }
   }
   viewer {
@@ -231,7 +224,9 @@ export default function Route(): React.ReactElement {
           ))}
           {nearbyRoutes.length > 0 ? (
             <section css={contentSectionCss}>
-              <NearbyRoutes nearbyRoutes={nearbyRoutes} />
+              {data?.route?.termini.map((terminus) => (
+                <NearbyRoutes key={terminus.bearing} terminus={terminus} />
+              ))}
             </section>
           ) : null}
         </div>

@@ -37,6 +37,7 @@ export type Scalars = {
   PointOfInterestId: { input: any; output: any };
   RideId: { input: any; output: any };
   RouteId: { input: any; output: any };
+  TripId: { input: any; output: any };
   /** URL is a String implementing the [URL Standard](http://url.spec.whatwg.org/) */
   Url: { input: any; output: any };
   UserId: { input: any; output: any };
@@ -229,10 +230,17 @@ export enum TerminusEnd {
   Start = "START",
 }
 
+export type Trip = {
+  __typename?: "Trip";
+  id: Scalars["TripId"]["output"];
+  name: Scalars["String"]["output"];
+};
+
 export type UserProfile = {
   __typename?: "UserProfile";
   id: Scalars["UserId"]["output"];
   recentRides: Array<Ride>;
+  trips: Array<Trip>;
   username: Scalars["String"]["output"];
 };
 
@@ -247,6 +255,16 @@ export type ViewerInfoFragment = {
   id: string;
   profile: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "ViewerInfoFragment" };
+
+export type RouteItemFragment = {
+  __typename?: "Route";
+  id: any;
+  name: string;
+  distance: number;
+  elevationAscentM: number;
+  elevationDescentM: number;
+  isMetaComplete: boolean;
+} & { " $fragmentName"?: "RouteItemFragment" };
 
 export type LoginViewerInfoQueryVariables = Exact<{ [key: string]: never }>;
 
@@ -308,6 +326,22 @@ export type UserItemFragment = {
   username: string;
 } & { " $fragmentName"?: "UserItemFragment" };
 
+export type NearbyRoutesInfoFragment = {
+  __typename?: "Terminus";
+  bearing: number;
+  nearbyRoutes: Array<{
+    __typename?: "NearbyRoute";
+    delta: { __typename?: "PointDelta"; distance: number; bearing: number };
+    closestTerminus: {
+      __typename?: "Terminus";
+      bearing: number;
+      route: { __typename?: "Route"; id: any } & {
+        " $fragmentRefs"?: { RouteItemFragment: RouteItemFragment };
+      };
+    };
+  }>;
+} & { " $fragmentName"?: "NearbyRoutesInfoFragment" };
+
 export type RouteQueryQueryVariables = Exact<{
   routeId: Scalars["RouteId"]["input"];
 }>;
@@ -349,32 +383,23 @@ export type RouteQueryQuery = {
       url: any;
       caption?: string | null;
     }>;
-    termini: Array<{
-      __typename?: "Terminus";
-      bearing: number;
-      nearbyRoutes: Array<{
-        __typename?: "NearbyRoute";
-        delta: {
-          __typename?: "PointDelta";
-          distance: number;
-          bearing: number;
-          elevationGain: number;
-        };
-        closestTerminus: {
-          __typename?: "Terminus";
-          bearing: number;
-          route: {
-            __typename?: "Route";
-            id: any;
-            name: string;
-            pointsJson: string;
-            distance: number;
-            elevationAscentM: number;
-            elevationDescentM: number;
+    termini: Array<
+      {
+        __typename?: "Terminus";
+        bearing: number;
+        nearbyRoutes: Array<{
+          __typename?: "NearbyRoute";
+          closestTerminus: {
+            __typename?: "Terminus";
+            route: { __typename?: "Route"; id: any; pointsJson: string };
           };
+        }>;
+      } & {
+        " $fragmentRefs"?: {
+          NearbyRoutesInfoFragment: NearbyRoutesInfoFragment;
         };
-      }>;
-    }>;
+      }
+    >;
   } | null;
   viewer?:
     | ({ __typename?: "Viewer" } & {
@@ -389,16 +414,11 @@ export type HomeQueryQueryVariables = Exact<{
 
 export type HomeQueryQuery = {
   __typename?: "Query";
-  queryRoutes: Array<{
-    __typename?: "Route";
-    id: any;
-    name: string;
-    distance: number;
-    isMetaComplete: boolean;
-    elevationAscentM: number;
-    elevationDescentM: number;
-    samplePoints: Array<Array<number>>;
-  }>;
+  queryRoutes: Array<
+    { __typename?: "Route"; id: any; samplePoints: Array<Array<number>> } & {
+      " $fragmentRefs"?: { RouteItemFragment: RouteItemFragment };
+    }
+  >;
   viewer?:
     | ({ __typename?: "Viewer" } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
@@ -464,6 +484,124 @@ export const UserItemFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<UserItemFragment, unknown>;
+export const RouteItemFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+          { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RouteItemFragment, unknown>;
+export const NearbyRoutesInfoFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "nearbyRoutesInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Terminus" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "bearing" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "nearbyRoutes" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "delta" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "distance" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "bearing" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "closestTerminus" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "bearing" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "route" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "FragmentSpread",
+                              name: { kind: "Name", value: "routeItem" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+          { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<NearbyRoutesInfoFragment, unknown>;
 export const LoginViewerInfoDocument = {
   kind: "Document",
   definitions: [
@@ -907,38 +1045,10 @@ export const RouteQueryDocument = {
                           selections: [
                             {
                               kind: "Field",
-                              name: { kind: "Name", value: "delta" },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "distance" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "bearing" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: {
-                                      kind: "Name",
-                                      value: "elevationGain",
-                                    },
-                                  },
-                                ],
-                              },
-                            },
-                            {
-                              kind: "Field",
                               name: { kind: "Name", value: "closestTerminus" },
                               selectionSet: {
                                 kind: "SelectionSet",
                                 selections: [
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "bearing" },
-                                  },
                                   {
                                     kind: "Field",
                                     name: { kind: "Name", value: "route" },
@@ -951,34 +1061,9 @@ export const RouteQueryDocument = {
                                         },
                                         {
                                           kind: "Field",
-                                          name: { kind: "Name", value: "name" },
-                                        },
-                                        {
-                                          kind: "Field",
                                           name: {
                                             kind: "Name",
                                             value: "pointsJson",
-                                          },
-                                        },
-                                        {
-                                          kind: "Field",
-                                          name: {
-                                            kind: "Name",
-                                            value: "distance",
-                                          },
-                                        },
-                                        {
-                                          kind: "Field",
-                                          name: {
-                                            kind: "Name",
-                                            value: "elevationAscentM",
-                                          },
-                                        },
-                                        {
-                                          kind: "Field",
-                                          name: {
-                                            kind: "Name",
-                                            value: "elevationDescentM",
                                           },
                                         },
                                       ],
@@ -989,6 +1074,10 @@ export const RouteQueryDocument = {
                             },
                           ],
                         },
+                      },
+                      {
+                        kind: "FragmentSpread",
+                        name: { kind: "Name", value: "nearbyRoutesInfo" },
                       },
                     ],
                   },
@@ -1005,6 +1094,95 @@ export const RouteQueryDocument = {
                 {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+          { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "nearbyRoutesInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Terminus" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "bearing" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "nearbyRoutes" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "delta" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "distance" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "bearing" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "closestTerminus" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "bearing" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "route" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "FragmentSpread",
+                              name: { kind: "Name", value: "routeItem" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
                 },
               ],
             },
@@ -1081,23 +1259,13 @@ export const HomeQueryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "name" } },
-                { kind: "Field", name: { kind: "Name", value: "distance" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "isMetaComplete" },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "elevationAscentM" },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "elevationDescentM" },
-                },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "samplePoints" },
+                },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "routeItem" },
                 },
               ],
             },
@@ -1115,6 +1283,25 @@ export const HomeQueryDocument = {
               ],
             },
           },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+          { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
         ],
       },
     },
