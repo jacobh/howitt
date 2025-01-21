@@ -11,7 +11,7 @@
     "format": "prettier --write app lambdaExpressServer.ts"
   },
   "dependencies": {
-    "@apollo/client": "^3.12.5",
+    "@apollo/client": "^3.12.6",
     "@emotion/react": "^11.14.0",
     "@emotion/server": "^11.11.0",
     "@graphql-codegen/cli": "^5.0.3",
@@ -27,14 +27,14 @@
     "cardinal-direction": "^1.1.1",
     "cookie": "^1.0.2",
     "express": "^4.21.2",
-    "graphql": "16.6.0",
+    "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",
     "isbot": "^3.8.0",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
     "ol": "^7.5.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "recharts": "^2.15.0"
   },
   "devDependencies": {
@@ -43,8 +43,8 @@
     "@remix-run/eslint-config": "^2.15.2",
     "@types/express": "^4.17.21",
     "@types/js-cookie": "^3.0.6",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
     "eslint": "^8.57.1",
     "prettier": "^2.8.8",
     "tailwindcss": "^3.4.17",
