@@ -15,6 +15,7 @@ pub type RideId = ModelUlid<{ ModelName::Ride }>;
 pub struct Ride {
     pub id: RideId,
     pub name: String,
+    pub user_id: UserId,
     pub distance: f64,
     pub started_at: DateTime<Utc>,
     pub finished_at: DateTime<Utc>,

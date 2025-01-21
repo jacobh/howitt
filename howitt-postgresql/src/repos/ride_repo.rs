@@ -4,6 +4,7 @@ use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::filters::TemporalFilter;
 use howitt::models::ride::{RideFilter, RideId};
 
+use howitt::models::user::UserId;
 use howitt::models::{ride::Ride, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
@@ -29,6 +30,7 @@ impl TryFrom<RideRow> for Ride {
         Ok(Ride {
             id: RideId::from(uuid_into_ulid(row.id)),
             name: row.name.unwrap_or_default(),
+            user_id: UserId::from(uuid_into_ulid(row.id)),
             distance: row.distance_m as f64,
             external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
             started_at: row.started_at,
@@ -141,8 +143,9 @@ impl Repo for PostgresRideRepo {
                 external_ref,
                 distance_m,
                 started_at,
-                finished_at
-            ) values ($1, $2, $3, $4, $5, $6, $7)"#,
+                finished_at,
+                user_id
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8)"#,
             ulid_into_uuid(*ride.id().as_ulid()),
             ride.name,
             Utc::now(),
@@ -150,6 +153,7 @@ impl Repo for PostgresRideRepo {
             ride.distance as i32,
             ride.started_at,
             ride.finished_at,
+            ulid_into_uuid(*ride.user_id.as_ulid()),
         );
 
         query.execute(conn.as_mut()).await?;

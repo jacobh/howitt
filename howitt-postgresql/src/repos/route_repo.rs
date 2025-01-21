@@ -6,6 +6,7 @@ use howitt::models::point::PointChunk;
 use howitt::models::route::{Route, RouteFilter};
 use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
+use howitt::models::user::UserId;
 use itertools::Itertools;
 
 use howitt::models::{route::RouteModel, Model};
@@ -42,6 +43,7 @@ impl TryFrom<RouteIndexRow> for Route {
         Ok(Route {
             id: sqlx::Either::Left(uuid_into_ulid(row.id)),
             name: row.name,
+            user_id: UserId::from(uuid_into_ulid(row.id)),
             distance: row.distance_m as f64,
             sample_points: Some(serde_json::from_value(row.sample_points)?),
             description: Some(RouteDescription {
@@ -113,6 +115,7 @@ impl TryFrom<RouteRow> for Route {
         Ok(Route {
             id: sqlx::Either::Left(uuid_into_ulid(row.id)),
             name: row.name,
+            user_id: UserId::from(uuid_into_ulid(row.id)),
             distance: row.distance_m as f64,
             sample_points: Some(serde_json::from_value(row.sample_points)?),
             description: Some(RouteDescription {
@@ -309,8 +312,9 @@ impl Repo for PostgresRouteRepo {
                 scouted,
                 direction,
                 tags,
-                is_starred
-            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)"#,
+                is_starred,
+                user_id
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"#,
             ulid_into_uuid(*route.id().as_ulid()),
             Utc::now(),
             route.name,
@@ -367,7 +371,8 @@ impl Repo for PostgresRouteRepo {
                 .transpose()?
                 .map(unwrap_string_value),
             route.description.as_ref().map(|x| &*x.tags).unwrap_or(&[]),
-            route.tags.contains(&Tag::BackcountrySegment)
+            route.tags.contains(&Tag::BackcountrySegment),
+            ulid_into_uuid(*route.user_id.as_ulid())
         );
 
         query.execute(conn.as_mut()).await?;

@@ -16,6 +16,7 @@ use crate::{
         route::{Route, RouteId, RouteModel},
         route_description::RouteDescription,
         tag::Tag,
+        user::UserId,
         IndexItem,
     },
     repos::Repo,
@@ -26,6 +27,12 @@ use crate::{
 };
 
 const SYNC_VERSION: usize = 2;
+
+#[derive(Debug, Clone)]
+pub struct SyncParams {
+    pub rwgps_user_id: usize,
+    pub user_id: UserId,
+}
 
 pub struct RwgpsSyncService<
     RouteRepo: Repo<Model = RouteModel>,
@@ -78,10 +85,10 @@ where
 
     async fn detect_route_sync_candidates(
         &self,
-        rwgps_user_id: usize,
+        SyncParams { rwgps_user_id, .. }: &SyncParams,
     ) -> Result<Vec<(RouteSummary, Option<Route>)>, anyhow::Error> {
         let existing_routes = self.route_repo.all_indexes().await?;
-        let route_summaries = self.rwgps_client.user_routes(rwgps_user_id).await?;
+        let route_summaries = self.rwgps_client.user_routes(*rwgps_user_id).await?;
 
         let existing_routes = ExternalRefItemMap::from_externally_reffed(existing_routes);
 
@@ -109,10 +116,10 @@ where
 
     async fn detect_ride_sync_candidates(
         &self,
-        rwgps_user_id: usize,
+        SyncParams { rwgps_user_id, .. }: &SyncParams,
     ) -> Result<Vec<(TripSummary, Option<Ride>)>, anyhow::Error> {
         let existing_rides = self.ride_repo.all_indexes().await?;
-        let trip_summaries = self.rwgps_client.user_trips(rwgps_user_id).await?;
+        let trip_summaries = self.rwgps_client.user_trips(*rwgps_user_id).await?;
 
         let existing_rides = ExternalRefItemMap::from_externally_reffed(existing_rides);
 
@@ -136,6 +143,7 @@ where
         &self,
         route_id: usize,
         existing_route: Option<Route>,
+        SyncParams { user_id, .. }: &SyncParams,
     ) -> Result<(), anyhow::Error> {
         let existing_route_model = match &existing_route {
             Some(route) => Some(self.route_repo.get(route.id()).await?),
@@ -240,6 +248,7 @@ where
             Route {
                 id: Either::Right(id),
                 name: route.name.replace("[BCS]", "").trim().to_string(),
+                user_id: user_id.clone(),
                 distance: route.distance.unwrap_or(0.0),
                 description,
                 sample_points: Some(simplify_points(&points, SimplifyTarget::TotalPoints(50))),
@@ -263,6 +272,7 @@ where
         &self,
         trip_id: usize,
         existing_ride: Option<Ride>,
+        SyncParams { user_id, .. }: &SyncParams,
     ) -> Result<(), anyhow::Error> {
         let ride = self.rwgps_client.trip(trip_id).await?;
 
@@ -305,6 +315,7 @@ where
         let ride = Ride {
             id,
             name: ride.name,
+            user_id: *user_id,
             distance: ride.distance,
             started_at,
             finished_at,
@@ -323,19 +334,23 @@ where
         Ok(())
     }
 
-    pub async fn sync(&self, rwgps_user_id: usize) -> Result<(), anyhow::Error> {
-        let route_sync_candidates = self.detect_route_sync_candidates(rwgps_user_id).await?;
-        let ride_sync_candidates = self.detect_ride_sync_candidates(rwgps_user_id).await?;
+    pub async fn sync(&self, params: SyncParams) -> Result<(), anyhow::Error> {
+        let route_sync_candidates = self.detect_route_sync_candidates(&params).await?;
+        let ride_sync_candidates = self.detect_ride_sync_candidates(&params).await?;
 
         dbg!(route_sync_candidates.len());
         dbg!(ride_sync_candidates.len());
 
         let futures = route_sync_candidates
             .into_iter()
-            .map(|candidate| (candidate, self))
-            .map(async move |((summary, existing_route), sync_service)| {
-                sync_service.sync_route(summary.id, existing_route).await
-            });
+            .map(|candidate| (candidate, self, params.clone()))
+            .map(
+                async move |((summary, existing_route), sync_service, params)| {
+                    sync_service
+                        .sync_route(summary.id, existing_route, &params)
+                        .await
+                },
+            );
 
         let stream = stream::iter(futures);
 
@@ -347,10 +362,14 @@ where
 
         let futures = ride_sync_candidates
             .into_iter()
-            .map(|candidate| (candidate, self))
-            .map(async move |((summary, existing_route), sync_service)| {
-                sync_service.sync_ride(summary.id, existing_route).await
-            });
+            .map(|candidate| (candidate, self, params.clone()))
+            .map(
+                async move |((summary, existing_route), sync_service, params)| {
+                    sync_service
+                        .sync_ride(summary.id, existing_route, &params)
+                        .await
+                },
+            );
 
         let stream = stream::iter(futures);
 

@@ -3,6 +3,7 @@ use std::{convert::identity, str::FromStr, sync::Arc};
 use chrono::Utc;
 use clap::{arg, Args, Subcommand};
 use howitt::{
+    ext::ulid::uuid_into_ulid,
     models::{
         route::RouteId,
         user::{User, UserId},
@@ -11,7 +12,10 @@ use howitt::{
     services::{
         generate_cuesheet::generate_cuesheet,
         simplify_points::{simplify_points, SimplifyTarget},
-        sync::{photo::PhotoSyncService, rwgps::RwgpsSyncService},
+        sync::{
+            photo::PhotoSyncService,
+            rwgps::{RwgpsSyncService, SyncParams},
+        },
         user::{auth::UserAuthService, password::hash_password},
     },
 };
@@ -106,7 +110,14 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
                 }),
             };
 
-            service.sync(config.user_info.unwrap().id).await?;
+            service
+                .sync(SyncParams {
+                    rwgps_user_id: config.user_info.unwrap().id,
+                    user_id: UserId::from(uuid_into_ulid(uuid::Uuid::parse_str(
+                        "01941a60-9cfd-c166-94bb-126a6d8de5fd",
+                    )?)),
+                })
+                .await?;
         }
         Postgres::SyncPhotos => {
             let photo_sync = PhotoSyncService {

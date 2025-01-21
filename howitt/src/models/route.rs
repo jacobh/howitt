@@ -22,6 +22,7 @@ use super::{
     segment_summary::SegmentElevationSummary,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
+    user::UserId,
     IndexItem, ModelName, ModelUlid,
 };
 
@@ -32,6 +33,7 @@ pub struct Route {
     #[serde(with = "either::serde_untagged")]
     pub id: Either<ulid::Ulid, RouteId>,
     pub name: String,
+    pub user_id: UserId,
     pub distance: f64,
     pub sample_points: Option<Vec<ElevationPoint>>,
     pub description: Option<RouteDescription>,
