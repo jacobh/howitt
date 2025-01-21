@@ -11,6 +11,7 @@ use super::{
     cue::Cue,
     geo::{PointDelta, SlopeEnd},
     photo::Photo,
+    user::UserProfile,
     ExternalRef, ModelId,
 };
 
@@ -360,5 +361,12 @@ impl Route {
         let cuesheet = generate_cuesheet(&points, &pois);
 
         Ok(cuesheet.cues.into_iter().map(Cue::from).collect_vec())
+    }
+    async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
+        let SchemaData { user_repo, .. } = ctx.data()?;
+
+        let user = user_repo.get(self.0.as_index().user_id).await?;
+
+        Ok(UserProfile(user))
     }
 }

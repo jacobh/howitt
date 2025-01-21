@@ -8,7 +8,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
-use super::ModelId;
+use super::{user::UserProfile, ModelId};
 
 pub struct Ride(pub howitt::models::ride::Ride);
 
@@ -60,5 +60,12 @@ impl Ride {
         let points = self.points(ctx, points_per_km).await?;
 
         Ok(serde_json::to_string(&points)?)
+    }
+    async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
+        let SchemaData { user_repo, .. } = ctx.data()?;
+
+        let user = user_repo.get(self.0.user_id).await?;
+
+        Ok(UserProfile(user))
     }
 }
