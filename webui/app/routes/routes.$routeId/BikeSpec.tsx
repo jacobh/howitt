@@ -34,7 +34,7 @@ interface Props {
   bikeSpec: BikeSpec;
 }
 
-export function BikeSpecContent({ title, bikeSpec }: Props): JSX.Element {
+export function BikeSpecContent({ title, bikeSpec }: Props): React.ReactNode {
   const tableItems = [
     { name: "Tyre Width", value: formatTyreWidths(bikeSpec.tyreWidth) },
     !isRigid(bikeSpec.frontSuspension)

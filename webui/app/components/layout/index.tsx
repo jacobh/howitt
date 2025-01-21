@@ -34,7 +34,7 @@ const containerCss = makeMqs([
   css``,
 ]);
 
-export function Container({ children }: PropsWithChildren): JSX.Element {
+export function Container({ children }: PropsWithChildren): React.ReactNode {
   return <div css={containerCss}>{children}</div>;
 }
 
@@ -122,7 +122,7 @@ export function SidebarContainer({
   titlePostfix,
   titleLinkTo,
   children,
-}: PropsWithChildren<Props>): JSX.Element {
+}: PropsWithChildren<Props>): React.ReactNode {
   return (
     <div css={sidebarContainerOuterCss}>
       <div css={sidebarContainerInnerCss}>
@@ -147,6 +147,6 @@ export function SidebarContainer({
   );
 }
 
-export function MapContainer({ children }: PropsWithChildren): JSX.Element {
+export function MapContainer({ children }: PropsWithChildren): React.ReactNode {
   return <div css={mapContainerCss}>{children}</div>;
 }

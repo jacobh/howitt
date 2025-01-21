@@ -25,7 +25,7 @@ export const routeSubtitleArrowCss = css`
   text-align: center;
 `;
 
-export function RouteVitals({ route }: Props): JSX.Element {
+export function RouteVitals({ route }: Props): React.ReactNode {
   return (
     <p css={routeSubtitleCss}>
       <span>

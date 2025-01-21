@@ -41,7 +41,7 @@ const titleCss = css`
   margin-bottom: 8px;
 `;
 
-export function DataTable({ items, title }: Props): JSX.Element {
+export function DataTable({ items, title }: Props): React.ReactNode {
   return (
     <div>
       {isNotNil(title) ? <p css={titleCss}>{title}</p> : null}

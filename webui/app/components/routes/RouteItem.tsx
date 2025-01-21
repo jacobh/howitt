@@ -46,7 +46,7 @@ export function RouteItem({
   route: routeFragment,
   titlePostfix,
   routeTitleCss,
-}: Props): JSX.Element {
+}: Props): React.ReactNode {
   const [searchParams] = useSearchParams();
   const route = useFragment(RouteItemFragment, routeFragment);
 

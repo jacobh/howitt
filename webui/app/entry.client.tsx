@@ -20,7 +20,7 @@ interface ClientCacheProviderProps {
 
 function ClientStyleCacheProvider({
   children,
-}: ClientCacheProviderProps): JSX.Element {
+}: ClientCacheProviderProps): React.ReactNode {
   const [cache, setCache] = React.useState(createEmotionCache());
 
   const reset = React.useCallback(() => {
@@ -34,7 +34,7 @@ function ClientStyleCacheProvider({
   );
 }
 
-function Client(): JSX.Element {
+function Client(): React.ReactNode {
   const httpLink = createHttpLink({
     uri:
       (window as any).__ENV__.CLIENT_GRAPHQL_URL ??

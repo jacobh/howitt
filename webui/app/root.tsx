@@ -120,10 +120,10 @@ const Document = withEmotionCache(
         </body>
       </html>
     );
-  },
+  }
 );
 
-export default function App(): JSX.Element {
+export default function App(): React.ReactNode {
   const [map, setMap] = useState<OlMap | undefined>(undefined);
 
   return (

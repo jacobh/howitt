@@ -77,7 +77,7 @@ const userInfoCss = css`
   height: 100%;
 `;
 
-export function Nav(props: NavProps): JSX.Element {
+export function Nav(props: NavProps): React.ReactNode {
   const viewer = useFragment(ViewerInfoFragment, props.viewer);
 
   return (
