@@ -66,7 +66,7 @@ export function NearbyRoutes({
                 route={route}
               />
             </div>
-          )
+          ),
         )}
       </div>
     </div>

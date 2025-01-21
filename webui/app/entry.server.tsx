@@ -21,7 +21,7 @@ export default async function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  loadContext: AppLoadContext
+  loadContext: AppLoadContext,
 ): Promise<Response> {
   const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
 
@@ -62,7 +62,7 @@ export default async function handleRequest(
   const html = renderToString(
     <ServerStyleContext.Provider value={null}>
       {App}
-    </ServerStyleContext.Provider>
+    </ServerStyleContext.Provider>,
   );
 
   const initialState = client.extract();
@@ -74,7 +74,7 @@ export default async function handleRequest(
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__APOLLO_STATE__=${JSON.stringify(
-            initialState
+            initialState,
           ).replace(/</g, "\\u003c")}`, // The replace call escapes the < character to prevent cross-site scripting attacks that are possible via the presence of </script> in a string literal
         }}
       />
@@ -85,7 +85,7 @@ export default async function handleRequest(
           }).replace(/</g, "\\u003c")}`,
         }}
       />
-    </ServerStyleContext.Provider>
+    </ServerStyleContext.Provider>,
   );
 
   responseHeaders.set("Content-Type", "text/html");

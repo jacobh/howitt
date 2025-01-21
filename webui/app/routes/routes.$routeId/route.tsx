@@ -109,8 +109,8 @@ export default function Route(): React.ReactElement {
 
   const nearbyRoutes = (data?.route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id
-    )
+      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id,
+    ),
   );
 
   const routes: DisplayedRoute[] = [

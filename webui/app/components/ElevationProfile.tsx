@@ -24,7 +24,7 @@ function zipStrict<T, U>(items1: T[], items2: U[]): [T, U][] {
 
 function computeData({ elevationPoints, distancePoints }: Props): DataPoint[] {
   return zipStrict(elevationPoints, distancePoints).map(
-    ([elevation, distance]) => ({ elevation, distance })
+    ([elevation, distance]) => ({ elevation, distance }),
   );
 }
 
@@ -48,9 +48,9 @@ export function ElevationProfile(props: Props): React.ReactElement {
             // minTickGap={50}
             ticks={sortBy(
               [0, minElevationAt, maxElevationAt, data.at(-1)?.distance].filter(
-                isNotNil
+                isNotNil,
               ),
-              (x) => x
+              (x) => x,
             )}
             tickFormatter={(tick): string => {
               const formattedDistance = `${
@@ -78,7 +78,7 @@ export function ElevationProfile(props: Props): React.ReactElement {
                 .at(0);
 
               const formattedElevation = `${arrow} ${Math.round(
-                point.elevation
+                point.elevation,
               )}m`;
 
               return [formattedDistance, formattedElevation]

@@ -12,7 +12,7 @@ export function makeMqs(styles: SerializedStyles[]): SerializedStyles {
               ${style}
             }
           `
-        : undefined
-    )
+        : undefined,
+    ),
   );
 }

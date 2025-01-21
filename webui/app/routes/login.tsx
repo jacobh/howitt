@@ -68,7 +68,7 @@ export default function Login(): React.ReactElement {
           {
             username,
             password,
-          }
+          },
         );
 
         if (typeof res.data?.token === "string") {
@@ -84,7 +84,7 @@ export default function Login(): React.ReactElement {
         setPassword("");
       }
     },
-    [username, password, navigate, refetch]
+    [username, password, navigate, refetch],
   );
 
   return (
