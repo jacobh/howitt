@@ -43,7 +43,7 @@ function UserProfileDate(): React.ReactElement {
     variables: {
       username: params.username ?? "",
       date: params.date ?? "",
-      pointsPerKm: 8,
+      pointsPerKm: 50,
     },
     ssr: false,
   });
