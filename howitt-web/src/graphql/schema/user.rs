@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
-use super::{ride::Ride, trip::Trip, ModelId};
+use super::{ride::Ride, scalars::iso_date::IsoDate, trip::Trip, ModelId};
 
 pub struct UserProfile(pub howitt::models::user::User);
 
@@ -39,5 +39,26 @@ impl UserProfile {
     }
     async fn trips(&self) -> Result<Vec<Trip>, async_graphql::Error> {
         Ok(vec![])
+    }
+    async fn rides_with_date<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        date: IsoDate,
+    ) -> Result<Vec<Ride>, async_graphql::Error> {
+        let SchemaData { ride_repo, .. } = ctx.data()?;
+
+        // Get rides for that user on that date
+        let rides = ride_repo
+            .filter_models(RideFilter::ForUserWithDate {
+                user_id: self.0.id,
+                date: date.0,
+            })
+            .await?;
+
+        Ok(rides
+            .into_iter()
+            .sorted_by_key(|ride| ride.started_at)
+            .map(Ride)
+            .collect())
     }
 }

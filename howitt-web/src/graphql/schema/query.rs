@@ -1,5 +1,4 @@
 use async_graphql::*;
-use howitt::models::ride::RideFilter;
 use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
 use howitt::models::user::UserFilter;
@@ -11,7 +10,6 @@ use crate::graphql::context::{RequestData, SchemaData};
 use super::point_of_interest::PointOfInterest;
 use super::ride::Ride;
 use super::route::Route;
-use super::scalars::iso_date::IsoDate;
 use super::user::UserProfile;
 use super::viewer::Viewer;
 use super::ModelId;
@@ -166,40 +164,5 @@ impl Query {
         let users = user_repo.all_indexes().await?;
 
         Ok(users.into_iter().map(UserProfile).collect_vec())
-    }
-
-    async fn rides_for_user_with_date<'ctx>(
-        &self,
-        ctx: &Context<'ctx>,
-        username: String,
-        date: IsoDate,
-    ) -> Result<Vec<Ride>, async_graphql::Error> {
-        let SchemaData {
-            user_repo,
-            ride_repo,
-            ..
-        } = ctx.data()?;
-
-        // First find the user by username
-        let user = user_repo
-            .find_model(UserFilter {
-                username: Some(username),
-            })
-            .await?
-            .ok_or_else(|| async_graphql::Error::new("User not found"))?;
-
-        // Get rides for that user on that date
-        let rides = ride_repo
-            .filter_models(RideFilter::ForUserWithDate {
-                user_id: user.id,
-                date: date.0,
-            })
-            .await?;
-
-        Ok(rides
-            .into_iter()
-            .sorted_by_key(|ride| ride.started_at)
-            .map(Ride)
-            .collect())
     }
 }
