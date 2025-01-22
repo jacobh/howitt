@@ -20,6 +20,7 @@ const RIDES_WITH_DATE_QUERY = gql(`
       username
       ridesWithDate(date: $date) {
         id
+        date
         ...rideSummary
         pointsJson(pointsPerKm: $pointsPerKm)
       }
@@ -48,15 +49,14 @@ function UserProfileDate(): React.ReactElement {
   });
 
   // Format the date for display using Temporal
-  const displayDate = Temporal.PlainDate.from(params.date ?? "").toLocaleString(
-    undefined,
-    {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }
-  );
+  const displayDate = params.date
+    ? Temporal.PlainDate.from(params.date).toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : undefined;
 
   return (
     <Container>
@@ -64,14 +64,22 @@ function UserProfileDate(): React.ReactElement {
       <SidebarContainer
         titleSegments={[
           { name: "Riders", linkTo: "/riders" },
-          {
-            name: data?.userWithUsername?.username ?? "",
-            linkTo: `/riders/${params.username ?? ""}`,
-          },
-          {
-            name: displayDate,
-            linkTo: `/riders/${params.username ?? ""}/${params.date ?? ""}`,
-          },
+          ...(params.username
+            ? [
+                {
+                  name: params.username,
+                  linkTo: `/riders/${params.username}`,
+                },
+              ]
+            : []),
+          ...(params.username && params.date && displayDate
+            ? [
+                {
+                  name: displayDate,
+                  linkTo: `/riders/${params.username}/${params.date}`,
+                },
+              ]
+            : []),
         ]}
       >
         {data?.userWithUsername?.username ? (

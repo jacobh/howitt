@@ -54,7 +54,7 @@ export default function UserProfile(): React.ReactElement {
 
   const sidebarRides = sortBy(
     data?.userWithUsername?.recentRides ?? [],
-    (ride) => ride.date
+    (ride) => ride.date,
   )
     .reverse()
     .slice(0, 30);
@@ -65,10 +65,14 @@ export default function UserProfile(): React.ReactElement {
       <SidebarContainer
         titleSegments={[
           { name: "Riders", linkTo: "/riders" },
-          {
-            name: data?.userWithUsername?.username ?? "",
-            linkTo: `/riders/${data?.userWithUsername?.username}`,
-          },
+          ...(data?.userWithUsername
+            ? [
+                {
+                  name: data.userWithUsername.username,
+                  linkTo: `/riders/${data.userWithUsername.username}`,
+                },
+              ]
+            : []),
         ]}
       >
         {data?.userWithUsername?.username ? (

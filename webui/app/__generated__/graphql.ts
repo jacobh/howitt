@@ -324,7 +324,7 @@ export type RidesWithDateQuery = {
     __typename?: "UserProfile";
     username: string;
     ridesWithDate: Array<
-      { __typename?: "Ride"; id: any; pointsJson: string } & {
+      { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
         " $fragmentRefs"?: { RideSummaryFragment: RideSummaryFragment };
       }
     >;
@@ -873,6 +873,7 @@ export const RidesWithDateDocument = {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "date" } },
                       {
                         kind: "FragmentSpread",
                         name: { kind: "Name", value: "rideSummary" },

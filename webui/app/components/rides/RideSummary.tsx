@@ -34,14 +34,14 @@ export function RideSummary({ ride: rideFragment }: Props): React.ReactNode {
   const items = [
     {
       name: "Start Time",
-      value: startTime.toLocaleString(undefined, {
+      value: startTime.toLocaleString("en-US", {
         hour: "numeric",
         minute: "numeric",
       }),
     },
     {
       name: "End Time",
-      value: endTime.toLocaleString(undefined, {
+      value: endTime.toLocaleString("en-US", {
         hour: "numeric",
         minute: "numeric",
       }),

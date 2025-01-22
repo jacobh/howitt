@@ -109,8 +109,8 @@ export default function Route(): React.ReactElement {
 
   const nearbyRoutes = (data?.route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id
-    )
+      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id,
+    ),
   );
 
   const routes: DisplayedRoute[] = [
@@ -137,10 +137,14 @@ export default function Route(): React.ReactElement {
       <SidebarContainer
         titleSegments={[
           { name: "Routes", linkTo: "/routes" },
-          {
-            name: data?.route?.name ?? "",
-            linkTo: `/routes/${params.routeId ?? ""}`,
-          },
+          ...(data?.route
+            ? [
+                {
+                  name: data.route.name,
+                  linkTo: `/routes/${data.route.id}`,
+                },
+              ]
+            : []),
         ]}
       >
         <div css={routeContentContainerCss}>

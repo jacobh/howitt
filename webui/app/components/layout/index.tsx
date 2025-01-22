@@ -106,8 +106,12 @@ const sidebarChildrenCss = makeMqs([
   `,
 ]);
 
-const titlePostfixCss = css`
-  margin-left: 8px;
+const titleSegmentCss = css`
+  flex-shrink: 1;
+`;
+
+const titleSeparatorCss = css`
+  margin: 0 4px 0 8px;
 `;
 
 interface Props {
@@ -129,14 +133,11 @@ export function SidebarContainer({
         <h3 css={sidebarTitleCss}>
           {titleSegments.map((segment, index) => (
             <>
-              {index > 0 && <span css={titlePostfixCss}>/</span>}
-              {segment.linkTo ? (
-                <Link to={segment.linkTo} css={{ flexShrink: 1 }}>
-                  {segment.name}
-                </Link>
-              ) : (
-                <span css={{ flexShrink: 1 }}>{segment.name}</span>
-              )}
+              {index > 0 && <span css={titleSeparatorCss}>/</span>}
+
+              <Link to={segment.linkTo} css={[titleSegmentCss]}>
+                {segment.name}
+              </Link>
             </>
           ))}
         </h3>
