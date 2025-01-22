@@ -29,34 +29,14 @@ jobs:
                 packages: zstd libzstd-dev
                 version: 1.0
 
-            - name: Install Rust toolchain
-              uses: dtolnay/rust-toolchain@nightly
-
             - name: Install Zig toolchain
               uses: korandoru/setup-zig@v1
               with:
                 zig-version: 0.10.0
 
-            - name: Install Cargo Lambda
-              uses: jaxxstorm/action-install-gh-release@v1.9.0
-              with:
-                repo: cargo-lambda/cargo-lambda
-                platform: linux
-                arch: aarch64
-
-            - name: Install esbuild
-              run: npm install -g esbuild
-
-            - name: Install WebUI
-              working-directory: webui
-              run: npm install
-
             - name: install cdk
               working-directory: cdk
               run: npm install
-
-            # - name: build
-            #   run: cargo lambda build
 
             - name: cdk synth
               working-directory: cdk
