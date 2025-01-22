@@ -33,6 +33,7 @@ export type Scalars = {
    * The input/output is a string in RFC3339 format.
    */
   DateTime: { input: any; output: any };
+  IsoDate: { input: any; output: any };
   PhotoId: { input: any; output: any };
   PointOfInterestId: { input: any; output: any };
   RideId: { input: any; output: any };
@@ -162,6 +163,7 @@ export type Ride = {
   points: Array<Array<Scalars["Float"]["output"]>>;
   pointsJson: Scalars["String"]["output"];
   startedAt: Scalars["DateTime"]["output"];
+  user: UserProfile;
 };
 
 export type RidePointsArgs = {
@@ -199,6 +201,7 @@ export type Route = {
   tags?: Maybe<Array<Scalars["String"]["output"]>>;
   technicalDifficulty?: Maybe<DifficultyRating>;
   termini: Array<Terminus>;
+  user: UserProfile;
 };
 
 export enum Scouted {
@@ -240,8 +243,13 @@ export type UserProfile = {
   __typename?: "UserProfile";
   id: Scalars["UserId"]["output"];
   recentRides: Array<Ride>;
+  ridesWithDate: Array<Ride>;
   trips: Array<Trip>;
   username: Scalars["String"]["output"];
+};
+
+export type UserProfileRidesWithDateArgs = {
+  date: Scalars["IsoDate"]["input"];
 };
 
 export type Viewer = {
@@ -255,6 +263,15 @@ export type ViewerInfoFragment = {
   id: string;
   profile: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "ViewerInfoFragment" };
+
+export type RideSummaryFragment = {
+  __typename?: "Ride";
+  id: any;
+  name: string;
+  distance: number;
+  startedAt: any;
+  finishedAt: any;
+} & { " $fragmentName"?: "RideSummaryFragment" };
 
 export type RouteItemFragment = {
   __typename?: "Route";
@@ -277,6 +294,30 @@ export type LoginViewerInfoQuery = {
         profile: { __typename?: "UserProfile"; username: string };
       } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
     | null;
+};
+
+export type RidesWithDateQueryVariables = Exact<{
+  username: Scalars["String"]["input"];
+  date: Scalars["IsoDate"]["input"];
+  pointsPerKm: Scalars["Int"]["input"];
+}>;
+
+export type RidesWithDateQuery = {
+  __typename?: "Query";
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
+  userWithUsername?: {
+    __typename?: "UserProfile";
+    username: string;
+    ridesWithDate: Array<
+      { __typename?: "Ride"; id: any; pointsJson: string } & {
+        " $fragmentRefs"?: { RideSummaryFragment: RideSummaryFragment };
+      }
+    >;
+  } | null;
 };
 
 export type UserProfileQueryQueryVariables = Exact<{
@@ -464,6 +505,29 @@ export const ViewerInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<ViewerInfoFragment, unknown>;
+export const RideSummaryFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideSummary" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RideSummaryFragment, unknown>;
 export const UserItemFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -671,6 +735,172 @@ export const LoginViewerInfoDocument = {
   LoginViewerInfoQuery,
   LoginViewerInfoQueryVariables
 >;
+export const RidesWithDateDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "ridesWithDate" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "username" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "date" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "IsoDate" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "pointsPerKm" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "userWithUsername" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "username" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "username" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "ridesWithDate" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "date" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "date" },
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "FragmentSpread",
+                        name: { kind: "Name", value: "rideSummary" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "pointsJson" },
+                        arguments: [
+                          {
+                            kind: "Argument",
+                            name: { kind: "Name", value: "pointsPerKm" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "pointsPerKm" },
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideSummary" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RidesWithDateQuery, RidesWithDateQueryVariables>;
 export const UserProfileQueryDocument = {
   kind: "Document",
   definitions: [

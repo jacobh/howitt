@@ -16,10 +16,14 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ":
     types.ViewerInfoFragmentDoc,
+  "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n  }\n":
+    types.RideSummaryFragmentDoc,
   "\n    fragment routeItem on Route {\n        id\n        name\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n":
     types.RouteItemFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
     types.LoginViewerInfoDocument,
+  "\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        ...rideSummary\n        pointsJson(pointsPerKm: $pointsPerKm)\n      }\n    }\n  }\n":
+    types.RidesWithDateDocument,
   "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          finishedAt\n          pointsJson(pointsPerKm: $pointsPerKm)\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.UserProfileQueryDocument,
   "\n  query publicUsers {\n    publicUsers {\n        id\n        ...userItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
@@ -60,6 +64,12 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
+  source: "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n  }\n",
+): (typeof documents)["\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
   source: "\n    fragment routeItem on Route {\n        id\n        name\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n",
 ): (typeof documents)["\n    fragment routeItem on Route {\n        id\n        name\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n"];
 /**
@@ -68,6 +78,12 @@ export function gql(
 export function gql(
   source: "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n",
 ): (typeof documents)["\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        ...rideSummary\n        pointsJson(pointsPerKm: $pointsPerKm)\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        ...rideSummary\n        pointsJson(pointsPerKm: $pointsPerKm)\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
