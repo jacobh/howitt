@@ -55,7 +55,7 @@ function UserProfileDate(): React.ReactElement {
       year: "numeric",
       month: "long",
       day: "numeric",
-    },
+    }
   );
 
   return (
@@ -88,8 +88,8 @@ function UserProfileDate(): React.ReactElement {
       <MapContainer>
         <Map
           initialView={{
-            type: "view",
-            view: DEFAULT_VIEW,
+            type: "ride",
+            rideId: data?.userWithUsername?.ridesWithDate?.[0]?.id,
           }}
           rides={
             data2?.userWithUsername?.ridesWithDate ??
