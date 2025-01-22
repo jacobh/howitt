@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from users where username = $1 or $1 is null",
+  "query": "select * from users where id = ANY($1)",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "UuidArray"
       ]
     },
     "nullable": [
@@ -42,5 +42,5 @@
       false
     ]
   },
-  "hash": "b43787a7c9814d1af6e4779f37c44ae5820bbd9c45cf449c58c9bec55c29270c"
+  "hash": "2c02ad7e00000613238b365fcf6d2615958c5e838bf22a5610c9858df17a70cd"
 }
