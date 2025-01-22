@@ -24,7 +24,7 @@ impl UserProfile {
         let SchemaData { ride_repo, .. } = ctx.data()?;
 
         let rides = ride_repo
-            .filter_models(RideFilter::User {
+            .filter_models(RideFilter::ForUser {
                 user_id: self.0.id,
                 started_at: Some(howitt::models::filters::TemporalFilter::After {
                     after: Utc::now() - Duration::days(365),

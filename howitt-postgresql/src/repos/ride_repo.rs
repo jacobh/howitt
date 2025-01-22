@@ -53,7 +53,7 @@ impl Repo for PostgresRideRepo {
         let mut conn = self.client.acquire().await.unwrap();
 
         let rides = match filter {
-            RideFilter::User {
+            RideFilter::ForUser {
                 user_id,
                 started_at: Some(TemporalFilter::Before {before, last}),
             } => {
@@ -67,7 +67,7 @@ impl Repo for PostgresRideRepo {
                 .fetch_all(conn.as_mut())
                 .await
             }
-            RideFilter::User {
+            RideFilter::ForUser {
                 user_id,
                 started_at: Some(TemporalFilter::After {after, first}),
             } => {
@@ -81,7 +81,7 @@ impl Repo for PostgresRideRepo {
                 .fetch_all(conn.as_mut())
                 .await
             }
-            RideFilter::User {
+            RideFilter::ForUser {
                 user_id,
                 started_at: None,
             } => {
@@ -89,6 +89,32 @@ impl Repo for PostgresRideRepo {
                     RideRow,
                     r#"select * from rides where user_id = $1"#,
                     ulid_into_uuid(*user_id.as_ulid())
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
+            RideFilter::ForUserWithDate { user_id, date } => {
+                // Convert naive date to UTC timestamps for the start and end of the day in Melbourne timezone
+                let tz = chrono_tz::Australia::Melbourne;
+                let start_of_day = date.and_hms_opt(0, 0, 0).unwrap()
+                    .and_local_timezone(tz)
+                    .unwrap()
+                    .with_timezone(&Utc);
+                let end_of_day = date.and_hms_opt(23, 59, 59).unwrap()
+                    .and_local_timezone(tz)
+                    .unwrap()
+                    .with_timezone(&Utc);
+
+                sqlx::query_as!(
+                    RideRow,
+                    r#"select * from rides 
+                    where user_id = $1 
+                    and started_at >= $2
+                    and started_at < $3
+                    order by started_at asc"#,
+                    ulid_into_uuid(*user_id.as_ulid()),
+                    start_of_day,
+                    end_of_day
                 )
                 .fetch_all(conn.as_mut())
                 .await

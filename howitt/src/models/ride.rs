@@ -40,9 +40,13 @@ impl ExternallySourced for Ride {
 #[derive(Debug, Clone)]
 pub enum RideFilter {
     All,
-    User {
+    ForUser {
         user_id: UserId,
         started_at: Option<TemporalFilter>,
+    },
+    ForUserWithDate {
+        user_id: UserId,
+        date: chrono::NaiveDate,
     },
 }
 
