@@ -16,7 +16,7 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
 const documents = {
   "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ":
     types.ViewerInfoFragmentDoc,
-  "\n    fragment rideItem on Ride {\n        id\n        name\n        date\n        distance\n        user {\n            username\n        }\n    }\n":
+  "\n    fragment rideItem on Ride {\n        id\n        date\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n":
     types.RideItemFragmentDoc,
   "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n  }\n":
     types.RideSummaryFragmentDoc,
@@ -66,8 +66,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    fragment rideItem on Ride {\n        id\n        name\n        date\n        distance\n        user {\n            username\n        }\n    }\n",
-): (typeof documents)["\n    fragment rideItem on Ride {\n        id\n        name\n        date\n        distance\n        user {\n            username\n        }\n    }\n"];
+  source: "\n    fragment rideItem on Ride {\n        id\n        date\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n",
+): (typeof documents)["\n    fragment rideItem on Ride {\n        id\n        date\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

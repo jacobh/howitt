@@ -268,9 +268,10 @@ export type ViewerInfoFragment = {
 export type RideItemFragment = {
   __typename?: "Ride";
   id: any;
-  name: string;
   date: any;
   distance: number;
+  startedAt: any;
+  finishedAt: any;
   user: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "RideItemFragment" };
 
@@ -528,9 +529,10 @@ export const RideItemFragmentDoc = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "date" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "user" },
@@ -1056,9 +1058,10 @@ export const UserProfileQueryDocument = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "date" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "user" },

@@ -10,6 +10,8 @@ import {
 import { useParams } from "@remix-run/react";
 import { sortBy } from "lodash";
 import { RideItem } from "~/components/rides/RideItem";
+import { css } from "@emotion/react";
+import { COLORS } from "~/styles/theme";
 
 const USER_PROFILE_QUERY = gql(`
   query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
@@ -29,6 +31,15 @@ const USER_PROFILE_QUERY = gql(`
   }
 `);
 
+const rideItemContainerCss = css`
+  padding: 20px 1.5%;
+  border-bottom: 1px solid ${COLORS.offWhite};
+
+  &:hover {
+    background-color: ${COLORS.offWhite};
+  }
+`;
+
 export default function UserProfile(): React.ReactElement {
   const params = useParams();
 
@@ -43,7 +54,7 @@ export default function UserProfile(): React.ReactElement {
 
   const sidebarRides = sortBy(
     data?.userWithUsername?.recentRides ?? [],
-    (ride) => ride.date,
+    (ride) => ride.date
   )
     .reverse()
     .slice(0, 30);
@@ -57,12 +68,13 @@ export default function UserProfile(): React.ReactElement {
         titlePostfix={["/", data?.userWithUsername?.username ?? ""].join(" ")}
       >
         {data?.userWithUsername?.username ? (
-          <>
-            <p>Last year of rides shown</p>
+          <div>
             {sidebarRides.map((ride) => (
-              <RideItem key={ride.id} ride={ride} />
+              <div key={ride.id} css={rideItemContainerCss}>
+                <RideItem ride={ride} />
+              </div>
             ))}
-          </>
+          </div>
         ) : (
           <h3>User not found</h3>
         )}
