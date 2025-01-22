@@ -7,6 +7,7 @@ use std::{
 use futures::FutureExt;
 use serde::{Deserialize, Serialize};
 use tokio::sync::OnceCell;
+use uuid::Timestamp;
 
 use crate::repos::AnyhowRepo;
 
@@ -231,9 +232,15 @@ impl<const NAME: ModelName> ModelUuid<NAME> {
     pub fn as_uuid(&self) -> &uuid::Uuid {
         &self.0
     }
-    pub fn from_datetime(_datetime: chrono::DateTime<chrono::Utc>) -> ModelUuid<NAME> {
-        unimplemented!()
-        // ModelUuid::<NAME>(ulid::Ulid::from_datetime(datetime.into()))
+    pub fn from_datetime(datetime: chrono::DateTime<chrono::Utc>) -> ModelUuid<NAME> {
+        ModelUuid::<NAME>(uuid::Uuid::new_v7(
+            Timestamp::from_unix(
+                uuid::timestamp::context::ContextV7::new(),
+                datetime.timestamp() as u64,
+                0,
+            )
+            .into(),
+        ))
     }
     pub fn get_or_from_datetime(
         id: Option<ModelUuid<NAME>>,
