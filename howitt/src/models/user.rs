@@ -24,6 +24,7 @@ pub enum LinkedAccount {
 #[derive(Debug, Clone)]
 pub enum UserFilter {
     Username(String),
+    Ids(Vec<UserId>),
 }
 
 impl IndexModel for User {

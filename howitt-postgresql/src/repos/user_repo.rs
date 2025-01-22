@@ -48,20 +48,26 @@ impl Repo for PostgresUserRepo {
     async fn filter_models(&self, filter: UserFilter) -> Result<Vec<User>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let query = match filter {
-            UserFilter::Username(username) => sqlx::query_as!(
-                UserRow,
-                r#"select * from users where username = $1 or $1 is null"#,
-                username
-            ),
+        let users = match filter {
+            UserFilter::Ids(ids) => {
+                let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
+
+                sqlx::query_as!(UserRow, r#"select * from users where id = ANY($1)"#, &uuids)
+                    .fetch_all(conn.as_mut())
+                    .await?
+            }
+            UserFilter::Username(username) => {
+                sqlx::query_as!(
+                    UserRow,
+                    r#"select * from users where username = $1"#,
+                    username
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
         };
 
-        Ok(query
-            .fetch_all(conn.as_mut())
-            .await?
-            .into_iter()
-            .map(User::try_from)
-            .collect_result_vec()?)
+        Ok(users.into_iter().map(User::try_from).collect_result_vec()?)
     }
 
     async fn all_indexes(&self) -> Result<Vec<<User as Model>::IndexItem>, PostgresRepoError> {
