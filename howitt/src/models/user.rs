@@ -22,8 +22,8 @@ pub enum LinkedAccount {
 }
 
 #[derive(Debug, Clone)]
-pub struct UserFilter {
-    pub username: Option<String>,
+pub enum UserFilter {
+    Username(String),
 }
 
 impl IndexModel for User {

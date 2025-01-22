@@ -147,11 +147,7 @@ impl Query {
     ) -> Result<Option<UserProfile>, async_graphql::Error> {
         let SchemaData { user_repo, .. } = ctx.data()?;
 
-        let user = user_repo
-            .find_model(UserFilter {
-                username: Some(username),
-            })
-            .await?;
+        let user = user_repo.find_model(UserFilter::Username(username)).await?;
 
         Ok(user.map(UserProfile))
     }

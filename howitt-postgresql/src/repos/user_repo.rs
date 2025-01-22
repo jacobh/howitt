@@ -48,11 +48,13 @@ impl Repo for PostgresUserRepo {
     async fn filter_models(&self, filter: UserFilter) -> Result<Vec<User>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let query = sqlx::query_as!(
-            UserRow,
-            r#"select * from users where username = $1 or $1 is null"#,
-            filter.username
-        );
+        let query = match filter {
+            UserFilter::Username(username) => sqlx::query_as!(
+                UserRow,
+                r#"select * from users where username = $1 or $1 is null"#,
+                username
+            ),
+        };
 
         Ok(query
             .fetch_all(conn.as_mut())

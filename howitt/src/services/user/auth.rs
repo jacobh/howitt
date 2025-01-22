@@ -57,9 +57,7 @@ impl UserAuthService {
     ) -> Result<Result<Login, LoginFailed>, UserAuthServiceError> {
         let user = self
             .user_repo
-            .find_model(UserFilter {
-                username: Some(username.to_string()),
-            })
+            .find_model(UserFilter::Username(username.to_string()))
             .await
             .map_err(UserAuthServiceError::UserRepo)?;
 
