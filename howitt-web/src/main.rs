@@ -29,6 +29,7 @@ use graphql::{context::SchemaData, loaders::user_loader::UserLoader, schema::bui
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
+    dotenv::dotenv().ok();
     tracing_subscriber::fmt::init();
 
     let pg = PostgresClient::connect(
@@ -108,7 +109,11 @@ async fn main() -> Result<(), anyhow::Error> {
                 ),
         );
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
+    let addr = std::env::var("BIND_ADDRESS")
+        .unwrap_or_default()
+        .parse::<SocketAddr>()
+        .unwrap_or_else(|_| SocketAddr::from(([0, 0, 0, 0], 8000)));
+
     println!("Listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

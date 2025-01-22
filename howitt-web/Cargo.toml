@@ -33,6 +33,7 @@ async-trait = "*"
 http = "1.2.0"
 tracing = "*"
 tracing-subscriber = "*"
+dotenv = "0.15.0"
 
 
 [dev-dependencies]
