@@ -8,7 +8,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
-use super::{user::UserProfile, ModelId};
+use super::{scalars::iso_date::IsoDate, user::UserProfile, ModelId};
 
 pub struct Ride(pub howitt::models::ride::Ride);
 
@@ -19,6 +19,14 @@ impl Ride {
     }
     async fn name(&self) -> &str {
         &self.0.name
+    }
+    async fn date(&self) -> IsoDate {
+        IsoDate(
+            self.0
+                .started_at
+                .with_timezone(&chrono_tz::Australia::Melbourne)
+                .date_naive(),
+        )
     }
     async fn distance(&self) -> f64 {
         self.0.distance

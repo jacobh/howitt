@@ -21,6 +21,7 @@ howitt = { path = "../howitt" }
 howitt_clients = { path = "../howitt-clients" }
 geo = "*"
 chrono = "*"
+chrono-tz = "*"
 serde = { version = "*", features = ["derive"] }
 derive_more = { version = "1", features = ["full"] }
 itertools = "*"
