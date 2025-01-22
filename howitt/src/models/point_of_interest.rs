@@ -4,9 +4,9 @@ use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::ext::ulid::generate_ulid;
+// use crate::ext::ulid::generate_ulid;
 
-use super::{IndexModel, ModelName, ModelUlid};
+use super::{IndexModel, ModelName, ModelUuid};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -44,11 +44,11 @@ impl Display for PointOfInterestType {
     }
 }
 
-pub type PointOfInterestId = ModelUlid<{ ModelName::Checkpoint }>;
+pub type PointOfInterestId = ModelUuid<{ ModelName::Checkpoint }>;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PointOfInterest {
-    pub id: ulid::Ulid,
+    pub id: PointOfInterestId,
     pub name: String,
     #[serde(with = "crate::ext::serde::point_tuple")]
     pub point: geo::Point<f64>,
@@ -71,6 +71,8 @@ pub enum PointOfInterestError {
     MissingName,
 }
 
+#[allow(unused_variables)]
+#[allow(unreachable_code)]
 impl TryFrom<gpx::Waypoint> for PointOfInterest {
     type Error = PointOfInterestError;
     fn try_from(value: gpx::Waypoint) -> Result<Self, Self::Error> {
@@ -84,7 +86,8 @@ impl TryFrom<gpx::Waypoint> for PointOfInterest {
             .transpose()
             .unwrap();
 
-        let id = generate_ulid(waypoint_created_at, &value).unwrap();
+        let id = unimplemented!();
+        // let id = generate_ulid(waypoint_created_at, &value).unwrap();
 
         match value.name.clone() {
             Some(name) => Ok(PointOfInterest {

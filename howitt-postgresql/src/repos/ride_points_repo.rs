@@ -1,8 +1,5 @@
 use howitt::{
-    ext::{
-        iter::ResultIterExt,
-        ulid::{ulid_into_uuid, uuid_into_ulid},
-    },
+    ext::iter::ResultIterExt,
     models::{
         ride::{RideId, RidePoints},
         Model,
@@ -23,7 +20,7 @@ impl TryFrom<RidePointsRow> for RidePoints {
 
     fn try_from(row: RidePointsRow) -> Result<Self, Self::Error> {
         Ok(RidePoints {
-            id: RideId::from(uuid_into_ulid(row.ride_id)),
+            id: RideId::from(row.ride_id),
             points: serde_json::from_value(row.points)?,
         })
     }
@@ -63,7 +60,7 @@ impl Repo for PostgresRidePointsRepo {
         let query = sqlx::query_as!(
             RidePointsRow,
             r#"select * from ride_points where ride_id = $1"#,
-            ulid_into_uuid(*id.as_ulid())
+            id.as_uuid()
         );
 
         Ok(RidePoints::try_from(query.fetch_one(conn.as_mut()).await?)?)
@@ -79,7 +76,7 @@ impl Repo for PostgresRidePointsRepo {
                 ride_id,
                 points
             ) values ($1, $2)"#,
-            ulid_into_uuid(*ride_points.id.as_ulid()),
+            ride_points.id.as_uuid(),
             serde_json::to_value(ride_points.points)?
         );
 

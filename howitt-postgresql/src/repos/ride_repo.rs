@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
-use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::filters::TemporalFilter;
 use howitt::models::ride::{RideFilter, RideId};
 
@@ -28,9 +27,9 @@ impl TryFrom<RideRow> for Ride {
 
     fn try_from(row: RideRow) -> Result<Self, Self::Error> {
         Ok(Ride {
-            id: RideId::from(uuid_into_ulid(row.id)),
+            id: RideId::from(row.id),
             name: row.name.unwrap_or_default(),
-            user_id: UserId::from(uuid_into_ulid(row.id)),
+            user_id: UserId::from(row.user_id),
             distance: row.distance_m as f64,
             external_ref: row.external_ref.map(serde_json::from_value).transpose()?,
             started_at: row.started_at,
@@ -60,7 +59,7 @@ impl Repo for PostgresRideRepo {
                 sqlx::query_as!(
                     RideRow,
                     r#"select * from rides where user_id = $1 and started_at < $2 order by started_at desc limit $3"#,
-                    ulid_into_uuid(*user_id.as_ulid()),
+                    user_id.as_uuid(),
                     before,
                     last.unwrap_or(100_000) as i32
                 )
@@ -74,7 +73,7 @@ impl Repo for PostgresRideRepo {
                 sqlx::query_as!(
                     RideRow,
                     r#"select * from rides where user_id = $1 and started_at > $2 order by started_at asc limit $3"#,
-                    ulid_into_uuid(*user_id.as_ulid()),
+                    user_id.as_uuid(),
                     after,
                     first.unwrap_or(100_000) as i32
                 )
@@ -88,7 +87,7 @@ impl Repo for PostgresRideRepo {
                 sqlx::query_as!(
                     RideRow,
                     r#"select * from rides where user_id = $1"#,
-                    ulid_into_uuid(*user_id.as_ulid())
+                    user_id.as_uuid()
                 )
                 .fetch_all(conn.as_mut())
                 .await
@@ -112,7 +111,7 @@ impl Repo for PostgresRideRepo {
                     and started_at >= $2
                     and started_at < $3
                     order by started_at asc"#,
-                    ulid_into_uuid(*user_id.as_ulid()),
+                    user_id.as_uuid(),
                     start_of_day,
                     end_of_day
                 )
@@ -147,7 +146,7 @@ impl Repo for PostgresRideRepo {
         let query = sqlx::query_as!(
             RideRow,
             r#"select * from rides where id = $1"#,
-            ulid_into_uuid(*id.as_ulid())
+            id.as_uuid(),
         );
 
         Ok(Ride::try_from(query.fetch_one(conn.as_mut()).await?)?)
@@ -172,14 +171,14 @@ impl Repo for PostgresRideRepo {
                 finished_at,
                 user_id
             ) values ($1, $2, $3, $4, $5, $6, $7, $8)"#,
-            ulid_into_uuid(*ride.id().as_ulid()),
+            ride.id.as_uuid(),
             ride.name,
             Utc::now(),
             ride.external_ref.map(serde_json::to_value).transpose()?,
             ride.distance as i32,
             ride.started_at,
             ride.finished_at,
-            ulid_into_uuid(*ride.user_id.as_ulid()),
+            ride.user_id.as_uuid(),
         );
 
         query.execute(conn.as_mut()).await?;

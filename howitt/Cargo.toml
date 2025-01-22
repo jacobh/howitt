@@ -14,7 +14,7 @@ chrono = "*"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 itertools = "*"
-uuid = { version = "1", features = ["v4", "serde"] }
+uuid = { version = "1", features = ["serde", "v7"] }
 anyhow = "*"
 async-trait = "*"
 bincode = "*"

@@ -1,7 +1,6 @@
 use std::{collections::HashSet, error::Error, iter, marker::PhantomData};
 
 use anyhow::anyhow;
-use either::Either;
 use futures::prelude::*;
 use itertools::Itertools;
 use rwgps_types::{RouteSummary, TripSummary};
@@ -246,7 +245,7 @@ where
 
         let model = RouteModel::new(
             Route {
-                id: Either::Right(id),
+                id,
                 name: route.name.replace("[BCS]", "").trim().to_string(),
                 user_id: user_id.clone(),
                 distance: route.distance.unwrap_or(0.0),

@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use derive_more::From;
-use either::Either;
 use itertools::Itertools;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
@@ -23,15 +22,14 @@ use super::{
     tag::Tag,
     terminus::{Termini, TerminusEnd},
     user::UserId,
-    IndexItem, ModelName, ModelUlid,
+    IndexItem, ModelName, ModelUuid,
 };
 
-pub type RouteId = ModelUlid<{ ModelName::Route }>;
+pub type RouteId = ModelUuid<{ ModelName::Route }>;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Route {
-    #[serde(with = "either::serde_untagged")]
-    pub id: Either<ulid::Ulid, RouteId>,
+    pub id: RouteId,
     pub name: String,
     pub user_id: UserId,
     pub distance: f64,
@@ -44,10 +42,7 @@ pub struct Route {
 
 impl Route {
     pub fn id(&self) -> RouteId {
-        match self.id {
-            Either::Left(ulid) => RouteId::from(ulid),
-            Either::Right(route_id) => route_id,
-        }
+        self.id
     }
     pub fn published_at(&self) -> Option<&chrono::DateTime<chrono::Utc>> {
         self.tags.iter().find_map(|tag| match tag {
@@ -234,7 +229,7 @@ impl crate::models::OtherItem for RouteItem {
     fn item_id(&self) -> String {
         match self {
             RouteItem::PointChunk(chunk) => chunk.idx.to_string(),
-            RouteItem::Photo(photo) => photo.id.as_ulid().to_string(),
+            RouteItem::Photo(photo) => photo.id.as_uuid().to_string(),
         }
     }
 }

@@ -2,7 +2,6 @@ use argon2::password_hash::Encoding;
 use argon2::PasswordHash;
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
-use howitt::ext::ulid::ulid_into_uuid;
 
 use howitt::models::user::{UserFilter, UserId};
 use howitt::models::{user::User, Model};
@@ -81,7 +80,7 @@ impl Repo for PostgresUserRepo {
         let query = sqlx::query_as!(
             UserRow,
             r#"select * from users where id = $1"#,
-            ulid_into_uuid(*id.as_ulid())
+            id.as_uuid()
         );
 
         Ok(User::try_from(query.fetch_one(conn.as_mut()).await?)?)

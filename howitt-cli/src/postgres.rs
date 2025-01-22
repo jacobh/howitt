@@ -1,9 +1,8 @@
-use std::{convert::identity, str::FromStr, sync::Arc};
+use std::{convert::identity, sync::Arc};
 
 use chrono::Utc;
 use clap::{arg, Args, Subcommand};
 use howitt::{
-    ext::ulid::uuid_into_ulid,
     models::{
         route::RouteId,
         user::{User, UserId},
@@ -113,9 +112,9 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
             service
                 .sync(SyncParams {
                     rwgps_user_id: config.user_info.unwrap().id,
-                    user_id: UserId::from(uuid_into_ulid(uuid::Uuid::parse_str(
+                    user_id: UserId::from(uuid::Uuid::parse_str(
                         "01941a60-9cfd-c166-94bb-126a6d8de5fd",
-                    )?)),
+                    )?),
                 })
                 .await?;
         }
@@ -135,9 +134,10 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
 
             result?
         }
+
         Postgres::GetRoute(RouteIdArgs { route_id }) => {
             let model = route_model_repo
-                .get(RouteId::from(ulid::Ulid::from_str(route_id).unwrap()))
+                .get(RouteId::from(uuid::Uuid::parse_str(route_id).unwrap()))
                 .await?;
             dbg!(&model.route);
 
@@ -147,7 +147,7 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
         }
         Postgres::GenerateCuesheet(RouteIdArgs { route_id }) => {
             let model = route_model_repo
-                .get(RouteId::from(ulid::Ulid::from_str(route_id).unwrap()))
+                .get(RouteId::from(uuid::Uuid::parse_str(route_id).unwrap()))
                 .await?;
 
             let points = model.iter_elevation_points().cloned().collect_vec();

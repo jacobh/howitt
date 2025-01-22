@@ -6,10 +6,10 @@ use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
 
 use super::{
     external_ref::ExternallySourced, filters::TemporalFilter, user::UserId, IndexModel, ModelName,
-    ModelUlid,
+    ModelUuid,
 };
 
-pub type RideId = ModelUlid<{ ModelName::Ride }>;
+pub type RideId = ModelUuid<{ ModelName::Ride }>;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Ride {

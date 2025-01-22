@@ -1,7 +1,7 @@
-use super::{ride::RideId, user::UserId, IndexModel, ModelName, ModelUlid};
+use super::{ride::RideId, user::UserId, IndexModel, ModelName, ModelUuid};
 use chrono::{DateTime, Utc};
 
-pub type TripId = ModelUlid<{ ModelName::Trip }>;
+pub type TripId = ModelUuid<{ ModelName::Trip }>;
 
 #[derive(Debug, Clone)]
 pub struct Trip {

@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::serde::json::unwrap_string_value;
-use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 
+use howitt::models::point_of_interest::PointOfInterestId;
 use howitt::models::{point_of_interest::PointOfInterest, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
@@ -23,7 +23,7 @@ impl TryFrom<PointOfInterestRow> for PointOfInterest {
 
     fn try_from(row: PointOfInterestRow) -> Result<Self, Self::Error> {
         Ok(PointOfInterest {
-            id: uuid_into_ulid(row.id),
+            id: PointOfInterestId::from(row.id),
             name: row.name.unwrap_or_default(),
             point: serde_json::from_value(row.point)?,
             point_of_interest_type: serde_json::from_value(serde_json::Value::String(row.r#type))?,
@@ -77,7 +77,7 @@ impl Repo for PostgresPointOfInterestRepo {
         let query = sqlx::query_as!(
             PointOfInterestRow,
             r#"select * from points_of_interest where id = $1"#,
-            ulid_into_uuid(*id.as_ulid())
+            id.as_uuid()
         );
 
         Ok(PointOfInterest::try_from(
@@ -103,7 +103,7 @@ impl Repo for PostgresPointOfInterestRepo {
             ) values ($1, $2, $3, $4, $5)
              on conflict (id) do update set name = $3, type = $4, point = $5
              "#,
-            ulid_into_uuid(*model.id().as_ulid()),
+            model.id.as_uuid(),
             Utc::now(),
             model.name,
             unwrap_string_value(serde_json::to_value(model.point_of_interest_type)?),

@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use super::{external_ref::ExternalRef, ModelName, ModelUlid};
+use super::{external_ref::ExternalRef, ModelName, ModelUuid};
 
-pub type PhotoId = ModelUlid<{ ModelName::Photo }>;
+pub type PhotoId = ModelUuid<{ ModelName::Photo }>;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Photo<ID> {

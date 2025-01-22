@@ -1,9 +1,8 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::serde::json::unwrap_string_value;
-use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::point::PointChunk;
-use howitt::models::route::{Route, RouteFilter};
+use howitt::models::route::{Route, RouteFilter, RouteId};
 use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
 use howitt::models::user::UserId;
@@ -41,9 +40,9 @@ impl TryFrom<RouteIndexRow> for Route {
 
     fn try_from(row: RouteIndexRow) -> Result<Self, Self::Error> {
         Ok(Route {
-            id: sqlx::Either::Left(uuid_into_ulid(row.id)),
+            id: RouteId::from(row.id),
             name: row.name,
-            user_id: UserId::from(uuid_into_ulid(row.id)),
+            user_id: UserId::from(row.user_id),
             distance: row.distance_m as f64,
             sample_points: Some(serde_json::from_value(row.sample_points)?),
             description: Some(RouteDescription {
@@ -113,9 +112,11 @@ impl TryFrom<RouteRow> for Route {
 
     fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
         Ok(Route {
-            id: sqlx::Either::Left(uuid_into_ulid(row.id)),
+            id: RouteId::from(row.id),
+
             name: row.name,
-            user_id: UserId::from(uuid_into_ulid(row.id)),
+            user_id: UserId::from(row.user_id),
+
             distance: row.distance_m as f64,
             sample_points: Some(serde_json::from_value(row.sample_points)?),
             description: Some(RouteDescription {
@@ -246,7 +247,7 @@ impl Repo for PostgresRouteRepo {
         let query = sqlx::query_as!(
             RouteRow,
             r#"select * from routes where id = $1"#,
-            ulid_into_uuid(*id.as_ulid())
+            id.as_uuid()
         );
 
         Ok(RouteModel::try_from(query.fetch_one(conn.as_mut()).await?)?)
@@ -315,7 +316,7 @@ impl Repo for PostgresRouteRepo {
                 is_starred,
                 user_id
             ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"#,
-            ulid_into_uuid(*route.id().as_ulid()),
+            route.id.as_uuid(),
             Utc::now(),
             route.name,
             route.external_ref.map(serde_json::to_value).transpose()?,
@@ -372,7 +373,7 @@ impl Repo for PostgresRouteRepo {
                 .map(unwrap_string_value),
             route.description.as_ref().map(|x| &*x.tags).unwrap_or(&[]),
             route.tags.contains(&Tag::BackcountrySegment),
-            ulid_into_uuid(*route.user_id.as_ulid())
+            route.user_id.as_uuid()
         );
 
         query.execute(conn.as_mut()).await?;

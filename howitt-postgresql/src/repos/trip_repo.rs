@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
-use howitt::ext::ulid::{ulid_into_uuid, uuid_into_ulid};
 use howitt::models::ride::RideId;
 use howitt::models::trip::{Trip, TripFilter, TripId};
 use howitt::models::user::UserId;
@@ -23,15 +22,15 @@ impl TryFrom<TripRow> for Trip {
 
     fn try_from(row: TripRow) -> Result<Self, Self::Error> {
         Ok(Trip {
-            id: TripId::from(uuid_into_ulid(row.id)),
+            id: TripId::from(row.id),
             name: row.name,
             created_at: row.created_at,
-            user_id: UserId::from(uuid_into_ulid(row.user_id)),
+            user_id: UserId::from(row.user_id),
             ride_ids: row
                 .ride_ids
                 .unwrap_or_default()
                 .into_iter()
-                .map(|id| RideId::from(uuid_into_ulid(id)))
+                .map(RideId::from)
                 .collect(),
         })
     }
@@ -63,7 +62,7 @@ impl Repo for PostgresTripRepo {
                         WHERE user_id = $1
                         GROUP BY t.id, t.name, t.created_at, t.user_id
                     "#,
-                    ulid_into_uuid(*user_id.as_ulid())
+                    user_id.as_uuid(),
                 )
                     .fetch_all(conn.as_mut())
                     .await
@@ -106,7 +105,7 @@ impl Repo for PostgresTripRepo {
                 WHERE t.id = $1
                 GROUP BY t.id, t.name, t.created_at, t.user_id
             "#,
-            ulid_into_uuid(*id.as_ulid())
+            id.as_uuid()
         );
 
         Ok(Trip::try_from(query.fetch_one(conn.as_mut()).await?)?)
@@ -128,10 +127,10 @@ impl Repo for PostgresTripRepo {
                     user_id
                 ) VALUES ($1, $2, $3, $4)
             "#,
-            ulid_into_uuid(*trip.id.as_ulid()),
+            trip.id.as_uuid(),
             trip.name,
             trip.created_at,
-            ulid_into_uuid(*trip.user_id.as_ulid()),
+            trip.user_id.as_uuid(),
         );
 
         query.execute(conn.as_mut()).await?;
@@ -144,8 +143,8 @@ impl Repo for PostgresTripRepo {
                         ride_id
                     ) VALUES ($1, $2)
                 "#,
-                ulid_into_uuid(*trip.id.as_ulid()),
-                ulid_into_uuid(*ride_id.as_ulid()),
+                *trip.id.as_uuid(),
+                *ride_id.as_uuid(),
             );
 
             query.execute(conn.as_mut()).await?;

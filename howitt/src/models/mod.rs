@@ -7,12 +7,8 @@ use std::{
 use futures::FutureExt;
 use serde::{Deserialize, Serialize};
 use tokio::sync::OnceCell;
-use uuid::Uuid;
 
-use crate::{
-    ext::ulid::{ulid_into_uuid, uuid_into_ulid},
-    repos::AnyhowRepo,
-};
+use crate::repos::AnyhowRepo;
 
 pub mod cardinal_direction;
 pub mod config;
@@ -226,54 +222,55 @@ impl ModelName {
 }
 
 #[derive(derive_more::From, derive_more::Into, PartialEq, Eq, Hash, Clone, Copy)]
-pub struct ModelUlid<const NAME: ModelName>(ulid::Ulid);
+pub struct ModelUuid<const NAME: ModelName>(uuid::Uuid);
 
-impl<const NAME: ModelName> ModelUlid<NAME> {
-    pub fn new() -> ModelUlid<NAME> {
-        ModelUlid::<NAME>(ulid::Ulid::new())
+impl<const NAME: ModelName> ModelUuid<NAME> {
+    pub fn new() -> ModelUuid<NAME> {
+        ModelUuid::<NAME>(uuid::Uuid::now_v7())
     }
-    pub fn as_ulid(&self) -> &ulid::Ulid {
+    pub fn as_uuid(&self) -> &uuid::Uuid {
         &self.0
     }
-    pub fn from_datetime(datetime: chrono::DateTime<chrono::Utc>) -> ModelUlid<NAME> {
-        ModelUlid::<NAME>(ulid::Ulid::from_datetime(datetime.into()))
+    pub fn from_datetime(_datetime: chrono::DateTime<chrono::Utc>) -> ModelUuid<NAME> {
+        unimplemented!()
+        // ModelUuid::<NAME>(ulid::Ulid::from_datetime(datetime.into()))
     }
     pub fn get_or_from_datetime(
-        id: Option<ModelUlid<NAME>>,
+        id: Option<ModelUuid<NAME>>,
         datetime: &chrono::DateTime<chrono::Utc>,
-    ) -> ModelUlid<NAME> {
+    ) -> ModelUuid<NAME> {
         match id {
             Some(id) => id,
-            None => ModelUlid::<NAME>::from_datetime(*datetime),
+            None => ModelUuid::<NAME>::from_datetime(*datetime),
         }
     }
 }
 
-impl<const NAME: ModelName> ModelId for ModelUlid<NAME> {
+impl<const NAME: ModelName> ModelId for ModelUuid<NAME> {
     fn model_name() -> &'static str {
         NAME.to_str()
     }
 }
 
-impl<const NAME: ModelName> std::fmt::Debug for ModelUlid<NAME> {
+impl<const NAME: ModelName> std::fmt::Debug for ModelUuid<NAME> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}#{}", NAME.to_str(), self.0)
     }
 }
 
-impl<const NAME: ModelName> std::fmt::Display for ModelUlid<NAME> {
+impl<const NAME: ModelName> std::fmt::Display for ModelUuid<NAME> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}#{}", NAME.to_str(), self.0)
     }
 }
 
-impl<const NAME: ModelName> Default for ModelUlid<NAME> {
+impl<const NAME: ModelName> Default for ModelUuid<NAME> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<const NAME: ModelName> Serialize for ModelUlid<NAME> {
+impl<const NAME: ModelName> Serialize for ModelUuid<NAME> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -282,7 +279,7 @@ impl<const NAME: ModelName> Serialize for ModelUlid<NAME> {
     }
 }
 
-impl<'de, const NAME: ModelName> Deserialize<'de> for ModelUlid<NAME> {
+impl<'de, const NAME: ModelName> Deserialize<'de> for ModelUuid<NAME> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -304,20 +301,8 @@ impl<'de, const NAME: ModelName> Deserialize<'de> for ModelUlid<NAME> {
         }
 
         std::str::FromStr::from_str(id)
-            .map(ModelUlid::<NAME>)
+            .map(ModelUuid::<NAME>)
             .map_err(serde::de::Error::custom)
-    }
-}
-
-impl<const NAME: ModelName> From<Uuid> for ModelUlid<NAME> {
-    fn from(value: Uuid) -> Self {
-        Self::from(uuid_into_ulid(value))
-    }
-}
-
-impl<const NAME: ModelName> From<ModelUlid<NAME>> for Uuid {
-    fn from(value: ModelUlid<NAME>) -> Self {
-        ulid_into_uuid(*value.as_ulid())
     }
 }
 

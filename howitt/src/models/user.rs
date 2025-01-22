@@ -2,9 +2,9 @@ use argon2::password_hash::PasswordHashString;
 use chrono::{serde::ts_seconds, DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::{IndexModel, ModelName, ModelUlid};
+use super::{IndexModel, ModelName, ModelUuid};
 
-pub type UserId = ModelUlid<{ ModelName::User }>;
+pub type UserId = ModelUuid<{ ModelName::User }>;
 
 #[derive(Debug, Clone)]
 pub struct User {

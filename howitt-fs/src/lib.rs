@@ -1,3 +1,6 @@
+#![allow(unused_variables)]
+#![allow(unreachable_code)]
+
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -7,8 +10,8 @@ use gtfs::{GtfsStop, GtfsZip};
 use itertools::Itertools;
 // use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use chrono::prelude::*;
-use howitt::ext::ulid::generate_ulid;
+// use chrono::prelude::*;
+// use howitt::ext::ulid::generate_ulid;
 use howitt::models::{
     config::Config,
     point_of_interest::{PointOfInterest, PointOfInterestType},
@@ -69,7 +72,8 @@ pub fn load_stations() -> Result<Vec<PointOfInterest>, anyhow::Error> {
             let poi_type = PointOfInterestType::RailwayStation;
 
             PointOfInterest {
-                id: generate_ulid::<Utc, _>(None, (&name, &point, &poi_type)).unwrap(),
+                id: unimplemented!(),
+                // id: generate_ulid::<Utc, _>(None, (&name, &point, &poi_type)).unwrap(),
                 name,
                 point,
                 point_of_interest_type: poi_type,
@@ -119,15 +123,16 @@ pub fn load_localities() -> Result<Vec<PointOfInterest>, anyhow::Error> {
             let polygon = convert_polygon(shapefile::Polygon::try_from(shape)?);
 
             Ok(PointOfInterest {
-                id: generate_ulid::<Utc, _>(
-                    None,
-                    (
-                        &name,
-                        polygon.centroid().unwrap(),
-                        howitt::models::point_of_interest::PointOfInterestType::Locality,
-                    ),
-                )
-                .unwrap(),
+                id: unimplemented!(),
+                // id: generate_ulid::<Utc, _>(
+                //     None,
+                //     (
+                //         &name,
+                //         polygon.centroid().unwrap(),
+                //         howitt::models::point_of_interest::PointOfInterestType::Locality,
+                //     ),
+                // )
+                // .unwrap(),
                 name,
                 point: polygon.centroid().unwrap(),
                 point_of_interest_type:

@@ -106,7 +106,7 @@ where
 }
 
 fn make_key<ID: ModelId>(photo: &Photo<ID>) -> String {
-    let id = photo.id.as_ulid();
+    let id = photo.id.as_uuid();
 
     format!("source/{id}.jpg")
 }
