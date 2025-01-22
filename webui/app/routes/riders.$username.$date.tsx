@@ -5,7 +5,7 @@ import {
   Nav,
   SidebarContainer,
 } from "~/components/layout";
-import { DEFAULT_VIEW, Map } from "~/components/map";
+import { Map } from "~/components/map";
 import { RideSummary } from "~/components/rides/RideSummary";
 import { Temporal } from "@js-temporal/polyfill";
 import { gql } from "~/__generated__";
@@ -62,14 +62,17 @@ function UserProfileDate(): React.ReactElement {
     <Container>
       <Nav viewer={data?.viewer} />
       <SidebarContainer
-        title="Riders"
-        titleLinkTo="/riders"
-        titlePostfix={[
-          "/",
-          data?.userWithUsername?.username ?? "",
-          "/",
-          displayDate,
-        ].join(" ")}
+        titleSegments={[
+          { name: "Riders", linkTo: "/riders" },
+          {
+            name: data?.userWithUsername?.username ?? "",
+            linkTo: `/riders/${params.username ?? ""}`,
+          },
+          {
+            name: displayDate,
+            linkTo: `/riders/${params.username ?? ""}/${params.date ?? ""}`,
+          },
+        ]}
       >
         {data?.userWithUsername?.username ? (
           <>

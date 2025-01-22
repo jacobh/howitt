@@ -65,7 +65,7 @@ export default function Users(): React.ReactElement {
   return (
     <Container>
       <Nav viewer={data?.viewer} />
-      <SidebarContainer title="Riders">
+      <SidebarContainer titleSegments={[{ name: "Riders", linkTo: "/riders" }]}>
         {data?.publicUsers.map((user) => (
           <UserItem key={user.id} user={user} />
         ))}

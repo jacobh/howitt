@@ -63,9 +63,13 @@ export default function UserProfile(): React.ReactElement {
     <Container>
       <Nav viewer={data?.viewer} />
       <SidebarContainer
-        title="Riders"
-        titleLinkTo="/riders"
-        titlePostfix={["/", data?.userWithUsername?.username ?? ""].join(" ")}
+        titleSegments={[
+          { name: "Riders", linkTo: "/riders" },
+          {
+            name: data?.userWithUsername?.username ?? "",
+            linkTo: `/riders/${data?.userWithUsername?.username}`,
+          },
+        ]}
       >
         {data?.userWithUsername?.username ? (
           <div>

@@ -111,34 +111,34 @@ const titlePostfixCss = css`
 `;
 
 interface Props {
-  title: string;
-  titleLinkTo?: string;
-  titlePostfix?: string;
-  username?: string;
+  titleSegments: TitleSegment[];
+}
+
+interface TitleSegment {
+  name: string;
+  linkTo: string;
 }
 
 export function SidebarContainer({
-  title,
-  titlePostfix,
-  titleLinkTo,
+  titleSegments,
   children,
 }: PropsWithChildren<Props>): React.ReactNode {
   return (
     <div css={sidebarContainerOuterCss}>
       <div css={sidebarContainerInnerCss}>
         <h3 css={sidebarTitleCss}>
-          {titleLinkTo ? (
-            <Link to={titleLinkTo} css={{ flexShrink: 1 }}>
-              {title}
-            </Link>
-          ) : (
-            <span css={{ flexShrink: 1 }}>{title}</span>
-          )}
-          {titlePostfix ? (
-            <span css={titlePostfixCss}>{titlePostfix}</span>
-          ) : (
-            <></>
-          )}
+          {titleSegments.map((segment, index) => (
+            <>
+              {index > 0 && <span css={titlePostfixCss}>/</span>}
+              {segment.linkTo ? (
+                <Link to={segment.linkTo} css={{ flexShrink: 1 }}>
+                  {segment.name}
+                </Link>
+              ) : (
+                <span css={{ flexShrink: 1 }}>{segment.name}</span>
+              )}
+            </>
+          ))}
         </h3>
         <hr />
         <div css={sidebarChildrenCss}>{children}</div>

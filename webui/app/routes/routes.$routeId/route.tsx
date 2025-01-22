@@ -109,8 +109,8 @@ export default function Route(): React.ReactElement {
 
   const nearbyRoutes = (data?.route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id,
-    ),
+      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id
+    )
   );
 
   const routes: DisplayedRoute[] = [
@@ -135,9 +135,13 @@ export default function Route(): React.ReactElement {
     <Container>
       <Nav viewer={data?.viewer} />
       <SidebarContainer
-        title="Routes"
-        titleLinkTo="/routes"
-        titlePostfix={["/", data?.route?.name ?? ""].join(" ")}
+        titleSegments={[
+          { name: "Routes", linkTo: "/routes" },
+          {
+            name: data?.route?.name ?? "",
+            linkTo: `/routes/${params.routeId ?? ""}`,
+          },
+        ]}
       >
         <div css={routeContentContainerCss}>
           {data?.route ? (
