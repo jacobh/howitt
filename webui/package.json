@@ -17,6 +17,7 @@
     "@graphql-codegen/cli": "^5.0.3",
     "@graphql-codegen/client-preset": "^4.5.1",
     "@graphql-typed-document-node/core": "^3.2.0",
+    "@js-temporal/polyfill": "^0.4.4",
     "@remix-run/express": "^2.15.2",
     "@remix-run/node": "^2.15.2",
     "@remix-run/react": "^2.15.2",
