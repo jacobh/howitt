@@ -15,6 +15,7 @@ pub mod point_of_interest;
 pub mod query;
 pub mod ride;
 pub mod route;
+pub mod scalars;
 pub mod trip;
 pub mod user;
 pub mod viewer;
