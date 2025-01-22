@@ -156,6 +156,7 @@ export type QueryRoutesInput = {
 
 export type Ride = {
   __typename?: "Ride";
+  date: Scalars["IsoDate"]["output"];
   distance: Scalars["Float"]["output"];
   finishedAt: Scalars["DateTime"]["output"];
   id: Scalars["RideId"]["output"];
@@ -264,6 +265,15 @@ export type ViewerInfoFragment = {
   profile: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "ViewerInfoFragment" };
 
+export type RideItemFragment = {
+  __typename?: "Ride";
+  id: any;
+  name: string;
+  date: any;
+  distance: number;
+  user: { __typename?: "UserProfile"; username: string };
+} & { " $fragmentName"?: "RideItemFragment" };
+
 export type RideSummaryFragment = {
   __typename?: "Ride";
   id: any;
@@ -331,12 +341,11 @@ export type UserProfileQueryQuery = {
     __typename?: "UserProfile";
     id: any;
     username: string;
-    recentRides: Array<{
-      __typename?: "Ride";
-      id: any;
-      finishedAt: any;
-      pointsJson: string;
-    }>;
+    recentRides: Array<
+      { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
+        " $fragmentRefs"?: { RideItemFragment: RideItemFragment };
+      }
+    >;
   } | null;
   viewer?:
     | ({ __typename?: "Viewer" } & {
@@ -505,6 +514,38 @@ export const ViewerInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<ViewerInfoFragment, unknown>;
+export const RideItemFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RideItemFragment, unknown>;
 export const RideSummaryFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -963,10 +1004,7 @@ export const UserProfileQueryDocument = {
                     kind: "SelectionSet",
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "finishedAt" },
-                      },
+                      { kind: "Field", name: { kind: "Name", value: "date" } },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "pointsJson" },
@@ -980,6 +1018,10 @@ export const UserProfileQueryDocument = {
                             },
                           },
                         ],
+                      },
+                      {
+                        kind: "FragmentSpread",
+                        name: { kind: "Name", value: "rideItem" },
                       },
                     ],
                   },
@@ -997,6 +1039,33 @@ export const UserProfileQueryDocument = {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "viewerInfo" },
                 },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
               ],
             },
           },

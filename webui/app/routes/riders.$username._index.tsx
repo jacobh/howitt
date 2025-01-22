@@ -8,6 +8,8 @@ import {
   Nav,
 } from "~/components/layout";
 import { useParams } from "@remix-run/react";
+import { sortBy } from "lodash";
+import { RideItem } from "~/components/rides/RideItem";
 
 const USER_PROFILE_QUERY = gql(`
   query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
@@ -16,8 +18,9 @@ const USER_PROFILE_QUERY = gql(`
         username
         recentRides {
           id
-          finishedAt
+          date
           pointsJson(pointsPerKm: $pointsPerKm)
+          ...rideItem
         }
     }
     viewer {
@@ -38,6 +41,13 @@ export default function UserProfile(): React.ReactElement {
     ssr: false,
   });
 
+  const sidebarRides = sortBy(
+    data?.userWithUsername?.recentRides ?? [],
+    (ride) => ride.date,
+  )
+    .reverse()
+    .slice(0, 30);
+
   return (
     <Container>
       <Nav viewer={data?.viewer} />
@@ -47,7 +57,12 @@ export default function UserProfile(): React.ReactElement {
         titlePostfix={["/", data?.userWithUsername?.username ?? ""].join(" ")}
       >
         {data?.userWithUsername?.username ? (
-          <p>Last year of rides shown</p>
+          <>
+            <p>Last year of rides shown</p>
+            {sidebarRides.map((ride) => (
+              <RideItem key={ride.id} ride={ride} />
+            ))}
+          </>
         ) : (
           <h3>User not found</h3>
         )}
