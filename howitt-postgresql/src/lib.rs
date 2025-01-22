@@ -27,7 +27,7 @@ impl PostgresClient {
 }
 
 #[derive(Debug, thiserror::Error)]
-#[error("Postgres Repo Error")]
+#[error("Postgres Repo Error {:?}", _0)]
 pub enum PostgresRepoError {
     Sqlx(#[from] sqlx::Error),
     SerdeJson(#[from] serde_json::Error),
