@@ -16,6 +16,7 @@ async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", fe
     "uuid",
     "chrono",
     "url",
+    "dataloader",
 ] }
 howitt = { path = "../howitt" }
 howitt_clients = { path = "../howitt-clients" }

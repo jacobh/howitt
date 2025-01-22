@@ -70,9 +70,12 @@ impl Ride {
         Ok(serde_json::to_string(&points)?)
     }
     async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
-        let SchemaData { user_repo, .. } = ctx.data()?;
+        let SchemaData { user_loader, .. } = ctx.data()?;
 
-        let user = user_repo.get(self.0.user_id).await?;
+        let user = user_loader
+            .load_one(self.0.user_id)
+            .await?
+            .ok_or(anyhow::anyhow!("User not found"))?;
 
         Ok(UserProfile(user))
     }

@@ -2,6 +2,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use async_graphql::dataloader::DataLoader;
 use axum::{
     routing::{get, post},
     Router,
@@ -24,7 +25,7 @@ mod extractors;
 mod graphql;
 mod handlers;
 
-use graphql::{context::SchemaData, schema::build_schema};
+use graphql::{context::SchemaData, loaders::user_loader::UserLoader, schema::build_schema};
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -59,7 +60,8 @@ async fn main() -> Result<(), anyhow::Error> {
         poi_repo,
         route_repo,
         ride_repo,
-        user_repo,
+        user_repo: user_repo.clone(),
+        user_loader: DataLoader::new(UserLoader::new(user_repo.clone()), tokio::spawn),
         simplified_ride_points_fetcher,
     });
 
