@@ -1,7 +1,13 @@
 use async_graphql::{Context, Object};
 use chrono::{DateTime, Utc};
 use howitt::{
-    models::{point::Point, ride::RideId},
+    models::{
+        point::{
+            progress::{DistanceProgress, Progress},
+            Point,
+        },
+        ride::RideId,
+    },
     services::{fetchers::PointsFetcherParams, simplify_points::SimplifyTarget},
 };
 use itertools::Itertools;
@@ -68,6 +74,51 @@ impl Ride {
         let points = self.points(ctx, points_per_km).await?;
 
         Ok(serde_json::to_string(&points)?)
+    }
+    async fn elevation_points<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<f64>, async_graphql::Error> {
+        let SchemaData {
+            simplified_ride_points_fetcher,
+            ..
+        } = ctx.data()?;
+
+        let ride_points = simplified_ride_points_fetcher
+            .fetch(
+                self.0.id,
+                PointsFetcherParams {
+                    target: SimplifyTarget::PointPerKm(50),
+                },
+            )
+            .await?;
+
+        Ok(ride_points
+            .into_iter()
+            .map(|point| point.elevation)
+            .collect())
+    }
+    async fn distance_points<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<f64>, async_graphql::Error> {
+        let SchemaData {
+            simplified_ride_points_fetcher,
+            ..
+        } = ctx.data()?;
+
+        let ride_points = simplified_ride_points_fetcher
+            .fetch(
+                self.0.id,
+                PointsFetcherParams {
+                    target: SimplifyTarget::PointPerKm(50),
+                },
+            )
+            .await?;
+
+        let progress = DistanceProgress::from_points(ride_points);
+
+        Ok(progress.into_iter().map(|p| p.distance_m).collect())
     }
     async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
         let SchemaData { user_loader, .. } = ctx.data()?;
