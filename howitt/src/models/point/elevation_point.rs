@@ -37,14 +37,6 @@ impl Point for ElevationPoint {
         &self.point
     }
 
-    fn elevation_meters(&self) -> Option<&f64> {
-        Some(&self.elevation)
-    }
-
-    fn to_elevation_point(&self) -> Option<ElevationPoint> {
-        Some(self.clone())
-    }
-
     fn delta(&self, other: &Self) -> Self::DeltaData {
         ElevationDelta {
             elevation_gain: other.elevation - self.elevation,
@@ -57,14 +49,6 @@ impl Point for &ElevationPoint {
 
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
-    }
-
-    fn elevation_meters(&self) -> Option<&f64> {
-        Some(&self.elevation)
-    }
-
-    fn to_elevation_point(&self) -> Option<ElevationPoint> {
-        Some((*self).clone())
     }
 
     fn delta(&self, other: &Self) -> Self::DeltaData {

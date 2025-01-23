@@ -49,17 +49,6 @@ impl Point for TemporalElevationPoint {
         &self.point
     }
 
-    fn elevation_meters(&self) -> Option<&f64> {
-        Some(&self.elevation)
-    }
-
-    fn to_elevation_point(&self) -> Option<ElevationPoint> {
-        Some(ElevationPoint {
-            point: self.point,
-            elevation: self.elevation,
-        })
-    }
-
     fn delta(&self, other: &Self) -> Self::DeltaData {
         ElevationDelta {
             elevation_gain: other.elevation - self.elevation,

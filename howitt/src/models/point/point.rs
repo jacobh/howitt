@@ -1,11 +1,9 @@
-use super::{elevation_point::ElevationPoint, point_delta::DeltaData};
+use super::point_delta::DeltaData;
 
 pub trait Point: std::fmt::Debug + Clone {
     type DeltaData: DeltaData;
 
     fn as_geo_point(&self) -> &geo::Point;
-    fn elevation_meters(&self) -> Option<&f64>;
-    fn to_elevation_point(&self) -> Option<ElevationPoint>;
     fn delta(&self, other: &Self) -> Self::DeltaData;
 
     fn x_y(&self) -> (f64, f64) {
@@ -26,12 +24,6 @@ pub trait Point: std::fmt::Debug + Clone {
         )
     }
 
-    fn x_y_z(&self) -> (f64, f64, Option<f64>) {
-        let (x, y) = self.x_y();
-
-        (x, y, self.elevation_meters().copied())
-    }
-
     fn to_x_y_vec(&self) -> Vec<f64> {
         let (x, y) = self.x_y();
         vec![x, y]
@@ -50,14 +42,6 @@ impl Point for geo::Point {
         self
     }
 
-    fn elevation_meters(&self) -> Option<&f64> {
-        None
-    }
-
-    fn to_elevation_point(&self) -> Option<ElevationPoint> {
-        None
-    }
-
     fn delta(&self, _: &Self) -> Self::DeltaData {}
 }
 
@@ -66,14 +50,6 @@ impl Point for &geo::Point {
 
     fn as_geo_point(&self) -> &geo::Point {
         self
-    }
-
-    fn elevation_meters(&self) -> Option<&f64> {
-        None
-    }
-
-    fn to_elevation_point(&self) -> Option<ElevationPoint> {
-        None
     }
 
     fn delta(&self, _: &Self) -> Self::DeltaData {}
