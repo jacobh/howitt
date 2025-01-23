@@ -2,11 +2,11 @@ use geo::{Bearing, Distance, Haversine};
 
 use super::{Point, WithDatetime, WithElevation};
 
-pub trait Delta<P>: Sized {
+pub trait Delta<P> {
     fn delta(value1: &P, value2: &P) -> Self;
 }
 
-pub trait AccumulatingDelta<P>: Delta<P> {
+pub trait AccumulatingDelta<P>: Sized {
     fn running_totals(values: &[P]) -> Vec<Self>;
 }
 
@@ -51,20 +51,15 @@ impl<P: WithElevation> Delta<P> for ElevationDelta {
 
 pub struct ElevationGainDelta(pub f64);
 
-impl<P: WithElevation> Delta<P> for ElevationGainDelta {
-    fn delta(value1: &P, value2: &P) -> Self {
-        let delta = value2.elevation() - value1.elevation();
-        // Only track positive elevation changes
-        ElevationGainDelta(delta.max(0.0))
-    }
-}
-
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(ElevationGainDelta(0.0))
-            .chain(values.windows(2).map(|w| Self::delta(&w[0], &w[1])))
-            .scan(0.0, |acc, ElevationGainDelta(g)| {
-                *acc += g;
+            .chain(values.windows(2).map(|w| {
+                let delta = w[1].elevation() - w[0].elevation();
+                ElevationGainDelta(if delta > 0.0 { delta } else { 0.0 })
+            }))
+            .scan(0.0, |acc, ElevationGainDelta(d)| {
+                *acc += d;
                 Some(ElevationGainDelta(*acc))
             })
             .collect()
@@ -73,20 +68,15 @@ impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
 
 pub struct ElevationLossDelta(pub f64);
 
-impl<P: WithElevation> Delta<P> for ElevationLossDelta {
-    fn delta(value1: &P, value2: &P) -> Self {
-        let delta = value2.elevation() - value1.elevation();
-        // Only track negative elevation changes, but store as positive value
-        ElevationLossDelta((-delta).max(0.0))
-    }
-}
-
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationLossDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(ElevationLossDelta(0.0))
-            .chain(values.windows(2).map(|w| Self::delta(&w[0], &w[1])))
-            .scan(0.0, |acc, ElevationLossDelta(l)| {
-                *acc += l;
+            .chain(values.windows(2).map(|w| {
+                let delta = w[1].elevation() - w[0].elevation();
+                ElevationLossDelta(if delta < 0.0 { -delta } else { 0.0 })
+            }))
+            .scan(0.0, |acc, ElevationLossDelta(d)| {
+                *acc += d;
                 Some(ElevationLossDelta(*acc))
             })
             .collect()
