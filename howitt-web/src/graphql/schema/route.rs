@@ -2,6 +2,7 @@ use async_graphql::{Context, Enum, Object};
 use howitt::{
     models::{
         point::{
+            delta2::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
             progress::{DistanceElevationProgress, DistanceProgress, Progress},
             ElevationPoint,
         },
@@ -172,18 +173,20 @@ impl Terminus {
                     .termini()
                     .map(|t| t.map_points(|p| p.clone()).closest_terminus(closest_point));
 
-                closest_terminus.map(|closest_terminus| NearbyRoute {
-                    delta: PointDelta::from(delta),
-                    closest_terminus_delta: PointDelta::from(
-                        howitt::models::point::PointDelta::from_points(
-                            terminus.point(),
-                            closest_terminus.point(),
-                        ),
-                    ),
-                    closest_terminus: Terminus {
-                        terminus: closest_terminus,
-                        route: ModelRef::from_index(route.clone()),
-                    },
+                closest_terminus.map(|closest_terminus| {
+                    let point1 = terminus.point();
+                    let point2 = closest_terminus.point();
+                    let terminus_delta =
+                        <(DistanceDelta, BearingDelta, ElevationDelta)>::delta(point1, point2);
+
+                    NearbyRoute {
+                        delta: PointDelta::from(delta),
+                        closest_terminus_delta: PointDelta::from(terminus_delta),
+                        closest_terminus: Terminus {
+                            terminus: closest_terminus,
+                            route: ModelRef::from_index(route.clone()),
+                        },
+                    }
                 })
             })
             .collect_vec())

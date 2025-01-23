@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{point::Point, point_delta::ElevationDelta, WithElevation};
+use super::{point::Point, WithElevation};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ElevationPoint {
@@ -31,30 +31,14 @@ impl<'de> Deserialize<'de> for ElevationPoint {
 }
 
 impl Point for ElevationPoint {
-    type DeltaData = ElevationDelta;
-
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
-    }
-
-    fn delta(&self, other: &Self) -> Self::DeltaData {
-        ElevationDelta {
-            elevation_gain: other.elevation - self.elevation,
-        }
     }
 }
 
 impl Point for &ElevationPoint {
-    type DeltaData = ElevationDelta;
-
     fn as_geo_point(&self) -> &geo::Point {
         &self.point
-    }
-
-    fn delta(&self, other: &Self) -> Self::DeltaData {
-        ElevationDelta {
-            elevation_gain: other.elevation - self.elevation,
-        }
     }
 }
 

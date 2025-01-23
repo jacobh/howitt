@@ -1,13 +1,17 @@
-use super::{point::Point, point_delta::PointDelta};
+use super::{
+    delta2::{Delta, DistanceDelta},
+    point::Point,
+};
+use ordered_float::OrderedFloat;
 
 pub fn closest_point<'a, P: Point>(
     point: &P,
     points: impl Iterator<Item = &'a P>,
-) -> Option<(&'a P, PointDelta<P::DeltaData>)> {
+) -> Option<(&'a P, DistanceDelta)> {
     points
         .map(|p| {
-            let delta = PointDelta::from_points(point, p);
-            (p, delta)
+            let distance = DistanceDelta::delta(point, p);
+            (p, distance)
         })
-        .min_by_key(|(_, delta)| delta.clone())
+        .min_by_key(|(_, DistanceDelta(dist))| OrderedFloat(*dist))
 }

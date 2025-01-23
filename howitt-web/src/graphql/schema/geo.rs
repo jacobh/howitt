@@ -1,4 +1,5 @@
 use async_graphql::{Enum, SimpleObject};
+use howitt::models::point::delta2::{BearingDelta, DistanceDelta, ElevationDelta};
 
 #[derive(SimpleObject)]
 struct Point {
@@ -31,18 +32,18 @@ pub struct PointDelta {
     pub elevation_gain: f64,
 }
 
-impl From<howitt::models::point::ElevationPointDelta> for PointDelta {
+impl From<(DistanceDelta, BearingDelta, ElevationDelta)> for PointDelta {
     fn from(
-        howitt::models::point::PointDelta {
-            distance,
-            bearing,
-            data,
-        }: howitt::models::point::ElevationPointDelta,
+        (DistanceDelta(distance), BearingDelta(bearing), ElevationDelta(elevation_gain)): (
+            DistanceDelta,
+            BearingDelta,
+            ElevationDelta,
+        ),
     ) -> Self {
         PointDelta {
             distance,
             bearing,
-            elevation_gain: data.elevation_gain,
+            elevation_gain,
         }
     }
 }

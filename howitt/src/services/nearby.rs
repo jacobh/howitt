@@ -1,7 +1,11 @@
 use std::borrow::Cow;
 
 use crate::models::{
-    point::{closest_point, ElevationPoint, ElevationPointDelta, Point},
+    point::{
+        closest_point,
+        delta2::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
+        ElevationPoint, Point,
+    },
     point_of_interest::PointOfInterest,
     route::Route,
 };
@@ -76,18 +80,17 @@ pub type NearbyRoute<'a, 'b> = (
     ElevationPoint,
     &'b Route,
     &'b ElevationPoint,
-    ElevationPointDelta,
+    (DistanceDelta, BearingDelta, ElevationDelta),
 );
 
 const MAX_DISTANCE: f64 = 25_000.0;
 
 pub fn nearby_routes<'a, 'b>(route: &'a Route, routes: &'b [Route]) -> Vec<NearbyRoute<'a, 'b>> {
-    let sample_points = match &route.sample_points {
-        Some(sample_points) => simplify_points(sample_points, SimplifyTarget::TotalPoints(10)),
-        None => vec![],
-    };
-
-    // let sample_points = route.sample_points.as_ref().into_iter().flatten().collect_vec();
+    let sample_points = route
+        .sample_points
+        .as_ref()
+        .map(|points| simplify_points(points, SimplifyTarget::TotalPoints(10)))
+        .unwrap_or_default();
 
     routes
         .iter()
@@ -97,12 +100,21 @@ pub fn nearby_routes<'a, 'b>(route: &'a Route, routes: &'b [Route]) -> Vec<Nearb
                 .iter()
                 .flat_map(move |sample_point| {
                     closest_point(sample_point, route2.sample_points()).map(
-                        |(route2_point, delta)| (sample_point.clone(), route2, route2_point, delta),
+                        |(route2_point, distance)| {
+                            let delta = (
+                                distance,
+                                BearingDelta::delta(sample_point, route2_point),
+                                ElevationDelta::delta(sample_point, route2_point),
+                            );
+                            (sample_point.clone(), route2, route2_point, delta)
+                        },
                     )
                 })
-                .min_by_key(|(_, _, _, delta)| delta.clone())
+                .min_by_key(|(_, _, _, (DistanceDelta(distance), _, _))| {
+                    ordered_float::OrderedFloat(*distance)
+                })
         })
-        .filter(|(_, _, _, delta)| delta.distance < MAX_DISTANCE)
+        .filter(|(_, _, _, (DistanceDelta(distance), _, _))| *distance < MAX_DISTANCE)
         .collect_vec()
 }
 
@@ -113,8 +125,14 @@ pub fn routes_near_point<'a, 'b>(
     routes
         .iter()
         .flat_map(move |route| {
-            closest_point(point, route.sample_points.iter().flatten())
-                .map(|(route_point, delta)| (point.clone(), route, route_point, delta))
+            closest_point(point, route.sample_points()).map(|(route_point, distance)| {
+                let delta = (
+                    distance,
+                    BearingDelta::delta(point, route_point),
+                    ElevationDelta::delta(point, route_point),
+                );
+                (point.clone(), route, route_point, delta)
+            })
         })
-        .filter(|(_, _, _, delta)| delta.distance < MAX_DISTANCE)
+        .filter(|(_, _, _, (DistanceDelta(distance), _, _))| *distance < MAX_DISTANCE)
 }
