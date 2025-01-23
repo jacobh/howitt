@@ -141,11 +141,8 @@ where
     {
         let mut k = kstart;
 
-        for bins_win in bins_view.slice(s![kstart..]).windows(2) {
-            let bl = bins_win[0];
-            let br = bins_win[1];
-
-            if (a > bl || almost::equal(a, bl)) && a < br {
+        for (bl, br) in bins_view.slice(s![kstart..]).iter().tuple_windows() {
+            if (a > *bl || almost::equal(a, *bl)) && a < *br {
                 indices[i] = k;
                 kstart = k;
                 break;
