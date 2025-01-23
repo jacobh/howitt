@@ -10,7 +10,7 @@ use crate::{
     models::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         photo::{Photo, PhotoId},
-        point::{ElevationPoint, PointChunk, TemporalElevationPoint},
+        point::{ElevationPoint, TemporalElevationPoint},
         ride::{Ride, RideId, RidePoints},
         route::{Route, RouteId, RouteModel},
         route_description::RouteDescription,
@@ -258,7 +258,7 @@ where
                 }),
                 tags,
             },
-            PointChunk::new_chunks(id, points.into_iter()),
+            points,
             photos,
         );
 

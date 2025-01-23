@@ -1,12 +1,11 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::serde::json::unwrap_string_value;
-use howitt::models::point::PointChunk;
+use howitt::models::point::ElevationPoint;
 use howitt::models::route::{Route, RouteFilter, RouteId};
 use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
 use howitt::models::user::UserId;
-use itertools::Itertools;
 
 use howitt::models::{route::RouteModel, Model};
 use howitt::repos::Repo;
@@ -165,13 +164,9 @@ impl TryFrom<RouteRow> for RouteModel {
     fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
         let points = row.points.clone();
         let route = Route::try_from(row)?;
-        let point_chunks = vec![PointChunk {
-            model_id: route.id(),
-            idx: 0,
-            points: serde_json::from_value(points)?,
-        }];
+        let points: Vec<ElevationPoint> = serde_json::from_value(points)?;
 
-        Ok(RouteModel::new(route, point_chunks, vec![]))
+        Ok(RouteModel::new(route, points, vec![]))
     }
 }
 
@@ -287,13 +282,7 @@ impl Repo for PostgresRouteRepo {
     async fn put(&self, model: RouteModel) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let RouteModel {
-            route,
-            point_chunks,
-            ..
-        } = model;
-
-        let points = PointChunk::into_iter_points(point_chunks).collect_vec();
+        let RouteModel { route, points, .. } = model;
 
         let query = sqlx::query!(
             r#"insert into routes (

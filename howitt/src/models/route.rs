@@ -12,7 +12,6 @@ use crate::{
 use super::{
     external_ref::ExternallySourced,
     photo::Photo,
-    point::PointChunk,
     route_description::RouteDescription,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
@@ -101,24 +100,24 @@ pub struct RouteFilter {
 #[derive(Debug, Clone)]
 pub struct RouteModel {
     pub route: Route,
-    pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
+    pub points: Vec<ElevationPoint>,
     pub photos: Vec<Photo<RouteId>>,
 }
 impl RouteModel {
     pub fn new(
         route: Route,
-        point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
+        points: Vec<ElevationPoint>,
         photos: Vec<Photo<RouteId>>,
     ) -> RouteModel {
         RouteModel {
             route,
-            point_chunks,
+            points,
             photos,
         }
     }
 
     pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
-        PointChunk::iter_points(&self.point_chunks)
+        self.points.iter()
     }
 
     pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
@@ -128,7 +127,7 @@ impl RouteModel {
 
 impl PartialEq for RouteModel {
     fn eq(&self, other: &Self) -> bool {
-        self.route == other.route && self.point_chunks == other.point_chunks
+        self.route == other.route && self.points == other.points
     }
 }
 
@@ -149,32 +148,17 @@ impl crate::models::Model for RouteModel {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, From)]
 #[serde(tag = "item")]
 pub enum RouteItem {
-    PointChunk(PointChunk<RouteId, ElevationPoint>),
     Photo(Photo<RouteId>),
 }
 impl RouteItem {
-    pub fn as_point_chunk(&self) -> Option<&PointChunk<RouteId, ElevationPoint>> {
-        match self {
-            RouteItem::PointChunk(chunk) => Some(chunk),
-            _ => None,
-        }
-    }
     pub fn as_photo(&self) -> Option<&Photo<RouteId>> {
         match self {
             RouteItem::Photo(photo) => Some(photo),
-            _ => None,
-        }
-    }
-    pub fn into_point_chunk(self) -> Option<PointChunk<RouteId, ElevationPoint>> {
-        match self {
-            RouteItem::PointChunk(chunk) => Some(chunk),
-            _ => None,
         }
     }
     pub fn into_photo(self) -> Option<Photo<RouteId>> {
         match self {
             RouteItem::Photo(photo) => Some(photo),
-            _ => None,
         }
     }
 }
@@ -183,21 +167,18 @@ impl crate::models::OtherItem for RouteItem {
 
     fn item_name(&self) -> String {
         match self {
-            RouteItem::PointChunk(_) => "POINT_CHUNK".to_string(),
             RouteItem::Photo(_) => "PHOTO".to_string(),
         }
     }
 
     fn model_id(&self) -> RouteId {
         match self {
-            RouteItem::PointChunk(chunk) => chunk.model_id,
             RouteItem::Photo(photo) => photo.model_id,
         }
     }
 
     fn item_id(&self) -> String {
         match self {
-            RouteItem::PointChunk(chunk) => chunk.idx.to_string(),
             RouteItem::Photo(photo) => photo.id.as_uuid().to_string(),
         }
     }
