@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use crate::models::{
     point::{
         closest_point,
-        delta2::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
+        delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
         ElevationPoint, Point,
     },
     point_of_interest::PointOfInterest,

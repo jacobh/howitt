@@ -1,5 +1,5 @@
 pub mod closest_point;
-pub mod delta2;
+pub mod delta;
 pub mod elevation_point;
 pub mod point;
 pub mod point_chunk;

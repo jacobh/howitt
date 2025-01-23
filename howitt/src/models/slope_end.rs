@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::point::delta2::{DistanceDelta, ElevationDelta};
+use super::point::delta::{DistanceDelta, ElevationDelta};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum SlopeEnd {

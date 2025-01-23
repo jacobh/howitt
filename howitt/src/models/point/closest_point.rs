@@ -1,5 +1,5 @@
 use super::{
-    delta2::{Delta, DistanceDelta},
+    delta::{Delta, DistanceDelta},
     point::Point,
 };
 use ordered_float::OrderedFloat;

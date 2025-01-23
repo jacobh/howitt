@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 use crate::models::point::{
-    delta2::{AccumulatingDelta, DistanceDelta},
+    delta::{AccumulatingDelta, DistanceDelta},
     ElevationPoint,
 };
 

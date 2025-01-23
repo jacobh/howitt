@@ -2,7 +2,7 @@ use async_graphql::{Context, Enum, Object};
 use howitt::{
     models::{
         point::{
-            delta2::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
+            delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
             progress::{DistanceElevationProgress, DistanceProgress, Progress},
             ElevationPoint,
         },

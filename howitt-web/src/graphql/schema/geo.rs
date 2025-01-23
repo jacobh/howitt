@@ -1,5 +1,5 @@
 use async_graphql::{Enum, SimpleObject};
-use howitt::models::point::delta2::{BearingDelta, DistanceDelta, ElevationDelta};
+use howitt::models::point::delta::{BearingDelta, DistanceDelta, ElevationDelta};
 
 #[derive(SimpleObject)]
 struct Point {
