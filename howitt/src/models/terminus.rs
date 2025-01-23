@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 use super::{
-    point::{ElevationPoint, Point, PointDelta},
+    point::{
+        delta2::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
+        ElevationPoint, Point, WithElevation,
+    },
     slope_end::SlopeEnd,
 };
 
@@ -32,30 +35,38 @@ pub struct Terminus<P: Point> {
     pub end: TerminusEnd,
 }
 
-impl<P: Point> Terminus<P> {
+impl<P: Point + WithElevation> Terminus<P> {
     pub fn point(&self) -> &P {
         self.end.tuple_value(self.termini.points())
     }
     pub fn bearing(&self) -> f64 {
-        let delta = &self.termini.delta();
+        let BearingDelta(bearing) =
+            BearingDelta::delta(&self.termini.first_point, &self.termini.last_point);
 
-        self.end
-            .tuple_value(((delta.bearing + 180.0) % 360.0, delta.bearing))
+        self.end.tuple_value(((bearing + 180.0) % 360.0, bearing))
     }
     pub fn distance_from_start(&self) -> f64 {
-        let delta = &self.termini.delta();
+        let DistanceDelta(distance) =
+            DistanceDelta::delta(&self.termini.first_point, &self.termini.last_point);
 
-        self.end.tuple_value((0.0, delta.distance))
+        self.end.tuple_value((0.0, distance))
     }
 }
 
 impl Terminus<ElevationPoint> {
     pub fn elevation(&self) -> TerminusElevation {
-        let delta = &self.termini.delta();
+        let (DistanceDelta(distance), ElevationDelta(elevation_gain)) =
+            <(DistanceDelta, ElevationDelta)>::delta(
+                &self.termini.first_point,
+                &self.termini.last_point,
+            );
 
         TerminusElevation {
-            slope_end: self.end.tuple_value(SlopeEnd::from_delta(delta)),
-            elevation_gain_from_start: self.end.tuple_value((0.0, delta.data.elevation_gain)),
+            slope_end: self.end.tuple_value(SlopeEnd::from_deltas(
+                &DistanceDelta(distance),
+                &ElevationDelta(elevation_gain),
+            )),
+            elevation_gain_from_start: self.end.tuple_value((0.0, elevation_gain)),
         }
     }
 }
@@ -65,7 +76,7 @@ pub struct Termini<P> {
     first_point: P,
     last_point: P,
 }
-impl<P: Point> Termini<P> {
+impl<P: Point + WithElevation> Termini<P> {
     pub fn new(first_point: P, last_point: P) -> Termini<P> {
         Termini {
             first_point,
@@ -97,10 +108,6 @@ impl<P: Point> Termini<P> {
         (self.first_point, self.last_point)
     }
 
-    pub fn delta(&self) -> PointDelta<<P as Point>::DeltaData> {
-        PointDelta::from_points(&self.first_point, &self.last_point)
-    }
-
     pub fn to_termini(&self) -> (Terminus<P>, Terminus<P>) {
         (
             Terminus {
@@ -120,9 +127,15 @@ impl<P: Point> Termini<P> {
     }
 
     pub fn closest_terminus<P1: Point>(&self, point: P1) -> Terminus<P> {
-        self.to_termini_vec()
+        let termini = self.to_termini_vec();
+
+        termini
             .into_iter()
-            .min_by_key(|t| PointDelta::from_points(point.as_geo_point(), t.point().as_geo_point()))
+            .min_by_key(|t| {
+                let DistanceDelta(distance) =
+                    DistanceDelta::delta(point.as_geo_point(), t.point().as_geo_point());
+                ordered_float::OrderedFloat(distance)
+            })
             .unwrap_or_else(|| self.to_termini().0)
     }
 }

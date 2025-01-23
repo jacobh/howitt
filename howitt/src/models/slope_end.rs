@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::point::{ElevationDelta, ElevationPointDelta, PointDelta};
+use super::point::delta2::{DistanceDelta, ElevationDelta};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum SlopeEnd {
@@ -10,18 +10,15 @@ pub enum SlopeEnd {
 }
 
 impl SlopeEnd {
-    pub fn from_delta(
-        PointDelta {
-            distance,
-            data: ElevationDelta { elevation_gain },
-            ..
-        }: &ElevationPointDelta,
+    pub fn from_deltas(
+        distance: &DistanceDelta,
+        elevation_gain: &ElevationDelta,
     ) -> (SlopeEnd, SlopeEnd) {
-        let gradient_percent = 100.0 / distance * elevation_gain;
+        let gradient_percent = 100.0 / distance.0 * elevation_gain.0;
 
-        if elevation_gain.abs() <= 25.0 || gradient_percent.abs() < 0.5 {
+        if elevation_gain.0.abs() <= 25.0 || gradient_percent.abs() < 0.5 {
             (SlopeEnd::Flat, SlopeEnd::Flat)
-        } else if elevation_gain > &0.0 {
+        } else if elevation_gain.0 > 0.0 {
             (SlopeEnd::Downhill, SlopeEnd::Uphill)
         } else {
             (SlopeEnd::Uphill, SlopeEnd::Downhill)
