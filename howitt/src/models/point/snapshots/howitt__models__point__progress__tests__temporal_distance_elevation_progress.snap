@@ -1,0 +1,481 @@
+---
+source: howitt/src/models/point/progress.rs
+expression: progress
+---
+[
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 0,
+            nanos: 0,
+        },
+        distance_m: 0.0,
+        elevation_gain_m: 0.0,
+        elevation_loss_m: 0.0,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T00:56:36Z,
+            point: Point(
+                Coord {
+                    x: 146.577011,
+                    y: -37.207081,
+                },
+            ),
+            elevation: 1448.0,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 1159,
+            nanos: 0,
+        },
+        distance_m: 1095.8238069839272,
+        elevation_gain_m: 89.20000000000005,
+        elevation_loss_m: 0.0,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T01:15:55Z,
+            point: Point(
+                Coord {
+                    x: 146.5802,
+                    y: -37.197559,
+                },
+            ),
+            elevation: 1537.2,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 2335,
+            nanos: 0,
+        },
+        distance_m: 2155.2684387557047,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 0.0,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T01:35:31Z,
+            point: Point(
+                Coord {
+                    x: 146.591812,
+                    y: -37.195274,
+                },
+            ),
+            elevation: 1591.4,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 4136,
+            nanos: 0,
+        },
+        distance_m: 4675.312646125838,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 33.30000000000018,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T02:05:32Z,
+            point: Point(
+                Coord {
+                    x: 146.604782,
+                    y: -37.215446,
+                },
+            ),
+            elevation: 1558.1,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 5285,
+            nanos: 0,
+        },
+        distance_m: 5893.628363915528,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 138.4000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T02:24:41Z,
+            point: Point(
+                Coord {
+                    x: 146.613174,
+                    y: -37.206764,
+                },
+            ),
+            elevation: 1453.0,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 5411,
+            nanos: 0,
+        },
+        distance_m: 6484.955345523955,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 177.20000000000005,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T02:26:47Z,
+            point: Point(
+                Coord {
+                    x: 146.615189,
+                    y: -37.211834,
+                },
+            ),
+            elevation: 1414.2,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 5850,
+            nanos: 0,
+        },
+        distance_m: 7409.305285864944,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 362.4000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T02:34:06Z,
+            point: Point(
+                Coord {
+                    x: 146.625626,
+                    y: -37.21172,
+                },
+            ),
+            elevation: 1229.0,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 6023,
+            nanos: 0,
+        },
+        distance_m: 7943.19180638903,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 434.0,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T02:36:59Z,
+            point: Point(
+                Coord {
+                    x: 146.621872,
+                    y: -37.215477,
+                },
+            ),
+            elevation: 1157.4,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 7823,
+            nanos: 0,
+        },
+        distance_m: 9014.888686459002,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 543.2,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T03:06:59Z,
+            point: Point(
+                Coord {
+                    x: 146.632965,
+                    y: -37.211624,
+                },
+            ),
+            elevation: 1048.2,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 8762,
+            nanos: 0,
+        },
+        distance_m: 10217.702786943033,
+        elevation_gain_m: 143.4000000000001,
+        elevation_loss_m: 595.0000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T03:22:38Z,
+            point: Point(
+                Coord {
+                    x: 146.644836,
+                    y: -37.216881,
+                },
+            ),
+            elevation: 996.4,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 13060,
+            nanos: 0,
+        },
+        distance_m: 12549.944815028417,
+        elevation_gain_m: 451.80000000000007,
+        elevation_loss_m: 595.0000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T04:34:16Z,
+            point: Point(
+                Coord {
+                    x: 146.662094,
+                    y: -37.201038,
+                },
+            ),
+            elevation: 1304.8,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 14857,
+            nanos: 0,
+        },
+        distance_m: 13727.653221899642,
+        elevation_gain_m: 629.6,
+        elevation_loss_m: 595.0000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T05:04:13Z,
+            point: Point(
+                Coord {
+                    x: 146.66188,
+                    y: -37.211628,
+                },
+            ),
+            elevation: 1482.6,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 16562,
+            nanos: 0,
+        },
+        distance_m: 15610.553181380556,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 595.0000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T05:32:38Z,
+            point: Point(
+                Coord {
+                    x: 146.681244,
+                    y: -37.204636,
+                },
+            ),
+            elevation: 1580.0,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 17683,
+            nanos: 0,
+        },
+        distance_m: 17232.706872857583,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 611.6,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T05:51:19Z,
+            point: Point(
+                Coord {
+                    x: 146.69574,
+                    y: -37.213554,
+                },
+            ),
+            elevation: 1563.4,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 18532,
+            nanos: 0,
+        },
+        distance_m: 18614.344692840612,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 756.6,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T06:05:28Z,
+            point: Point(
+                Coord {
+                    x: 146.691177,
+                    y: -37.201672,
+                },
+            ),
+            elevation: 1418.4,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 18760,
+            nanos: 0,
+        },
+        distance_m: 19107.737763449928,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 818.8000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T06:09:16Z,
+            point: Point(
+                Coord {
+                    x: 146.695526,
+                    y: -37.204445,
+                },
+            ),
+            elevation: 1356.2,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 18957,
+            nanos: 0,
+        },
+        distance_m: 19780.90581445843,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 889.0000000000001,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T06:12:33Z,
+            point: Point(
+                Coord {
+                    x: 146.699158,
+                    y: -37.199127,
+                },
+            ),
+            elevation: 1286.0,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 20952,
+            nanos: 0,
+        },
+        distance_m: 20338.368642677608,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 1019.2000000000002,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T06:45:48Z,
+            point: Point(
+                Coord {
+                    x: 146.6996,
+                    y: -37.204128,
+                },
+            ),
+            elevation: 1155.8,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 21183,
+            nanos: 0,
+        },
+        distance_m: 21127.836525524457,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 1061.6,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T06:49:39Z,
+            point: Point(
+                Coord {
+                    x: 146.703659,
+                    y: -37.197807,
+                },
+            ),
+            elevation: 1113.4,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 21960,
+            nanos: 0,
+        },
+        distance_m: 22165.158237923282,
+        elevation_gain_m: 727.0000000000001,
+        elevation_loss_m: 1141.2,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T07:02:36Z,
+            point: Point(
+                Coord {
+                    x: 146.693695,
+                    y: -37.192905,
+                },
+            ),
+            elevation: 1033.8,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 26179,
+            nanos: 0,
+        },
+        distance_m: 24208.402870792,
+        elevation_gain_m: 1017.0000000000001,
+        elevation_loss_m: 1141.2,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T08:12:55Z,
+            point: Point(
+                Coord {
+                    x: 146.707153,
+                    y: -37.177982,
+                },
+            ),
+            elevation: 1323.8,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 28089,
+            nanos: 0,
+        },
+        distance_m: 27082.9484271325,
+        elevation_gain_m: 1017.0000000000001,
+        elevation_loss_m: 1412.2,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T08:44:45Z,
+            point: Point(
+                Coord {
+                    x: 146.738373,
+                    y: -37.185024,
+                },
+            ),
+            elevation: 1052.8,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 29821,
+            nanos: 0,
+        },
+        distance_m: 31040.347259974707,
+        elevation_gain_m: 1017.0000000000001,
+        elevation_loss_m: 1822.8,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T09:13:37Z,
+            point: Point(
+                Coord {
+                    x: 146.760941,
+                    y: -37.154312,
+                },
+            ),
+            elevation: 642.2,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 30860,
+            nanos: 0,
+        },
+        distance_m: 33186.580118809004,
+        elevation_gain_m: 1017.0000000000001,
+        elevation_loss_m: 1960.6,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T09:30:56Z,
+            point: Point(
+                Coord {
+                    x: 146.775742,
+                    y: -37.16959,
+                },
+            ),
+            elevation: 504.4,
+        },
+    },
+    TemporalDistanceElevationProgress {
+        elapsed: TimeDelta {
+            secs: 31279,
+            nanos: 0,
+        },
+        distance_m: 33771.722837425834,
+        elevation_gain_m: 1017.0000000000001,
+        elevation_loss_m: 1975.0,
+        point: TemporalElevationPoint {
+            datetime: 2024-12-23T09:37:55Z,
+            point: Point(
+                Coord {
+                    x: 146.782104,
+                    y: -37.168179,
+                },
+            ),
+            elevation: 490.0,
+        },
+    },
+]

@@ -142,9 +142,9 @@ impl<P: Point + WithElevation + WithDatetime> Progress for TemporalDistanceEleva
 
 #[cfg(test)]
 mod tests {
-    use chrono::{TimeZone, Utc};
+    use chrono::{DateTime, Utc};
     use geo::Point as GeoPoint;
-    use itertools::Itertools;
+    use serde_json::json;
 
     use super::*;
     use crate::models::point::{
@@ -217,6 +217,66 @@ mod tests {
             .collect();
 
         let progress = DistanceElevationProgress::from_points(points.clone());
+
+        assert_eq!(points.len(), progress.len());
+
+        insta::assert_debug_snapshot!(progress)
+    }
+
+    #[test]
+    fn test_temporal_distance_elevation_progress() {
+        // Warby - Horsfall - McKinty - Jamieson - Bluff - Zeka - Bright
+        // [lng, lat, elevation_m, timestamp]
+        let points = json!([
+            [146.577011, -37.207081, 1448.0, "2024-12-23T11:56:36+11:00"],
+            [146.5802, -37.197559, 1537.2, "2024-12-23T12:15:55+11:00"],
+            [146.591812, -37.195274, 1591.4, "2024-12-23T12:35:31+11:00"],
+            [146.604782, -37.215446, 1558.1, "2024-12-23T13:05:32+11:00"],
+            [146.613174, -37.206764, 1453.0, "2024-12-23T13:24:41+11:00"],
+            [146.615189, -37.211834, 1414.2, "2024-12-23T13:26:47+11:00"],
+            [146.625626, -37.21172, 1229.0, "2024-12-23T13:34:06+11:00"],
+            [146.621872, -37.215477, 1157.4, "2024-12-23T13:36:59+11:00"],
+            [146.632965, -37.211624, 1048.2, "2024-12-23T14:06:59+11:00"],
+            [146.644836, -37.216881, 996.4, "2024-12-23T14:22:38+11:00"],
+            [146.662094, -37.201038, 1304.8, "2024-12-23T15:34:16+11:00"],
+            [146.66188, -37.211628, 1482.6, "2024-12-23T16:04:13+11:00"],
+            [146.681244, -37.204636, 1580.0, "2024-12-23T16:32:38+11:00"],
+            [146.69574, -37.213554, 1563.4, "2024-12-23T16:51:19+11:00"],
+            [146.691177, -37.201672, 1418.4, "2024-12-23T17:05:28+11:00"],
+            [146.695526, -37.204445, 1356.2, "2024-12-23T17:09:16+11:00"],
+            [146.699158, -37.199127, 1286.0, "2024-12-23T17:12:33+11:00"],
+            [146.6996, -37.204128, 1155.8, "2024-12-23T17:45:48+11:00"],
+            [146.703659, -37.197807, 1113.4, "2024-12-23T17:49:39+11:00"],
+            [146.693695, -37.192905, 1033.8, "2024-12-23T18:02:36+11:00"],
+            [146.707153, -37.177982, 1323.8, "2024-12-23T19:12:55+11:00"],
+            [146.738373, -37.185024, 1052.8, "2024-12-23T19:44:45+11:00"],
+            [146.760941, -37.154312, 642.2, "2024-12-23T20:13:37+11:00"],
+            [146.775742, -37.16959, 504.4, "2024-12-23T20:30:56+11:00"],
+            [146.782104, -37.168179, 490.0, "2024-12-23T20:37:55+11:00"],
+        ]);
+
+        let points: Vec<TemporalElevationPoint> = points
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|point| {
+                let coords = point.as_array().unwrap();
+                let lng = coords[0].as_f64().unwrap();
+                let lat = coords[1].as_f64().unwrap();
+                let elevation = coords[2].as_f64().unwrap();
+                let timestamp = coords[3].as_str().unwrap();
+
+                TemporalElevationPoint {
+                    point: GeoPoint::new(lng, lat),
+                    elevation,
+                    datetime: DateTime::parse_from_str(timestamp, "%Y-%m-%dT%H:%M:%S%z")
+                        .unwrap()
+                        .with_timezone(&Utc),
+                }
+            })
+            .collect();
+
+        let progress = TemporalDistanceElevationProgress::from_points(points.clone());
 
         assert_eq!(points.len(), progress.len());
 
