@@ -1,4 +1,5 @@
 use geo::{Bearing, Distance, Haversine};
+use itertools::Itertools;
 
 use super::{Point, WithDatetime, WithElevation};
 
@@ -23,7 +24,12 @@ impl<P: Point> Delta<P> for DistanceDelta {
 impl<P: Point> AccumulatingDelta<P> for DistanceDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(DistanceDelta(0.0))
-            .chain(values.windows(2).map(|w| Self::delta(&w[0], &w[1])))
+            .chain(
+                values
+                    .iter()
+                    .tuple_windows()
+                    .map(|(a, b)| Self::delta(a, b)),
+            )
             .scan(0.0, |acc, DistanceDelta(d)| {
                 *acc += d;
                 Some(DistanceDelta(*acc))
@@ -54,8 +60,8 @@ pub struct ElevationGainDelta(pub f64);
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(ElevationGainDelta(0.0))
-            .chain(values.windows(2).map(|w| {
-                let delta = w[1].elevation() - w[0].elevation();
+            .chain(values.iter().tuple_windows().map(|(a, b)| {
+                let delta = b.elevation() - a.elevation();
                 ElevationGainDelta(if delta > 0.0 { delta } else { 0.0 })
             }))
             .scan(0.0, |acc, ElevationGainDelta(d)| {
@@ -71,8 +77,8 @@ pub struct ElevationLossDelta(pub f64);
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationLossDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(ElevationLossDelta(0.0))
-            .chain(values.windows(2).map(|w| {
-                let delta = w[1].elevation() - w[0].elevation();
+            .chain(values.iter().tuple_windows().map(|(a, b)| {
+                let delta = b.elevation() - a.elevation();
                 ElevationLossDelta(if delta < 0.0 { -delta } else { 0.0 })
             }))
             .scan(0.0, |acc, ElevationLossDelta(d)| {
@@ -95,7 +101,12 @@ impl<P: WithDatetime> Delta<P> for ElapsedDelta {
 impl<P: WithDatetime> AccumulatingDelta<P> for ElapsedDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(ElapsedDelta(chrono::Duration::zero()))
-            .chain(values.windows(2).map(|w| Self::delta(&w[0], &w[1])))
+            .chain(
+                values
+                    .iter()
+                    .tuple_windows()
+                    .map(|(a, b)| Self::delta(a, b)),
+            )
             .scan(chrono::Duration::zero(), |acc, ElapsedDelta(e)| {
                 *acc = *acc + e;
                 Some(ElapsedDelta(*acc))
