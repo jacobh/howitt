@@ -10,6 +10,66 @@ pub trait CumulativeDelta<P>: Delta<P> {
     fn cumulative_deltas(values: &[P]) -> Vec<Self>;
 }
 
+// ----------
+
+impl<P, T1, T2> Delta<P> for (T1, T2)
+where
+    T1: Delta<P>,
+    T2: Delta<P>,
+{
+    fn delta(value1: &P, value2: &P) -> Self {
+        (T1::delta(value1, value2), T2::delta(value1, value2))
+    }
+}
+
+impl<P, T1, T2, T3> Delta<P> for (T1, T2, T3)
+where
+    T1: Delta<P>,
+    T2: Delta<P>,
+    T3: Delta<P>,
+{
+    fn delta(value1: &P, value2: &P) -> Self {
+        (
+            T1::delta(value1, value2),
+            T2::delta(value1, value2),
+            T3::delta(value1, value2),
+        )
+    }
+}
+
+impl<P, T1, T2> CumulativeDelta<P> for (T1, T2)
+where
+    T1: CumulativeDelta<P>,
+    T2: CumulativeDelta<P>,
+{
+    fn cumulative_deltas(values: &[P]) -> Vec<Self> {
+        let t1_deltas = T1::cumulative_deltas(values);
+        let t2_deltas = T2::cumulative_deltas(values);
+        t1_deltas.into_iter().zip(t2_deltas).collect()
+    }
+}
+
+impl<P, T1, T2, T3> CumulativeDelta<P> for (T1, T2, T3)
+where
+    T1: CumulativeDelta<P>,
+    T2: CumulativeDelta<P>,
+    T3: CumulativeDelta<P>,
+{
+    fn cumulative_deltas(values: &[P]) -> Vec<Self> {
+        let t1_deltas = T1::cumulative_deltas(values);
+        let t2_deltas = T2::cumulative_deltas(values);
+        let t3_deltas = T3::cumulative_deltas(values);
+        t1_deltas
+            .into_iter()
+            .zip(t2_deltas)
+            .zip(t3_deltas)
+            .map(|((t1, t2), t3)| (t1, t2, t3))
+            .collect()
+    }
+}
+
+// ----------
+
 pub struct DistanceDelta(pub f64);
 impl<P: Point> Delta<P> for DistanceDelta {
     fn delta(value1: &P, value2: &P) -> Self {
@@ -76,99 +136,6 @@ impl<P: WithDatetime> CumulativeDelta<P> for ElapsedDelta {
                 *acc = *acc + e;
                 Some(ElapsedDelta(*acc))
             })
-            .collect()
-    }
-}
-
-// Composite Deltas
-
-pub struct DistanceElevationDelta {
-    pub distance: DistanceDelta,
-    pub elevation: ElevationDelta,
-}
-
-impl<P: Point + WithElevation> Delta<P> for DistanceElevationDelta {
-    fn delta(value1: &P, value2: &P) -> Self {
-        DistanceElevationDelta {
-            distance: DistanceDelta::delta(value1, value2),
-            elevation: ElevationDelta::delta(value1, value2),
-        }
-    }
-}
-
-impl<P: Point + WithElevation> CumulativeDelta<P> for DistanceElevationDelta {
-    fn cumulative_deltas(values: &[P]) -> Vec<Self> {
-        let distances = DistanceDelta::cumulative_deltas(values);
-        let elevations = ElevationDelta::cumulative_deltas(values);
-        distances
-            .into_iter()
-            .zip(elevations)
-            .map(|(distance, elevation)| DistanceElevationDelta {
-                distance,
-                elevation,
-            })
-            .collect()
-    }
-}
-
-pub struct DistanceElapsedDelta {
-    pub distance: DistanceDelta,
-    pub elapsed: ElapsedDelta,
-}
-
-impl<P: Point + WithDatetime> Delta<P> for DistanceElapsedDelta {
-    fn delta(value1: &P, value2: &P) -> Self {
-        DistanceElapsedDelta {
-            distance: DistanceDelta::delta(value1, value2),
-            elapsed: ElapsedDelta::delta(value1, value2),
-        }
-    }
-}
-
-impl<P: Point + WithDatetime> CumulativeDelta<P> for DistanceElapsedDelta {
-    fn cumulative_deltas(values: &[P]) -> Vec<Self> {
-        let distances = DistanceDelta::cumulative_deltas(values);
-        let elapsed = ElapsedDelta::cumulative_deltas(values);
-        distances
-            .into_iter()
-            .zip(elapsed)
-            .map(|(distance, elapsed)| DistanceElapsedDelta { distance, elapsed })
-            .collect()
-    }
-}
-
-pub struct DistanceElevationElapsedDelta {
-    pub distance: DistanceDelta,
-    pub elevation: ElevationDelta,
-    pub elapsed: ElapsedDelta,
-}
-
-impl<P: Point + WithElevation + WithDatetime> Delta<P> for DistanceElevationElapsedDelta {
-    fn delta(value1: &P, value2: &P) -> Self {
-        DistanceElevationElapsedDelta {
-            distance: DistanceDelta::delta(value1, value2),
-            elevation: ElevationDelta::delta(value1, value2),
-            elapsed: ElapsedDelta::delta(value1, value2),
-        }
-    }
-}
-
-impl<P: Point + WithElevation + WithDatetime> CumulativeDelta<P> for DistanceElevationElapsedDelta {
-    fn cumulative_deltas(values: &[P]) -> Vec<Self> {
-        let distances = DistanceDelta::cumulative_deltas(values);
-        let elevations = ElevationDelta::cumulative_deltas(values);
-        let elapsed = ElapsedDelta::cumulative_deltas(values);
-        distances
-            .into_iter()
-            .zip(elevations)
-            .zip(elapsed)
-            .map(
-                |((distance, elevation), elapsed)| DistanceElevationElapsedDelta {
-                    distance,
-                    elevation,
-                    elapsed,
-                },
-            )
             .collect()
     }
 }
