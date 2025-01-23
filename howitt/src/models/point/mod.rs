@@ -1,4 +1,4 @@
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Duration, TimeZone, Utc};
 use geo::GeodesicBearing;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
