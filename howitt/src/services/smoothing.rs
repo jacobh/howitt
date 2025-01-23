@@ -1,6 +1,9 @@
 use itertools::Itertools;
 
-use crate::models::point::{generate_point_deltas, ElevationPoint};
+use crate::models::point::{
+    delta2::{AccumulatingDelta, DistanceDelta},
+    ElevationPoint,
+};
 
 pub fn smooth_elevations(cum_distances: &[f64], elevations: &[f64]) -> Vec<f64> {
     if elevations.len() < 2 {
@@ -18,37 +21,34 @@ pub fn smooth_elevations(cum_distances: &[f64], elevations: &[f64]) -> Vec<f64> 
 }
 
 fn filter_duplicate_points(points: Vec<ElevationPoint>) -> Vec<ElevationPoint> {
-    let deltas = generate_point_deltas(points.iter());
+    if points.is_empty() {
+        return points;
+    }
+
+    let deltas = DistanceDelta::running_totals(&points);
 
     std::iter::zip(points, deltas)
         .with_position()
-        .filter_map(|(position, (point, delta))| match position {
-            itertools::Position::First | itertools::Position::Only => Some(point),
-            itertools::Position::Middle | itertools::Position::Last => {
-                if almost::zero(delta.distance) {
-                    None
-                } else {
-                    Some(point)
+        .filter_map(
+            |(position, (point, DistanceDelta(distance)))| match position {
+                itertools::Position::First | itertools::Position::Only => Some(point),
+                itertools::Position::Middle | itertools::Position::Last => {
+                    if almost::zero(distance) {
+                        None
+                    } else {
+                        Some(point)
+                    }
                 }
-            }
-        })
+            },
+        )
         .collect_vec()
 }
 
 pub fn smooth_elevation_points(points: Vec<ElevationPoint>) -> Vec<ElevationPoint> {
     let points = filter_duplicate_points(points);
 
-    let deltas = generate_point_deltas(points.as_slice());
-
-    let distances = deltas
-        .iter()
-        .map(|delta| delta.distance)
-        .scan(0.0, |total_distance, distance| {
-            *total_distance += distance;
-
-            Some(*total_distance)
-        })
-        .collect_vec();
+    let deltas = DistanceDelta::running_totals(&points);
+    let distances: Vec<f64> = deltas.into_iter().map(|DistanceDelta(d)| d).collect();
 
     let raw_elevations = points.iter().map(|point| point.elevation).collect_vec();
 
