@@ -10,150 +10,7 @@ pub trait AccumulatingDelta<P>: Delta<P> {
     fn running_totals(values: &[P]) -> Vec<Self>;
 }
 
-// ----------
-
-impl<P, T1, T2> Delta<P> for (T1, T2)
-where
-    T1: Delta<P>,
-    T2: Delta<P>,
-{
-    fn delta(value1: &P, value2: &P) -> Self {
-        (T1::delta(value1, value2), T2::delta(value1, value2))
-    }
-}
-
-impl<P, T1, T2, T3> Delta<P> for (T1, T2, T3)
-where
-    T1: Delta<P>,
-    T2: Delta<P>,
-    T3: Delta<P>,
-{
-    fn delta(value1: &P, value2: &P) -> Self {
-        (
-            T1::delta(value1, value2),
-            T2::delta(value1, value2),
-            T3::delta(value1, value2),
-        )
-    }
-}
-
-impl<P, T1, T2> AccumulatingDelta<P> for (T1, T2)
-where
-    T1: AccumulatingDelta<P>,
-    T2: AccumulatingDelta<P>,
-{
-    fn running_totals(values: &[P]) -> Vec<Self> {
-        let t1_deltas = T1::running_totals(values);
-        let t2_deltas = T2::running_totals(values);
-        t1_deltas.into_iter().zip(t2_deltas).collect()
-    }
-}
-
-impl<P, T1, T2, T3> AccumulatingDelta<P> for (T1, T2, T3)
-where
-    T1: AccumulatingDelta<P>,
-    T2: AccumulatingDelta<P>,
-    T3: AccumulatingDelta<P>,
-{
-    fn running_totals(values: &[P]) -> Vec<Self> {
-        let t1_deltas = T1::running_totals(values);
-        let t2_deltas = T2::running_totals(values);
-        let t3_deltas = T3::running_totals(values);
-        t1_deltas
-            .into_iter()
-            .zip(t2_deltas)
-            .zip(t3_deltas)
-            .map(|((t1, t2), t3)| (t1, t2, t3))
-            .collect()
-    }
-}
-
-// ... existing code ...
-
-impl<P, T1, T2, T3, T4> Delta<P> for (T1, T2, T3, T4)
-where
-    T1: Delta<P>,
-    T2: Delta<P>,
-    T3: Delta<P>,
-    T4: Delta<P>,
-{
-    fn delta(value1: &P, value2: &P) -> Self {
-        (
-            T1::delta(value1, value2),
-            T2::delta(value1, value2),
-            T3::delta(value1, value2),
-            T4::delta(value1, value2),
-        )
-    }
-}
-
-impl<P, T1, T2, T3, T4, T5> Delta<P> for (T1, T2, T3, T4, T5)
-where
-    T1: Delta<P>,
-    T2: Delta<P>,
-    T3: Delta<P>,
-    T4: Delta<P>,
-    T5: Delta<P>,
-{
-    fn delta(value1: &P, value2: &P) -> Self {
-        (
-            T1::delta(value1, value2),
-            T2::delta(value1, value2),
-            T3::delta(value1, value2),
-            T4::delta(value1, value2),
-            T5::delta(value1, value2),
-        )
-    }
-}
-
-impl<P, T1, T2, T3, T4> AccumulatingDelta<P> for (T1, T2, T3, T4)
-where
-    T1: AccumulatingDelta<P>,
-    T2: AccumulatingDelta<P>,
-    T3: AccumulatingDelta<P>,
-    T4: AccumulatingDelta<P>,
-{
-    fn running_totals(values: &[P]) -> Vec<Self> {
-        let t1_deltas = T1::running_totals(values);
-        let t2_deltas = T2::running_totals(values);
-        let t3_deltas = T3::running_totals(values);
-        let t4_deltas = T4::running_totals(values);
-        t1_deltas
-            .into_iter()
-            .zip(t2_deltas)
-            .zip(t3_deltas)
-            .zip(t4_deltas)
-            .map(|(((t1, t2), t3), t4)| (t1, t2, t3, t4))
-            .collect()
-    }
-}
-
-impl<P, T1, T2, T3, T4, T5> AccumulatingDelta<P> for (T1, T2, T3, T4, T5)
-where
-    T1: AccumulatingDelta<P>,
-    T2: AccumulatingDelta<P>,
-    T3: AccumulatingDelta<P>,
-    T4: AccumulatingDelta<P>,
-    T5: AccumulatingDelta<P>,
-{
-    fn running_totals(values: &[P]) -> Vec<Self> {
-        let t1_deltas = T1::running_totals(values);
-        let t2_deltas = T2::running_totals(values);
-        let t3_deltas = T3::running_totals(values);
-        let t4_deltas = T4::running_totals(values);
-        let t5_deltas = T5::running_totals(values);
-        t1_deltas
-            .into_iter()
-            .zip(t2_deltas)
-            .zip(t3_deltas)
-            .zip(t4_deltas)
-            .zip(t5_deltas)
-            .map(|((((t1, t2), t3), t4), t5)| (t1, t2, t3, t4, t5))
-            .collect()
-    }
-}
-
-// ----------
+// ----
 
 pub struct DistanceDelta(pub f64);
 impl<P: Point> Delta<P> for DistanceDelta {
@@ -253,6 +110,147 @@ impl<P: WithDatetime> AccumulatingDelta<P> for ElapsedDelta {
                 *acc = *acc + e;
                 Some(ElapsedDelta(*acc))
             })
+            .collect()
+    }
+}
+
+// ----------
+
+impl<P, T1, T2> Delta<P> for (T1, T2)
+where
+    T1: Delta<P>,
+    T2: Delta<P>,
+{
+    fn delta(value1: &P, value2: &P) -> Self {
+        (T1::delta(value1, value2), T2::delta(value1, value2))
+    }
+}
+
+impl<P, T1, T2, T3> Delta<P> for (T1, T2, T3)
+where
+    T1: Delta<P>,
+    T2: Delta<P>,
+    T3: Delta<P>,
+{
+    fn delta(value1: &P, value2: &P) -> Self {
+        (
+            T1::delta(value1, value2),
+            T2::delta(value1, value2),
+            T3::delta(value1, value2),
+        )
+    }
+}
+
+impl<P, T1, T2, T3, T4> Delta<P> for (T1, T2, T3, T4)
+where
+    T1: Delta<P>,
+    T2: Delta<P>,
+    T3: Delta<P>,
+    T4: Delta<P>,
+{
+    fn delta(value1: &P, value2: &P) -> Self {
+        (
+            T1::delta(value1, value2),
+            T2::delta(value1, value2),
+            T3::delta(value1, value2),
+            T4::delta(value1, value2),
+        )
+    }
+}
+
+impl<P, T1, T2, T3, T4, T5> Delta<P> for (T1, T2, T3, T4, T5)
+where
+    T1: Delta<P>,
+    T2: Delta<P>,
+    T3: Delta<P>,
+    T4: Delta<P>,
+    T5: Delta<P>,
+{
+    fn delta(value1: &P, value2: &P) -> Self {
+        (
+            T1::delta(value1, value2),
+            T2::delta(value1, value2),
+            T3::delta(value1, value2),
+            T4::delta(value1, value2),
+            T5::delta(value1, value2),
+        )
+    }
+}
+
+impl<P, T1, T2> AccumulatingDelta<P> for (T1, T2)
+where
+    T1: AccumulatingDelta<P>,
+    T2: AccumulatingDelta<P>,
+{
+    fn running_totals(values: &[P]) -> Vec<Self> {
+        let t1_deltas = T1::running_totals(values);
+        let t2_deltas = T2::running_totals(values);
+        t1_deltas.into_iter().zip(t2_deltas).collect()
+    }
+}
+
+impl<P, T1, T2, T3> AccumulatingDelta<P> for (T1, T2, T3)
+where
+    T1: AccumulatingDelta<P>,
+    T2: AccumulatingDelta<P>,
+    T3: AccumulatingDelta<P>,
+{
+    fn running_totals(values: &[P]) -> Vec<Self> {
+        let t1_deltas = T1::running_totals(values);
+        let t2_deltas = T2::running_totals(values);
+        let t3_deltas = T3::running_totals(values);
+        t1_deltas
+            .into_iter()
+            .zip(t2_deltas)
+            .zip(t3_deltas)
+            .map(|((t1, t2), t3)| (t1, t2, t3))
+            .collect()
+    }
+}
+
+impl<P, T1, T2, T3, T4> AccumulatingDelta<P> for (T1, T2, T3, T4)
+where
+    T1: AccumulatingDelta<P>,
+    T2: AccumulatingDelta<P>,
+    T3: AccumulatingDelta<P>,
+    T4: AccumulatingDelta<P>,
+{
+    fn running_totals(values: &[P]) -> Vec<Self> {
+        let t1_deltas = T1::running_totals(values);
+        let t2_deltas = T2::running_totals(values);
+        let t3_deltas = T3::running_totals(values);
+        let t4_deltas = T4::running_totals(values);
+        t1_deltas
+            .into_iter()
+            .zip(t2_deltas)
+            .zip(t3_deltas)
+            .zip(t4_deltas)
+            .map(|(((t1, t2), t3), t4)| (t1, t2, t3, t4))
+            .collect()
+    }
+}
+
+impl<P, T1, T2, T3, T4, T5> AccumulatingDelta<P> for (T1, T2, T3, T4, T5)
+where
+    T1: AccumulatingDelta<P>,
+    T2: AccumulatingDelta<P>,
+    T3: AccumulatingDelta<P>,
+    T4: AccumulatingDelta<P>,
+    T5: AccumulatingDelta<P>,
+{
+    fn running_totals(values: &[P]) -> Vec<Self> {
+        let t1_deltas = T1::running_totals(values);
+        let t2_deltas = T2::running_totals(values);
+        let t3_deltas = T3::running_totals(values);
+        let t4_deltas = T4::running_totals(values);
+        let t5_deltas = T5::running_totals(values);
+        t1_deltas
+            .into_iter()
+            .zip(t2_deltas)
+            .zip(t3_deltas)
+            .zip(t4_deltas)
+            .zip(t5_deltas)
+            .map(|((((t1, t2), t3), t4), t5)| (t1, t2, t3, t4, t5))
             .collect()
     }
 }
