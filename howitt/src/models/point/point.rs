@@ -35,6 +35,14 @@ pub trait Point: std::fmt::Debug + Clone {
     }
 }
 
+pub trait WithElevation: Point {
+    fn elevation(&self) -> f64;
+}
+
+pub trait WithDatetime: Point {
+    fn datetime(&self) -> &chrono::DateTime<chrono::Utc>;
+}
+
 impl Point for geo::Point {
     type DeltaData = ();
 
