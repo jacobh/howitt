@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{point::Point, point_delta::ElevationDelta};
+use super::{point::Point, point_delta::ElevationDelta, WithElevation};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ElevationPoint {
@@ -55,5 +55,11 @@ impl Point for &ElevationPoint {
         ElevationDelta {
             elevation_gain: other.elevation - self.elevation,
         }
+    }
+}
+
+impl WithElevation for ElevationPoint {
+    fn elevation(&self) -> f64 {
+        self.elevation
     }
 }

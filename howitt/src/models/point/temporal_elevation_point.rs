@@ -1,7 +1,7 @@
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::{point::Point, point_delta::ElevationDelta};
+use super::{point::Point, point_delta::ElevationDelta, WithDatetime, WithElevation};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct TemporalElevationPoint {
@@ -53,5 +53,17 @@ impl Point for TemporalElevationPoint {
         ElevationDelta {
             elevation_gain: other.elevation - self.elevation,
         }
+    }
+}
+
+impl WithElevation for TemporalElevationPoint {
+    fn elevation(&self) -> f64 {
+        self.elevation
+    }
+}
+
+impl WithDatetime for TemporalElevationPoint {
+    fn datetime(&self) -> &DateTime<Utc> {
+        &self.datetime
     }
 }
