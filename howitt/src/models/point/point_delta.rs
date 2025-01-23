@@ -66,7 +66,6 @@ where
     pub data: T,
 }
 
-pub type SimplePointDelta = PointDelta<ElevationDelta>;
 pub type ElevationPointDelta = PointDelta<ElevationDelta>;
 
 impl<T> PointDelta<T>
