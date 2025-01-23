@@ -1,12 +1,17 @@
+use serde::{Deserialize, Serialize};
+
 use super::{delta2::*, Point, WithDatetime, WithElevation};
 
 pub trait Progress: Sized {
     type Point: Point;
 
     fn from_points(points: Vec<Self::Point>) -> Vec<Self>;
+    fn last_from_points(points: Vec<Self::Point>) -> Option<Self> {
+        Self::from_points(points).into_iter().last()
+    }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct DistanceProgress<P: Point> {
     pub distance_m: f64,
     pub point: P,
@@ -26,7 +31,7 @@ impl<P: Point> Progress for DistanceProgress<P> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct DistanceElevationProgress<P: Point + WithElevation> {
     pub distance_m: f64,
     pub elevation_gain_m: f64,
@@ -65,7 +70,7 @@ impl<P: Point + WithElevation> Progress for DistanceElevationProgress<P> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct TemporalDistanceProgress<P: Point + WithDatetime> {
     pub elapsed: chrono::Duration,
     pub distance_m: f64,
@@ -94,7 +99,7 @@ impl<P: Point + WithDatetime> Progress for TemporalDistanceProgress<P> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct TemporalDistanceElevationProgress<P: Point + WithElevation + WithDatetime> {
     pub elapsed: chrono::Duration,
     pub distance_m: f64,
