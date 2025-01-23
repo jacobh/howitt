@@ -63,3 +63,9 @@ impl WithElevation for ElevationPoint {
         self.elevation
     }
 }
+
+impl WithElevation for &ElevationPoint {
+    fn elevation(&self) -> f64 {
+        self.elevation
+    }
+}
