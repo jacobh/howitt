@@ -5,9 +5,9 @@ use super::{delta::*, Point, WithDatetime, WithElevation};
 pub trait Progress: Sized {
     type Point: Point;
 
-    fn from_points(points: Vec<Self::Point>) -> Vec<Self>;
+    fn from_points(points: Vec<Self::Point>) -> impl Iterator<Item = Self>;
     fn last_from_points(points: Vec<Self::Point>) -> Option<Self> {
-        Self::from_points(points).into_iter().last()
+        Self::from_points(points).last()
     }
 }
 
@@ -20,14 +20,13 @@ pub struct DistanceProgress<P: Point> {
 impl<P: Point> Progress for DistanceProgress<P> {
     type Point = P;
 
-    fn from_points(points: Vec<Self::Point>) -> Vec<Self> {
+    fn from_points(points: Vec<Self::Point>) -> impl Iterator<Item = Self> {
         let distance_deltas = DistanceDelta::running_totals(&points);
 
         points
             .into_iter()
             .zip(distance_deltas)
             .map(|(point, DistanceDelta(distance_m))| DistanceProgress { distance_m, point })
-            .collect()
     }
 }
 
@@ -42,31 +41,27 @@ pub struct DistanceElevationProgress<P: Point + WithElevation> {
 impl<P: Point + WithElevation> Progress for DistanceElevationProgress<P> {
     type Point = P;
 
-    fn from_points(points: Vec<Self::Point>) -> Vec<Self> {
+    fn from_points(points: Vec<Self::Point>) -> impl Iterator<Item = Self> {
         let deltas =
             <(DistanceDelta, ElevationGainDelta, ElevationLossDelta)>::running_totals(&points);
 
-        points
-            .into_iter()
-            .zip(deltas)
-            .map(
-                |(
+        points.into_iter().zip(deltas).map(
+            |(
+                point,
+                (
+                    DistanceDelta(distance_m),
+                    ElevationGainDelta(elevation_gain_m),
+                    ElevationLossDelta(elevation_loss_m),
+                ),
+            )| {
+                DistanceElevationProgress {
+                    distance_m,
+                    elevation_gain_m,
+                    elevation_loss_m,
                     point,
-                    (
-                        DistanceDelta(distance_m),
-                        ElevationGainDelta(elevation_gain_m),
-                        ElevationLossDelta(elevation_loss_m),
-                    ),
-                )| {
-                    DistanceElevationProgress {
-                        distance_m,
-                        elevation_gain_m,
-                        elevation_loss_m,
-                        point,
-                    }
-                },
-            )
-            .collect()
+                }
+            },
+        )
     }
 }
 
@@ -80,22 +75,18 @@ pub struct TemporalDistanceProgress<P: Point + WithDatetime> {
 impl<P: Point + WithDatetime> Progress for TemporalDistanceProgress<P> {
     type Point = P;
 
-    fn from_points(points: Vec<Self::Point>) -> Vec<Self> {
+    fn from_points(points: Vec<Self::Point>) -> impl Iterator<Item = Self> {
         let deltas = <(ElapsedDelta, DistanceDelta)>::running_totals(&points);
 
-        points
-            .into_iter()
-            .zip(deltas)
-            .map(
-                |(point, (ElapsedDelta(elapsed), DistanceDelta(distance_m)))| {
-                    TemporalDistanceProgress {
-                        elapsed,
-                        distance_m,
-                        point,
-                    }
-                },
-            )
-            .collect()
+        points.into_iter().zip(deltas).map(
+            |(point, (ElapsedDelta(elapsed), DistanceDelta(distance_m)))| {
+                TemporalDistanceProgress {
+                    elapsed,
+                    distance_m,
+                    point,
+                }
+            },
+        )
     }
 }
 
@@ -111,7 +102,7 @@ pub struct TemporalDistanceElevationProgress<P: Point + WithElevation + WithDate
 impl<P: Point + WithElevation + WithDatetime> Progress for TemporalDistanceElevationProgress<P> {
     type Point = P;
 
-    fn from_points(points: Vec<Self::Point>) -> Vec<Self> {
+    fn from_points(points: Vec<Self::Point>) -> impl Iterator<Item = Self> {
         let deltas = <(
             ElapsedDelta,
             DistanceDelta,
@@ -119,29 +110,25 @@ impl<P: Point + WithElevation + WithDatetime> Progress for TemporalDistanceEleva
             ElevationLossDelta,
         )>::running_totals(&points);
 
-        points
-            .into_iter()
-            .zip(deltas)
-            .map(
-                |(
+        points.into_iter().zip(deltas).map(
+            |(
+                point,
+                (
+                    ElapsedDelta(elapsed),
+                    DistanceDelta(distance_m),
+                    ElevationGainDelta(elevation_gain_m),
+                    ElevationLossDelta(elevation_loss_m),
+                ),
+            )| {
+                TemporalDistanceElevationProgress {
+                    elapsed,
+                    distance_m,
+                    elevation_gain_m,
+                    elevation_loss_m,
                     point,
-                    (
-                        ElapsedDelta(elapsed),
-                        DistanceDelta(distance_m),
-                        ElevationGainDelta(elevation_gain_m),
-                        ElevationLossDelta(elevation_loss_m),
-                    ),
-                )| {
-                    TemporalDistanceElevationProgress {
-                        elapsed,
-                        distance_m,
-                        elevation_gain_m,
-                        elevation_loss_m,
-                        point,
-                    }
-                },
-            )
-            .collect()
+                }
+            },
+        )
     }
 }
 
@@ -149,6 +136,7 @@ impl<P: Point + WithElevation + WithDatetime> Progress for TemporalDistanceEleva
 mod tests {
     use chrono::{DateTime, Utc};
     use geo::Point as GeoPoint;
+    use itertools::Itertools;
     use serde_json::json;
 
     use super::*;
@@ -221,7 +209,7 @@ mod tests {
             })
             .collect();
 
-        let progress = DistanceElevationProgress::from_points(points.clone());
+        let progress = DistanceElevationProgress::from_points(points.clone()).collect_vec();
 
         assert_eq!(points.len(), progress.len());
 
@@ -281,7 +269,7 @@ mod tests {
             })
             .collect();
 
-        let progress = TemporalDistanceElevationProgress::from_points(points.clone());
+        let progress = TemporalDistanceElevationProgress::from_points(points.clone()).collect_vec();
 
         assert_eq!(points.len(), progress.len());
 
