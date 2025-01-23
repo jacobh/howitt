@@ -116,6 +116,15 @@ impl<P: WithDatetime> AccumulatingDelta<P> for ElapsedDelta {
 
 // ----------
 
+impl<P, T1> Delta<P> for (T1,)
+where
+    T1: Delta<P>,
+{
+    fn delta(value1: &P, value2: &P) -> Self {
+        (T1::delta(value1, value2),)
+    }
+}
+
 impl<P, T1, T2> Delta<P> for (T1, T2)
 where
     T1: Delta<P>,
@@ -174,6 +183,18 @@ where
             T4::delta(value1, value2),
             T5::delta(value1, value2),
         )
+    }
+}
+
+impl<P, T1> AccumulatingDelta<P> for (T1,)
+where
+    T1: AccumulatingDelta<P>,
+{
+    fn running_totals(values: &[P]) -> Vec<Self> {
+        T1::running_totals(values)
+            .into_iter()
+            .map(|t1| (t1,))
+            .collect()
     }
 }
 
