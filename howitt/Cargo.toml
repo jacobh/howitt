@@ -28,7 +28,7 @@ futures = "*"
 ordered-float = "*"
 toml = "*"
 once_cell = "*"
-tokio = { version = "*", features = ["sync"] }
+tokio = { version = "*", features = ["rt", "sync"] }
 either = { version = "*", features = ["serde"] }
 num = "*"
 url = { version = "*", features = ["serde"] }
