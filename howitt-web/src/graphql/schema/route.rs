@@ -1,6 +1,14 @@
 use async_graphql::{Context, Enum, Object};
 use howitt::{
-    models::{point::ElevationPoint, route::RouteId, tag::Tag, ModelRef},
+    models::{
+        point::{
+            progress::{DistanceElevationProgress, DistanceProgress, Progress},
+            ElevationPoint,
+        },
+        route::RouteId,
+        tag::Tag,
+        ModelRef,
+    },
     services::generate_cuesheet::generate_cuesheet,
 };
 use itertools::Itertools;
@@ -211,16 +219,28 @@ impl Route {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.to_model(route_repo).await?;
 
-        Ok(route_model.segment_summary().data.elevation_ascent_m)
+        // Convert points to progress and get final values for elevation gain
+        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let progress = DistanceElevationProgress::last_from_points(points)
+            .map(|p| p.elevation_gain_m)
+            .unwrap_or(0.0);
+
+        Ok(progress)
     }
     async fn elevation_descent_m<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<f64, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?.clone();
+        let route_model = self.0.to_model(route_repo).await?;
 
-        Ok(route_model.segment_summary().data.elevation_descent_m)
+        // Convert points to progress and get final values for elevation loss
+        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let progress = DistanceElevationProgress::last_from_points(points)
+            .map(|p| p.elevation_loss_m)
+            .unwrap_or(0.0);
+
+        Ok(progress)
     }
     async fn termini(&self) -> Vec<Terminus> {
         self.0
@@ -333,9 +353,10 @@ impl Route {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.to_model(route_repo).await?;
 
+        // Get just the elevation values from each point
         Ok(route_model
             .iter_elevation_points()
-            .map(|point| point.elevation)
+            .map(|p| p.elevation)
             .collect())
     }
     async fn distance_points<'ctx>(
@@ -345,7 +366,12 @@ impl Route {
         let SchemaData { route_repo, .. } = ctx.data()?;
         let route_model = self.0.to_model(route_repo).await?;
 
-        Ok(route_model.iter_cum_distance().collect())
+        // Get elevation points and convert to distance progress
+        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let progress = DistanceProgress::from_points(points);
+
+        // Extract just the distance values
+        Ok(progress.into_iter().map(|p| p.distance_m).collect())
     }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
         let SchemaData {

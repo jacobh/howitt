@@ -2,23 +2,18 @@ use std::collections::HashSet;
 
 use derive_more::From;
 use itertools::Itertools;
-use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{external_ref::ExternalRef, point::ElevationPoint},
-    services::{
-        nearby::{nearby_routes, NearbyRoute},
-        summarize_segment::summarize_segment,
-    },
+    services::nearby::{nearby_routes, NearbyRoute},
 };
 
 use super::{
     external_ref::ExternallySourced,
     photo::Photo,
-    point::{generate_point_deltas, ElevationPointDelta, PointChunk},
+    point::PointChunk,
     route_description::RouteDescription,
-    segment_summary::SegmentElevationSummary,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
     user::UserId,
@@ -108,8 +103,6 @@ pub struct RouteModel {
     pub route: Route,
     pub point_chunks: Vec<PointChunk<RouteId, ElevationPoint>>,
     pub photos: Vec<Photo<RouteId>>,
-    point_deltas: OnceCell<Vec<ElevationPointDelta>>,
-    summary: OnceCell<SegmentElevationSummary>,
 }
 impl RouteModel {
     pub fn new(
@@ -121,8 +114,6 @@ impl RouteModel {
             route,
             point_chunks,
             photos,
-            point_deltas: OnceCell::new(),
-            summary: OnceCell::new(),
         }
     }
 
@@ -132,28 +123,6 @@ impl RouteModel {
 
     pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
         self.iter_elevation_points().map(|point| point.point)
-    }
-
-    pub fn point_deltas(&self) -> &[ElevationPointDelta] {
-        self.point_deltas
-            .get_or_init(|| generate_point_deltas(self.iter_elevation_points()))
-            .as_slice()
-    }
-
-    pub fn iter_cum_distance(&self) -> impl Iterator<Item = f64> + '_ {
-        self.point_deltas().iter().map(|delta| delta.distance).scan(
-            0.0,
-            |total_distance, distance| {
-                *total_distance += distance;
-
-                Some(*total_distance)
-            },
-        )
-    }
-
-    pub fn segment_summary(&self) -> &SegmentElevationSummary {
-        self.summary
-            .get_or_init(|| summarize_segment(self.point_deltas()))
     }
 }
 
