@@ -1,5 +1,4 @@
 use chrono::Utc;
-use clap::Subcommand;
 use howitt::models::{
     maybe_pair::MaybePair,
     route_description::{
@@ -8,19 +7,6 @@ use howitt::models::{
     },
 };
 use itertools::Itertools;
-
-#[derive(Subcommand)]
-pub enum Description {
-    Generate,
-}
-
-pub async fn handle(command: &Description) -> Result<(), anyhow::Error> {
-    match command {
-        Description::Generate => generate_description(),
-    }
-
-    Ok(())
-}
 
 const DIFFICULTIES: [DifficultyRating; 4] = [
     DifficultyRating::Green,

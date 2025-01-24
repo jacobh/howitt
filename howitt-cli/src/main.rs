@@ -6,7 +6,6 @@ use clap::{Args, Parser, Subcommand};
 use commands::{POICommands, RideCommands, RouteCommands, UserCommands};
 
 mod commands;
-mod description;
 mod json;
 mod postgres;
 mod rwgps;
@@ -25,8 +24,6 @@ enum Commands {
     Rwgps(crate::rwgps::Rwgps),
     #[clap(subcommand)]
     Pg(crate::postgres::Postgres),
-    #[clap(subcommand)]
-    Description(crate::description::Description),
     #[clap(subcommand)]
     User(UserCommands),
     #[clap(subcommand)]
@@ -63,7 +60,6 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::POI(cmd) => commands::poi::handle(cmd).await?,
         Commands::Rwgps(command) => crate::rwgps::handle(command).await?,
         Commands::Pg(command) => crate::postgres::handle(command).await?,
-        Commands::Description(command) => crate::description::handle(command).await?,
     }
 
     Ok(())
