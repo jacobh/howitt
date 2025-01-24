@@ -32,7 +32,6 @@ use serde_json::json;
 
 #[derive(Subcommand)]
 pub enum Postgres {
-    SyncPOIs,
     SyncRwgps(SyncRwgps),
     SyncPhotos,
     ListStarredRoutes,
@@ -79,15 +78,6 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
     let user_repo = PostgresUserRepo::new(pg.clone());
 
     match command {
-        Postgres::SyncPOIs => {
-            let stations = load_stations()?;
-            let huts = load_huts()?;
-
-            point_of_interest_repo.put_batch(stations).await?;
-            point_of_interest_repo.put_batch(huts).await?;
-
-            println!("done");
-        }
         Postgres::SyncRwgps(SyncRwgps {
             force_sync_bcs,
             force_sync_rwgps_id,
