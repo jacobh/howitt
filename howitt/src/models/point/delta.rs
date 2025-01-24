@@ -284,8 +284,6 @@ where
     }
 }
 
-// ... existing code ...
-
 #[cfg(test)]
 mod tests {
     use chrono::{TimeZone, Utc};
