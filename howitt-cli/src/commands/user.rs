@@ -5,8 +5,9 @@ use howitt::{
     repos::Repo,
     services::user::{auth::UserAuthService, password::hash_password},
 };
-use howitt_postgresql::{PostgresClient, PostgresUserRepo};
 use std::sync::Arc;
+
+use crate::Context;
 
 #[derive(Subcommand)]
 pub enum UserCommands {
@@ -21,14 +22,10 @@ pub struct TokenArgs {
     token: String,
 }
 
-pub async fn handle(command: &UserCommands) -> Result<(), anyhow::Error> {
-    let pg = PostgresClient::connect(
-        &std::env::var("DATABASE_URL")
-            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
-    )
-    .await?;
-    let user_repo = PostgresUserRepo::new(pg.clone());
-
+pub async fn handle(
+    command: &UserCommands,
+    Context { user_repo, .. }: Context,
+) -> Result<(), anyhow::Error> {
     match command {
         UserCommands::Create => {
             let username = inquire::Text::new("username").prompt()?;

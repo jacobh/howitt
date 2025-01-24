@@ -11,9 +11,6 @@ use howitt::{
 use howitt_clients::{ReqwestHttpClient, S3BucketClient};
 use howitt_fs::load_user_config;
 use howitt_fs::{load_routes, persist_user_config};
-use howitt_postgresql::{
-    PostgresClient, PostgresRidePointsRepo, PostgresRideRepo, PostgresRouteRepo,
-};
 use itertools::Itertools;
 use rwgps::RwgpsClient;
 use rwgps_types::RouteSummary;
@@ -21,6 +18,7 @@ use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
 use crate::utils::json::prettyprintln;
+use crate::Context;
 
 #[derive(Subcommand)]
 pub enum RwgpsCommands {
@@ -75,16 +73,15 @@ fn get_user_config() -> Result<UserConfig, anyhow::Error> {
     }
 }
 
-pub async fn handle(command: &RwgpsCommands) -> Result<(), anyhow::Error> {
-    let pg = PostgresClient::connect(
-        &std::env::var("DATABASE_URL")
-            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
-    )
-    .await?;
-    let route_model_repo = PostgresRouteRepo::new(pg.clone());
-    let ride_repo = PostgresRideRepo::new(pg.clone());
-    let ride_points_repo = PostgresRidePointsRepo::new(pg.clone());
-
+pub async fn handle(
+    command: &RwgpsCommands,
+    Context {
+        ride_points_repo,
+        ride_repo,
+        route_repo,
+        ..
+    }: Context,
+) -> Result<(), anyhow::Error> {
     match command {
         RwgpsCommands::Info => {
             let user_config = get_user_config()?;
@@ -119,7 +116,7 @@ pub async fn handle(command: &RwgpsCommands) -> Result<(), anyhow::Error> {
             let rwgps_client = RwgpsClient::new(config.credentials());
 
             let service = RwgpsSyncService {
-                route_repo: route_model_repo,
+                route_repo,
                 ride_repo,
                 ride_points_repo,
                 rwgps_client,
@@ -152,7 +149,7 @@ pub async fn handle(command: &RwgpsCommands) -> Result<(), anyhow::Error> {
                 )
                 .await,
                 http_client: ReqwestHttpClient::new(),
-                route_repo: route_model_repo,
+                route_repo,
             };
 
             let result = photo_sync.sync().await;

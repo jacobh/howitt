@@ -38,7 +38,7 @@ impl TryFrom<RideRow> for Ride {
     }
 }
 
-#[derive(Debug, derive_more::Constructor)]
+#[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresRideRepo {
     client: PostgresClient,
 }

@@ -4,8 +4,9 @@ use howitt::{
     repos::AnyhowRepo,
     services::simplify_points::{simplify_points, SimplifyTarget},
 };
-use howitt_postgresql::{PostgresClient, PostgresRidePointsRepo};
 use serde_json::json;
+
+use crate::Context;
 
 #[derive(Subcommand)]
 pub enum RideCommands {
@@ -19,13 +20,12 @@ pub struct RideDetailArgs {
     ride_id: String,
 }
 
-pub async fn handle(command: &RideCommands) -> Result<(), anyhow::Error> {
-    let pg = PostgresClient::connect(
-        &std::env::var("DATABASE_URL")
-            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
-    )
-    .await?;
-    let ride_points_repo = PostgresRidePointsRepo::new(pg.clone());
+pub async fn handle(
+    command: &RideCommands,
+    Context {
+        ride_points_repo, ..
+    }: Context,
+) -> Result<(), anyhow::Error> {
     match command {
         RideCommands::PreviewPoints(RideDetailArgs { ride_id }) => {
             let ride_id = howitt::models::ride::RideId::from(uuid::Uuid::parse_str(ride_id)?);

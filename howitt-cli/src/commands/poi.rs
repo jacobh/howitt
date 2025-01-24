@@ -1,7 +1,8 @@
 use clap::Subcommand;
 use howitt::repos::Repo;
 use howitt_fs::{load_huts, load_localities, load_stations};
-use howitt_postgresql::{PostgresClient, PostgresPointOfInterestRepo};
+
+use crate::Context;
 
 #[derive(Subcommand)]
 pub enum POICommands {
@@ -12,28 +13,23 @@ pub enum POICommands {
     Localities,
 }
 
-pub async fn handle(command: &POICommands) -> Result<(), anyhow::Error> {
-    let pg = PostgresClient::connect(
-        &std::env::var("DATABASE_URL")
-            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
-    )
-    .await?;
-
-    let point_of_interest_repo = PostgresPointOfInterestRepo::new(pg.clone());
-
+pub async fn handle(
+    command: &POICommands,
+    Context { poi_repo, .. }: Context,
+) -> Result<(), anyhow::Error> {
     match command {
         POICommands::Sync => {
             let stations = load_stations()?;
             let huts = load_huts()?;
 
-            point_of_interest_repo.put_batch(stations).await?;
-            point_of_interest_repo.put_batch(huts).await?;
+            poi_repo.put_batch(stations).await?;
+            poi_repo.put_batch(huts).await?;
 
             println!("done");
             Ok(())
         }
         POICommands::List => {
-            let pois = point_of_interest_repo.all_indexes().await?;
+            let pois = poi_repo.all_indexes().await?;
             dbg!(pois);
             Ok(())
         }

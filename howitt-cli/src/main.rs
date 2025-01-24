@@ -2,6 +2,10 @@
 
 use clap::{Parser, Subcommand};
 use commands::{POICommands, RideCommands, RouteCommands, UserCommands};
+use howitt_postgresql::{
+    PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
+    PostgresRouteRepo, PostgresUserRepo,
+};
 
 mod commands;
 mod utils;
@@ -28,16 +32,45 @@ enum Commands {
     POI(POICommands),
 }
 
+pub struct Context {
+    pub postgres_client: PostgresClient,
+    pub user_repo: PostgresUserRepo,
+    pub route_repo: PostgresRouteRepo,
+    pub ride_repo: PostgresRideRepo,
+    pub ride_points_repo: PostgresRidePointsRepo,
+    pub poi_repo: PostgresPointOfInterestRepo,
+}
+
+impl Context {
+    pub async fn new() -> Result<Self, anyhow::Error> {
+        let postgres_client = PostgresClient::connect(
+            &std::env::var("DATABASE_URL")
+                .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
+        )
+        .await?;
+
+        Ok(Self {
+            user_repo: PostgresUserRepo::new(postgres_client.clone()),
+            route_repo: PostgresRouteRepo::new(postgres_client.clone()),
+            ride_repo: PostgresRideRepo::new(postgres_client.clone()),
+            ride_points_repo: PostgresRidePointsRepo::new(postgres_client.clone()),
+            poi_repo: PostgresPointOfInterestRepo::new(postgres_client.clone()),
+            postgres_client,
+        })
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
+    let context = Context::new().await?;
 
     match &cli.command {
-        Commands::User(cmd) => commands::user::handle(cmd).await?,
-        Commands::Route(cmd) => commands::route::handle(cmd).await?,
-        Commands::Ride(cmd) => commands::ride::handle(cmd).await?,
-        Commands::POI(cmd) => commands::poi::handle(cmd).await?,
-        Commands::Rwgps(command) => commands::rwgps::handle(command).await?,
+        Commands::User(cmd) => commands::user::handle(cmd, context).await?,
+        Commands::Route(cmd) => commands::route::handle(cmd, context).await?,
+        Commands::Ride(cmd) => commands::ride::handle(cmd, context).await?,
+        Commands::POI(cmd) => commands::poi::handle(cmd, context).await?,
+        Commands::Rwgps(cmd) => commands::rwgps::handle(cmd, context).await?,
     }
 
     Ok(())

@@ -8,10 +8,11 @@ use howitt::{
         simplify_points::{simplify_points, SimplifyTarget},
     },
 };
-use howitt_postgresql::{PostgresClient, PostgresPointOfInterestRepo, PostgresRouteRepo};
 use itertools::Itertools;
 use prettytable::{row, Table};
 use uuid::Uuid;
+
+use crate::Context;
 
 mod description;
 
@@ -29,22 +30,21 @@ pub struct RouteDetailArgs {
     route_id: String,
 }
 
-pub async fn handle(command: &RouteCommands) -> Result<(), anyhow::Error> {
-    let pg = PostgresClient::connect(
-        &std::env::var("DATABASE_URL")
-            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
-    )
-    .await?;
-    let point_of_interest_repo = PostgresPointOfInterestRepo::new(pg.clone());
-    let route_model_repo = PostgresRouteRepo::new(pg.clone());
-
+pub async fn handle(
+    command: &RouteCommands,
+    Context {
+        route_repo,
+        poi_repo,
+        ..
+    }: Context,
+) -> Result<(), anyhow::Error> {
     match command {
         RouteCommands::GenerateDescription => {
             generate_description();
             Ok(())
         }
         RouteCommands::Detail(args) => {
-            let model = route_model_repo
+            let model = route_repo
                 .get(RouteId::from(Uuid::parse_str(&args.route_id)?))
                 .await?;
             dbg!(&model.route);
@@ -54,19 +54,19 @@ pub async fn handle(command: &RouteCommands) -> Result<(), anyhow::Error> {
             Ok(())
         }
         RouteCommands::GenerateCuesheet(args) => {
-            let model = route_model_repo
+            let model = route_repo
                 .get(RouteId::from(Uuid::parse_str(&args.route_id)?))
                 .await?;
 
             let points = model.iter_elevation_points().cloned().collect_vec();
-            let pois = point_of_interest_repo.all_indexes().await?;
+            let pois = poi_repo.all_indexes().await?;
 
             let cuesheet = generate_cuesheet(&points, &pois);
             dbg!(cuesheet);
             Ok(())
         }
         RouteCommands::ListStarred => {
-            let routes = route_model_repo
+            let routes = route_repo
                 .filter_models(RouteFilter {
                     is_starred: Some(true),
                 })
@@ -88,7 +88,7 @@ pub async fn handle(command: &RouteCommands) -> Result<(), anyhow::Error> {
             Ok(())
         }
         RouteCommands::List => {
-            let routes = route_model_repo.all_indexes().await?;
+            let routes = route_repo.all_indexes().await?;
             dbg!(routes);
             Ok(())
         }
