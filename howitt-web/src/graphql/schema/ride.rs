@@ -75,7 +75,7 @@ impl Ride {
 
         Ok(serde_json::to_string(&points)?)
     }
-    async fn elevation_points<'ctx>(
+    pub async fn elevation_points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {
@@ -98,7 +98,7 @@ impl Ride {
             .map(|point| point.elevation)
             .collect())
     }
-    async fn distance_points<'ctx>(
+    pub async fn distance_points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {

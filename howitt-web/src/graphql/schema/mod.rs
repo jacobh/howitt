@@ -4,12 +4,14 @@ use howitt::models::{
     photo::PhotoId, point_of_interest::PointOfInterestId, ride::RideId, route::RouteId,
     trip::TripId, user::UserId,
 };
+use interfaces::elevation_data::ElevationData;
 use serde::{Deserialize, Serialize};
 
 use super::context::SchemaData;
 
 pub mod cue;
 pub mod geo;
+pub mod interfaces;
 pub mod photo;
 pub mod point_of_interest;
 pub mod query;
@@ -51,6 +53,7 @@ pub fn build_schema(data: SchemaData) -> Schema {
         async_graphql::EmptyMutation,
         async_graphql::EmptySubscription,
     )
+    .register_output_type::<ElevationData>()
     .data(data)
     .finish()
 }
