@@ -5,6 +5,7 @@ pub mod lerp;
 pub mod nearby;
 pub mod num;
 pub mod simplify_points;
+pub mod slug;
 pub mod smoothing;
 pub mod sync;
 pub mod user;

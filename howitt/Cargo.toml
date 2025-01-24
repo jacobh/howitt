@@ -36,6 +36,8 @@ almost = "*"
 bytes = "*"
 argon2 = "0.5.3"
 jsonwebtoken = { version = "9", default-features = false }
+regex = "*"
+
 
 [dev-dependencies]
 insta = { version = "*", features = ["toml"] }

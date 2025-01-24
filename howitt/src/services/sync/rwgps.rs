@@ -21,6 +21,7 @@ use crate::{
     repos::Repo,
     services::{
         simplify_points::{simplify_points, SimplifyTarget},
+        slug::generate_slug,
         smoothing::smooth_elevation_points,
     },
 };
@@ -249,7 +250,7 @@ where
             Route {
                 id,
                 name: name.clone(),
-                slug: name.to_lowercase().replace(' ', "-"),
+                slug: generate_slug(&name),
                 user_id: user_id.clone(),
                 distance: route.distance.unwrap_or(0.0),
                 description,

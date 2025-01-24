@@ -1644,6 +1644,7 @@ dependencies = [
  "num",
  "once_cell",
  "ordered-float",
+ "regex",
  "rwgps_types",
  "serde",
  "serde_json",
