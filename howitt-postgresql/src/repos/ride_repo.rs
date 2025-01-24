@@ -118,6 +118,21 @@ impl Repo for PostgresRideRepo {
                 .fetch_all(conn.as_mut())
                 .await
             }
+            RideFilter::ForTrip(trip_id) => {
+                sqlx::query_as!(
+                    RideRow,
+                    r#"
+                    SELECT r.* 
+                    FROM rides r
+                    INNER JOIN trip_rides tr ON tr.ride_id = r.id
+                    WHERE tr.trip_id = $1
+                    ORDER BY r.started_at ASC
+                    "#,
+                    trip_id.as_uuid()
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
             RideFilter::All => {
                 sqlx::query_as!(RideRow, r#"select * from rides"#)
                     .fetch_all(conn.as_mut())
