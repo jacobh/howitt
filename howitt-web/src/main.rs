@@ -11,7 +11,7 @@ use howitt::services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAu
 use howitt_clients::RedisClient;
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
-    PostgresRouteRepo, PostgresUserRepo,
+    PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
 };
 use http::{header, Method};
 use tower_http::{
@@ -50,6 +50,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
     let ride_points_repo = Arc::new(PostgresRidePointsRepo::new(pg.clone()));
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
+    let trip_repo = Arc::new(PostgresTripRepo::new(pg.clone()));
 
     let user_auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
     let simplified_ride_points_fetcher = SimplifiedRidePointsFetcher {
@@ -62,6 +63,7 @@ async fn main() -> Result<(), anyhow::Error> {
         route_repo,
         ride_repo,
         user_repo: user_repo.clone(),
+        trip_repo,
         user_loader: DataLoader::new(UserLoader::new(user_repo.clone()), tokio::spawn),
         simplified_ride_points_fetcher,
     });

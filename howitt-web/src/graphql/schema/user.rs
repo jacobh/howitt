@@ -37,8 +37,14 @@ impl UserProfile {
 
         Ok(rides)
     }
-    async fn trips(&self) -> Result<Vec<Trip>, async_graphql::Error> {
-        Ok(vec![])
+    async fn trips<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Trip>, async_graphql::Error> {
+        let SchemaData { trip_repo, .. } = ctx.data()?;
+
+        let trips = trip_repo
+            .filter_models(howitt::models::trip::TripFilter::User(self.0.id))
+            .await?;
+
+        Ok(trips.into_iter().map(Trip).collect())
     }
     async fn rides_with_date<'ctx>(
         &self,

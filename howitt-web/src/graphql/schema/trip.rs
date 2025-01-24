@@ -4,7 +4,7 @@ use howitt::models::{ride::RideFilter, trip::TripId};
 use super::{ride::Ride, ModelId};
 use crate::graphql::context::SchemaData;
 
-pub struct Trip(howitt::models::trip::Trip);
+pub struct Trip(pub howitt::models::trip::Trip);
 
 #[Object]
 impl Trip {
