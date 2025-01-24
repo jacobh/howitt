@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
-use commands::user::UserCommands;
+use commands::{POICommands, RideCommands, RouteCommands, UserCommands};
 use howitt_fs::{load_huts, load_localities, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -44,6 +44,12 @@ enum Commands {
     Description(crate::description::Description),
     #[clap(subcommand)]
     User(UserCommands),
+    #[clap(subcommand)]
+    Route(RouteCommands),
+    #[clap(subcommand)]
+    Ride(RideCommands),
+    #[clap(subcommand)]
+    POI(POICommands),
 }
 
 #[derive(Args)]
@@ -72,6 +78,9 @@ async fn main() -> Result<(), anyhow::Error> {
 
     match &cli.command {
         Commands::User(cmd) => commands::user::handle(cmd).await?,
+        Commands::Route(cmd) => commands::route::handle(cmd).await?,
+        Commands::Ride(cmd) => commands::ride::handle(cmd).await?,
+        Commands::POI(cmd) => commands::poi::handle(cmd).await?,
         Commands::Stations(_args) => {
             let railway_stations = load_stations()?;
             dbg!(railway_stations.len());
