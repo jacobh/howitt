@@ -1,9 +1,22 @@
-use clap::{Args, Subcommand};
-use howitt::ext::futures::FuturesIteratorExt;
-use howitt_fs::{
-    load_routes, load_user_config, persist_routes, persist_trips, persist_user_config,
+use std::convert::identity;
+
+use clap::{arg, Args, Subcommand};
+use howitt::{
+    models::user::UserId,
+    services::sync::{
+        photo::PhotoSyncService,
+        rwgps::{RwgpsSyncService, SyncParams},
+    },
+};
+use howitt_clients::{ReqwestHttpClient, S3BucketClient};
+use howitt_fs::load_user_config;
+use howitt_fs::{load_routes, persist_user_config};
+use howitt_postgresql::{
+    PostgresClient, PostgresRidePointsRepo, PostgresRideRepo, PostgresRouteRepo,
 };
 use itertools::Itertools;
+use rwgps::RwgpsClient;
+use rwgps_types::RouteSummary;
 use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
@@ -13,10 +26,19 @@ use crate::utils::json::prettyprintln;
 pub enum RwgpsCommands {
     Info,
     Auth,
-    Sync,
     #[clap(subcommand)]
     Routes(Routes),
     Trips,
+    Sync(SyncRwgps),
+    SyncPhotos,
+}
+
+#[derive(Args)]
+pub struct SyncRwgps {
+    #[arg(long)]
+    force_sync_bcs: bool,
+    #[arg(long)]
+    force_sync_rwgps_id: Option<usize>,
 }
 
 #[derive(Subcommand)]
@@ -54,6 +76,15 @@ fn get_user_config() -> Result<UserConfig, anyhow::Error> {
 }
 
 pub async fn handle(command: &RwgpsCommands) -> Result<(), anyhow::Error> {
+    let pg = PostgresClient::connect(
+        &std::env::var("DATABASE_URL")
+            .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
+    )
+    .await?;
+    let route_model_repo = PostgresRouteRepo::new(pg.clone());
+    let ride_repo = PostgresRideRepo::new(pg.clone());
+    let ride_points_repo = PostgresRidePointsRepo::new(pg.clone());
+
     match command {
         RwgpsCommands::Info => {
             let user_config = get_user_config()?;
@@ -80,41 +111,55 @@ pub async fn handle(command: &RwgpsCommands) -> Result<(), anyhow::Error> {
                 "user_info": updated_user_config.user_info,
             }));
         }
-        RwgpsCommands::Sync => {
-            let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.credentials());
+        RwgpsCommands::Sync(SyncRwgps {
+            force_sync_bcs,
+            force_sync_rwgps_id,
+        }) => {
+            let config = load_user_config()?.unwrap();
+            let rwgps_client = RwgpsClient::new(config.credentials());
 
-            let route_summaries = client
-                .user_routes(user_config.user_info.as_ref().unwrap().id)
+            let service = RwgpsSyncService {
+                route_repo: route_model_repo,
+                ride_repo,
+                ride_points_repo,
+                rwgps_client,
+                rwgps_error: std::marker::PhantomData,
+                should_force_sync_route_fn: Some(|summary: &RouteSummary| {
+                    [
+                        *force_sync_bcs && summary.name.contains("[BCS]"),
+                        force_sync_rwgps_id
+                            .map(|id| id == summary.id)
+                            .unwrap_or(false),
+                    ]
+                    .into_iter()
+                    .any(identity)
+                }),
+            };
+
+            service
+                .sync(SyncParams {
+                    rwgps_user_id: config.user_info.unwrap().id,
+                    user_id: UserId::from(uuid::Uuid::parse_str(
+                        "01941a60-9cfd-c166-94bb-126a6d8de5fd",
+                    )?),
+                })
                 .await?;
+        }
+        RwgpsCommands::SyncPhotos => {
+            let photo_sync = PhotoSyncService {
+                bucket_client: S3BucketClient::new_from_env(
+                    howitt_client_types::BucketName::Photos,
+                )
+                .await,
+                http_client: ReqwestHttpClient::new(),
+                route_repo: route_model_repo,
+            };
 
-            let routes: Vec<Result<rwgps_types::Route, _>> = route_summaries
-                .into_iter()
-                .map(|route| (route, client.clone()))
-                .map(async move |(route, client)| client.route(route.id).await)
-                .collect_futures_ordered()
-                .await;
+            let result = photo_sync.sync().await;
 
-            let routes = routes.into_iter().collect::<Result<Vec<_>, _>>()?;
+            dbg!(&result);
 
-            persist_routes(&routes)?;
-            dbg!(routes.len());
-
-            let trip_summaries = client
-                .user_trips(user_config.user_info.as_ref().unwrap().id)
-                .await?;
-
-            let trips: Vec<Result<rwgps_types::Trip, _>> = trip_summaries
-                .into_iter()
-                .map(|trip| (trip, client.clone()))
-                .map(async move |(trip, client)| client.trip(trip.id).await)
-                .collect_futures_ordered()
-                .await;
-
-            let trips: Vec<rwgps_types::Trip> = trips.into_iter().collect::<Result<Vec<_>, _>>()?;
-
-            persist_trips(&trips)?;
-            dbg!(trips.len());
+            result?
         }
         RwgpsCommands::Routes(Routes::List) => {
             let routes: Vec<rwgps_types::Route> = load_routes()?

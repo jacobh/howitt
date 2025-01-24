@@ -32,8 +32,6 @@ use serde_json::json;
 
 #[derive(Subcommand)]
 pub enum Postgres {
-    SyncRwgps(SyncRwgps),
-    SyncPhotos,
     ListStarredRoutes,
     ListRoutes,
     GetRoute(RouteIdArgs),
@@ -50,14 +48,6 @@ pub struct RouteIdArgs {
 #[derive(Args)]
 pub struct RideIdArgs {
     ride_id: String,
-}
-
-#[derive(Args)]
-pub struct SyncRwgps {
-    #[arg(long)]
-    force_sync_bcs: bool,
-    #[arg(long)]
-    force_sync_rwgps_id: Option<usize>,
 }
 
 #[derive(Args)]
@@ -78,57 +68,6 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
     let user_repo = PostgresUserRepo::new(pg.clone());
 
     match command {
-        Postgres::SyncRwgps(SyncRwgps {
-            force_sync_bcs,
-            force_sync_rwgps_id,
-        }) => {
-            let config = load_user_config()?.unwrap();
-            let rwgps_client = RwgpsClient::new(config.credentials());
-
-            let service = RwgpsSyncService {
-                route_repo: route_model_repo,
-                ride_repo,
-                ride_points_repo,
-                rwgps_client,
-                rwgps_error: std::marker::PhantomData,
-                should_force_sync_route_fn: Some(|summary: &RouteSummary| {
-                    [
-                        *force_sync_bcs && summary.name.contains("[BCS]"),
-                        force_sync_rwgps_id
-                            .map(|id| id == summary.id)
-                            .unwrap_or(false),
-                    ]
-                    .into_iter()
-                    .any(identity)
-                }),
-            };
-
-            service
-                .sync(SyncParams {
-                    rwgps_user_id: config.user_info.unwrap().id,
-                    user_id: UserId::from(uuid::Uuid::parse_str(
-                        "01941a60-9cfd-c166-94bb-126a6d8de5fd",
-                    )?),
-                })
-                .await?;
-        }
-        Postgres::SyncPhotos => {
-            let photo_sync = PhotoSyncService {
-                bucket_client: S3BucketClient::new_from_env(
-                    howitt_client_types::BucketName::Photos,
-                )
-                .await,
-                http_client: ReqwestHttpClient::new(),
-                route_repo: route_model_repo,
-            };
-
-            let result = photo_sync.sync().await;
-
-            dbg!(&result);
-
-            result?
-        }
-
         Postgres::GetRoute(RouteIdArgs { route_id }) => {
             let model = route_model_repo
                 .get(RouteId::from(uuid::Uuid::parse_str(route_id).unwrap()))
