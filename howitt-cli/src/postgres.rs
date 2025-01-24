@@ -32,10 +32,6 @@ use serde_json::json;
 
 #[derive(Subcommand)]
 pub enum Postgres {
-    ListStarredRoutes,
-    ListRoutes,
-    GetRoute(RouteIdArgs),
-    GenerateCuesheet(RouteIdArgs),
     PreviewRidePoints(RideIdArgs),
     ListPOIs,
 }
@@ -68,28 +64,6 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
     let user_repo = PostgresUserRepo::new(pg.clone());
 
     match command {
-        Postgres::GetRoute(RouteIdArgs { route_id }) => {
-            let model = route_model_repo
-                .get(RouteId::from(uuid::Uuid::parse_str(route_id).unwrap()))
-                .await?;
-            dbg!(&model.route);
-
-            let points = model.iter_elevation_points().cloned().collect_vec();
-
-            dbg!(simplify_points(&points, SimplifyTarget::TotalPoints(50)).len());
-        }
-        Postgres::GenerateCuesheet(RouteIdArgs { route_id }) => {
-            let model = route_model_repo
-                .get(RouteId::from(uuid::Uuid::parse_str(route_id).unwrap()))
-                .await?;
-
-            let points = model.iter_elevation_points().cloned().collect_vec();
-            let pois = point_of_interest_repo.all_indexes().await?;
-
-            let cuesheet = generate_cuesheet(&points, &pois);
-
-            dbg!(cuesheet);
-        }
         Postgres::PreviewRidePoints(RideIdArgs { ride_id }) => {
             let ride_id = howitt::models::ride::RideId::from(uuid::Uuid::parse_str(ride_id)?);
             let ride_points = ride_points_repo.get(ride_id).await?;
@@ -110,27 +84,6 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
                 .collect();
 
             println!("{}", serde_json::to_string_pretty(&preview_points)?);
-        }
-        Postgres::ListStarredRoutes => {
-            unimplemented!()
-            // let routes = route_model_repo.get_batch(config.starred_route_ids).await?;
-
-            // let mut table = Table::new();
-
-            // table.add_row(row!["id", "name", r->"km"]);
-
-            // for route in routes {
-            //     let distance_km = route.route.distance / 1000.0;
-            //     table.add_row(
-            //         row![route.route.id(), route.route.name, r->format!("{distance_km:.1}")],
-            //     );
-            // }
-
-            // table.printstd();
-        }
-        Postgres::ListRoutes => {
-            let routes = route_model_repo.all_indexes().await?;
-            dbg!(routes);
         }
         Postgres::ListPOIs => {
             let pois = point_of_interest_repo.all_indexes().await?;
