@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select id,\n                created_at,\n                name,\n                external_ref,\n                distance_m,\n                sample_points,\n                description,\n                published_at,\n                technical_difficulty,\n                physical_difficulty,\n                minimum_bike,\n                ideal_bike,\n                scouted,\n                direction,\n                tags,\n                is_starred,\n                user_id\n            from routes",
+  "query": "select\n                id,\n                created_at,\n                name,\n                slug,\n                external_ref,\n                distance_m,\n                sample_points,\n                description,\n                published_at,\n                technical_difficulty,\n                physical_difficulty,\n                minimum_bike,\n                ideal_bike,\n                scouted,\n                direction,\n                tags,\n                is_starred,\n                user_id\n            from routes where id = $1",
   "describe": {
     "columns": [
       {
@@ -20,79 +20,87 @@
       },
       {
         "ordinal": 3,
+        "name": "slug",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
         "name": "external_ref",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "distance_m",
         "type_info": "Int4"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "sample_points",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "description",
         "type_info": "Text"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "published_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "technical_difficulty",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "physical_difficulty",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "minimum_bike",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 11,
+        "ordinal": 12,
         "name": "ideal_bike",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 12,
+        "ordinal": 13,
         "name": "scouted",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 13,
+        "ordinal": 14,
         "name": "direction",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 14,
+        "ordinal": 15,
         "name": "tags",
         "type_info": "VarcharArray"
       },
       {
-        "ordinal": 15,
+        "ordinal": 16,
         "name": "is_starred",
         "type_info": "Bool"
       },
       {
-        "ordinal": 16,
+        "ordinal": 17,
         "name": "user_id",
         "type_info": "Uuid"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid"
+      ]
     },
     "nullable": [
+      false,
       false,
       false,
       false,
@@ -112,5 +120,5 @@
       false
     ]
   },
-  "hash": "a453474dbfb640a22c78263d0ff65826c6fd85aeda1972ce125ba9092e674b2a"
+  "hash": "1355e2e5be8359895e95adcad32bcb890889ce4605c6696c9a13d219c92323c0"
 }

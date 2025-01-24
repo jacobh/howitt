@@ -18,6 +18,7 @@ struct RouteIndexRow {
     id: Uuid,
     created_at: DateTime<Utc>,
     name: String,
+    slug: String,
     external_ref: Option<serde_json::Value>,
     distance_m: i32,
     sample_points: serde_json::Value,
@@ -41,6 +42,7 @@ impl TryFrom<RouteIndexRow> for Route {
         Ok(Route {
             id: RouteId::from(row.id),
             name: row.name,
+            slug: row.slug,
             user_id: UserId::from(row.user_id),
             distance: row.distance_m as f64,
             sample_points: Some(serde_json::from_value(row.sample_points)?),
@@ -89,6 +91,7 @@ struct RouteRow {
     id: Uuid,
     created_at: DateTime<Utc>,
     name: String,
+    slug: String,
     external_ref: Option<serde_json::Value>,
     distance_m: i32,
     sample_points: serde_json::Value,
@@ -112,10 +115,9 @@ impl TryFrom<RouteRow> for Route {
     fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
         Ok(Route {
             id: RouteId::from(row.id),
-
             name: row.name,
+            slug: row.slug,
             user_id: UserId::from(row.user_id),
-
             distance: row.distance_m as f64,
             sample_points: Some(serde_json::from_value(row.sample_points)?),
             description: Some(RouteDescription {
@@ -212,6 +214,7 @@ impl Repo for PostgresRouteRepo {
             r#"select id,
                 created_at,
                 name,
+                slug,
                 external_ref,
                 distance_m,
                 sample_points,
@@ -259,6 +262,7 @@ impl Repo for PostgresRouteRepo {
                 id,
                 created_at,
                 name,
+                slug,
                 external_ref,
                 distance_m,
                 sample_points,
@@ -289,6 +293,7 @@ impl Repo for PostgresRouteRepo {
                 id,
                 created_at,
                 name,
+                slug,
                 external_ref,
                 sample_points,
                 points,
@@ -304,10 +309,11 @@ impl Repo for PostgresRouteRepo {
                 tags,
                 is_starred,
                 user_id
-            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"#,
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)"#,
             route.id.as_uuid(),
             Utc::now(),
             route.name,
+            route.slug,
             route.external_ref.map(serde_json::to_value).transpose()?,
             route.sample_points.map(serde_json::to_value).transpose()?,
             serde_json::to_value(points)?,

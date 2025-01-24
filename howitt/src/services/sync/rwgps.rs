@@ -243,10 +243,13 @@ where
             })
             .collect_vec();
 
+        let name = route.name.replace("[BCS]", "").trim().to_string();
+
         let model = RouteModel::new(
             Route {
                 id,
-                name: route.name.replace("[BCS]", "").trim().to_string(),
+                name: name.clone(),
+                slug: name.to_lowercase().replace(' ', "-"),
                 user_id: user_id.clone(),
                 distance: route.distance.unwrap_or(0.0),
                 description,

@@ -25,6 +25,7 @@ pub type RouteId = ModelUuid<{ ModelName::Route }>;
 pub struct Route {
     pub id: RouteId,
     pub name: String,
+    pub slug: String,
     pub user_id: UserId,
     pub distance: f64,
     pub sample_points: Option<Vec<ElevationPoint>>,

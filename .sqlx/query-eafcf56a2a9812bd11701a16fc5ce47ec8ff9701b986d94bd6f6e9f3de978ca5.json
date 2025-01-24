@@ -92,6 +92,11 @@
         "ordinal": 17,
         "name": "user_id",
         "type_info": "Uuid"
+      },
+      {
+        "ordinal": 18,
+        "name": "slug",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -115,6 +120,7 @@
       true,
       true,
       true,
+      false,
       false,
       false,
       false
