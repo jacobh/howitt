@@ -25,3 +25,4 @@ ulid = "*"
 chrono = "*"
 uuid = "*"
 chrono-tz = "*"
+derive_more = { version = "*", features = ["full"] }

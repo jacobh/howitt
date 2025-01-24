@@ -1665,6 +1665,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "clap",
+ "derive_more",
  "gpx",
  "howitt",
  "howitt-fs",
