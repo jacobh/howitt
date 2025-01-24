@@ -7,7 +7,7 @@ use itertools::Itertools;
 use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
-use crate::json::prettyprintln;
+use crate::utils::json::prettyprintln;
 
 #[derive(Subcommand)]
 pub enum Rwgps {

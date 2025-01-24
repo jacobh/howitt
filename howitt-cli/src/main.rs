@@ -6,9 +6,9 @@ use clap::{Args, Parser, Subcommand};
 use commands::{POICommands, RideCommands, RouteCommands, UserCommands};
 
 mod commands;
-mod json;
 mod postgres;
 mod rwgps;
+mod utils;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
