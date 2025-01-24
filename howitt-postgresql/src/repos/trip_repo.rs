@@ -5,6 +5,7 @@ use howitt::models::trip::{Trip, TripFilter, TripId};
 use howitt::models::user::UserId;
 use howitt::models::Model;
 use howitt::repos::Repo;
+use itertools::Itertools;
 use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
@@ -126,6 +127,8 @@ impl Repo for PostgresTripRepo {
                     created_at,
                     user_id
                 ) VALUES ($1, $2, $3, $4)
+                ON CONFLICT (id) DO UPDATE 
+                SET name = EXCLUDED.name
             "#,
             trip.id.as_uuid(),
             trip.name,
@@ -135,14 +138,27 @@ impl Repo for PostgresTripRepo {
 
         query.execute(conn.as_mut()).await?;
 
+        sqlx::query!(
+            r#"
+            DELETE FROM trip_rides 
+            WHERE trip_id = $1 
+            AND ride_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
+        "#,
+            trip.id.as_uuid(),
+            &trip.ride_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+        )
+        .execute(conn.as_mut())
+        .await?;
+
         for ride_id in trip.ride_ids {
             let query = sqlx::query!(
                 r#"
-                    INSERT INTO trip_rides (
-                        trip_id,
-                        ride_id
-                    ) VALUES ($1, $2)
-                "#,
+                INSERT INTO trip_rides (
+                    trip_id,
+                    ride_id
+                ) VALUES ($1, $2)
+                ON CONFLICT (trip_id, ride_id) DO NOTHING
+            "#,
                 *trip.id.as_uuid(),
                 *ride_id.as_uuid(),
             );
