@@ -1,3 +1,12 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: howittplains-redirect-https
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
@@ -22,6 +31,10 @@ metadata:
   name: howitt
   annotations:
     cert-manager.io/issuer: "howittplains-http"
+    # Add middleware annotation to enable redirect
+    traefik.ingress.kubernetes.io/router.middlewares: default-howittplains-redirect-https@kubernetescrd
+    # Specify that this ingress should listen on both HTTP and HTTPS
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 spec:
   tls:
    - hosts:
