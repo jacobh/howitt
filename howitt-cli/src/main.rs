@@ -7,7 +7,6 @@ use commands::{POICommands, RideCommands, RouteCommands, UserCommands};
 
 mod commands;
 mod postgres;
-mod rwgps;
 mod utils;
 
 #[derive(Parser)]
@@ -21,7 +20,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     #[clap(subcommand)]
-    Rwgps(crate::rwgps::Rwgps),
+    Rwgps(commands::RwgpsCommands),
     #[clap(subcommand)]
     Pg(crate::postgres::Postgres),
     #[clap(subcommand)]
@@ -58,7 +57,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Route(cmd) => commands::route::handle(cmd).await?,
         Commands::Ride(cmd) => commands::ride::handle(cmd).await?,
         Commands::POI(cmd) => commands::poi::handle(cmd).await?,
-        Commands::Rwgps(command) => crate::rwgps::handle(command).await?,
+        Commands::Rwgps(command) => commands::rwgps::handle(command).await?,
         Commands::Pg(command) => crate::postgres::handle(command).await?,
     }
 

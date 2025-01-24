@@ -10,7 +10,7 @@ use serde_json::json;
 use crate::utils::json::prettyprintln;
 
 #[derive(Subcommand)]
-pub enum Rwgps {
+pub enum RwgpsCommands {
     Info,
     Auth,
     Sync,
@@ -53,15 +53,15 @@ fn get_user_config() -> Result<UserConfig, anyhow::Error> {
     }
 }
 
-pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
+pub async fn handle(command: &RwgpsCommands) -> Result<(), anyhow::Error> {
     match command {
-        Rwgps::Info => {
+        RwgpsCommands::Info => {
             let user_config = get_user_config()?;
             let client = rwgps::RwgpsClient::new(user_config.credentials());
 
             dbg!(client.user_info().await?);
         }
-        Rwgps::Auth => {
+        RwgpsCommands::Auth => {
             let user_config = get_user_config()?;
             let client = rwgps::RwgpsClient::new(user_config.credentials());
 
@@ -80,7 +80,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
                 "user_info": updated_user_config.user_info,
             }));
         }
-        Rwgps::Sync => {
+        RwgpsCommands::Sync => {
             let user_config = get_user_config()?;
             let client = rwgps::RwgpsClient::new(user_config.credentials());
 
@@ -116,7 +116,7 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
             persist_trips(&trips)?;
             dbg!(trips.len());
         }
-        Rwgps::Routes(Routes::List) => {
+        RwgpsCommands::Routes(Routes::List) => {
             let routes: Vec<rwgps_types::Route> = load_routes()?
                 .into_iter()
                 .sorted_by_key(|route| route.id)
@@ -141,14 +141,14 @@ pub async fn handle(command: &Rwgps) -> Result<(), anyhow::Error> {
 
             prettytable::Table::init(rows).printstd()
         }
-        Rwgps::Routes(Routes::Detail(args)) => {
+        RwgpsCommands::Routes(Routes::Detail(args)) => {
             let user_config = get_user_config()?;
             let client = rwgps::RwgpsClient::new(user_config.credentials());
 
             let resp = client.route(args.route_id).await?;
             dbg!(resp);
         }
-        Rwgps::Trips => {
+        RwgpsCommands::Trips => {
             unimplemented!()
         }
     }
