@@ -3,51 +3,27 @@ import createEmotionServer from "@emotion/server/create-instance";
 import { type AppLoadContext, type EntryContext } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
-import {
-  ApolloClient,
-  ApolloProvider,
-  createHttpLink,
-  InMemoryCache,
-} from "@apollo/client";
+import { ApolloProvider } from "@apollo/client";
 import * as cookie from "cookie";
 
 import { createEmotionCache } from "~/styles/createEmotionCache";
 import { ServerStyleContext } from "~/styles/server.context";
 import { getDataFromTree } from "@apollo/client/react/ssr";
-import { setContext } from "@apollo/client/link/context";
-
-import possibleTypes from "./__generated__/fragment-types.json";
+import { createApolloClient } from "./services/apollo";
 
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  loadContext: AppLoadContext,
+  loadContext: AppLoadContext
 ): Promise<Response> {
   const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
 
-  const httpLink = createHttpLink({
-    uri: process.env.GRAPHQL_URL ?? "https://api.howittplains.net/",
-  });
-
-  const authLink = setContext(async (_, { headers }) => {
-    const { token } = cookieData;
-
-    return {
-      headers: {
-        ...headers,
-        authorization: token ? `Bearer ${token}` : "",
-      },
-    };
-  });
-
-  const client = new ApolloClient({
+  const client = createApolloClient({
     ssrMode: true,
-    link: authLink.concat(httpLink),
-    cache: new InMemoryCache({
-      possibleTypes: possibleTypes.possibleTypes, // Add possibleTypes configuration
-    }),
+    graphqlUrl: process.env.GRAPHQL_URL ?? "https://api.howittplains.net/",
+    getToken: () => cookieData.token,
   });
 
   const styleCache = createEmotionCache();
@@ -66,7 +42,7 @@ export default async function handleRequest(
   const html = renderToString(
     <ServerStyleContext.Provider value={null}>
       {App}
-    </ServerStyleContext.Provider>,
+    </ServerStyleContext.Provider>
   );
 
   const initialState = client.extract();
@@ -78,7 +54,7 @@ export default async function handleRequest(
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__APOLLO_STATE__=${JSON.stringify(
-            initialState,
+            initialState
           ).replace(/</g, "\\u003c")}`, // The replace call escapes the < character to prevent cross-site scripting attacks that are possible via the presence of </script> in a string literal
         }}
       />
@@ -89,7 +65,7 @@ export default async function handleRequest(
           }).replace(/</g, "\\u003c")}`,
         }}
       />
-    </ServerStyleContext.Provider>,
+    </ServerStyleContext.Provider>
   );
 
   responseHeaders.set("Content-Type", "text/html");
