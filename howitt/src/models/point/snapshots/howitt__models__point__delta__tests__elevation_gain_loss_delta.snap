@@ -1,0 +1,72 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: "(points, gains, losses)"
+---
+(
+    [
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.0,
+                    y: -37.0,
+                },
+            ),
+            elevation: 100.0,
+        },
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.1,
+                    y: -37.1,
+                },
+            ),
+            elevation: 200.0,
+        },
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.2,
+                    y: -37.2,
+                },
+            ),
+            elevation: 150.0,
+        },
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.3,
+                    y: -37.3,
+                },
+            ),
+            elevation: 300.0,
+        },
+    ],
+    [
+        ElevationGainDelta(
+            0.0,
+        ),
+        ElevationGainDelta(
+            100.0,
+        ),
+        ElevationGainDelta(
+            100.0,
+        ),
+        ElevationGainDelta(
+            250.0,
+        ),
+    ],
+    [
+        ElevationLossDelta(
+            0.0,
+        ),
+        ElevationLossDelta(
+            0.0,
+        ),
+        ElevationLossDelta(
+            50.0,
+        ),
+        ElevationLossDelta(
+            50.0,
+        ),
+    ],
+)

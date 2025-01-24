@@ -14,6 +14,7 @@ pub trait AccumulatingDelta<P>: Sized {
 
 // ----
 
+#[derive(Debug)]
 pub struct DistanceDelta(pub f64);
 impl<P: Point> Delta<P> for DistanceDelta {
     fn delta(value1: &P, value2: &P) -> Self {
@@ -39,6 +40,7 @@ impl<P: Point> AccumulatingDelta<P> for DistanceDelta {
     }
 }
 
+#[derive(Debug)]
 pub struct BearingDelta(pub f64);
 impl<P: Point> Delta<P> for BearingDelta {
     fn delta(value1: &P, value2: &P) -> Self {
@@ -47,6 +49,7 @@ impl<P: Point> Delta<P> for BearingDelta {
     }
 }
 
+#[derive(Debug)]
 pub struct ElevationDelta(pub f64);
 impl<P: WithElevation> Delta<P> for ElevationDelta {
     fn delta(value1: &P, value2: &P) -> Self {
@@ -56,6 +59,7 @@ impl<P: WithElevation> Delta<P> for ElevationDelta {
     }
 }
 
+#[derive(Debug)]
 pub struct ElevationGainDelta(pub f64);
 
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
@@ -73,6 +77,7 @@ impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
     }
 }
 
+#[derive(Debug)]
 pub struct ElevationLossDelta(pub f64);
 
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationLossDelta {
@@ -90,6 +95,7 @@ impl<P: WithElevation> AccumulatingDelta<P> for ElevationLossDelta {
     }
 }
 
+#[derive(Debug)]
 pub struct ElapsedDelta(pub chrono::Duration);
 impl<P: WithDatetime> Delta<P> for ElapsedDelta {
     fn delta(value1: &P, value2: &P) -> Self {
@@ -275,5 +281,108 @@ where
             .zip(t5_deltas)
             .map(|((((t1, t2), t3), t4), t5)| (t1, t2, t3, t4, t5))
             .collect()
+    }
+}
+
+// ... existing code ...
+
+#[cfg(test)]
+mod tests {
+    use chrono::{TimeZone, Utc};
+    use geo::Point as GeoPoint;
+
+    use super::*;
+    use crate::models::point::{
+        elevation_point::ElevationPoint, temporal_elevation_point::TemporalElevationPoint,
+    };
+
+    #[test]
+    fn test_distance_delta() {
+        let points = vec![
+            ElevationPoint {
+                point: GeoPoint::new(145.0, -37.0),
+                elevation: 100.0,
+            },
+            ElevationPoint {
+                point: GeoPoint::new(145.1, -37.1),
+                elevation: 200.0,
+            },
+            ElevationPoint {
+                point: GeoPoint::new(145.2, -37.2),
+                elevation: 300.0,
+            },
+        ];
+
+        let deltas = DistanceDelta::running_totals(&points);
+        insta::assert_debug_snapshot!((points, deltas));
+    }
+
+    #[test]
+    fn test_elevation_gain_loss_delta() {
+        let points = vec![
+            ElevationPoint {
+                point: GeoPoint::new(145.0, -37.0),
+                elevation: 100.0,
+            },
+            ElevationPoint {
+                point: GeoPoint::new(145.1, -37.1),
+                elevation: 200.0,
+            },
+            ElevationPoint {
+                point: GeoPoint::new(145.2, -37.2),
+                elevation: 150.0,
+            },
+            ElevationPoint {
+                point: GeoPoint::new(145.3, -37.3),
+                elevation: 300.0,
+            },
+        ];
+
+        let gains = ElevationGainDelta::running_totals(&points);
+        let losses = ElevationLossDelta::running_totals(&points);
+
+        insta::assert_debug_snapshot!((points, gains, losses));
+    }
+
+    #[test]
+    fn test_temporal_deltas() {
+        let points = vec![
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.0, -37.0),
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(1000, 0).unwrap(),
+            },
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.1, -37.1),
+                elevation: 200.0,
+                datetime: Utc.timestamp_opt(2000, 0).unwrap(),
+            },
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.2, -37.2),
+                elevation: 150.0,
+                datetime: Utc.timestamp_opt(3500, 0).unwrap(),
+            },
+        ];
+
+        let deltas = <(ElapsedDelta, DistanceDelta, ElevationGainDelta)>::running_totals(&points);
+        insta::assert_debug_snapshot!((points, deltas));
+    }
+
+    #[test]
+    fn test_single_point_delta() {
+        let p1 = ElevationPoint {
+            point: GeoPoint::new(145.0, -37.0),
+            elevation: 100.0,
+        };
+        let p2 = ElevationPoint {
+            point: GeoPoint::new(145.1, -37.1),
+            elevation: 200.0,
+        };
+
+        let distance = DistanceDelta::delta(&p1, &p2);
+        let elevation = ElevationDelta::delta(&p1, &p2);
+        let bearing = BearingDelta::delta(&p1, &p2);
+
+        insta::assert_debug_snapshot!(((p1, p2), distance, elevation, bearing));
     }
 }

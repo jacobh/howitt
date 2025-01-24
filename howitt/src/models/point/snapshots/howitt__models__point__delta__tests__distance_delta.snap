@@ -1,0 +1,46 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: "(points, deltas)"
+---
+(
+    [
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.0,
+                    y: -37.0,
+                },
+            ),
+            elevation: 100.0,
+        },
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.1,
+                    y: -37.1,
+                },
+            ),
+            elevation: 200.0,
+        },
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.2,
+                    y: -37.2,
+                },
+            ),
+            elevation: 300.0,
+        },
+    ],
+    [
+        DistanceDelta(
+            0.0,
+        ),
+        DistanceDelta(
+            14226.797224188322,
+        ),
+        DistanceDelta(
+            28446.294894661758,
+        ),
+    ],
+)

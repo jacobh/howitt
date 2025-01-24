@@ -1,0 +1,35 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: "((p1, p2), distance, elevation, bearing)"
+---
+(
+    (
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.0,
+                    y: -37.0,
+                },
+            ),
+            elevation: 100.0,
+        },
+        ElevationPoint {
+            point: Point(
+                Coord {
+                    x: 145.1,
+                    y: -37.1,
+                },
+            ),
+            elevation: 200.0,
+        },
+    ),
+    DistanceDelta(
+        14226.797224188322,
+    ),
+    ElevationDelta(
+        100.0,
+    ),
+    BearingDelta(
+        141.4363966910321,
+    ),
+)

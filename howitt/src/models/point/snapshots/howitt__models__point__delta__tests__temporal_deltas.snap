@@ -1,0 +1,82 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: "(points, deltas)"
+---
+(
+    [
+        TemporalElevationPoint {
+            datetime: 1970-01-01T00:16:40Z,
+            point: Point(
+                Coord {
+                    x: 145.0,
+                    y: -37.0,
+                },
+            ),
+            elevation: 100.0,
+        },
+        TemporalElevationPoint {
+            datetime: 1970-01-01T00:33:20Z,
+            point: Point(
+                Coord {
+                    x: 145.1,
+                    y: -37.1,
+                },
+            ),
+            elevation: 200.0,
+        },
+        TemporalElevationPoint {
+            datetime: 1970-01-01T00:58:20Z,
+            point: Point(
+                Coord {
+                    x: 145.2,
+                    y: -37.2,
+                },
+            ),
+            elevation: 150.0,
+        },
+    ],
+    [
+        (
+            ElapsedDelta(
+                TimeDelta {
+                    secs: 0,
+                    nanos: 0,
+                },
+            ),
+            DistanceDelta(
+                0.0,
+            ),
+            ElevationGainDelta(
+                0.0,
+            ),
+        ),
+        (
+            ElapsedDelta(
+                TimeDelta {
+                    secs: 1000,
+                    nanos: 0,
+                },
+            ),
+            DistanceDelta(
+                14226.797224188322,
+            ),
+            ElevationGainDelta(
+                100.0,
+            ),
+        ),
+        (
+            ElapsedDelta(
+                TimeDelta {
+                    secs: 2500,
+                    nanos: 0,
+                },
+            ),
+            DistanceDelta(
+                28446.294894661758,
+            ),
+            ElevationGainDelta(
+                100.0,
+            ),
+        ),
+    ],
+)
