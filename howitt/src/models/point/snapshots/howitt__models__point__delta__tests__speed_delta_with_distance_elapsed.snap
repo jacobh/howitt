@@ -1,0 +1,34 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: "(deltas1, deltas2)"
+---
+(
+    (
+        DistanceDelta(
+            799.2390562546843,
+        ),
+        ElapsedDelta(
+            TimeDelta {
+                secs: 900,
+                nanos: 0,
+            },
+        ),
+        SpeedDelta(
+            3.196956225018737,
+        ),
+    ),
+    (
+        DistanceDelta(
+            799.2390562572083,
+        ),
+        ElapsedDelta(
+            TimeDelta {
+                secs: 600,
+                nanos: 0,
+            },
+        ),
+        SpeedDelta(
+            4.7954343375432495,
+        ),
+    ),
+)

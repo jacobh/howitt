@@ -1,0 +1,12 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: speed_deltas
+---
+[
+    SpeedDelta(
+        0.7992390562546843,
+    ),
+    SpeedDelta(
+        3.1969562214525986,
+    ),
+]

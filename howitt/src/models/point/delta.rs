@@ -122,6 +122,25 @@ impl<P: WithDatetime> AccumulatingDelta<P> for ElapsedDelta {
     }
 }
 
+#[derive(Debug)]
+pub struct SpeedDelta(pub f64); // Speed in km/h
+
+impl<P: Point + WithDatetime> Delta<P> for SpeedDelta {
+    fn delta(value1: &P, value2: &P) -> Self {
+        let distance = DistanceDelta::delta(value1, value2);
+        let elapsed = ElapsedDelta::delta(value1, value2);
+
+        // Convert meters to kilometers and seconds to hours
+        let kilometers = distance.0 / 1000.0;
+        let hours = elapsed.0.num_seconds() as f64 / 3600.0;
+
+        // Avoid division by zero
+        let speed = if hours > 0.0 { kilometers / hours } else { 0.0 };
+
+        SpeedDelta(speed)
+    }
+}
+
 // ----------
 
 impl<P, T1> Delta<P> for (T1,)
@@ -382,5 +401,78 @@ mod tests {
         let bearing = BearingDelta::delta(&p1, &p2);
 
         insta::assert_debug_snapshot!(((p1, p2), distance, elevation, bearing));
+    }
+
+    #[test]
+    fn test_speed_delta() {
+        let points = vec![
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.0, -37.0),
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(0, 0).unwrap(),
+            },
+            // Point 1km away after 1 hour = 1 km/h
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.009, -37.0), // Approximately 1km east
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(3600, 0).unwrap(),
+            },
+            // Point 2km away after 30 minutes = 4 km/h
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.027, -37.0), // Approximately 3km east total
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(5400, 0).unwrap(),
+            },
+        ];
+
+        let speed_deltas: Vec<_> = points
+            .windows(2)
+            .map(|window| SpeedDelta::delta(&window[0], &window[1]))
+            .collect();
+
+        insta::assert_debug_snapshot!(speed_deltas);
+    }
+
+    #[test]
+    fn test_speed_delta_zero_time() {
+        let p1 = TemporalElevationPoint {
+            point: GeoPoint::new(145.0, -37.0),
+            elevation: 100.0,
+            datetime: Utc.timestamp_opt(0, 0).unwrap(),
+        };
+        let p2 = TemporalElevationPoint {
+            point: GeoPoint::new(145.1, -37.1),
+            elevation: 200.0,
+            datetime: Utc.timestamp_opt(0, 0).unwrap(), // Same timestamp
+        };
+
+        let speed = SpeedDelta::delta(&p1, &p2);
+        assert_eq!(speed.0, 0.0, "Speed should be 0 when time difference is 0");
+    }
+
+    #[test]
+    fn test_speed_delta_with_distance_elapsed() {
+        let points = vec![
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.0, -37.0),
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(0, 0).unwrap(),
+            },
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.009, -37.0), // ~1km
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(900, 0).unwrap(), // 15 minutes = 4 km/h
+            },
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.018, -37.0), // ~2km
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(1500, 0).unwrap(), // 10 minutes = 12 km/h
+            },
+        ];
+
+        // Test combined distance, time, and speed calculations
+        let deltas1 = <(DistanceDelta, ElapsedDelta, SpeedDelta)>::delta(&points[0], &points[1]);
+        let deltas2 = <(DistanceDelta, ElapsedDelta, SpeedDelta)>::delta(&points[1], &points[2]);
+        insta::assert_debug_snapshot!((deltas1, deltas2));
     }
 }
