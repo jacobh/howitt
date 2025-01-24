@@ -1,14 +1,15 @@
 #![feature(async_closure)]
 
 use clap::{Parser, Subcommand};
-use commands::{POICommands, RideCommands, RouteCommands, UserCommands};
 use howitt_postgresql::{
     PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
-    PostgresRouteRepo, PostgresUserRepo,
+    PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
 };
 
 mod commands;
 mod utils;
+
+use commands::{POICommands, RideCommands, RouteCommands, TripCommands, UserCommands};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -30,6 +31,8 @@ enum Commands {
     Ride(RideCommands),
     #[clap(subcommand)]
     POI(POICommands),
+    #[clap(subcommand)]
+    Trip(TripCommands),
 }
 
 pub struct Context {
@@ -39,6 +42,7 @@ pub struct Context {
     pub ride_repo: PostgresRideRepo,
     pub ride_points_repo: PostgresRidePointsRepo,
     pub poi_repo: PostgresPointOfInterestRepo,
+    pub trip_repo: PostgresTripRepo,
 }
 
 impl Context {
@@ -55,6 +59,7 @@ impl Context {
             ride_repo: PostgresRideRepo::new(postgres_client.clone()),
             ride_points_repo: PostgresRidePointsRepo::new(postgres_client.clone()),
             poi_repo: PostgresPointOfInterestRepo::new(postgres_client.clone()),
+            trip_repo: PostgresTripRepo::new(postgres_client.clone()),
             postgres_client,
         })
     }
@@ -71,6 +76,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::Ride(cmd) => commands::ride::handle(cmd, context).await?,
         Commands::POI(cmd) => commands::poi::handle(cmd, context).await?,
         Commands::Rwgps(cmd) => commands::rwgps::handle(cmd, context).await?,
+        Commands::Trip(cmd) => commands::trip::handle(cmd, context).await?,
     }
 
     Ok(())
