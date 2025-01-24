@@ -1,7 +1,8 @@
-use async_graphql::Object;
-use howitt::models::trip::TripId;
+use async_graphql::{Context, Object};
+use howitt::models::{ride::RideFilter, trip::TripId};
 
-use super::ModelId;
+use super::{ride::Ride, ModelId};
+use crate::graphql::context::SchemaData;
 
 pub struct Trip(howitt::models::trip::Trip);
 
@@ -10,7 +11,18 @@ impl Trip {
     async fn id(&self) -> ModelId<TripId> {
         ModelId::from(self.0.id)
     }
+
     async fn name(&self) -> &str {
         &self.0.name
+    }
+
+    async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
+        let SchemaData { ride_repo, .. } = ctx.data()?;
+
+        let rides = ride_repo
+            .filter_models(RideFilter::ForTrip(self.0.id))
+            .await?;
+
+        Ok(rides.into_iter().map(Ride).collect())
     }
 }
