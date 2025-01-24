@@ -31,10 +31,10 @@ function zipStrict<T, U>(items1: T[], items2: U[]): [T, U][] {
 
 function computePoints(
   elevationPoints: number[],
-  distancePoints: number[]
+  distancePoints: number[],
 ): DataPoint[] {
   return zipStrict(elevationPoints, distancePoints).map(
-    ([elevation, distance]) => ({ elevation, distance })
+    ([elevation, distance]) => ({ elevation, distance }),
   );
 }
 
@@ -49,7 +49,7 @@ export function ElevationProfile({
 
   const points = useMemo(
     () => computePoints(data.elevationPoints, data.distancePoints),
-    [data]
+    [data],
   );
 
   const minElevationAt = minBy(points, ({ elevation }) => elevation)?.distance;
@@ -70,7 +70,7 @@ export function ElevationProfile({
                 maxElevationAt,
                 points.at(-1)?.distance,
               ].filter(isNotNil),
-              (x) => x
+              (x) => x,
             )}
             tickFormatter={(tick): string => {
               const formattedDistance = `${
@@ -98,7 +98,7 @@ export function ElevationProfile({
                 .at(0);
 
               const formattedElevation = `${arrow} ${Math.round(
-                point.elevation
+                point.elevation,
               )}m`;
 
               return [formattedDistance, formattedElevation]

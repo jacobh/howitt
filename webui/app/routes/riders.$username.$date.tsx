@@ -10,6 +10,7 @@ import { RideSummary } from "~/components/rides/RideSummary";
 import { Temporal } from "@js-temporal/polyfill";
 import { gql } from "~/__generated__";
 import { useQuery } from "@apollo/client";
+import { ElevationProfile } from "~/components/ElevationProfile";
 
 const RIDES_WITH_DATE_QUERY = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {
@@ -21,8 +22,9 @@ const RIDES_WITH_DATE_QUERY = gql(`
       ridesWithDate(date: $date) {
         id
         date
-        ...rideSummary
         pointsJson(pointsPerKm: $pointsPerKm)
+        ...rideSummary
+        ...elevationData
       }
     }
   }
@@ -86,7 +88,12 @@ function UserProfileDate(): React.ReactElement {
           <>
             {data?.userWithUsername?.ridesWithDate?.length ? (
               data.userWithUsername.ridesWithDate.map((ride) => (
-                <RideSummary key={ride.id} ride={ride} />
+                <div key={ride.id}>
+                  <div css={{ marginTop: "12px" }}>
+                    <ElevationProfile data={ride} />
+                  </div>
+                  <RideSummary ride={ride} />
+                </div>
               ))
             ) : (
               <p>No rides found for this date</p>

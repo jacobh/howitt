@@ -350,7 +350,10 @@ export type RidesWithDateQuery = {
     username: string;
     ridesWithDate: Array<
       { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
-        " $fragmentRefs"?: { RideSummaryFragment: RideSummaryFragment };
+        " $fragmentRefs"?: {
+          RideSummaryFragment: RideSummaryFragment;
+          ElevationData_Ride_Fragment: ElevationData_Ride_Fragment;
+        };
       }
     >;
   } | null;
@@ -924,10 +927,6 @@ export const RidesWithDateDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "date" } },
                       {
-                        kind: "FragmentSpread",
-                        name: { kind: "Name", value: "rideSummary" },
-                      },
-                      {
                         kind: "Field",
                         name: { kind: "Name", value: "pointsJson" },
                         arguments: [
@@ -940,6 +939,14 @@ export const RidesWithDateDocument = {
                             },
                           },
                         ],
+                      },
+                      {
+                        kind: "FragmentSpread",
+                        name: { kind: "Name", value: "rideSummary" },
+                      },
+                      {
+                        kind: "FragmentSpread",
+                        name: { kind: "Name", value: "elevationData" },
                       },
                     ],
                   },
@@ -989,6 +996,21 @@ export const RidesWithDateDocument = {
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "elevationData" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "ElevationData" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
+          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
         ],
       },
     },
