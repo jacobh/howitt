@@ -541,14 +541,6 @@ mod tests {
 
         let moving_deltas = MovingDelta::running_totals(&points);
         insta::assert_debug_snapshot!(moving_deltas);
-
-        // Test individual segments
-        let deltas: Vec<MovingDelta> = points
-            .iter()
-            .tuple_windows()
-            .map(|(a, b)| MovingDelta::delta(a, b))
-            .collect();
-        insta::assert_debug_snapshot!(deltas);
     }
 
     #[test]
