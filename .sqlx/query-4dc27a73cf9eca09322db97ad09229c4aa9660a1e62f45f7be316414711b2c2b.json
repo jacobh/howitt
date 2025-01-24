@@ -25,6 +25,21 @@
       },
       {
         "ordinal": 4,
+        "name": "slug",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "year",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
         "name": "ride_ids",
         "type_info": "UuidArray"
       }
@@ -39,6 +54,9 @@
       false,
       false,
       false,
+      false,
+      false,
+      true,
       null
     ]
   },

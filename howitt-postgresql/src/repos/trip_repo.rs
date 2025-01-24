@@ -14,6 +14,9 @@ struct TripRow {
     id: Uuid,
     name: String,
     created_at: DateTime<Utc>,
+    slug: String,
+    year: i32,
+    description: Option<String>,
     user_id: Uuid,
     ride_ids: Option<Vec<Uuid>>,
 }
@@ -25,6 +28,9 @@ impl TryFrom<TripRow> for Trip {
         Ok(Trip {
             id: TripId::from(row.id),
             name: row.name,
+            slug: row.slug,
+            year: row.year,
+            description: row.description,
             created_at: row.created_at,
             user_id: UserId::from(row.user_id),
             ride_ids: row
@@ -124,14 +130,24 @@ impl Repo for PostgresTripRepo {
                 INSERT INTO trips (
                     id,
                     name,
+                    slug,
+                    year,
+                    description,
                     created_at,
                     user_id
-                ) VALUES ($1, $2, $3, $4)
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (id) DO UPDATE 
-                SET name = EXCLUDED.name
+                SET 
+                    name = EXCLUDED.name,
+                    slug = EXCLUDED.slug,
+                    year = EXCLUDED.year,
+                    description = EXCLUDED.description
             "#,
             trip.id.as_uuid(),
             trip.name,
+            trip.slug,
+            trip.year,
+            trip.description,
             trip.created_at,
             trip.user_id.as_uuid(),
         );

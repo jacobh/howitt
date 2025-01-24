@@ -7,8 +7,11 @@ pub type TripId = ModelUuid<{ ModelName::Trip }>;
 pub struct Trip {
     pub id: TripId,
     pub created_at: DateTime<Utc>,
-    pub name: String,
     pub user_id: UserId,
+    pub name: String,
+    pub slug: String,
+    pub year: i32,
+    pub description: Option<String>,
     pub ride_ids: Vec<RideId>,
 }
 
