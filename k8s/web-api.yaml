@@ -47,6 +47,11 @@ spec:
                 secretKeyRef:
                   name: howitt-db
                   key: REDIS_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: howitt-jwt
+                  key: JWT_SECRET
             - name: AWS_REGION
               value: ap-southeast-2
             - name: AWS_ACCESS_KEY_ID
