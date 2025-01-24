@@ -3,6 +3,7 @@
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
+use commands::user::UserCommands;
 use howitt_fs::{load_huts, load_localities, load_routes, load_stations};
 use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -15,6 +16,7 @@ use rwgps_types::Route;
 
 use crate::json::prettyprintln;
 
+mod commands;
 mod description;
 mod json;
 mod postgres;
@@ -40,6 +42,8 @@ enum Commands {
     Pg(crate::postgres::Postgres),
     #[clap(subcommand)]
     Description(crate::description::Description),
+    #[clap(subcommand)]
+    User(UserCommands),
 }
 
 #[derive(Args)]
@@ -67,6 +71,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     match &cli.command {
+        Commands::User(cmd) => commands::user::handle(cmd).await?,
         Commands::Stations(_args) => {
             let railway_stations = load_stations()?;
             dbg!(railway_stations.len());

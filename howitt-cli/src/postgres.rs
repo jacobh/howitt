@@ -41,10 +41,6 @@ pub enum Postgres {
     GenerateCuesheet(RouteIdArgs),
     PreviewRidePoints(RideIdArgs),
     ListPOIs,
-    CreateUser,
-    ListUsers,
-    Login,
-    VerifyToken(VerifyTokenArgs),
 }
 
 #[derive(Args)]
@@ -210,50 +206,6 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
         Postgres::ListPOIs => {
             let pois = point_of_interest_repo.all_indexes().await?;
             dbg!(pois);
-        }
-        Postgres::CreateUser => {
-            let username = inquire::Text::new("username").prompt()?;
-            let email = inquire::Text::new("email").prompt()?;
-            let password = inquire::Password::new("password").prompt()?;
-            let created_at = Utc::now();
-
-            let password = hash_password(&password)?;
-
-            let user = User {
-                id: UserId::from_datetime(created_at),
-                username,
-                email,
-                password,
-                created_at,
-                linked_accounts: vec![],
-            };
-
-            user_repo.put(user).await?;
-
-            dbg!("done");
-        }
-        Postgres::ListUsers => {
-            let users = user_repo.all_models().await?;
-            dbg!(users);
-        }
-        Postgres::Login => {
-            let service = UserAuthService::new(Arc::new(user_repo), String::from("asdf123"));
-
-            let username = inquire::Text::new("username").prompt()?;
-            let password = inquire::Password::new("password")
-                .without_confirmation()
-                .prompt()?;
-
-            let res = service.login(&username, &password).await;
-
-            let _ = dbg!(res)?;
-        }
-        Postgres::VerifyToken(VerifyTokenArgs { token }) => {
-            let service = UserAuthService::new(Arc::new(user_repo), String::from("asdf123"));
-
-            let res = service.verify(token).await;
-
-            let _ = dbg!(res)?;
         }
     }
 
