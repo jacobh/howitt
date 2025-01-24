@@ -11,6 +11,13 @@ const config: CodegenConfig = {
         gqlTagName: "gql",
       },
     },
+    "./app/__generated__/fragment-types.json": {
+      plugins: ["fragment-matcher"],
+      config: {
+        module: "json",
+        apolloClientVersion: 3,
+      },
+    },
   },
   ignoreNoDocuments: true,
 };

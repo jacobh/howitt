@@ -39,6 +39,7 @@
     "recharts": "^2.15.0"
   },
   "devDependencies": {
+    "@graphql-codegen/fragment-matcher": "^5.0.2",
     "@parcel/watcher": "^2.5.0",
     "@remix-run/dev": "^2.15.2",
     "@remix-run/eslint-config": "^2.15.2",
