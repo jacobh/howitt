@@ -426,8 +426,9 @@ mod tests {
         ];
 
         let speed_deltas: Vec<_> = points
-            .windows(2)
-            .map(|window| SpeedDelta::delta(&window[0], &window[1]))
+            .iter()
+            .tuple_windows()
+            .map(|(p1, p2)| SpeedDelta::delta(p1, p2))
             .collect();
 
         insta::assert_debug_snapshot!(speed_deltas);
