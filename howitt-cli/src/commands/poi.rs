@@ -33,7 +33,8 @@ pub async fn handle(command: &POICommands) -> Result<(), anyhow::Error> {
             Ok(())
         }
         POICommands::List => {
-            // TODO: Implement list functionality
+            let pois = point_of_interest_repo.all_indexes().await?;
+            dbg!(pois);
             Ok(())
         }
         POICommands::Stations => {
