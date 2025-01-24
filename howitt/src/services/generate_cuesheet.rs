@@ -1,5 +1,7 @@
 use itertools::{Itertools, Position};
 
+use crate::ext::iter::ScanAllExt;
+
 use crate::models::{
     cuesheet::{Cue, CueStop, Cuesheet},
     point::{
@@ -21,7 +23,7 @@ pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> 
             Position::First | Position::Middle => (point, false),
             Position::Last | Position::Only => (point, true),
         })
-        .scan::<Vec<&ElevationPoint>, _, _>(vec![], |state, (point, is_last)| {
+        .scan_all(vec![], |state, (point, is_last)| {
             state.push(point);
 
             let nearby_poi = nearby_pois
@@ -31,14 +33,14 @@ pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> 
             match nearby_poi {
                 Some(nearby_poi) => {
                     let points = std::mem::take(state);
-                    Some(Some((points, Some(nearby_poi.clone()))))
+                    Some((points, Some(nearby_poi.clone())))
                 }
                 None => {
                     if is_last {
                         let points = std::mem::take(state);
-                        Some(Some((points, None)))
+                        Some((points, None))
                     } else {
-                        Some(None)
+                        None
                     }
                 }
             }
@@ -57,23 +59,25 @@ pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> 
         });
 
     let cues = summarized_partitioned_points
-        .scan::<Option<NearbyPointOfInterest<_>>, _, _>(None, |prev_poi, (_, poi, summary)| {
-            let cue = Cue {
-                origin: match prev_poi {
-                    Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
-                    None => CueStop::Start,
-                },
-                destination: match &poi {
-                    Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
-                    None => CueStop::End,
-                },
-                summary,
-            };
+        .scan_all(
+            None,
+            |prev_poi: &mut Option<NearbyPointOfInterest<_>>, (_, poi, summary)| {
+                let cue = Cue {
+                    origin: match prev_poi {
+                        Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
+                        None => CueStop::Start,
+                    },
+                    destination: match &poi {
+                        Some(poi) => CueStop::POI(poi.point_of_interest.clone().into_owned()),
+                        None => CueStop::End,
+                    },
+                    summary,
+                };
 
-            *prev_poi = poi;
-
-            Some(cue)
-        })
+                *prev_poi = poi;
+                cue
+            },
+        )
         .collect_vec();
 
     Cuesheet { cues }

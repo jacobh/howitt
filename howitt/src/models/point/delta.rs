@@ -1,3 +1,4 @@
+use crate::ext::iter::ScanAllExt;
 use geo::{Bearing, Distance, Haversine};
 use itertools::Itertools;
 
@@ -30,9 +31,9 @@ impl<P: Point> AccumulatingDelta<P> for DistanceDelta {
                     .tuple_windows()
                     .map(|(a, b)| Self::delta(a, b)),
             )
-            .scan(0.0, |acc, DistanceDelta(d)| {
+            .scan_all(0.0, |acc, DistanceDelta(d)| {
                 *acc += d;
-                Some(DistanceDelta(*acc))
+                DistanceDelta(*acc)
             })
             .collect()
     }
@@ -64,9 +65,9 @@ impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
                 let delta = b.elevation() - a.elevation();
                 ElevationGainDelta(if delta > 0.0 { delta } else { 0.0 })
             }))
-            .scan(0.0, |acc, ElevationGainDelta(d)| {
+            .scan_all(0.0, |acc, ElevationGainDelta(d)| {
                 *acc += d;
-                Some(ElevationGainDelta(*acc))
+                ElevationGainDelta(*acc)
             })
             .collect()
     }
@@ -81,9 +82,9 @@ impl<P: WithElevation> AccumulatingDelta<P> for ElevationLossDelta {
                 let delta = b.elevation() - a.elevation();
                 ElevationLossDelta(if delta < 0.0 { -delta } else { 0.0 })
             }))
-            .scan(0.0, |acc, ElevationLossDelta(d)| {
+            .scan_all(0.0, |acc, ElevationLossDelta(d)| {
                 *acc += d;
-                Some(ElevationLossDelta(*acc))
+                ElevationLossDelta(*acc)
             })
             .collect()
     }
@@ -107,9 +108,9 @@ impl<P: WithDatetime> AccumulatingDelta<P> for ElapsedDelta {
                     .tuple_windows()
                     .map(|(a, b)| Self::delta(a, b)),
             )
-            .scan(chrono::Duration::zero(), |acc, ElapsedDelta(e)| {
+            .scan_all(chrono::Duration::zero(), |acc, ElapsedDelta(e)| {
                 *acc = *acc + e;
-                Some(ElapsedDelta(*acc))
+                ElapsedDelta(*acc)
             })
             .collect()
     }
