@@ -1,6 +1,6 @@
 use sqlx::pool::PoolConnection;
 use sqlx::postgres::PgPoolOptions;
-use sqlx::{PgPool, Postgres};
+use sqlx::{PgPool, Postgres, Transaction};
 
 mod repos;
 
@@ -21,8 +21,12 @@ impl PostgresClient {
         })
     }
 
-    async fn acquire(&self) -> Result<PoolConnection<Postgres>, PostgresRepoError> {
+    pub async fn acquire(&self) -> Result<PoolConnection<Postgres>, PostgresRepoError> {
         Ok(self.pool.acquire().await?)
+    }
+
+    pub async fn begin(&self) -> Result<Transaction<Postgres>, PostgresRepoError> {
+        Ok(self.pool.begin().await?)
     }
 }
 

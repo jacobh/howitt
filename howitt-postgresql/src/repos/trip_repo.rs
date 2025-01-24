@@ -117,7 +117,7 @@ impl Repo for PostgresTripRepo {
     }
 
     async fn put(&self, trip: Trip) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let mut tx = self.client.begin().await?;
 
         let query = sqlx::query!(
             r#"
@@ -136,7 +136,7 @@ impl Repo for PostgresTripRepo {
             trip.user_id.as_uuid(),
         );
 
-        query.execute(conn.as_mut()).await?;
+        query.execute(tx.as_mut()).await?;
 
         sqlx::query!(
             r#"
@@ -147,7 +147,7 @@ impl Repo for PostgresTripRepo {
             trip.id.as_uuid(),
             &trip.ride_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
         )
-        .execute(conn.as_mut())
+        .execute(tx.as_mut())
         .await?;
 
         for ride_id in trip.ride_ids {
@@ -163,8 +163,10 @@ impl Repo for PostgresTripRepo {
                 *ride_id.as_uuid(),
             );
 
-            query.execute(conn.as_mut()).await?;
+            query.execute(tx.as_mut()).await?;
         }
+
+        tx.commit().await?;
 
         Ok(())
     }
