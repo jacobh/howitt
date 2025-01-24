@@ -1,0 +1,30 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: moving_deltas
+---
+[
+    MovingDelta(
+        TimeDelta {
+            secs: 0,
+            nanos: 0,
+        },
+    ),
+    MovingDelta(
+        TimeDelta {
+            secs: 0,
+            nanos: 0,
+        },
+    ),
+    MovingDelta(
+        TimeDelta {
+            secs: 1800,
+            nanos: 0,
+        },
+    ),
+    MovingDelta(
+        TimeDelta {
+            secs: 1800,
+            nanos: 0,
+        },
+    ),
+]

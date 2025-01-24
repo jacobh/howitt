@@ -141,6 +141,40 @@ impl<P: Point + WithDatetime> Delta<P> for SpeedDelta {
     }
 }
 
+#[derive(Debug)]
+pub struct MovingDelta(pub chrono::Duration); // Track time spent moving above 1km/h
+
+impl<P: Point + WithDatetime> Delta<P> for MovingDelta {
+    fn delta(value1: &P, value2: &P) -> Self {
+        let speed = SpeedDelta::delta(value1, value2);
+        let elapsed = ElapsedDelta::delta(value1, value2);
+
+        // If speed is greater than 1km/h, count the elapsed time as moving time
+        if speed.0 > 1.0 {
+            MovingDelta(elapsed.0)
+        } else {
+            MovingDelta(chrono::Duration::zero())
+        }
+    }
+}
+
+impl<P: Point + WithDatetime> AccumulatingDelta<P> for MovingDelta {
+    fn running_totals(values: &[P]) -> Vec<Self> {
+        std::iter::once(MovingDelta(chrono::Duration::zero()))
+            .chain(
+                values
+                    .iter()
+                    .tuple_windows()
+                    .map(|(a, b)| Self::delta(a, b)),
+            )
+            .scan_all(chrono::Duration::zero(), |acc, MovingDelta(d)| {
+                *acc = *acc + d;
+                MovingDelta(*acc)
+            })
+            .collect()
+    }
+}
+
 // ----------
 
 impl<P, T1> Delta<P> for (T1,)
@@ -475,5 +509,63 @@ mod tests {
         let deltas1 = <(DistanceDelta, ElapsedDelta, SpeedDelta)>::delta(&points[0], &points[1]);
         let deltas2 = <(DistanceDelta, ElapsedDelta, SpeedDelta)>::delta(&points[1], &points[2]);
         insta::assert_debug_snapshot!((deltas1, deltas2));
+    }
+
+    #[test]
+    fn test_moving_delta() {
+        let points = vec![
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.0, -37.0),
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(0, 0).unwrap(),
+            },
+            // Point 1km away after 1 hour = 1 km/h (shouldn't count as moving)
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.009, -37.0),
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(3600, 0).unwrap(),
+            },
+            // Point 2km away after 30 minutes = 4 km/h (should count as moving)
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.027, -37.0),
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(5400, 0).unwrap(),
+            },
+            // Stationary for 1 hour (shouldn't count as moving)
+            TemporalElevationPoint {
+                point: GeoPoint::new(145.027, -37.0),
+                elevation: 100.0,
+                datetime: Utc.timestamp_opt(9000, 0).unwrap(),
+            },
+        ];
+
+        let moving_deltas = MovingDelta::running_totals(&points);
+        insta::assert_debug_snapshot!(moving_deltas);
+
+        // Test individual segments
+        let deltas: Vec<MovingDelta> = points
+            .iter()
+            .tuple_windows()
+            .map(|(a, b)| MovingDelta::delta(a, b))
+            .collect();
+        insta::assert_debug_snapshot!(deltas);
+    }
+
+    #[test]
+    fn test_moving_delta_with_speed() {
+        let p1 = TemporalElevationPoint {
+            point: GeoPoint::new(145.0, -37.0),
+            elevation: 100.0,
+            datetime: Utc.timestamp_opt(0, 0).unwrap(),
+        };
+        let p2 = TemporalElevationPoint {
+            point: GeoPoint::new(145.018, -37.0), // ~2km
+            elevation: 100.0,
+            datetime: Utc.timestamp_opt(900, 0).unwrap(), // 15 minutes = 8 km/h
+        };
+
+        // Test combined speed and moving time calculations
+        let deltas = <(SpeedDelta, MovingDelta)>::delta(&p1, &p2);
+        insta::assert_debug_snapshot!(deltas);
     }
 }

@@ -1,0 +1,15 @@
+---
+source: howitt/src/models/point/delta.rs
+expression: deltas
+---
+(
+    SpeedDelta(
+        6.393912442905197,
+    ),
+    MovingDelta(
+        TimeDelta {
+            secs: 900,
+            nanos: 0,
+        },
+    ),
+)
