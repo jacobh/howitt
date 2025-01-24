@@ -62,13 +62,22 @@ impl<P: WithElevation> Delta<P> for ElevationDelta {
 #[derive(Debug)]
 pub struct ElevationGainDelta(pub f64);
 
+impl<P: WithElevation> Delta<P> for ElevationGainDelta {
+    fn delta(value1: &P, value2: &P) -> Self {
+        let delta = value2.elevation() - value1.elevation();
+        ElevationGainDelta(if delta > 0.0 { delta } else { 0.0 })
+    }
+}
+
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(ElevationGainDelta(0.0))
-            .chain(values.iter().tuple_windows().map(|(a, b)| {
-                let delta = b.elevation() - a.elevation();
-                ElevationGainDelta(if delta > 0.0 { delta } else { 0.0 })
-            }))
+            .chain(
+                values
+                    .iter()
+                    .tuple_windows()
+                    .map(|(a, b)| Self::delta(a, b)),
+            )
             .scan_all(0.0, |acc, ElevationGainDelta(d)| {
                 *acc += d;
                 ElevationGainDelta(*acc)
@@ -80,13 +89,22 @@ impl<P: WithElevation> AccumulatingDelta<P> for ElevationGainDelta {
 #[derive(Debug)]
 pub struct ElevationLossDelta(pub f64);
 
+impl<P: WithElevation> Delta<P> for ElevationLossDelta {
+    fn delta(value1: &P, value2: &P) -> Self {
+        let delta = value2.elevation() - value1.elevation();
+        ElevationLossDelta(if delta < 0.0 { -delta } else { 0.0 })
+    }
+}
+
 impl<P: WithElevation> AccumulatingDelta<P> for ElevationLossDelta {
     fn running_totals(values: &[P]) -> Vec<Self> {
         std::iter::once(ElevationLossDelta(0.0))
-            .chain(values.iter().tuple_windows().map(|(a, b)| {
-                let delta = b.elevation() - a.elevation();
-                ElevationLossDelta(if delta < 0.0 { -delta } else { 0.0 })
-            }))
+            .chain(
+                values
+                    .iter()
+                    .tuple_windows()
+                    .map(|(a, b)| Self::delta(a, b)),
+            )
             .scan_all(0.0, |acc, ElevationLossDelta(d)| {
                 *acc += d;
                 ElevationLossDelta(*acc)
