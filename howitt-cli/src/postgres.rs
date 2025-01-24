@@ -32,7 +32,6 @@ use serde_json::json;
 
 #[derive(Subcommand)]
 pub enum Postgres {
-    PreviewRidePoints(RideIdArgs),
     ListPOIs,
 }
 
@@ -64,27 +63,6 @@ pub async fn handle(command: &Postgres) -> Result<(), anyhow::Error> {
     let user_repo = PostgresUserRepo::new(pg.clone());
 
     match command {
-        Postgres::PreviewRidePoints(RideIdArgs { ride_id }) => {
-            let ride_id = howitt::models::ride::RideId::from(uuid::Uuid::parse_str(ride_id)?);
-            let ride_points = ride_points_repo.get(ride_id).await?;
-
-            let simplified = simplify_points(&ride_points.points, SimplifyTarget::TotalPoints(25));
-
-            // Convert to [[lng, lat, elevation_m, timestamp], ...] format
-            let preview_points: Vec<Vec<serde_json::Value>> = simplified
-                .iter()
-                .map(|point| {
-                    vec![
-                        json!(point.point.x()),
-                        json!(point.point.y()),
-                        json!(point.elevation),
-                        json!(point.datetime.with_timezone(&Melbourne).to_rfc3339()),
-                    ]
-                })
-                .collect();
-
-            println!("{}", serde_json::to_string_pretty(&preview_points)?);
-        }
         Postgres::ListPOIs => {
             let pois = point_of_interest_repo.all_indexes().await?;
             dbg!(pois);
