@@ -16,12 +16,14 @@ import { ServerStyleContext } from "~/styles/server.context";
 import { getDataFromTree } from "@apollo/client/react/ssr";
 import { setContext } from "@apollo/client/link/context";
 
+import possibleTypes from "./__generated__/fragment-types.json";
+
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  loadContext: AppLoadContext,
+  loadContext: AppLoadContext
 ): Promise<Response> {
   const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
 
@@ -43,7 +45,9 @@ export default async function handleRequest(
   const client = new ApolloClient({
     ssrMode: true,
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      possibleTypes: possibleTypes.possibleTypes, // Add possibleTypes configuration
+    }),
   });
 
   const styleCache = createEmotionCache();
@@ -62,7 +66,7 @@ export default async function handleRequest(
   const html = renderToString(
     <ServerStyleContext.Provider value={null}>
       {App}
-    </ServerStyleContext.Provider>,
+    </ServerStyleContext.Provider>
   );
 
   const initialState = client.extract();
@@ -74,7 +78,7 @@ export default async function handleRequest(
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__APOLLO_STATE__=${JSON.stringify(
-            initialState,
+            initialState
           ).replace(/</g, "\\u003c")}`, // The replace call escapes the < character to prevent cross-site scripting attacks that are possible via the presence of </script> in a string literal
         }}
       />
@@ -85,7 +89,7 @@ export default async function handleRequest(
           }).replace(/</g, "\\u003c")}`,
         }}
       />
-    </ServerStyleContext.Provider>,
+    </ServerStyleContext.Provider>
   );
 
   responseHeaders.set("Content-Type", "text/html");

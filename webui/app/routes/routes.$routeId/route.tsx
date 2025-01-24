@@ -33,8 +33,6 @@ query RouteQuery($routeId: RouteId!) {
     elevationAscentM
     elevationDescentM
     pointsJson
-    elevationPoints
-    distancePoints
     description
     technicalDifficulty
     physicalDifficulty
@@ -69,6 +67,8 @@ query RouteQuery($routeId: RouteId!) {
 
       ...nearbyRoutesInfo
     }
+
+    ...elevationData
   }
   viewer {
     ...viewerInfo
@@ -184,16 +184,9 @@ export default function Route(): React.ReactElement {
                   <p>{data.route.description}</p>
                 </section>
               ) : null}
-              {data?.route?.elevationPoints && data?.route?.distancePoints ? (
-                <section css={contentSectionCss}>
-                  <ElevationProfile
-                    elevationPoints={data.route.elevationPoints}
-                    distancePoints={data.route.distancePoints}
-                  />
-                </section>
-              ) : (
-                <></>
-              )}
+              <section css={contentSectionCss}>
+                <ElevationProfile data={data.route} />
+              </section>
 
               {tableItems.length > 0 ? (
                 <section css={contentSectionCss}>

@@ -14,6 +14,8 @@ import { ClientStyleContext } from "~/styles/client.context";
 import { createEmotionCache } from "~/styles/createEmotionCache";
 import Cookies from "js-cookie";
 
+import possibleTypes from "./__generated__/fragment-types.json";
+
 interface ClientCacheProviderProps {
   children: React.ReactNode;
 }
@@ -54,7 +56,9 @@ function Client(): React.ReactNode {
 
   const client = new ApolloClient({
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache().restore((window as any).__APOLLO_STATE__),
+    cache: new InMemoryCache({
+      possibleTypes: possibleTypes.possibleTypes, // Add possibleTypes configuration
+    }).restore((window as any).__APOLLO_STATE__),
   });
 
   return (

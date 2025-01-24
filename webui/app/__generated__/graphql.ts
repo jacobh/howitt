@@ -73,6 +73,13 @@ export enum Direction {
   PrimarlityAsRouted = "PRIMARLITY_AS_ROUTED",
 }
 
+export type ElevationData = {
+  /** Array of distance points */
+  distancePoints: Array<Scalars["Float"]["output"]>;
+  /** Array of elevation points */
+  elevationPoints: Array<Scalars["Float"]["output"]>;
+};
+
 export type ExternalRef = {
   __typename?: "ExternalRef";
   canonicalUrl: Scalars["Url"]["output"];
@@ -154,10 +161,12 @@ export type QueryRoutesInput = {
   filters: Array<QueryRouteFilters>;
 };
 
-export type Ride = {
+export type Ride = ElevationData & {
   __typename?: "Ride";
   date: Scalars["IsoDate"]["output"];
   distance: Scalars["Float"]["output"];
+  distancePoints: Array<Scalars["Float"]["output"]>;
+  elevationPoints: Array<Scalars["Float"]["output"]>;
   finishedAt: Scalars["DateTime"]["output"];
   id: Scalars["RideId"]["output"];
   name: Scalars["String"]["output"];
@@ -175,7 +184,7 @@ export type RidePointsJsonArgs = {
   pointsPerKm: Scalars["Int"]["input"];
 };
 
-export type Route = {
+export type Route = ElevationData & {
   __typename?: "Route";
   cues: Array<Cue>;
   description?: Maybe<Scalars["String"]["output"]>;
@@ -258,6 +267,22 @@ export type Viewer = {
   id: Scalars["String"]["output"];
   profile: UserProfile;
 };
+
+type ElevationData_Ride_Fragment = {
+  __typename?: "Ride";
+  elevationPoints: Array<number>;
+  distancePoints: Array<number>;
+} & { " $fragmentName"?: "ElevationData_Ride_Fragment" };
+
+type ElevationData_Route_Fragment = {
+  __typename?: "Route";
+  elevationPoints: Array<number>;
+  distancePoints: Array<number>;
+} & { " $fragmentName"?: "ElevationData_Route_Fragment" };
+
+export type ElevationDataFragment =
+  | ElevationData_Ride_Fragment
+  | ElevationData_Route_Fragment;
 
 export type ViewerInfoFragment = {
   __typename?: "Viewer";
@@ -399,59 +424,63 @@ export type RouteQueryQueryVariables = Exact<{
 
 export type RouteQueryQuery = {
   __typename?: "Query";
-  route?: {
-    __typename?: "Route";
-    id: any;
-    name: string;
-    tags?: Array<string> | null;
-    distance: number;
-    elevationAscentM: number;
-    elevationDescentM: number;
-    pointsJson: string;
-    elevationPoints: Array<number>;
-    distancePoints: Array<number>;
-    description?: string | null;
-    technicalDifficulty?: DifficultyRating | null;
-    physicalDifficulty?: DifficultyRating | null;
-    scouted?: Scouted | null;
-    direction?: Direction | null;
-    externalRef?: { __typename?: "ExternalRef"; canonicalUrl: any } | null;
-    minimumBike?: {
-      __typename?: "BikeSpec";
-      tyreWidth: Array<number>;
-      frontSuspension: Array<number>;
-      rearSuspension: Array<number>;
-    } | null;
-    idealBike?: {
-      __typename?: "BikeSpec";
-      tyreWidth: Array<number>;
-      frontSuspension: Array<number>;
-      rearSuspension: Array<number>;
-    } | null;
-    photos: Array<{
-      __typename?: "Photo";
-      id: any;
-      url: any;
-      caption?: string | null;
-    }>;
-    termini: Array<
-      {
-        __typename?: "Terminus";
-        bearing: number;
-        nearbyRoutes: Array<{
-          __typename?: "NearbyRoute";
-          closestTerminus: {
-            __typename?: "Terminus";
-            route: { __typename?: "Route"; id: any; pointsJson: string };
-          };
+  route?:
+    | ({
+        __typename?: "Route";
+        id: any;
+        name: string;
+        tags?: Array<string> | null;
+        distance: number;
+        elevationAscentM: number;
+        elevationDescentM: number;
+        pointsJson: string;
+        description?: string | null;
+        technicalDifficulty?: DifficultyRating | null;
+        physicalDifficulty?: DifficultyRating | null;
+        scouted?: Scouted | null;
+        direction?: Direction | null;
+        externalRef?: { __typename?: "ExternalRef"; canonicalUrl: any } | null;
+        minimumBike?: {
+          __typename?: "BikeSpec";
+          tyreWidth: Array<number>;
+          frontSuspension: Array<number>;
+          rearSuspension: Array<number>;
+        } | null;
+        idealBike?: {
+          __typename?: "BikeSpec";
+          tyreWidth: Array<number>;
+          frontSuspension: Array<number>;
+          rearSuspension: Array<number>;
+        } | null;
+        photos: Array<{
+          __typename?: "Photo";
+          id: any;
+          url: any;
+          caption?: string | null;
         }>;
+        termini: Array<
+          {
+            __typename?: "Terminus";
+            bearing: number;
+            nearbyRoutes: Array<{
+              __typename?: "NearbyRoute";
+              closestTerminus: {
+                __typename?: "Terminus";
+                route: { __typename?: "Route"; id: any; pointsJson: string };
+              };
+            }>;
+          } & {
+            " $fragmentRefs"?: {
+              NearbyRoutesInfoFragment: NearbyRoutesInfoFragment;
+            };
+          }
+        >;
       } & {
         " $fragmentRefs"?: {
-          NearbyRoutesInfoFragment: NearbyRoutesInfoFragment;
+          ElevationData_Route_Fragment: ElevationData_Route_Fragment;
         };
-      }
-    >;
-  } | null;
+      })
+    | null;
   viewer?:
     | ({ __typename?: "Viewer" } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
@@ -486,6 +515,26 @@ export type HomeQueryPointOnlyQuery = {
   queryRoutes: Array<{ __typename?: "Route"; id: any; pointsJson: string }>;
 };
 
+export const ElevationDataFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "elevationData" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "ElevationData" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
+          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ElevationDataFragment, unknown>;
 export const ViewerInfoFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -1254,14 +1303,6 @@ export const RouteQueryDocument = {
                   name: { kind: "Name", value: "elevationDescentM" },
                 },
                 { kind: "Field", name: { kind: "Name", value: "pointsJson" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "elevationPoints" },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "distancePoints" },
-                },
                 { kind: "Field", name: { kind: "Name", value: "description" } },
                 {
                   kind: "Field",
@@ -1385,6 +1426,10 @@ export const RouteQueryDocument = {
                     ],
                   },
                 },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "elevationData" },
+                },
               ],
             },
           },
@@ -1490,6 +1535,21 @@ export const RouteQueryDocument = {
               ],
             },
           },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "elevationData" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "ElevationData" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
+          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
         ],
       },
     },

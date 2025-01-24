@@ -2,11 +2,18 @@ import { css } from "@emotion/react";
 import { maxBy, minBy, sortBy } from "lodash";
 import { useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { FragmentType, gql, useFragment } from "~/__generated__";
 import { isNotNil } from "~/services/isNotNil";
 
+export const ElevationDataFragment = gql(`
+  fragment elevationData on ElevationData {
+    elevationPoints
+    distancePoints
+  }
+`);
+
 interface Props {
-  elevationPoints: number[];
-  distancePoints: number[];
+  data: FragmentType<typeof ElevationDataFragment>;
 }
 
 interface DataPoint {
@@ -22,9 +29,12 @@ function zipStrict<T, U>(items1: T[], items2: U[]): [T, U][] {
   return items1.map((x, i) => [x, items2[i]]);
 }
 
-function computeData({ elevationPoints, distancePoints }: Props): DataPoint[] {
+function computePoints(
+  elevationPoints: number[],
+  distancePoints: number[]
+): DataPoint[] {
   return zipStrict(elevationPoints, distancePoints).map(
-    ([elevation, distance]) => ({ elevation, distance }),
+    ([elevation, distance]) => ({ elevation, distance })
   );
 }
 
@@ -32,39 +42,49 @@ const elevationProfileWrapperCss = css`
   height: 150px;
 `;
 
-export function ElevationProfile(props: Props): React.ReactElement {
-  const data = useMemo(() => computeData(props), [props]);
+export function ElevationProfile({
+  data: dataFragment,
+}: Props): React.ReactElement {
+  const data = useFragment(ElevationDataFragment, dataFragment);
 
-  const minElevationAt = minBy(data, ({ elevation }) => elevation)?.distance;
+  const points = useMemo(
+    () => computePoints(data.elevationPoints, data.distancePoints),
+    [data]
+  );
 
-  const maxElevationAt = maxBy(data, ({ elevation }) => elevation)?.distance;
+  const minElevationAt = minBy(points, ({ elevation }) => elevation)?.distance;
+
+  const maxElevationAt = maxBy(points, ({ elevation }) => elevation)?.distance;
 
   return (
     <div css={elevationProfileWrapperCss}>
       <ResponsiveContainer>
-        <AreaChart data={data}>
+        <AreaChart data={points}>
           <XAxis
             dataKey="distance"
             // minTickGap={50}
             ticks={sortBy(
-              [0, minElevationAt, maxElevationAt, data.at(-1)?.distance].filter(
-                isNotNil,
-              ),
-              (x) => x,
+              [
+                0,
+                minElevationAt,
+                maxElevationAt,
+                points.at(-1)?.distance,
+              ].filter(isNotNil),
+              (x) => x
             )}
             tickFormatter={(tick): string => {
               const formattedDistance = `${
                 Math.round((tick / 1000) * 10) / 10
               }km`;
 
-              const point = data.find((p) => p.distance == tick);
+              const point = points.find((p) => p.distance == tick);
 
               if (!point) {
                 return formattedDistance;
               }
 
               const isFirst = point.distance === 0;
-              const isLast = point.distance === data.at(-1)?.distance;
+              const isLast = point.distance === points.at(-1)?.distance;
               const isMaxElevation = point.distance === maxElevationAt;
               const isMinElevation = point.distance === minElevationAt;
 
@@ -78,7 +98,7 @@ export function ElevationProfile(props: Props): React.ReactElement {
                 .at(0);
 
               const formattedElevation = `${arrow} ${Math.round(
-                point.elevation,
+                point.elevation
               )}m`;
 
               return [formattedDistance, formattedElevation]
