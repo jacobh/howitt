@@ -213,6 +213,9 @@ impl Route {
     async fn name(&self) -> &str {
         &self.0.as_index().name
     }
+    async fn slug(&self) -> &str {
+        &self.0.as_index().slug
+    }
     async fn distance(&self) -> f64 {
         self.0.as_index().distance
     }
