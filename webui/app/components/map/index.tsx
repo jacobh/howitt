@@ -26,7 +26,7 @@ import Fill from "ol/style/Fill";
 import { css } from "@emotion/react";
 import BaseEvent from "ol/events/Event";
 import { isNotNil } from "~/services/isNotNil";
-import { debounce, isEqual, min, some } from "lodash";
+import { debounce, min, some } from "lodash";
 
 export interface DisplayedRoute {
   route: Pick<Route, "id" | "pointsJson">;
@@ -73,21 +73,13 @@ export function Map({
   routes,
   rides,
   checkpoints,
-  initialView: initialViewProp,
+  initialView,
   onVisibleRoutesChanged,
   onRouteClicked,
 }: MapProps): React.ReactElement {
   const { map: existingMap, setMap } = useContext(MapContext);
 
   const [isFirstMapRender, setIsFirstRender] = useState(true);
-
-  const [initialView, setInitialView] = useState(initialViewProp);
-
-  useEffect(() => {
-    if (!isEqual(initialView, initialViewProp)) {
-      setInitialView(initialViewProp);
-    }
-  }, [initialView, initialViewProp, setInitialView]);
 
   const hutStyle = useMemo<Style>(
     () =>
