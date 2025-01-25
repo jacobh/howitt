@@ -66,11 +66,7 @@ pub async fn handle(
             Ok(())
         }
         RouteCommands::ListStarred => {
-            let routes = route_repo
-                .filter_models(RouteFilter {
-                    is_starred: Some(true),
-                })
-                .await?;
+            let routes = route_repo.filter_models(RouteFilter::Starred).await?;
 
             let mut table = Table::new();
             table.add_row(row!["id", "name", r->"km"]);

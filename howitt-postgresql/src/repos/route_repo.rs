@@ -188,17 +188,25 @@ impl Repo for PostgresRouteRepo {
     ) -> Result<Vec<RouteModel>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let RouteFilter { is_starred } = filter;
+        let rows = match filter {
+            RouteFilter::Starred => {
+                sqlx::query_as!(RouteRow, r#"select * from routes where is_starred = true"#)
+                    .fetch_all(conn.as_mut())
+                    .await?
+            }
+            RouteFilter::All => {
+                sqlx::query_as!(RouteRow, r#"select * from routes"#)
+                    .fetch_all(conn.as_mut())
+                    .await?
+            }
+            RouteFilter::Slug(slug) => {
+                sqlx::query_as!(RouteRow, r#"select * from routes where slug = $1"#, slug)
+                    .fetch_all(conn.as_mut())
+                    .await?
+            }
+        };
 
-        let query = sqlx::query_as!(
-            RouteRow,
-            r#"select * from routes where is_starred = $1 or is_starred is null"#,
-            is_starred
-        );
-
-        Ok(query
-            .fetch_all(conn.as_mut())
-            .await?
+        Ok(rows
             .into_iter()
             .map(RouteModel::try_from)
             .collect_result_vec()?)

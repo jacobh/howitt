@@ -94,8 +94,10 @@ impl ExternallySourced for Route {
 }
 
 #[derive(Debug, Clone)]
-pub struct RouteFilter {
-    pub is_starred: Option<bool>,
+pub enum RouteFilter {
+    Starred,
+    All,
+    Slug(String),
 }
 
 #[derive(Debug, Clone)]

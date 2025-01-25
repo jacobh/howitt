@@ -77,11 +77,7 @@ impl Query {
     ) -> Result<Vec<Route>, async_graphql::Error> {
         let SchemaData { route_repo, .. } = ctx.data()?;
 
-        let routes = route_repo
-            .filter_models(RouteFilter {
-                is_starred: Some(true),
-            })
-            .await?;
+        let routes = route_repo.filter_models(RouteFilter::Starred).await?;
 
         Ok(routes
             .into_iter()
