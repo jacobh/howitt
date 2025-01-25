@@ -5,15 +5,15 @@ import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { isNotNil } from "~/services/isNotNil";
 
-export const ElevationDataFragment = gql(`
-  fragment elevationData on ElevationData {
+export const ElevationPathFragment = gql(`
+  fragment elevationPath on ElevationPath {
     elevationPoints
     distancePoints
   }
 `);
 
 interface Props {
-  data: FragmentType<typeof ElevationDataFragment>;
+  data: FragmentType<typeof ElevationPathFragment>;
 }
 
 interface DataPoint {
@@ -45,7 +45,7 @@ const elevationProfileWrapperCss = css`
 export function ElevationProfile({
   data: dataFragment,
 }: Props): React.ReactElement {
-  const data = useFragment(ElevationDataFragment, dataFragment);
+  const data = useFragment(ElevationPathFragment, dataFragment);
 
   const points = useMemo(
     () => computePoints(data.elevationPoints, data.distancePoints),

@@ -15,7 +15,7 @@ use crate::graphql::schema::{ride::Ride, route::Route};
         desc = "Array of distance points"
     )
 )]
-pub enum ElevationData {
+pub enum ElevationPath {
     Ride(Ride),
     Route(Route),
 }

@@ -68,7 +68,7 @@ query RouteQuery($routeId: RouteId!) {
       ...nearbyRoutesInfo
     }
 
-    ...elevationData
+    ...elevationPath
   }
   viewer {
     ...viewerInfo

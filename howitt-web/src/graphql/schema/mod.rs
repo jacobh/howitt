@@ -20,7 +20,7 @@ pub fn build_schema(data: SchemaData) -> Schema {
         async_graphql::EmptyMutation,
         async_graphql::EmptySubscription,
     )
-    .register_output_type::<ElevationData>()
+    .register_output_type::<ElevationPath>()
     .data(data)
     .finish()
 }

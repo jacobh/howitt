@@ -14,8 +14,8 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 const documents = {
-  "\n  fragment elevationData on ElevationData {\n    elevationPoints\n    distancePoints\n  }\n":
-    types.ElevationDataFragmentDoc,
+  "\n  fragment elevationPath on ElevationPath {\n    elevationPoints\n    distancePoints\n  }\n":
+    types.ElevationPathFragmentDoc,
   "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ":
     types.ViewerInfoFragmentDoc,
   "\n    fragment rideItem on Ride {\n        id\n        date\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n":
@@ -26,7 +26,7 @@ const documents = {
     types.RouteItemFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
     types.LoginViewerInfoDocument,
-  "\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(pointsPerKm: $pointsPerKm)\n        ...rideSummary\n        ...elevationData\n      }\n    }\n  }\n":
+  "\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(pointsPerKm: $pointsPerKm)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n":
     types.RidesWithDateDocument,
   "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          date\n          pointsJson(pointsPerKm: $pointsPerKm)\n          ...rideItem\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.UserProfileQueryDocument,
@@ -36,7 +36,7 @@ const documents = {
     types.UserItemFragmentDoc,
   "\n  fragment nearbyRoutesInfo on Terminus {\n    bearing\n    nearbyRoutes {\n      delta {\n        distance\n        bearing\n      }\n      closestTerminus {\n        bearing\n        route {\n          id\n          ...routeItem\n        }\n      }\n    }\n  }\n":
     types.NearbyRoutesInfoFragmentDoc,
-  "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    photos {\n      id\n      url\n      caption\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationData\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n":
+  "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    photos {\n      id\n      url\n      caption\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n":
     types.RouteQueryDocument,
   "\n  query homeQuery($input: QueryRoutesInput!) {\n    queryRoutes(input: $input) {\n      id\n      samplePoints\n      ...routeItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.HomeQueryDocument,
@@ -62,8 +62,8 @@ export function gql(source: string): unknown;
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment elevationData on ElevationData {\n    elevationPoints\n    distancePoints\n  }\n",
-): (typeof documents)["\n  fragment elevationData on ElevationData {\n    elevationPoints\n    distancePoints\n  }\n"];
+  source: "\n  fragment elevationPath on ElevationPath {\n    elevationPoints\n    distancePoints\n  }\n",
+): (typeof documents)["\n  fragment elevationPath on ElevationPath {\n    elevationPoints\n    distancePoints\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -98,8 +98,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(pointsPerKm: $pointsPerKm)\n        ...rideSummary\n        ...elevationData\n      }\n    }\n  }\n",
-): (typeof documents)["\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(pointsPerKm: $pointsPerKm)\n        ...rideSummary\n        ...elevationData\n      }\n    }\n  }\n"];
+  source: "\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(pointsPerKm: $pointsPerKm)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(pointsPerKm: $pointsPerKm)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -128,8 +128,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    photos {\n      id\n      url\n      caption\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationData\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n",
-): (typeof documents)["\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    photos {\n      id\n      url\n      caption\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationData\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n"];
+  source: "\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    photos {\n      id\n      url\n      caption\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n",
+): (typeof documents)["\nquery RouteQuery($routeId: RouteId!) {\n  route(id: $routeId) {\n    id\n    name\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    photos {\n      id\n      url\n      caption\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

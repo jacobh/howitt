@@ -1,5 +1,5 @@
 {
   "possibleTypes": {
-    "ElevationData": ["Ride", "Route"]
+    "ElevationPath": ["Ride", "Route"]
   }
 }

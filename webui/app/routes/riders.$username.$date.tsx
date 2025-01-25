@@ -24,7 +24,7 @@ const RIDES_WITH_DATE_QUERY = gql(`
         date
         pointsJson(pointsPerKm: $pointsPerKm)
         ...rideSummary
-        ...elevationData
+        ...elevationPath
       }
     }
   }
