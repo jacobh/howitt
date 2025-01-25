@@ -327,6 +327,12 @@ export type RouteItemFragment = {
   isMetaComplete: boolean;
 } & { " $fragmentName"?: "RouteItemFragment" };
 
+export type TripItemFragment = {
+  __typename?: "Trip";
+  id: any;
+  name: string;
+} & { " $fragmentName"?: "TripItemFragment" };
+
 export type LoginViewerInfoQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoginViewerInfoQuery = {
@@ -381,6 +387,11 @@ export type UserProfileQueryQuery = {
     recentRides: Array<
       { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
         " $fragmentRefs"?: { RideItemFragment: RideItemFragment };
+      }
+    >;
+    trips: Array<
+      { __typename?: "Trip"; id: any; name: string } & {
+        " $fragmentRefs"?: { TripItemFragment: TripItemFragment };
       }
     >;
   } | null;
@@ -632,6 +643,26 @@ export const RideSummaryFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<RideSummaryFragment, unknown>;
+export const TripItemFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TripItemFragment, unknown>;
 export const UserItemFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -1111,6 +1142,21 @@ export const UserProfileQueryDocument = {
                     ],
                   },
                 },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "trips" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "FragmentSpread",
+                        name: { kind: "Name", value: "tripItem" },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -1155,6 +1201,21 @@ export const UserProfileQueryDocument = {
               ],
             },
           },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
         ],
       },
     },

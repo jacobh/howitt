@@ -12,6 +12,7 @@ import { sortBy } from "lodash";
 import { RideItem } from "~/components/rides/RideItem";
 import { css } from "@emotion/react";
 import { COLORS } from "~/styles/theme";
+import { TripItem } from "~/components/trips/TripItem";
 
 const USER_PROFILE_QUERY = gql(`
   query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
@@ -23,6 +24,11 @@ const USER_PROFILE_QUERY = gql(`
           date
           pointsJson(pointsPerKm: $pointsPerKm)
           ...rideItem
+        }
+        trips {
+          id
+          name
+          ...tripItem
         }
     }
     viewer {
@@ -40,6 +46,12 @@ const rideItemContainerCss = css`
   }
 `;
 
+const sectionHeaderCss = css`
+  padding: 20px 1.5%;
+  font-size: 1.2em;
+  font-weight: bold;
+`;
+
 export default function UserProfile(): React.ReactElement {
   const params = useParams();
 
@@ -54,7 +66,7 @@ export default function UserProfile(): React.ReactElement {
 
   const sidebarRides = sortBy(
     data?.userWithUsername?.recentRides ?? [],
-    (ride) => ride.date,
+    (ride) => ride.date
   )
     .reverse()
     .slice(0, 30);
@@ -77,6 +89,14 @@ export default function UserProfile(): React.ReactElement {
       >
         {data?.userWithUsername?.username ? (
           <div>
+            <div css={sectionHeaderCss}>Trips</div>
+            {data.userWithUsername.trips.map((trip) => (
+              <div key={trip.id} css={rideItemContainerCss}>
+                <TripItem trip={trip} />
+              </div>
+            ))}
+
+            <div css={sectionHeaderCss}>Recent Rides</div>
             {sidebarRides.map((ride) => (
               <div key={ride.id} css={rideItemContainerCss}>
                 <RideItem ride={ride} />
