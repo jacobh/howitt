@@ -21,10 +21,11 @@ import { DataTable } from "~/components/DataTable";
 import { capitalize } from "lodash";
 
 const ROUTE_QUERY = gql(`
-query RouteQuery($routeId: RouteId!) {
-  route(id: $routeId) {
+query RouteQuery($slug: String!) {
+  routeWithSlug(slug: $slug) {
     id
     name
+    slug
     externalRef {
       canonicalUrl
     }
@@ -104,17 +105,19 @@ export default function Route(): React.ReactElement {
   const params = useParams();
 
   const { data } = useQuery(ROUTE_QUERY, {
-    variables: { routeId: ["ROUTE", params.routeId].join("#") },
+    variables: { slug: params.slug ?? "" },
   });
 
-  const nearbyRoutes = (data?.route?.termini ?? []).flatMap((t) =>
+  const route = data?.routeWithSlug;
+
+  const nearbyRoutes = (route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== data?.route?.id,
+      (nearby) => nearby.closestTerminus.route.id !== route?.id,
     ),
   );
 
   const routes: DisplayedRoute[] = [
-    data?.route ? { route: data.route } : undefined,
+    route ? { route } : undefined,
     ...nearbyRoutes.map((nearby) => ({
       route: nearby.closestTerminus.route,
       style: "muted" as const,
@@ -122,10 +125,10 @@ export default function Route(): React.ReactElement {
   ].filter(isNotNil);
 
   const tableItems = [
-    { name: "Technical Difficulty", value: data?.route?.technicalDifficulty },
-    { name: "Physical Difficulty", value: data?.route?.physicalDifficulty },
-    { name: "Scouted", value: data?.route?.scouted },
-    { name: "Direction", value: data?.route?.direction },
+    { name: "Technical Difficulty", value: route?.technicalDifficulty },
+    { name: "Physical Difficulty", value: route?.physicalDifficulty },
+    { name: "Scouted", value: route?.scouted },
+    { name: "Direction", value: route?.direction },
   ]
     .map(({ name, value }) => (isNotNil(value) ? { name, value } : undefined))
     .filter(isNotNil)
@@ -137,25 +140,25 @@ export default function Route(): React.ReactElement {
       <SidebarContainer
         titleSegments={[
           { name: "Routes", linkTo: "/routes" },
-          ...(data?.route
+          ...(route
             ? [
                 {
-                  name: data.route.name,
-                  linkTo: `/routes/${data.route.id}`,
+                  name: route.name,
+                  linkTo: `/routes/${route.slug}`,
                 },
               ]
             : []),
         ]}
       >
         <div css={routeContentContainerCss}>
-          {data?.route ? (
+          {route ? (
             <>
               <section css={{ marginTop: "2px" }}>
-                <RouteVitals route={data.route} />
+                <RouteVitals route={route} />
               </section>
-              {isNotNil(data.route.tags) ? (
+              {isNotNil(route.tags) ? (
                 <section css={contentSectionCss}>
-                  {data.route.tags.map((tag) => (
+                  {route.tags.map((tag) => (
                     <Link to={`/?tags=${tag}`} key={tag} css={tagLinkCss}>
                       #{tag}
                     </Link>
@@ -164,28 +167,28 @@ export default function Route(): React.ReactElement {
               ) : (
                 <></>
               )}
-              {data.route.externalRef ? (
+              {route.externalRef ? (
                 <section css={contentSectionCss}>
                   <p css={{ color: COLORS.darkGrey }}>
                     <a
                       target="_blank"
                       rel="noreferrer"
-                      href={data.route.externalRef?.canonicalUrl}
+                      href={route.externalRef?.canonicalUrl}
                     >
-                      {data.route.externalRef?.canonicalUrl.split("://")[1]}
+                      {route.externalRef?.canonicalUrl.split("://")[1]}
                     </a>
                   </p>
                 </section>
               ) : (
                 <></>
               )}
-              {data.route.description ? (
+              {route.description ? (
                 <section css={contentSectionCss}>
-                  <p>{data.route.description}</p>
+                  <p>{route.description}</p>
                 </section>
               ) : null}
               <section css={contentSectionCss}>
-                <ElevationProfile data={data.route} />
+                <ElevationProfile data={route} />
               </section>
 
               {tableItems.length > 0 ? (
@@ -194,21 +197,21 @@ export default function Route(): React.ReactElement {
                 </section>
               ) : null}
 
-              {data.route.minimumBike ? (
+              {route.minimumBike ? (
                 <section css={contentSectionCss}>
                   <BikeSpecContent
                     title="Minimum Bike"
-                    bikeSpec={data.route.minimumBike}
+                    bikeSpec={route.minimumBike}
                   />
                 </section>
               ) : (
                 <></>
               )}
-              {data.route.idealBike ? (
+              {route.idealBike ? (
                 <section css={contentSectionCss}>
                   <BikeSpecContent
                     title="Ideal Bike"
-                    bikeSpec={data.route.idealBike}
+                    bikeSpec={route.idealBike}
                   />
                 </section>
               ) : (
@@ -218,14 +221,14 @@ export default function Route(): React.ReactElement {
           ) : (
             <></>
           )}
-          {data?.route?.photos.map((photo) => (
+          {route?.photos.map((photo) => (
             <section css={contentSectionCss} key={photo.id}>
               <Photo photo={photo} />
             </section>
           ))}
           {nearbyRoutes.length > 0 ? (
             <section css={contentSectionCss}>
-              {data?.route?.termini.map((terminus) => (
+              {route?.termini.map((terminus) => (
                 <NearbyRoutes key={terminus.bearing} terminus={terminus} />
               ))}
             </section>
@@ -235,9 +238,7 @@ export default function Route(): React.ReactElement {
       <MapContainer>
         <Map
           routes={routes}
-          initialView={
-            data?.route ? { type: "route", routeId: data.route.id } : undefined
-          }
+          initialView={route ? { type: "route", routeId: route.id } : undefined}
         />
       </MapContainer>
     </Container>

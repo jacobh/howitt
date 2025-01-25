@@ -8,6 +8,7 @@ export const RouteItemFragment = gql(`
     fragment routeItem on Route {
         id
         name
+        slug
         distance
         elevationAscentM
         elevationDescentM
@@ -56,7 +57,7 @@ export function RouteItem({
         className="route-title"
         css={css([defaultRouteTitleCss, routeTitleCss])}
       >
-        <Link to={`/routes/${route.id.split("#")[1]}`}>{route.name}</Link>
+        <Link to={`/routes/${route.slug}`}>{route.name}</Link>
         {titlePostfix && (
           <span css={titlePostfixCss}>&nbsp;&nbsp;{titlePostfix}</span>
         )}

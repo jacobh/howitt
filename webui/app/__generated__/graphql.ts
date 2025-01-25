@@ -129,6 +129,7 @@ export type Query = {
   queryRoutes: Array<Route>;
   rides: Array<Ride>;
   route?: Maybe<Route>;
+  routeWithSlug?: Maybe<Route>;
   routes: Array<Route>;
   starredRoutes: Array<Route>;
   userWithUsername?: Maybe<UserProfile>;
@@ -145,6 +146,10 @@ export type QueryQueryRoutesArgs = {
 
 export type QueryRouteArgs = {
   id: Scalars["RouteId"]["input"];
+};
+
+export type QueryRouteWithSlugArgs = {
+  slug: Scalars["String"]["input"];
 };
 
 export type QueryUserWithUsernameArgs = {
@@ -208,6 +213,7 @@ export type Route = ElevationPath & {
   samplePoints: Array<Array<Scalars["Float"]["output"]>>;
   samplePointsCount: Scalars["Int"]["output"];
   scouted?: Maybe<Scouted>;
+  slug: Scalars["String"]["output"];
   tags?: Maybe<Array<Scalars["String"]["output"]>>;
   technicalDifficulty?: Maybe<DifficultyRating>;
   termini: Array<Terminus>;
@@ -314,6 +320,7 @@ export type RouteItemFragment = {
   __typename?: "Route";
   id: any;
   name: string;
+  slug: string;
   distance: number;
   elevationAscentM: number;
   elevationDescentM: number;
@@ -423,16 +430,17 @@ export type NearbyRoutesInfoFragment = {
 } & { " $fragmentName"?: "NearbyRoutesInfoFragment" };
 
 export type RouteQueryQueryVariables = Exact<{
-  routeId: Scalars["RouteId"]["input"];
+  slug: Scalars["String"]["input"];
 }>;
 
 export type RouteQueryQuery = {
   __typename?: "Query";
-  route?:
+  routeWithSlug?:
     | ({
         __typename?: "Route";
         id: any;
         name: string;
+        slug: string;
         tags?: Array<string> | null;
         distance: number;
         elevationAscentM: number;
@@ -659,6 +667,7 @@ export const RouteItemFragmentDoc = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
@@ -753,6 +762,7 @@ export const NearbyRoutesInfoFragmentDoc = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
@@ -1268,15 +1278,12 @@ export const RouteQueryDocument = {
       variableDefinitions: [
         {
           kind: "VariableDefinition",
-          variable: {
-            kind: "Variable",
-            name: { kind: "Name", value: "routeId" },
-          },
+          variable: { kind: "Variable", name: { kind: "Name", value: "slug" } },
           type: {
             kind: "NonNullType",
             type: {
               kind: "NamedType",
-              name: { kind: "Name", value: "RouteId" },
+              name: { kind: "Name", value: "String" },
             },
           },
         },
@@ -1286,14 +1293,14 @@ export const RouteQueryDocument = {
         selections: [
           {
             kind: "Field",
-            name: { kind: "Name", value: "route" },
+            name: { kind: "Name", value: "routeWithSlug" },
             arguments: [
               {
                 kind: "Argument",
-                name: { kind: "Name", value: "id" },
+                name: { kind: "Name", value: "slug" },
                 value: {
                   kind: "Variable",
-                  name: { kind: "Name", value: "routeId" },
+                  name: { kind: "Name", value: "slug" },
                 },
               },
             ],
@@ -1302,6 +1309,7 @@ export const RouteQueryDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "slug" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "externalRef" },
@@ -1484,6 +1492,7 @@ export const RouteQueryDocument = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
@@ -1684,6 +1693,7 @@ export const HomeQueryDocument = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
