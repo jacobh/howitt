@@ -6,13 +6,10 @@ use crate::{
         route::{RouteId, RouteModel},
     },
     repos::RouteModelRepo,
-    services::simplify_points::{simplify_points, SimplifyTarget},
+    services::simplify_points::simplify_points,
 };
 
-#[derive(Debug)]
-pub struct PointsFetcherParams {
-    pub target: SimplifyTarget,
-}
+use super::PointsFetcherParams;
 
 pub struct SimplifiedRoutePointsFetcher<Redis: RedisClient> {
     pub route_repo: RouteModelRepo,
