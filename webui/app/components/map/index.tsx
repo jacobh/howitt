@@ -61,7 +61,7 @@ export function Map({
   onVisibleRoutesChanged,
   onRouteClicked,
 }: MapProps): React.ReactElement {
-  const { map: existingMap } = useMap({
+  const { map } = useMap({
     initialView,
     onVisibleRoutesChanged,
     onRouteClicked,
@@ -102,12 +102,10 @@ export function Map({
   );
 
   useEffect(() => {
-    if (!existingMap) {
+    if (!map) {
       console.log("no map yet");
       return;
     }
-
-    const map = existingMap;
 
     const layers = map.getLayers().getArray();
 
@@ -311,15 +309,7 @@ export function Map({
         );
       }
     }
-  }, [
-    routes,
-    checkpoints,
-    existingMap,
-    initialView,
-    hutStyle,
-    stationStyle,
-    rides,
-  ]);
+  }, [routes, checkpoints, map, initialView, hutStyle, stationStyle, rides]);
 
   return <div css={mapCss} id="map" />;
 }
