@@ -13,7 +13,7 @@ metadata:
   name: www-to-non-www
 spec:
   redirectRegex:
-    regex: ^https://www\.howittplains\.net/(.*)
+    regex: ^https?://www\.howittplains\.net/(.*)
     replacement: https://howittplains.net/${1}
     permanent: true
 ---
