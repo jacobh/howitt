@@ -6,13 +6,13 @@ use howitt::models::ModelRef;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
+use crate::graphql::schema::ModelId;
 
 use super::point_of_interest::PointOfInterest;
 use super::ride::Ride;
 use super::route::Route;
 use super::user::UserProfile;
 use super::viewer::Viewer;
-use super::ModelId;
 
 #[derive(InputObject)]
 pub struct QueryRouteFilters {

@@ -16,7 +16,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
-use super::{
+use crate::graphql::schema::{
     cue::Cue,
     geo::{PointDelta, SlopeEnd},
     photo::Photo,

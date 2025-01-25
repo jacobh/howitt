@@ -1,8 +1,8 @@
 use async_graphql::{Context, Object};
 use howitt::models::{ride::RideFilter, trip::TripId};
 
-use super::{ride::Ride, ModelId};
 use crate::graphql::context::SchemaData;
+use crate::graphql::schema::{ride::Ride, ModelId};
 
 pub struct Trip(pub howitt::models::trip::Trip);
 

@@ -1,7 +1,7 @@
 use async_graphql::Object;
 use howitt::models::photo::PhotoId;
 
-use super::ModelId;
+use crate::graphql::schema::ModelId;
 
 pub struct Photo<ID>(pub howitt::models::photo::Photo<ID>);
 

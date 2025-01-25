@@ -9,18 +9,11 @@ use serde::{Deserialize, Serialize};
 
 use super::context::SchemaData;
 
-pub mod cue;
-pub mod geo;
 pub mod interfaces;
-pub mod photo;
-pub mod point_of_interest;
-pub mod query;
-pub mod ride;
-pub mod route;
+pub mod objects;
 pub mod scalars;
-pub mod trip;
-pub mod user;
-pub mod viewer;
+
+pub use objects::*;
 
 #[derive(Serialize, Deserialize, From)]
 pub struct ModelId<ID: howitt::models::ModelId>(ID);

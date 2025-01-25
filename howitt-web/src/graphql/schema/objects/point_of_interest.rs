@@ -1,7 +1,7 @@
 use async_graphql::{Enum, Object};
 use howitt::models::{point_of_interest::PointOfInterestId, Model};
 
-use super::ModelId;
+use crate::graphql::schema::ModelId;
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 #[graphql(remote = "howitt::models::point_of_interest::PointOfInterestType")]
