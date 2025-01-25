@@ -4,7 +4,7 @@ use howitt::models::{ride::RideFilter, user::UserId};
 use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
-use crate::graphql::schema::{ride::Ride, scalars::iso_date::IsoDate, trip::Trip, ModelId};
+use crate::graphql::schema::{ride::Ride, trip::Trip, IsoDate, ModelId};
 
 pub struct UserProfile(pub howitt::models::user::User);
 

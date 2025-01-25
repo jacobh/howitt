@@ -1,29 +1,12 @@
-use async_graphql::scalar;
-use derive_more::derive::From;
-use howitt::models::{
-    photo::PhotoId, point_of_interest::PointOfInterestId, ride::RideId, route::RouteId,
-    trip::TripId, user::UserId,
-};
-use interfaces::elevation_data::ElevationData;
-use serde::{Deserialize, Serialize};
-
 use super::context::SchemaData;
 
 pub mod interfaces;
 pub mod objects;
 pub mod scalars;
 
+pub use interfaces::*;
 pub use objects::*;
-
-#[derive(Serialize, Deserialize, From)]
-pub struct ModelId<ID: howitt::models::ModelId>(ID);
-
-scalar!(ModelId<PhotoId>, "PhotoId");
-scalar!(ModelId<PointOfInterestId>, "PointOfInterestId");
-scalar!(ModelId<RideId>, "RideId");
-scalar!(ModelId<RouteId>, "RouteId");
-scalar!(ModelId<TripId>, "TripId");
-scalar!(ModelId<UserId>, "UserId");
+pub use scalars::*;
 
 pub type Schema = async_graphql::Schema<
     query::Query,

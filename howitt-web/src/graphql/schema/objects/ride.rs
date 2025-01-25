@@ -14,7 +14,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
-use crate::graphql::schema::{scalars::iso_date::IsoDate, user::UserProfile, ModelId};
+use crate::graphql::schema::{user::UserProfile, IsoDate, ModelId};
 
 pub struct Ride(pub howitt::models::ride::Ride);
 
