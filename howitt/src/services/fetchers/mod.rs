@@ -1,3 +1,4 @@
+mod cache;
 mod simplified_ride_points;
 mod simplified_route_points;
 
