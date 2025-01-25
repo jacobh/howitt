@@ -53,10 +53,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let trip_repo = Arc::new(PostgresTripRepo::new(pg.clone()));
 
     let user_auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
-    let simplified_ride_points_fetcher = SimplifiedRidePointsFetcher {
-        ride_points_repo: ride_points_repo.clone(),
-        redis_client: redis,
-    };
+    let simplified_ride_points_fetcher =
+        SimplifiedRidePointsFetcher::new(ride_points_repo.clone(), redis);
 
     let schema = build_schema(SchemaData {
         poi_repo,
