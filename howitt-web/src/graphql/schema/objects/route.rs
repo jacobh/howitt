@@ -18,10 +18,11 @@ use crate::graphql::context::SchemaData;
 
 use crate::graphql::schema::{
     cue::Cue,
+    external_ref::ExternalRef,
     geo::{PointDelta, SlopeEnd},
     photo::Photo,
     user::UserProfile,
-    ExternalRef, ModelId,
+    ModelId,
 };
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]

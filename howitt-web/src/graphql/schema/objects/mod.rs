@@ -1,4 +1,5 @@
 pub mod cue;
+pub mod external_ref;
 pub mod geo;
 pub mod photo;
 pub mod point_of_interest;
