@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from routes where is_starred = $1 or is_starred is null",
+  "query": "select * from routes",
   "describe": {
     "columns": [
       {
@@ -100,9 +100,7 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Bool"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -126,5 +124,5 @@
       false
     ]
   },
-  "hash": "eafcf56a2a9812bd11701a16fc5ce47ec8ff9701b986d94bd6f6e9f3de978ca5"
+  "hash": "bd204eebdee49a769a63189b83695232c5e64d2175a6e184b3428e3b4a583bcb"
 }
