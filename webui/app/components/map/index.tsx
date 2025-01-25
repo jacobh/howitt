@@ -45,7 +45,7 @@ interface MapProps {
     | { type: "route"; routeId: string }
     | { type: "view"; view: ViewOptions };
   onVisibleRoutesChanged?: (
-    routes: { routeId: string; distanceFromCenter: number }[],
+    routes: { routeId: string; distanceFromCenter: number }[]
   ) => void;
 
   onRouteClicked?: (routeId: string | undefined) => void;
@@ -103,7 +103,7 @@ export function Map({
           radius: 5,
         }),
       }),
-    [],
+    []
   );
 
   const stationStyle = useMemo<Style>(
@@ -120,7 +120,7 @@ export function Map({
           radius: 5,
         }),
       }),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -199,12 +199,12 @@ export function Map({
           const distanceFromCenter = min(
             features
               .map((feature) =>
-                feature.getGeometry()?.getClosestPoint(viewState.center),
+                feature.getGeometry()?.getClosestPoint(viewState.center)
               )
               .filter(isNotNil)
               .map((closestPoint) =>
-                getDistance(closestPoint, viewState.center),
-              ),
+                getDistance(closestPoint, viewState.center)
+              )
           );
 
           return isNotNil(distanceFromCenter)
@@ -215,7 +215,7 @@ export function Map({
         .flatMap(({ layer }) =>
           isNotNil(layer.getProperties().routeId)
             ? { routeId: layer.getProperties().routeId, distanceFromCenter: 0 }
-            : undefined,
+            : undefined
         )
         .filter(isNotNil);
 
@@ -252,21 +252,41 @@ export function Map({
 
     const layers = map.getLayers().getArray();
 
-    // cleanup any routes that have been dropped
+    // cleanup any routes/rides that have been dropped
     for (const layer of layers) {
       if (layer instanceof VectorLayer) {
         const vectorLayer = layer as VectorLayer<any>;
 
         const layerRouteId = vectorLayer.getProperties().routeId;
+        const layerRideId = vectorLayer.getProperties().rideId;
 
         if (isNotNil(layerRouteId)) {
           const isLayerRouteInCurrentRender = some(
             routes,
-            ({ route }) => route.id === layerRouteId,
+            ({ route }) => route.id === layerRouteId
           );
 
           if (!isLayerRouteInCurrentRender) {
-            map.removeLayer(layer);
+            setInterval(() => {
+              map.removeLayer(layer);
+            }, 1);
+          }
+        }
+
+        console.log(
+          layerRideId,
+          some(rides, (ride) => ride.id === layerRideId)
+        );
+        if (isNotNil(layerRideId)) {
+          const isLayerRideInCurrentRender = some(
+            rides,
+            (ride) => ride.id === layerRideId
+          );
+
+          if (!isLayerRideInCurrentRender) {
+            setInterval(() => {
+              map.removeLayer(layer);
+            }, 1);
           }
         }
       }
@@ -304,7 +324,7 @@ export function Map({
             features: [
               new Feature({ geometry: newLineString, routeId: route.id }),
             ],
-          }),
+          })
         );
 
         layer.setProperties({
@@ -330,7 +350,7 @@ export function Map({
       layer.setStyle(
         new Style({
           stroke: new Stroke({ color, width: 4 }),
-        }),
+        })
       );
 
       if (initialView?.type === "route" && initialView.routeId === route.id) {
@@ -372,7 +392,7 @@ export function Map({
             features: [
               new Feature({ geometry: newLineString, rideId: ride.id }),
             ],
-          }),
+          })
         );
 
         layer.setProperties({
@@ -400,7 +420,7 @@ export function Map({
       layer.setStyle(
         new Style({
           stroke: new Stroke({ color, width: 4 }),
-        }),
+        })
       );
 
       if (initialView?.type === "ride" && initialView.rideId === ride.id) {
@@ -414,7 +434,7 @@ export function Map({
     for (const checkpoint of checkpoints ?? []) {
       console.log(checkpoint.name);
       const existingLayer = layers.find(
-        (layer) => layer.getProperties().checkpointName === checkpoint.name,
+        (layer) => layer.getProperties().checkpointName === checkpoint.name
       );
 
       if (existingLayer === undefined) {
@@ -428,7 +448,7 @@ export function Map({
               checkpoint.pointOfInterestType === PointOfInterestType.Hut
                 ? hutStyle
                 : stationStyle,
-          }),
+          })
         );
       }
     }
