@@ -1,39 +1,30 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import OlMap from "ol/Map";
-import { getDistance } from "ol/sphere";
-import View, { ViewOptions } from "ol/View";
-import TileLayer from "ol/layer/Tile";
-import XYZ from "ol/source/XYZ";
-import { useGeographic } from "ol/proj";
+import React, { useEffect, useMemo } from "react";
+import { ViewOptions } from "ol/View";
 import {
   Route,
   Ride,
   PointOfInterest,
   PointOfInterestType,
 } from "../../__generated__/graphql";
-import { Feature, MapBrowserEvent } from "ol";
+import { Feature } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { Style, Stroke, Circle } from "ol/style";
 import { LineString, Point } from "ol/geom";
 import Fill from "ol/style/Fill";
 import { css } from "@emotion/react";
-import BaseEvent from "ol/events/Event";
 import { isNotNil } from "~/services/isNotNil";
-import { debounce, min, some } from "lodash";
+import { some } from "lodash";
+import { useMap } from "./useMap";
+
+export { MapContext } from "./context";
 
 export interface DisplayedRoute {
   route: Pick<Route, "id" | "pointsJson">;
   style?: "default" | "muted" | "highlighted";
 }
 
-interface MapProps {
+export interface MapProps {
   routes?: DisplayedRoute[];
   rides?: Pick<Ride, "id" | "pointsJson">[];
   checkpoints?: Pick<
@@ -50,13 +41,6 @@ interface MapProps {
 
   onRouteClicked?: (routeId: string | undefined) => void;
 }
-
-interface MapContext {
-  map?: OlMap | undefined;
-  setMap: (map: OlMap) => void;
-}
-
-export const MapContext = createContext<MapContext>({ setMap: () => {} });
 
 export const DEFAULT_VIEW: ViewOptions = {
   center: [146, -37],
@@ -77,9 +61,11 @@ export function Map({
   onVisibleRoutesChanged,
   onRouteClicked,
 }: MapProps): React.ReactElement {
-  const { map: existingMap, setMap } = useContext(MapContext);
-
-  const [isFirstMapRender, setIsFirstRender] = useState(true);
+  const { map: existingMap } = useMap({
+    initialView,
+    onVisibleRoutesChanged,
+    onRouteClicked,
+  });
 
   const hutStyle = useMemo<Style>(
     () =>
@@ -114,125 +100,6 @@ export function Map({
       }),
     []
   );
-
-  useEffect(() => {
-    let map: OlMap;
-
-    if (existingMap instanceof OlMap) {
-      console.log("map already rendered");
-
-      map = existingMap;
-
-      existingMap.setTarget("map");
-    } else {
-      console.log("initial map render");
-
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      useGeographic();
-
-      const newMap = new OlMap({
-        target: "map",
-        layers: [
-          new TileLayer({
-            preload: Infinity,
-            source: new XYZ({
-              urls: [
-                "https://d2o31mmlexa59r.cloudfront.net/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
-              ],
-            }),
-          }),
-        ],
-      });
-
-      setMap(newMap);
-
-      map = newMap;
-    }
-
-    if (isFirstMapRender && initialView?.type === "view") {
-      map.setView(new View({ ...initialView.view, enableRotation: false }));
-    }
-    if (existingMap === undefined) {
-      map.setView(new View(DEFAULT_VIEW));
-    }
-
-    setIsFirstRender(false);
-
-    const clickListener = (event: MapBrowserEvent<any>): void => {
-      const clickedFeatures = map.getFeaturesAtPixel(event.pixel, {
-        hitTolerance: 20.0,
-      });
-      const feature = clickedFeatures[0];
-
-      if (!isNotNil(feature)) {
-        if (isNotNil(onRouteClicked)) {
-          onRouteClicked(undefined);
-        }
-        return;
-      }
-
-      const { routeId } = feature.getProperties();
-
-      if (isNotNil(onRouteClicked)) {
-        onRouteClicked(routeId);
-      }
-    };
-
-    const onViewChange = debounce((event: BaseEvent): void => {
-      const view = event.target as View;
-      const { extent, viewState } = view.getViewStateAndExtent();
-
-      const visibleRoutes = map
-        .getAllLayers()
-        .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
-        .flatMap((layer) => {
-          const source = layer.getSource() as VectorSource;
-          const features = source.getFeaturesInExtent(extent);
-          const distanceFromCenter = min(
-            features
-              .map((feature) =>
-                feature.getGeometry()?.getClosestPoint(viewState.center)
-              )
-              .filter(isNotNil)
-              .map((closestPoint) =>
-                getDistance(closestPoint, viewState.center)
-              )
-          );
-
-          return isNotNil(distanceFromCenter)
-            ? { layer, distanceFromCenter }
-            : undefined;
-        })
-        .filter(isNotNil)
-        .flatMap(({ layer }) =>
-          isNotNil(layer.getProperties().routeId)
-            ? { routeId: layer.getProperties().routeId, distanceFromCenter: 0 }
-            : undefined
-        )
-        .filter(isNotNil);
-
-      if (onVisibleRoutesChanged) {
-        onVisibleRoutesChanged(visibleRoutes);
-      }
-    }, 250);
-
-    map.on("click", clickListener);
-    map.getView().on("change:center", onViewChange);
-
-    return () => {
-      map.setTarget(undefined);
-      map.un("click", clickListener);
-      map.getView().un("change:center", onViewChange);
-    };
-  }, [
-    existingMap,
-    setMap,
-    initialView,
-    onVisibleRoutesChanged,
-    isFirstMapRender,
-    setIsFirstRender,
-    onRouteClicked,
-  ]);
 
   useEffect(() => {
     if (!existingMap) {
