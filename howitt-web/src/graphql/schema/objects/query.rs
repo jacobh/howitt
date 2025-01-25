@@ -113,6 +113,17 @@ impl Query {
 
         Ok(Some(Route(ModelRef::from_model(route))))
     }
+    async fn route_with_slug<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        slug: String,
+    ) -> Result<Option<Route>, async_graphql::Error> {
+        let SchemaData { route_repo, .. } = ctx.data()?;
+
+        let route = route_repo.find_model(RouteFilter::Slug(slug)).await?;
+
+        Ok(route.map(|r| Route(ModelRef::from_model(r))))
+    }
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
         let SchemaData { ride_repo, .. } = ctx.data()?;
         let rides = ride_repo.all_indexes().await?;
