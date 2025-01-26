@@ -13,7 +13,7 @@ jobs:
           matrix:
             include:
               - region: ap-southeast-2
-                stack: HowittStack
+                stack: CdkStack
               - region: ap-southeast-4
                 stack: HowittMediaStack
 

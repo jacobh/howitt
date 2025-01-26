@@ -145,7 +145,7 @@ export class CdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 
-new CdkStack(app, "HowittStack", {
+new CdkStack(app, "CdkStack", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: "ap-southeast-2",
