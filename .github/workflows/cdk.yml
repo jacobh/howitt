@@ -9,6 +9,13 @@ jobs:
     build:
         runs-on: ubuntu-latest
         environment: Production
+        strategy:
+          matrix:
+            include:
+              - region: ap-southeast-2
+                stack: HowittStack
+              - region: ap-southeast-4
+                stack: HowittMediaStack
 
         steps:
             - name: Checkout
@@ -43,11 +50,13 @@ jobs:
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-              run: npm run -- cdk synth
+                AWS_REGION: ${{ matrix.region }}
+              run: npm run -- cdk synth ${{ matrix.stack }}
 
             - name: cdk deploy
               working-directory: cdk
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-              run: npm run -- cdk deploy --all
+                AWS_REGION: ${{ matrix.region }}
+              run: npm run -- cdk deploy ${{ matrix.stack }} --require-approval never

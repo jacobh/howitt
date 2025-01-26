@@ -60,10 +60,9 @@ import {
 } from "aws-cdk-lib/aws-ec2";
 import { AutoScalingGroup } from "aws-cdk-lib/aws-autoscaling";
 import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
+import { MediaStack } from "./howitt-media-stack";
 
 const PROJECT_ROOT_DIR = path.resolve(__dirname, "../..");
-
-console.log(PROJECT_ROOT_DIR);
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -147,3 +146,20 @@ export class CdkStack extends cdk.Stack {
     });
   }
 }
+
+const app = new cdk.App();
+
+new CdkStack(app, "HowittStack", {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: "ap-southeast-2",
+  },
+});
+
+// Media stack in ap-southeast-4
+new MediaStack(app, "HowittMediaStack", {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: "ap-southeast-4",
+  },
+});
