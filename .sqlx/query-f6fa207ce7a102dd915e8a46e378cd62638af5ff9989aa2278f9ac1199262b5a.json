@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO ride_media (ride_id, media_id) \n                VALUES ($1, $2)\n                ON CONFLICT (ride_id, media_id) DO NOTHING\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f6fa207ce7a102dd915e8a46e378cd62638af5ff9989aa2278f9ac1199262b5a"
+}

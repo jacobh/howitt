@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    SELECT\n                        m.*,\n                        mr.ride_ids,\n                        mr.route_ids,\n                        mr.trip_ids,\n                        mr.poi_ids\n                    FROM media m\n                    INNER JOIN media_relations mr ON mr.id = m.id\n                    INNER JOIN poi_media pm ON pm.media_id = m.id\n                    WHERE pm.poi_id = $1\n                    ORDER BY m.created_at DESC\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "ride_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 5,
+        "name": "route_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 6,
+        "name": "trip_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 7,
+        "name": "poi_ids",
+        "type_info": "UuidArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "fe6933eeb39d4ed23b06b402fe15bfb8d8161e297e334fecb1331a6b2b351b4f"
+}

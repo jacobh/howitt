@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM ride_media \n            WHERE media_id = $1 \n            AND ride_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a8ad450cf6f113ebd5dc9ccb07bcfa87f42b36425792332eeffdb97e134bf0c9"
+}
