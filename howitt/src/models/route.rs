@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use derive_more::From;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +10,6 @@ use crate::{
 
 use super::{
     external_ref::ExternallySourced,
-    photo::Photo,
     route_description::RouteDescription,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
@@ -104,19 +102,10 @@ pub enum RouteFilter {
 pub struct RouteModel {
     pub route: Route,
     pub points: Vec<ElevationPoint>,
-    pub photos: Vec<Photo<RouteId>>,
 }
 impl RouteModel {
-    pub fn new(
-        route: Route,
-        points: Vec<ElevationPoint>,
-        photos: Vec<Photo<RouteId>>,
-    ) -> RouteModel {
-        RouteModel {
-            route,
-            points,
-            photos,
-        }
+    pub fn new(route: Route, points: Vec<ElevationPoint>) -> RouteModel {
+        RouteModel { route, points }
     }
 
     pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
@@ -145,44 +134,5 @@ impl crate::models::Model for RouteModel {
 
     fn as_index(&self) -> &Self::IndexItem {
         &self.route
-    }
-}
-
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, From)]
-#[serde(tag = "item")]
-pub enum RouteItem {
-    Photo(Photo<RouteId>),
-}
-impl RouteItem {
-    pub fn as_photo(&self) -> Option<&Photo<RouteId>> {
-        match self {
-            RouteItem::Photo(photo) => Some(photo),
-        }
-    }
-    pub fn into_photo(self) -> Option<Photo<RouteId>> {
-        match self {
-            RouteItem::Photo(photo) => Some(photo),
-        }
-    }
-}
-impl crate::models::OtherItem for RouteItem {
-    type Id = RouteId;
-
-    fn item_name(&self) -> String {
-        match self {
-            RouteItem::Photo(_) => "PHOTO".to_string(),
-        }
-    }
-
-    fn model_id(&self) -> RouteId {
-        match self {
-            RouteItem::Photo(photo) => photo.model_id,
-        }
-    }
-
-    fn item_id(&self) -> String {
-        match self {
-            RouteItem::Photo(photo) => photo.id.as_uuid().to_string(),
-        }
     }
 }

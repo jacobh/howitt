@@ -1,4 +1,6 @@
-import { Photo } from "~/__generated__/graphql";
+// import { Photo } from "~/__generated__/graphql";
+
+type Photo = any;
 
 interface ResizeOptions {
   width: number;
@@ -17,7 +19,7 @@ const BASE_URL = "https://d330luy891602k.cloudfront.net";
 
 export function generatePhotoUrl(
   photo: Pick<Photo, "id">,
-  size: PhotoSize,
+  size: PhotoSize
 ): string {
   const ulid = photo.id.split("#")[1];
 
@@ -34,7 +36,7 @@ export function generatePhotoUrl(
             effort: 4,
           },
         },
-      }),
+      })
     ),
   ].join("/");
 }

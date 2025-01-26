@@ -20,7 +20,6 @@ use crate::graphql::schema::{
     cue::Cue,
     external_ref::ExternalRef,
     geo::{PointDelta, SlopeEnd},
-    photo::Photo,
     user::UserProfile,
     ModelId,
 };
@@ -267,15 +266,6 @@ impl Route {
     }
     async fn tags(&self) -> Option<&Vec<String>> {
         Some(&self.route_description()?.tags)
-    }
-    async fn photos<'ctx>(
-        &self,
-        ctx: &Context<'ctx>,
-    ) -> Result<Vec<Photo<RouteId>>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?;
-
-        Ok(route_model.photos.clone().into_iter().map(Photo).collect())
     }
     async fn is_meta_complete(&self) -> bool {
         match self.route_description() {

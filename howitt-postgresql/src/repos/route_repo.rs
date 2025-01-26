@@ -168,7 +168,7 @@ impl TryFrom<RouteRow> for RouteModel {
         let route = Route::try_from(row)?;
         let points: Vec<ElevationPoint> = serde_json::from_value(points)?;
 
-        Ok(RouteModel::new(route, points, vec![]))
+        Ok(RouteModel::new(route, points))
     }
 }
 

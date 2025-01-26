@@ -9,7 +9,6 @@ use crate::{
     ext::iter::ResultIterExt,
     models::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
-        photo::{Photo, PhotoId},
         point::{ElevationPoint, TemporalElevationPoint},
         ride::{Ride, RideId, RidePoints},
         route::{Route, RouteId, RouteModel},
@@ -145,15 +144,6 @@ where
         existing_route: Option<Route>,
         SyncParams { user_id, .. }: &SyncParams,
     ) -> Result<(), anyhow::Error> {
-        let existing_route_model = match &existing_route {
-            Some(route) => Some(self.route_repo.get(route.id()).await?),
-            None => None,
-        };
-        let existing_photos = existing_route_model
-            .as_ref()
-            .map(|route| route.photos.clone())
-            .unwrap_or_default();
-
         let route = self.rwgps_client.route(route_id).await?;
 
         let id = RouteId::get_or_from_datetime(
@@ -214,36 +204,6 @@ where
 
         let points = smooth_elevation_points(points);
 
-        let photos = route
-            .photos
-            .into_iter()
-            .map(|photo| {
-                let external_ref = ExternalRef {
-                    id: ExternalId::Rwgps(RwgpsId::Photo(photo.id)),
-                    updated_at: photo.updated_at,
-                    sync_version: Some(SYNC_VERSION),
-                };
-
-                let existing_photo = existing_photos.iter().find(|existing_photo| {
-                    existing_photo.external_ref.as_ref().map(|r| &r.id) == Some(&external_ref.id)
-                });
-
-                match existing_photo {
-                    Some(existing_photo) => Photo {
-                        caption: photo.caption,
-                        ..existing_photo.clone()
-                    },
-                    None => Photo {
-                        model_id: id,
-                        id: PhotoId::from_datetime(photo.created_at),
-                        url: external_ref.id.canonical_url(),
-                        external_ref: Some(external_ref),
-                        caption: photo.caption,
-                    },
-                }
-            })
-            .collect_vec();
-
         let name = route.name.replace("[BCS]", "").trim().to_string();
 
         let model = RouteModel::new(
@@ -263,7 +223,6 @@ where
                 tags,
             },
             points,
-            photos,
         );
 
         self.route_repo.put(model).await?;

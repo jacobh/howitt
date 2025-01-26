@@ -3,10 +3,7 @@ use std::convert::identity;
 use clap::{arg, Args, Subcommand};
 use howitt::{
     models::user::UserId,
-    services::sync::{
-        photo::PhotoSyncService,
-        rwgps::{RwgpsSyncService, SyncParams},
-    },
+    services::sync::rwgps::{RwgpsSyncService, SyncParams},
 };
 use howitt_clients::{ReqwestHttpClient, S3BucketClient};
 use howitt_fs::load_user_config;
@@ -28,7 +25,6 @@ pub enum RwgpsCommands {
     Routes(Routes),
     Trips,
     Sync(SyncRwgps),
-    SyncPhotos,
 }
 
 #[derive(Args)]
@@ -141,22 +137,6 @@ pub async fn handle(
                     )?),
                 })
                 .await?;
-        }
-        RwgpsCommands::SyncPhotos => {
-            let photo_sync = PhotoSyncService {
-                bucket_client: S3BucketClient::new_from_env(
-                    howitt_client_types::BucketName::Photos,
-                )
-                .await,
-                http_client: ReqwestHttpClient::new(),
-                route_repo,
-            };
-
-            let result = photo_sync.sync().await;
-
-            dbg!(&result);
-
-            result?
         }
         RwgpsCommands::Routes(Routes::List) => {
             let routes: Vec<rwgps_types::Route> = load_routes()?

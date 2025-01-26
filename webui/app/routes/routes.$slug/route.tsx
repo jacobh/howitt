@@ -49,11 +49,6 @@ query RouteQuery($slug: String!) {
       frontSuspension
       rearSuspension
     }
-    photos {
-      id
-      url
-      caption
-    }
     termini {
       bearing
 
@@ -112,8 +107,8 @@ export default function Route(): React.ReactElement {
 
   const nearbyRoutes = (route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== route?.id,
-    ),
+      (nearby) => nearby.closestTerminus.route.id !== route?.id
+    )
   );
 
   const routes: DisplayedRoute[] = [
@@ -221,7 +216,7 @@ export default function Route(): React.ReactElement {
           ) : (
             <></>
           )}
-          {route?.photos.map((photo) => (
+          {[].map((photo: any) => (
             <section css={contentSectionCss} key={photo.id}>
               <Photo photo={photo} />
             </section>

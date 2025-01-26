@@ -17,7 +17,6 @@ pub mod cuesheet;
 pub mod external_ref;
 pub mod filters;
 pub mod maybe_pair;
-pub mod photo;
 pub mod point;
 pub mod point_of_interest;
 pub mod ride;

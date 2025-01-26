@@ -1,9 +1,9 @@
 import { css } from "@emotion/react";
-import { Photo as ApiPhoto } from "~/__generated__/graphql";
 import { PhotoSize, generatePhotoUrl } from "~/services/photos";
 
 interface Props {
-  photo: Pick<ApiPhoto, "id" | "caption">;
+  // photo: Pick<ApiPhoto, "id" | "caption">;
+  photo: any;
 }
 
 const photoCss = css`
