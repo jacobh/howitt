@@ -14,6 +14,35 @@ pub enum MediaRelationId {
     Trip(TripId),
     PointOfInterest(PointOfInterestId),
 }
+impl MediaRelationId {
+    pub fn as_ride_id(&self) -> Option<RideId> {
+        match self {
+            Self::Ride(id) => Some(*id),
+            _ => None,
+        }
+    }
+
+    pub fn as_route_id(&self) -> Option<RouteId> {
+        match self {
+            Self::Route(id) => Some(*id),
+            _ => None,
+        }
+    }
+
+    pub fn as_trip_id(&self) -> Option<TripId> {
+        match self {
+            Self::Trip(id) => Some(*id),
+            _ => None,
+        }
+    }
+
+    pub fn as_point_of_interest_id(&self) -> Option<PointOfInterestId> {
+        match self {
+            Self::PointOfInterest(id) => Some(*id),
+            _ => None,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Media {
@@ -22,6 +51,32 @@ pub struct Media {
     pub user_id: UserId,
     pub path: String,
     pub relation_ids: Vec<MediaRelationId>,
+}
+
+impl Media {
+    pub fn iter_ride_ids(&self) -> impl Iterator<Item = RideId> + '_ {
+        self.relation_ids
+            .iter()
+            .filter_map(|relation| relation.as_ride_id())
+    }
+
+    pub fn iter_route_ids(&self) -> impl Iterator<Item = RouteId> + '_ {
+        self.relation_ids
+            .iter()
+            .filter_map(|relation| relation.as_route_id())
+    }
+
+    pub fn iter_trip_ids(&self) -> impl Iterator<Item = TripId> + '_ {
+        self.relation_ids
+            .iter()
+            .filter_map(|relation| relation.as_trip_id())
+    }
+
+    pub fn iter_point_of_interest_ids(&self) -> impl Iterator<Item = PointOfInterestId> + '_ {
+        self.relation_ids
+            .iter()
+            .filter_map(|relation| relation.as_point_of_interest_id())
+    }
 }
 
 #[derive(Debug, Clone)]

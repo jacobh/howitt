@@ -255,6 +255,7 @@ impl Repo for PostgresMediaRepo {
     async fn put(&self, media: Media) -> Result<(), PostgresRepoError> {
         let mut tx = self.client.begin().await?;
 
+        // Insert/update the media record
         let query = sqlx::query!(
             r#"
             INSERT INTO media (
@@ -271,8 +272,126 @@ impl Repo for PostgresMediaRepo {
             media.user_id.as_uuid(),
             media.path,
         );
-
         query.execute(tx.as_mut()).await?;
+
+        // Handle ride relations
+        let ride_ids: Vec<_> = media.iter_ride_ids().map(|id| *id.as_uuid()).collect();
+
+        sqlx::query!(
+            r#"
+            DELETE FROM ride_media 
+            WHERE media_id = $1 
+            AND ride_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
+            "#,
+            media.id.as_uuid(),
+            &ride_ids,
+        )
+        .execute(tx.as_mut())
+        .await?;
+
+        for ride_id in ride_ids {
+            sqlx::query!(
+                r#"
+                INSERT INTO ride_media (ride_id, media_id) 
+                VALUES ($1, $2)
+                ON CONFLICT (ride_id, media_id) DO NOTHING
+                "#,
+                ride_id,
+                media.id.as_uuid(),
+            )
+            .execute(tx.as_mut())
+            .await?;
+        }
+
+        // Handle route relations
+        let route_ids: Vec<_> = media.iter_route_ids().map(|id| *id.as_uuid()).collect();
+        sqlx::query!(
+            r#"
+            DELETE FROM route_media 
+            WHERE media_id = $1 
+            AND route_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
+            "#,
+            media.id.as_uuid(),
+            &route_ids,
+        )
+        .execute(tx.as_mut())
+        .await?;
+
+        for route_id in route_ids {
+            sqlx::query!(
+                r#"
+                INSERT INTO route_media (route_id, media_id) 
+                VALUES ($1, $2)
+                ON CONFLICT (route_id, media_id) DO NOTHING
+                "#,
+                route_id,
+                media.id.as_uuid(),
+            )
+            .execute(tx.as_mut())
+            .await?;
+        }
+
+        // Handle trip relations
+        let trip_ids: Vec<_> = media.iter_trip_ids().map(|id| *id.as_uuid()).collect();
+
+        sqlx::query!(
+            r#"
+            DELETE FROM trip_media 
+            WHERE media_id = $1 
+            AND trip_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
+            "#,
+            media.id.as_uuid(),
+            &trip_ids,
+        )
+        .execute(tx.as_mut())
+        .await?;
+
+        for trip_id in trip_ids {
+            sqlx::query!(
+                r#"
+                INSERT INTO trip_media (trip_id, media_id) 
+                VALUES ($1, $2)
+                ON CONFLICT (trip_id, media_id) DO NOTHING
+                "#,
+                trip_id,
+                media.id.as_uuid(),
+            )
+            .execute(tx.as_mut())
+            .await?;
+        }
+
+        // Handle point of interest relations
+        let poi_ids: Vec<_> = media
+            .iter_point_of_interest_ids()
+            .map(|id| *id.as_uuid())
+            .collect();
+
+        sqlx::query!(
+            r#"
+            DELETE FROM poi_media 
+            WHERE media_id = $1 
+            AND poi_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
+            "#,
+            media.id.as_uuid(),
+            &poi_ids,
+        )
+        .execute(tx.as_mut())
+        .await?;
+
+        for poi_id in poi_ids {
+            sqlx::query!(
+                r#"
+                INSERT INTO poi_media (poi_id, media_id) 
+                VALUES ($1, $2)
+                ON CONFLICT (poi_id, media_id) DO NOTHING
+                "#,
+                poi_id,
+                media.id.as_uuid(),
+            )
+            .execute(tx.as_mut())
+            .await?;
+        }
+
         tx.commit().await?;
 
         Ok(())
