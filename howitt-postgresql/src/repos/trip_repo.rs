@@ -73,7 +73,7 @@ impl Repo for PostgresTripRepo {
                             tr.ride_ids,
                             tr.media_ids
                         FROM trips t
-                        LEFT JOIN trip_relations tr ON tr.id = t.id
+                        INNER JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1
                     "#,
                     user_id.as_uuid(),
@@ -90,7 +90,7 @@ impl Repo for PostgresTripRepo {
                             tr.ride_ids,
                             tr.media_ids
                         FROM trips t
-                        LEFT JOIN trip_relations tr ON tr.id = t.id
+                        INNER JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1 AND slug = $2
                     "#,
                     user_id.as_uuid(),
@@ -134,7 +134,7 @@ impl Repo for PostgresTripRepo {
                     tr.ride_ids,
                     tr.media_ids
                 FROM trips t
-                LEFT JOIN trip_relations tr ON tr.id = t.id
+                INNER JOIN trip_relations tr ON tr.id = t.id
                 WHERE t.id = $1
             "#,
             id.as_uuid()

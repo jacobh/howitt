@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT \n                    t.*,\n                    tr.ride_ids,\n                    tr.media_ids\n                FROM trips t\n                LEFT JOIN trip_relations tr ON tr.id = t.id\n                WHERE t.id = $1\n            ",
+  "query": "\n                        SELECT \n                            t.*,\n                            tr.ride_ids,\n                            tr.media_ids\n                        FROM trips t\n                        INNER JOIN trip_relations tr ON tr.id = t.id\n                        WHERE user_id = $1 AND slug = $2\n                    ",
   "describe": {
     "columns": [
       {
@@ -51,7 +51,8 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Uuid",
+        "Text"
       ]
     },
     "nullable": [
@@ -66,5 +67,5 @@
       true
     ]
   },
-  "hash": "c263351edb742850ee0c5757fdb30e799849c361a6322b70ffaab18dec85b64d"
+  "hash": "fcd7138a6bdec3e7d5f2349b279987e63c830da004be02b52b7b28be409f1ecd"
 }

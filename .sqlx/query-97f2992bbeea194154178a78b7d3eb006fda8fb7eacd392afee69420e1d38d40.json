@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                        SELECT \n                            t.*,\n                            tr.ride_ids,\n                            tr.media_ids\n                        FROM trips t\n                        LEFT JOIN trip_relations tr ON tr.id = t.id\n                        WHERE user_id = $1\n                    ",
+  "query": "\n                        SELECT \n                            t.*,\n                            tr.ride_ids,\n                            tr.media_ids\n                        FROM trips t\n                        INNER JOIN trip_relations tr ON tr.id = t.id\n                        WHERE user_id = $1\n                    ",
   "describe": {
     "columns": [
       {
@@ -66,5 +66,5 @@
       true
     ]
   },
-  "hash": "79ad866d1c2f5638292779eec46882388a013aa75ef462ab111a331f9ec75746"
+  "hash": "97f2992bbeea194154178a78b7d3eb006fda8fb7eacd392afee69420e1d38d40"
 }
