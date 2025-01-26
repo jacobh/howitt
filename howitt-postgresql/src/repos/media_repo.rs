@@ -1,6 +1,10 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
-use howitt::models::media::{Media, MediaFilter, MediaId};
+use howitt::models::media::{Media, MediaFilter, MediaId, MediaRelationId};
+use howitt::models::point_of_interest::PointOfInterestId;
+use howitt::models::ride::RideId;
+use howitt::models::route::RouteId;
+use howitt::models::trip::TripId;
 use howitt::models::user::UserId;
 use howitt::models::Model;
 use howitt::repos::Repo;
@@ -13,17 +17,60 @@ struct MediaRow {
     created_at: DateTime<Utc>,
     user_id: Uuid,
     path: String,
+    ride_ids: Option<Vec<Uuid>>,
+    route_ids: Option<Vec<Uuid>>,
+    trip_ids: Option<Vec<Uuid>>,
+    poi_ids: Option<Vec<Uuid>>,
 }
 
 impl TryFrom<MediaRow> for Media {
     type Error = PostgresRepoError;
 
     fn try_from(row: MediaRow) -> Result<Self, Self::Error> {
+        let mut relation_ids = Vec::new();
+
+        // Add ride relations
+        if let Some(ride_ids) = row.ride_ids {
+            relation_ids.extend(
+                ride_ids
+                    .into_iter()
+                    .map(|id| MediaRelationId::Ride(RideId::from(id))),
+            );
+        }
+
+        // Add route relations
+        if let Some(route_ids) = row.route_ids {
+            relation_ids.extend(
+                route_ids
+                    .into_iter()
+                    .map(|id| MediaRelationId::Route(RouteId::from(id))),
+            );
+        }
+
+        // Add trip relations
+        if let Some(trip_ids) = row.trip_ids {
+            relation_ids.extend(
+                trip_ids
+                    .into_iter()
+                    .map(|id| MediaRelationId::Trip(TripId::from(id))),
+            );
+        }
+
+        // Add POI relations
+        if let Some(poi_ids) = row.poi_ids {
+            relation_ids.extend(
+                poi_ids
+                    .into_iter()
+                    .map(|id| MediaRelationId::PointOfInterest(PointOfInterestId::from(id))),
+            );
+        }
+
         Ok(Media {
             id: MediaId::from(row.id),
             created_at: row.created_at,
             user_id: UserId::from(row.user_id),
             path: row.path,
+            relation_ids,
         })
     }
 }
@@ -43,15 +90,35 @@ impl Repo for PostgresMediaRepo {
 
         let media = match filter {
             MediaFilter::All => {
-                sqlx::query_as!(MediaRow, r#"SELECT * FROM media ORDER BY created_at DESC"#)
-                    .fetch_all(conn.as_mut())
-                    .await?
+                sqlx::query_as!(
+                    MediaRow,
+                    r#"
+                    SELECT
+                        m.*,
+                        mr.ride_ids,
+                        mr.route_ids,
+                        mr.trip_ids,
+                        mr.poi_ids
+                    FROM media m
+                    INNER JOIN media_relations mr ON mr.id = m.id
+                    ORDER BY created_at DESC
+                    "#
+                )
+                .fetch_all(conn.as_mut())
+                .await?
             }
             MediaFilter::ForUser(user_id) => {
                 sqlx::query_as!(
                     MediaRow,
                     r#"
-                    SELECT * FROM media 
+                    SELECT
+                        m.*,
+                        mr.ride_ids,
+                        mr.route_ids,
+                        mr.trip_ids,
+                        mr.poi_ids
+                    FROM media m
+                    INNER JOIN media_relations mr ON mr.id = m.id
                     WHERE user_id = $1 
                     ORDER BY created_at DESC
                     "#,
@@ -64,8 +131,14 @@ impl Repo for PostgresMediaRepo {
                 sqlx::query_as!(
                     MediaRow,
                     r#"
-                    SELECT m.* 
+                    SELECT
+                        m.*,
+                        mr.ride_ids,
+                        mr.route_ids,
+                        mr.trip_ids,
+                        mr.poi_ids
                     FROM media m
+                    INNER JOIN media_relations mr ON mr.id = m.id
                     INNER JOIN ride_media rm ON rm.media_id = m.id
                     WHERE rm.ride_id = $1
                     ORDER BY m.created_at DESC
@@ -79,8 +152,14 @@ impl Repo for PostgresMediaRepo {
                 sqlx::query_as!(
                     MediaRow,
                     r#"
-                    SELECT m.* 
+                    SELECT
+                        m.*,
+                        mr.ride_ids,
+                        mr.route_ids,
+                        mr.trip_ids,
+                        mr.poi_ids
                     FROM media m
+                    INNER JOIN media_relations mr ON mr.id = m.id
                     INNER JOIN route_media rm ON rm.media_id = m.id
                     WHERE rm.route_id = $1
                     ORDER BY m.created_at DESC
@@ -94,8 +173,14 @@ impl Repo for PostgresMediaRepo {
                 sqlx::query_as!(
                     MediaRow,
                     r#"
-                    SELECT m.* 
+                    SELECT
+                        m.*,
+                        mr.ride_ids,
+                        mr.route_ids,
+                        mr.trip_ids,
+                        mr.poi_ids
                     FROM media m
+                    INNER JOIN media_relations mr ON mr.id = m.id
                     INNER JOIN trip_media tm ON tm.media_id = m.id
                     WHERE tm.trip_id = $1
                     ORDER BY m.created_at DESC
@@ -109,8 +194,14 @@ impl Repo for PostgresMediaRepo {
                 sqlx::query_as!(
                     MediaRow,
                     r#"
-                    SELECT m.* 
+                    SELECT
+                        m.*,
+                        mr.ride_ids,
+                        mr.route_ids,
+                        mr.trip_ids,
+                        mr.poi_ids
                     FROM media m
+                    INNER JOIN media_relations mr ON mr.id = m.id
                     INNER JOIN poi_media pm ON pm.media_id = m.id
                     WHERE pm.poi_id = $1
                     ORDER BY m.created_at DESC
@@ -137,7 +228,17 @@ impl Repo for PostgresMediaRepo {
 
         let query = sqlx::query_as!(
             MediaRow,
-            r#"SELECT * FROM media WHERE id = $1"#,
+            r#"
+            SELECT
+                m.*,
+                mr.ride_ids,
+                mr.route_ids,
+                mr.trip_ids,
+                mr.poi_ids
+            FROM media m
+            INNER JOIN media_relations mr ON mr.id = m.id
+            WHERE m.id = $1
+            "#,
             id.as_uuid()
         );
 

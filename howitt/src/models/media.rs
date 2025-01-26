@@ -8,11 +8,20 @@ use super::{
 pub type MediaId = ModelUuid<{ ModelName::Media }>;
 
 #[derive(Debug, Clone)]
+pub enum MediaRelationId {
+    Ride(RideId),
+    Route(RouteId),
+    Trip(TripId),
+    PointOfInterest(PointOfInterestId),
+}
+
+#[derive(Debug, Clone)]
 pub struct Media {
     pub id: MediaId,
     pub created_at: DateTime<Utc>,
     pub user_id: UserId,
     pub path: String,
+    pub relation_ids: Vec<MediaRelationId>,
 }
 
 #[derive(Debug, Clone)]
