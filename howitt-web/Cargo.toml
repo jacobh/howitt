@@ -35,6 +35,8 @@ http = "1.2.0"
 tracing = "*"
 tracing-subscriber = "*"
 dotenv = "0.15.0"
+axum_typed_multipart = { version = "*", features = ["tempfile_3"] }
+tempfile = "3"
 
 
 [dev-dependencies]

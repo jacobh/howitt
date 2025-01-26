@@ -10,15 +10,8 @@ pub struct S3BucketClient {
 
 impl S3BucketClient {
     pub fn new_from_env(bucket_name: BucketName) -> S3BucketClient {
-        let access_key_id =
-            std::env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID must be set");
-        let secret_access_key =
-            std::env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY must be set");
-
-        let client = object_store::aws::AmazonS3Builder::new()
+        let client = object_store::aws::AmazonS3Builder::from_env()
             .with_region("ap-southeast-4")
-            .with_access_key_id(access_key_id)
-            .with_secret_access_key(secret_access_key)
             .with_bucket_name(bucket_name.to_bucket_name())
             .build()
             .unwrap();

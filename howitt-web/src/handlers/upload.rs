@@ -1,9 +1,5 @@
-use axum::{
-    extract::{Multipart, State},
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, Json};
+use axum_typed_multipart::{FieldData, TryFromMultipart, TypedMultipart};
 use howitt::{
     models::media::{Media, MediaId},
     repos::Repo,
@@ -11,44 +7,38 @@ use howitt::{
 };
 use howitt_client_types::BucketClient;
 use serde_json::json;
+use tempfile::NamedTempFile;
 
 use crate::app_state::AppState;
+
+#[derive(TryFromMultipart)]
+pub struct UploadMediaRequest {
+    #[form_data(limit = "unlimited")]
+    pub file: FieldData<NamedTempFile>,
+}
 
 pub async fn upload_media_handler(
     State(state): State<AppState>,
     login: Login,
-    mut multipart: Multipart,
-) -> impl IntoResponse {
-    // Get the first file from the multipart request
-    let Some(field) = multipart.next_field().await.map_err(|e| {
-        (
-            StatusCode::BAD_REQUEST,
-            Json(json!({"error": format!("Failed to get field: {}", e)})),
-        )
-    })?
-    else {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            Json(json!({"error": "No file provided"})),
-        ));
-    };
-
-    // Get the file bytes
-    let bytes = field.bytes().await.map_err(|e| {
-        (
-            StatusCode::BAD_REQUEST,
-            Json(json!({"error": format!("Failed to read file: {}", e)})),
-        )
-    })?;
-
+    TypedMultipart(upload): TypedMultipart<UploadMediaRequest>,
+) -> Result<(StatusCode, Json<serde_json::Value>), (StatusCode, Json<serde_json::Value>)> {
     // Generate unique ID and S3 key
     let media_id = MediaId::new();
     let key = format!("media/{}", media_id);
 
+    // Get the file contents
+    let file = upload.file.contents;
+    let bytes = std::fs::read(file.path()).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"error": format!("Failed to read temp file: {}", e)})),
+        )
+    })?;
+
     // Upload to S3
     state
         .bucket_client
-        .put_object(&key, bytes)
+        .put_object(&key, bytes.into())
         .await
         .map_err(|e| {
             (

@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use async_graphql::dataloader::DataLoader;
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{get, post},
     Router,
 };
@@ -85,7 +86,8 @@ async fn main() -> Result<(), anyhow::Error> {
         .route("/auth/login", post(handlers::auth::login_handler))
         .route(
             "/upload/media",
-            post(handlers::upload::upload_media_handler),
+            post(handlers::upload::upload_media_handler)
+                .layer(DefaultBodyLimit::max(1024 * 1024 * 100)),
         )
         .with_state(app_state)
         .layer(
