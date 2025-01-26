@@ -16,6 +16,7 @@ import { css } from "@emotion/react";
 import { isNotNil } from "~/services/isNotNil";
 import { some } from "lodash";
 import { useMap } from "./useMap";
+import { Extent } from "ol/extent";
 
 export { MapContext } from "./context";
 
@@ -32,11 +33,11 @@ export interface MapProps {
     "name" | "point" | "pointOfInterestType"
   >[];
   initialView?:
-    | { type: "ride"; rideId: string }
-    | { type: "route"; routeId: string }
+    | { type: "rides"; rideIds: string[] }
+    | { type: "routes"; routeIds: string[] }
     | { type: "view"; view: ViewOptions };
   onVisibleRoutesChanged?: (
-    routes: { routeId: string; distanceFromCenter: number }[],
+    routes: { routeId: string; distanceFromCenter: number }[]
   ) => void;
 
   onRouteClicked?: (routeId: string | undefined) => void;
@@ -81,7 +82,7 @@ export function Map({
           radius: 5,
         }),
       }),
-    [],
+    []
   );
 
   const stationStyle = useMemo<Style>(
@@ -98,7 +99,7 @@ export function Map({
           radius: 5,
         }),
       }),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -106,6 +107,8 @@ export function Map({
       console.log("no map yet");
       return;
     }
+
+    let initialBounds: Extent | undefined = undefined;
 
     const layers = map.getLayers().getArray();
 
@@ -120,7 +123,7 @@ export function Map({
         if (isNotNil(layerRouteId)) {
           const isLayerRouteInCurrentRender = some(
             routes,
-            ({ route }) => route.id === layerRouteId,
+            ({ route }) => route.id === layerRouteId
           );
 
           if (!isLayerRouteInCurrentRender) {
@@ -132,12 +135,12 @@ export function Map({
 
         console.log(
           layerRideId,
-          some(rides, (ride) => ride.id === layerRideId),
+          some(rides, (ride) => ride.id === layerRideId)
         );
         if (isNotNil(layerRideId)) {
           const isLayerRideInCurrentRender = some(
             rides,
-            (ride) => ride.id === layerRideId,
+            (ride) => ride.id === layerRideId
           );
 
           if (!isLayerRideInCurrentRender) {
@@ -181,7 +184,7 @@ export function Map({
             features: [
               new Feature({ geometry: newLineString, routeId: route.id }),
             ],
-          }),
+          })
         );
 
         layer.setProperties({
@@ -207,14 +210,24 @@ export function Map({
       layer.setStyle(
         new Style({
           stroke: new Stroke({ color, width: 4 }),
-        }),
+        })
       );
 
-      if (initialView?.type === "route" && initialView.routeId === route.id) {
-        map.getView().fit(new LineString(JSON.parse(route.pointsJson)), {
-          padding: [100, 100, 100, 100],
-          duration: 0,
-        });
+      if (
+        initialView?.type === "routes" &&
+        initialView.routeIds.includes(route.id)
+      ) {
+        const lineString = new LineString(JSON.parse(route.pointsJson));
+        if (!initialBounds) {
+          initialBounds = lineString.getExtent();
+        } else {
+          initialBounds = [
+            Math.min(initialBounds[0], lineString.getExtent()[0]),
+            Math.min(initialBounds[1], lineString.getExtent()[1]),
+            Math.max(initialBounds[2], lineString.getExtent()[2]),
+            Math.max(initialBounds[3], lineString.getExtent()[3]),
+          ];
+        }
       }
     }
 
@@ -249,7 +262,7 @@ export function Map({
             features: [
               new Feature({ geometry: newLineString, rideId: ride.id }),
             ],
-          }),
+          })
         );
 
         layer.setProperties({
@@ -277,21 +290,31 @@ export function Map({
       layer.setStyle(
         new Style({
           stroke: new Stroke({ color, width: 4 }),
-        }),
+        })
       );
 
-      if (initialView?.type === "ride" && initialView.rideId === ride.id) {
-        map.getView().fit(new LineString(JSON.parse(ride.pointsJson)), {
-          padding: [100, 100, 100, 100],
-          duration: 0,
-        });
+      if (
+        initialView?.type === "rides" &&
+        initialView.rideIds.includes(ride.id)
+      ) {
+        const lineString = new LineString(JSON.parse(ride.pointsJson));
+        if (!initialBounds) {
+          initialBounds = lineString.getExtent();
+        } else {
+          initialBounds = [
+            Math.min(initialBounds[0], lineString.getExtent()[0]),
+            Math.min(initialBounds[1], lineString.getExtent()[1]),
+            Math.max(initialBounds[2], lineString.getExtent()[2]),
+            Math.max(initialBounds[3], lineString.getExtent()[3]),
+          ];
+        }
       }
     }
 
     for (const checkpoint of checkpoints ?? []) {
       console.log(checkpoint.name);
       const existingLayer = layers.find(
-        (layer) => layer.getProperties().checkpointName === checkpoint.name,
+        (layer) => layer.getProperties().checkpointName === checkpoint.name
       );
 
       if (existingLayer === undefined) {
@@ -305,9 +328,16 @@ export function Map({
               checkpoint.pointOfInterestType === PointOfInterestType.Hut
                 ? hutStyle
                 : stationStyle,
-          }),
+          })
         );
       }
+    }
+
+    if (initialBounds) {
+      map.getView().fit(initialBounds, {
+        padding: [100, 100, 100, 100],
+        duration: 0,
+      });
     }
   }, [routes, checkpoints, map, initialView, hutStyle, stationStyle, rides]);
 

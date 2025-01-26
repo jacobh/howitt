@@ -105,10 +105,16 @@ function UserProfileDate(): React.ReactElement {
       </SidebarContainer>
       <MapContainer>
         <Map
-          initialView={{
-            type: "ride",
-            rideId: data?.userWithUsername?.ridesWithDate?.[0]?.id,
-          }}
+          initialView={
+            data?.userWithUsername?.ridesWithDate
+              ? {
+                  type: "rides",
+                  rideIds: data.userWithUsername.ridesWithDate.map(
+                    ({ id }) => id
+                  ),
+                }
+              : undefined
+          }
           rides={
             data2?.userWithUsername?.ridesWithDate ??
             data?.userWithUsername?.ridesWithDate

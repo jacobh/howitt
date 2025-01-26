@@ -112,8 +112,8 @@ export default function Route(): React.ReactElement {
 
   const nearbyRoutes = (route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== route?.id,
-    ),
+      (nearby) => nearby.closestTerminus.route.id !== route?.id
+    )
   );
 
   const routes: DisplayedRoute[] = [
@@ -238,7 +238,9 @@ export default function Route(): React.ReactElement {
       <MapContainer>
         <Map
           routes={routes}
-          initialView={route ? { type: "route", routeId: route.id } : undefined}
+          initialView={
+            route ? { type: "routes", routeIds: [route.id] } : undefined
+          }
         />
       </MapContainer>
     </Container>

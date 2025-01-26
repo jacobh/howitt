@@ -114,10 +114,9 @@ export default function TripDetail(): React.ReactElement {
 
       <MapContainer>
         <Map
-          // TODO this should show all rides
           initialView={{
-            type: "ride",
-            rideId: allRides[0]?.id,
+            type: "rides",
+            rideIds: allRides.map(({ id }) => id),
           }}
           rides={
             (
