@@ -455,7 +455,7 @@ export type TripQueryQuery = {
           rides: Array<
             { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
               " $fragmentRefs"?: {
-                RideSummaryFragment: RideSummaryFragment;
+                RideItemFragment: RideItemFragment;
                 ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
               };
             }
@@ -1486,10 +1486,7 @@ export const TripQueryDocument = {
                                   },
                                   {
                                     kind: "FragmentSpread",
-                                    name: {
-                                      kind: "Name",
-                                      value: "rideSummary",
-                                    },
+                                    name: { kind: "Name", value: "rideItem" },
                                   },
                                   {
                                     kind: "FragmentSpread",
@@ -1554,7 +1551,7 @@ export const TripQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
-      name: { kind: "Name", value: "rideSummary" },
+      name: { kind: "Name", value: "rideItem" },
       typeCondition: {
         kind: "NamedType",
         name: { kind: "Name", value: "Ride" },
@@ -1563,10 +1560,20 @@ export const TripQueryDocument = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "date" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
         ],
       },
     },

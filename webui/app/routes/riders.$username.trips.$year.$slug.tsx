@@ -6,10 +6,10 @@ import {
   SidebarContainer,
 } from "~/components/layout";
 import { Map } from "~/components/map";
-import { RideSummary } from "~/components/rides/RideSummary";
 import { useQuery } from "@apollo/client";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
+import { RideItem } from "~/components/rides/RideItem";
 
 const TRIP_QUERY = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -29,7 +29,7 @@ const TRIP_QUERY = gql(`
             id
             date
             pointsJson(pointsPerKm: $pointsPerKm)
-            ...rideSummary
+            ...rideItem
             ...elevationPath
           }
         }
@@ -96,7 +96,9 @@ export default function TripDetail(): React.ReactElement {
                   <ElevationProfile data={leg} />
                 </div>
                 {leg.rides.map((ride) => (
-                  <RideSummary key={ride.id} ride={ride} />
+                  <div key={ride.id} css={{ margin: "20px 0" }}>
+                    <RideItem ride={ride} />
+                  </div>
                 ))}
               </div>
             ))}
