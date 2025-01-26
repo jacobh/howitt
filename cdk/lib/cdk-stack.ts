@@ -142,20 +142,3 @@ export class CdkStack extends cdk.Stack {
     });
   }
 }
-
-const app = new cdk.App();
-
-new CdkStack(app, "HowittAPI", {
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: "ap-southeast-2",
-  },
-});
-
-// Media stack in ap-southeast-4
-new MediaStack(app, "HowittMediaStack", {
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: "ap-southeast-4",
-  },
-});
