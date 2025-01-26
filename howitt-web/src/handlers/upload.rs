@@ -8,7 +8,7 @@ use howitt::{
     repos::Repo,
     services::user::auth::Login,
 };
-use howitt_client_types::BucketClient;
+use howitt_client_types::{BucketClient, ObjectParams};
 use sanitize_filename::sanitize;
 use serde_json::json;
 use tempfile::NamedTempFile;
@@ -65,10 +65,21 @@ pub async fn upload_media_handler(
         )
     })?;
 
+    let kind = infer::get(&bytes).ok_or_else(|| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "Could not determine file type"})),
+        )
+    })?;
+
+    let params = ObjectParams {
+        content_type: Some(kind.mime_type().to_string()),
+    };
+
     // Upload to S3
     state
         .bucket_client
-        .put_object(&key, bytes.into())
+        .put_object(&key, bytes.into(), params)
         .await
         .map_err(|e| {
             (

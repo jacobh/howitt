@@ -39,6 +39,7 @@ axum_typed_multipart = { version = "*", features = ["tempfile_3"] }
 tempfile = "3"
 uuid = "*"
 sanitize-filename = "0.6.0"
+infer = "0.16.0"
 
 
 [dev-dependencies]

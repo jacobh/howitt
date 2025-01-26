@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use howitt_client_types::{BucketClient, BucketName, HttpClient, HttpResponse};
+use howitt_client_types::{BucketClient, BucketName, HttpClient, HttpResponse, ObjectParams};
 use object_store::{aws::AmazonS3, ObjectStore};
 use redis::{AsyncCommands, IntoConnectionInfo};
 
@@ -32,8 +32,28 @@ impl BucketClient for S3BucketClient {
         }
     }
 
-    async fn put_object(&self, key: &str, body: bytes::Bytes) -> Result<(), Self::Error> {
-        self.client.put(&key.into(), body.into()).await?;
+    async fn put_object(
+        &self,
+        key: &str,
+        body: bytes::Bytes,
+        params: ObjectParams,
+    ) -> Result<(), Self::Error> {
+        let mut attributes = object_store::Attributes::default();
+
+        if let Some(content_type) = params.content_type {
+            attributes.insert(object_store::Attribute::ContentType, content_type.into());
+        }
+
+        let options = object_store::PutOptions {
+            mode: object_store::PutMode::default(),
+            tags: object_store::TagSet::default(),
+            attributes,
+        };
+
+        self.client
+            .put_opts(&key.into(), body.into(), options)
+            .await?;
+
         Ok(())
     }
 }
