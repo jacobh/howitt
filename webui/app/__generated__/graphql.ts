@@ -265,12 +265,17 @@ export type UserProfile = {
   id: Scalars["UserId"]["output"];
   recentRides: Array<Ride>;
   ridesWithDate: Array<Ride>;
+  tripWithSlug?: Maybe<Trip>;
   trips: Array<Trip>;
   username: Scalars["String"]["output"];
 };
 
 export type UserProfileRidesWithDateArgs = {
   date: Scalars["IsoDate"]["input"];
+};
+
+export type UserProfileTripWithSlugArgs = {
+  slug: Scalars["String"]["input"];
 };
 
 export type Viewer = {
@@ -407,6 +412,39 @@ export type UserProfileQueryQuery = {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
       })
     | null;
+};
+
+export type TripQueryQueryVariables = Exact<{
+  username: Scalars["String"]["input"];
+  slug: Scalars["String"]["input"];
+  pointsPerKm: Scalars["Int"]["input"];
+}>;
+
+export type TripQueryQuery = {
+  __typename?: "Query";
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
+  userWithUsername?: {
+    __typename?: "UserProfile";
+    username: string;
+    tripWithSlug?: {
+      __typename?: "Trip";
+      id: any;
+      name: string;
+      description?: string | null;
+      rides: Array<
+        { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
+          " $fragmentRefs"?: {
+            RideSummaryFragment: RideSummaryFragment;
+            ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
+          };
+        }
+      >;
+    } | null;
+  } | null;
 };
 
 export type PublicUsersQueryVariables = Exact<{ [key: string]: never }>;
@@ -1279,6 +1317,216 @@ export const UserProfileQueryDocument = {
   UserProfileQueryQuery,
   UserProfileQueryQueryVariables
 >;
+export const TripQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "TripQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "username" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "slug" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "pointsPerKm" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "userWithUsername" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "username" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "username" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "tripWithSlug" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "slug" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "slug" },
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rides" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "date" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "pointsJson" },
+                              arguments: [
+                                {
+                                  kind: "Argument",
+                                  name: { kind: "Name", value: "pointsPerKm" },
+                                  value: {
+                                    kind: "Variable",
+                                    name: {
+                                      kind: "Name",
+                                      value: "pointsPerKm",
+                                    },
+                                  },
+                                },
+                              ],
+                            },
+                            {
+                              kind: "FragmentSpread",
+                              name: { kind: "Name", value: "rideSummary" },
+                            },
+                            {
+                              kind: "FragmentSpread",
+                              name: { kind: "Name", value: "elevationPath" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideSummary" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "elevationPath" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "ElevationPath" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
+          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TripQueryQuery, TripQueryQueryVariables>;
 export const PublicUsersDocument = {
   kind: "Document",
   definitions: [

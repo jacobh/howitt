@@ -66,4 +66,21 @@ impl UserProfile {
             .map(Ride)
             .collect())
     }
+
+    async fn trip_with_slug<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        slug: String,
+    ) -> Result<Option<Trip>, async_graphql::Error> {
+        let SchemaData { trip_repo, .. } = ctx.data()?;
+
+        let trip = trip_repo
+            .find_model(howitt::models::trip::TripFilter::WithUserAndSlug {
+                user_id: self.0.id,
+                slug,
+            })
+            .await?;
+
+        Ok(trip.map(Trip))
+    }
 }
