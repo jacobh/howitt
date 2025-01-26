@@ -7,6 +7,14 @@ use crate::graphql::schema::{ride::Ride, ModelId};
 use super::user::UserProfile;
 
 pub struct Trip(pub howitt::models::trip::Trip);
+pub struct TripLeg(pub Vec<howitt::models::ride::Ride>);
+
+#[Object]
+impl TripLeg {
+    async fn rides(&self) -> Vec<Ride> {
+        self.0.clone().into_iter().map(Ride).collect()
+    }
+}
 
 #[Object]
 impl Trip {
@@ -41,13 +49,14 @@ impl Trip {
         Ok(UserProfile(user))
     }
 
-    async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
+    async fn legs<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<TripLeg>, async_graphql::Error> {
         let SchemaData { ride_repo, .. } = ctx.data()?;
 
         let rides = ride_repo
             .filter_models(RideFilter::ForTrip(self.0.id))
             .await?;
 
-        Ok(rides.into_iter().map(Ride).collect())
+        // For this first cut, put all rides in a single leg
+        Ok(vec![TripLeg(rides)])
     }
 }

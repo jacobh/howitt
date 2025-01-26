@@ -253,11 +253,16 @@ export type Trip = {
   __typename?: "Trip";
   description?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["TripId"]["output"];
+  legs: Array<TripLeg>;
   name: Scalars["String"]["output"];
-  rides: Array<Ride>;
   slug: Scalars["String"]["output"];
   user: UserProfile;
   year: Scalars["Int"]["output"];
+};
+
+export type TripLeg = {
+  __typename?: "TripLeg";
+  rides: Array<Ride>;
 };
 
 export type UserProfile = {
@@ -435,14 +440,17 @@ export type TripQueryQuery = {
       id: any;
       name: string;
       description?: string | null;
-      rides: Array<
-        { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
-          " $fragmentRefs"?: {
-            RideSummaryFragment: RideSummaryFragment;
-            ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
-          };
-        }
-      >;
+      legs: Array<{
+        __typename?: "TripLeg";
+        rides: Array<
+          { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
+            " $fragmentRefs"?: {
+              RideSummaryFragment: RideSummaryFragment;
+              ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
+            };
+          }
+        >;
+      }>;
     } | null;
   } | null;
 };
@@ -1419,42 +1427,60 @@ export const TripQueryDocument = {
                       },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "rides" },
+                        name: { kind: "Name", value: "legs" },
                         selectionSet: {
                           kind: "SelectionSet",
                           selections: [
                             {
                               kind: "Field",
-                              name: { kind: "Name", value: "id" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "date" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "pointsJson" },
-                              arguments: [
-                                {
-                                  kind: "Argument",
-                                  name: { kind: "Name", value: "pointsPerKm" },
-                                  value: {
-                                    kind: "Variable",
+                              name: { kind: "Name", value: "rides" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "id" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "date" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "pointsJson" },
+                                    arguments: [
+                                      {
+                                        kind: "Argument",
+                                        name: {
+                                          kind: "Name",
+                                          value: "pointsPerKm",
+                                        },
+                                        value: {
+                                          kind: "Variable",
+                                          name: {
+                                            kind: "Name",
+                                            value: "pointsPerKm",
+                                          },
+                                        },
+                                      },
+                                    ],
+                                  },
+                                  {
+                                    kind: "FragmentSpread",
                                     name: {
                                       kind: "Name",
-                                      value: "pointsPerKm",
+                                      value: "rideSummary",
                                     },
                                   },
-                                },
-                              ],
-                            },
-                            {
-                              kind: "FragmentSpread",
-                              name: { kind: "Name", value: "rideSummary" },
-                            },
-                            {
-                              kind: "FragmentSpread",
-                              name: { kind: "Name", value: "elevationPath" },
+                                  {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                      kind: "Name",
+                                      value: "elevationPath",
+                                    },
+                                  },
+                                ],
+                              },
                             },
                           ],
                         },

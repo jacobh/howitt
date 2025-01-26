@@ -23,12 +23,14 @@ const TRIP_QUERY = gql(`
         id
         name
         description
-        rides {
-          id
-          date
-          pointsJson(pointsPerKm: $pointsPerKm)
-          ...rideSummary
-          ...elevationPath
+        legs {
+          rides {
+            id
+            date
+            pointsJson(pointsPerKm: $pointsPerKm)
+            ...rideSummary
+            ...elevationPath
+          }
         }
       }
     }
@@ -57,6 +59,7 @@ export default function TripDetail(): React.ReactElement {
   });
 
   const trip = data?.userWithUsername?.tripWithSlug;
+  const allRides = trip?.legs.flatMap((leg) => leg.rides) ?? [];
 
   return (
     <Container>
@@ -92,7 +95,7 @@ export default function TripDetail(): React.ReactElement {
               </section>
             )}
 
-            {trip.rides.map((ride) => (
+            {allRides.map((ride) => (
               <div key={ride.id}>
                 <div css={{ marginTop: "12px" }}>
                   <ElevationProfile data={ride} />
@@ -108,13 +111,16 @@ export default function TripDetail(): React.ReactElement {
 
       <MapContainer>
         <Map
+          // TODO this should show all rides
           initialView={{
             type: "ride",
-            rideId: trip?.rides[0]?.id,
+            rideId: allRides[0]?.id,
           }}
           rides={
-            data2?.userWithUsername?.tripWithSlug?.rides ??
-            data?.userWithUsername?.tripWithSlug?.rides
+            (
+              data2?.userWithUsername?.tripWithSlug ??
+              data?.userWithUsername?.tripWithSlug
+            )?.legs.flatMap((leg) => leg.rides) ?? []
           }
         />
       </MapContainer>
