@@ -9,7 +9,7 @@ pub struct S3BucketClient {
 }
 
 impl S3BucketClient {
-    pub async fn new_from_env(bucket_name: BucketName) -> S3BucketClient {
+    pub fn new_from_env(bucket_name: BucketName) -> S3BucketClient {
         let access_key_id =
             std::env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID must be set");
         let secret_access_key =

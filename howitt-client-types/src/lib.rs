@@ -3,12 +3,14 @@ use bytes::Bytes;
 #[derive(Debug)]
 pub enum BucketName {
     Photos,
+    Media,
 }
 
 impl BucketName {
     pub fn to_bucket_name(&self) -> &'static str {
         match self {
             BucketName::Photos => "howitt-photos",
+            BucketName::Media => "howitt-media",
         }
     }
 }

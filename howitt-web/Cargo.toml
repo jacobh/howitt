@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-axum = "*"
+axum = { version = "*", features = ["multipart"] }
 axum-macros = "*"
 tower = "*"
 tower-http = { version = "*", features = ["full"] }
@@ -20,6 +20,7 @@ async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", fe
 ] }
 howitt = { path = "../howitt" }
 howitt_clients = { path = "../howitt-clients" }
+howitt_client_types = { path = "../howitt-client-types" }
 geo = "*"
 chrono = "*"
 chrono-tz = "*"

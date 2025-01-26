@@ -8,10 +8,11 @@ use axum::{
     Router,
 };
 use howitt::services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAuthService};
-use howitt_clients::RedisClient;
+use howitt_client_types::BucketName;
+use howitt_clients::{RedisClient, S3BucketClient};
 use howitt_postgresql::{
-    PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
-    PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
+    PostgresClient, PostgresMediaRepo, PostgresPointOfInterestRepo, PostgresRidePointsRepo,
+    PostgresRideRepo, PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
 };
 use http::{header, Method};
 use tower_http::{
@@ -51,10 +52,13 @@ async fn main() -> Result<(), anyhow::Error> {
     let ride_points_repo = Arc::new(PostgresRidePointsRepo::new(pg.clone()));
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
     let trip_repo = Arc::new(PostgresTripRepo::new(pg.clone()));
+    let media_repo = Arc::new(PostgresMediaRepo::new(pg.clone()));
 
     let user_auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
     let simplified_ride_points_fetcher =
         SimplifiedRidePointsFetcher::new(ride_points_repo.clone(), redis);
+
+    let bucket_client = S3BucketClient::new_from_env(BucketName::Media);
 
     let schema = build_schema(SchemaData {
         poi_repo,
@@ -69,6 +73,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let app_state = app_state::AppState {
         schema,
         user_auth_service,
+        media_repo,
+        bucket_client: Arc::new(bucket_client),
     };
 
     let app = Router::new()
@@ -77,6 +83,10 @@ async fn main() -> Result<(), anyhow::Error> {
             get(handlers::graphql::graphiql_handler).post(handlers::graphql::graphql_handler),
         )
         .route("/auth/login", post(handlers::auth::login_handler))
+        .route(
+            "/upload/media",
+            post(handlers::upload::upload_media_handler),
+        )
         .with_state(app_state)
         .layer(
             tower::ServiceBuilder::new()
