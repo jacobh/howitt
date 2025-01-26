@@ -1,5 +1,5 @@
 {
   "possibleTypes": {
-    "ElevationPath": ["Ride", "Route"]
+    "ElevationPath": ["Ride", "Route", "TripLeg"]
   }
 }

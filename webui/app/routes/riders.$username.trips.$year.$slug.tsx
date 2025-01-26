@@ -24,6 +24,7 @@ const TRIP_QUERY = gql(`
         name
         description
         legs {
+          ...elevationPath
           rides {
             id
             date
@@ -95,12 +96,14 @@ export default function TripDetail(): React.ReactElement {
               </section>
             )}
 
-            {allRides.map((ride) => (
-              <div key={ride.id}>
+            {trip.legs.map((leg, i) => (
+              <div key={i}>
                 <div css={{ marginTop: "12px" }}>
-                  <ElevationProfile data={ride} />
+                  <ElevationProfile data={leg} />
                 </div>
-                <RideSummary ride={ride} />
+                {leg.rides.map((ride) => (
+                  <RideSummary key={ride.id} ride={ride} />
+                ))}
               </div>
             ))}
           </>

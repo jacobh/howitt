@@ -260,8 +260,10 @@ export type Trip = {
   year: Scalars["Int"]["output"];
 };
 
-export type TripLeg = {
+export type TripLeg = ElevationPath & {
   __typename?: "TripLeg";
+  distancePoints: Array<Scalars["Float"]["output"]>;
+  elevationPoints: Array<Scalars["Float"]["output"]>;
   rides: Array<Ride>;
 };
 
@@ -301,9 +303,16 @@ type ElevationPath_Route_Fragment = {
   distancePoints: Array<number>;
 } & { " $fragmentName"?: "ElevationPath_Route_Fragment" };
 
+type ElevationPath_TripLeg_Fragment = {
+  __typename?: "TripLeg";
+  elevationPoints: Array<number>;
+  distancePoints: Array<number>;
+} & { " $fragmentName"?: "ElevationPath_TripLeg_Fragment" };
+
 export type ElevationPathFragment =
   | ElevationPath_Ride_Fragment
-  | ElevationPath_Route_Fragment;
+  | ElevationPath_Route_Fragment
+  | ElevationPath_TripLeg_Fragment;
 
 export type ViewerInfoFragment = {
   __typename?: "Viewer";
@@ -440,17 +449,23 @@ export type TripQueryQuery = {
       id: any;
       name: string;
       description?: string | null;
-      legs: Array<{
-        __typename?: "TripLeg";
-        rides: Array<
-          { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
-            " $fragmentRefs"?: {
-              RideSummaryFragment: RideSummaryFragment;
-              ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
-            };
-          }
-        >;
-      }>;
+      legs: Array<
+        {
+          __typename?: "TripLeg";
+          rides: Array<
+            { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
+              " $fragmentRefs"?: {
+                RideSummaryFragment: RideSummaryFragment;
+                ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
+              };
+            }
+          >;
+        } & {
+          " $fragmentRefs"?: {
+            ElevationPath_TripLeg_Fragment: ElevationPath_TripLeg_Fragment;
+          };
+        }
+      >;
     } | null;
   } | null;
 };
@@ -1432,6 +1447,10 @@ export const TripQueryDocument = {
                           kind: "SelectionSet",
                           selections: [
                             {
+                              kind: "FragmentSpread",
+                              name: { kind: "Name", value: "elevationPath" },
+                            },
+                            {
                               kind: "Field",
                               name: { kind: "Name", value: "rides" },
                               selectionSet: {
@@ -1520,6 +1539,21 @@ export const TripQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
+      name: { kind: "Name", value: "elevationPath" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "ElevationPath" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
+          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
       name: { kind: "Name", value: "rideSummary" },
       typeCondition: {
         kind: "NamedType",
@@ -1533,21 +1567,6 @@ export const TripQueryDocument = {
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
-        ],
-      },
-    },
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "elevationPath" },
-      typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "ElevationPath" },
-      },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
-          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
         ],
       },
     },

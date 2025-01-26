@@ -1,6 +1,6 @@
 use async_graphql::Interface;
 
-use crate::graphql::schema::{ride::Ride, route::Route};
+use crate::graphql::schema::{ride::Ride, route::Route, trip::TripLeg};
 
 #[derive(Interface)]
 #[graphql(
@@ -18,4 +18,5 @@ use crate::graphql::schema::{ride::Ride, route::Route};
 pub enum ElevationPath {
     Ride(Ride),
     Route(Route),
+    TripLeg(TripLeg),
 }
