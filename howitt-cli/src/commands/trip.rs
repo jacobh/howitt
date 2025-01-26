@@ -107,6 +107,7 @@ pub async fn handle(
                 description,
                 slug: generate_slug(&name),
                 ride_ids: selected_rides.into_iter().map(|r| r.id).collect(),
+                media_ids: vec![],
             };
 
             trip_repo.put(trip).await?;
