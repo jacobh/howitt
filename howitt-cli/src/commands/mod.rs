@@ -1,3 +1,4 @@
+pub mod once_off;
 pub mod poi;
 pub mod ride;
 pub mod route;

@@ -33,6 +33,7 @@ enum Commands {
     POI(POICommands),
     #[clap(subcommand)]
     Trip(TripCommands),
+    OnceOff,
 }
 
 pub struct Context {
@@ -77,6 +78,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::POI(cmd) => commands::poi::handle(cmd, context).await?,
         Commands::Rwgps(cmd) => commands::rwgps::handle(cmd, context).await?,
         Commands::Trip(cmd) => commands::trip::handle(cmd, context).await?,
+        Commands::OnceOff => commands::once_off::handle(context).await?,
     }
 
     Ok(())
