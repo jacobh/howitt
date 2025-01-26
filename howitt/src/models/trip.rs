@@ -1,4 +1,4 @@
-use super::{ride::RideId, user::UserId, IndexModel, ModelName, ModelUuid};
+use super::{media::MediaId, ride::RideId, user::UserId, IndexModel, ModelName, ModelUuid};
 use chrono::{DateTime, Utc};
 
 pub type TripId = ModelUuid<{ ModelName::Trip }>;
@@ -13,6 +13,7 @@ pub struct Trip {
     pub year: i32,
     pub description: Option<String>,
     pub ride_ids: Vec<RideId>,
+    pub media_ids: Vec<MediaId>,
 }
 
 #[derive(Debug, Clone)]

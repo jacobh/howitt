@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
-use howitt::models::ride::RideId;
 use howitt::models::trip::{Trip, TripFilter, TripId};
 use howitt::models::user::UserId;
 use howitt::models::Model;
+use howitt::models::{media::MediaId, ride::RideId};
 use howitt::repos::Repo;
 use itertools::Itertools;
 use uuid::Uuid;
@@ -19,6 +19,7 @@ struct TripRow {
     description: Option<String>,
     user_id: Uuid,
     ride_ids: Option<Vec<Uuid>>,
+    media_ids: Option<Vec<Uuid>>,
 }
 
 impl TryFrom<TripRow> for Trip {
@@ -38,6 +39,12 @@ impl TryFrom<TripRow> for Trip {
                 .unwrap_or_default()
                 .into_iter()
                 .map(RideId::from)
+                .collect(),
+            media_ids: row
+                .media_ids
+                .unwrap_or_default()
+                .into_iter()
+                .map(MediaId::from)
                 .collect(),
         })
     }
@@ -63,9 +70,11 @@ impl Repo for PostgresTripRepo {
                     r#"
                         SELECT 
                             t.*,
-                            COALESCE(array_agg(tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids
+                            COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
+                            COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
                         FROM trips t
                         LEFT JOIN trip_rides tr ON tr.trip_id = t.id
+                        LEFT JOIN trip_media tm ON tm.trip_id = t.id
                         WHERE user_id = $1
                         GROUP BY t.id, t.name, t.created_at, t.user_id
                     "#,
@@ -80,9 +89,11 @@ impl Repo for PostgresTripRepo {
                     r#"
                         SELECT 
                             t.*,
-                            COALESCE(array_agg(tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids
+                            COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
+                            COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
                         FROM trips t
                         LEFT JOIN trip_rides tr ON tr.trip_id = t.id
+                        LEFT JOIN trip_media tm ON tm.trip_id = t.id
                         WHERE user_id = $1 AND slug = $2
                         GROUP BY t.id, t.name, t.created_at, t.user_id
                     "#,
@@ -98,9 +109,11 @@ impl Repo for PostgresTripRepo {
                     r#"
                         SELECT 
                             t.*,
-                            COALESCE(array_agg(tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids
+                            COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
+                            COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
                         FROM trips t
                         LEFT JOIN trip_rides tr ON tr.trip_id = t.id
+                        LEFT JOIN trip_media tm ON tm.trip_id = t.id
                         GROUP BY t.id, t.name, t.created_at, t.user_id
                     "#
                 )
@@ -124,9 +137,11 @@ impl Repo for PostgresTripRepo {
             r#"
                 SELECT 
                     t.*,
-                    COALESCE(array_agg(tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids
+                    COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
+                    COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
                 FROM trips t
                 LEFT JOIN trip_rides tr ON tr.trip_id = t.id
+                LEFT JOIN trip_media tm ON tm.trip_id = t.id
                 WHERE t.id = $1
                 GROUP BY t.id, t.name, t.created_at, t.user_id
             "#,
@@ -172,6 +187,7 @@ impl Repo for PostgresTripRepo {
 
         query.execute(tx.as_mut()).await?;
 
+        // Update ride associations
         sqlx::query!(
             r#"
             DELETE FROM trip_rides 
@@ -195,6 +211,35 @@ impl Repo for PostgresTripRepo {
             "#,
                 *trip.id.as_uuid(),
                 *ride_id.as_uuid(),
+            );
+
+            query.execute(tx.as_mut()).await?;
+        }
+
+        // Update media associations
+        sqlx::query!(
+            r#"
+            DELETE FROM trip_media 
+            WHERE trip_id = $1 
+            AND media_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
+        "#,
+            trip.id.as_uuid(),
+            &trip.media_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+        )
+        .execute(tx.as_mut())
+        .await?;
+
+        for media_id in trip.media_ids {
+            let query = sqlx::query!(
+                r#"
+                INSERT INTO trip_media (
+                    trip_id,
+                    media_id
+                ) VALUES ($1, $2)
+                ON CONFLICT (trip_id, media_id) DO NOTHING
+            "#,
+                *trip.id.as_uuid(),
+                *media_id.as_uuid(),
             );
 
             query.execute(tx.as_mut()).await?;
