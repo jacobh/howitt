@@ -74,6 +74,24 @@ impl Repo for PostgresTripRepo {
                     .fetch_all(conn.as_mut())
                     .await
             }
+            TripFilter::WithUserAndSlug { user_id, slug } => {
+                sqlx::query_as!(
+                    TripRow,
+                    r#"
+                        SELECT 
+                            t.*,
+                            COALESCE(array_agg(tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids
+                        FROM trips t
+                        LEFT JOIN trip_rides tr ON tr.trip_id = t.id
+                        WHERE user_id = $1 AND slug = $2
+                        GROUP BY t.id, t.name, t.created_at, t.user_id
+                    "#,
+                    user_id.as_uuid(),
+                    slug,
+                )
+                    .fetch_all(conn.as_mut())
+                    .await
+            }
             TripFilter::All => {
                 sqlx::query_as!(
                     TripRow,

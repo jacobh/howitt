@@ -19,6 +19,7 @@ pub struct Trip {
 pub enum TripFilter {
     All,
     User(UserId),
+    WithUserAndSlug { user_id: UserId, slug: String },
 }
 
 impl IndexModel for Trip {
