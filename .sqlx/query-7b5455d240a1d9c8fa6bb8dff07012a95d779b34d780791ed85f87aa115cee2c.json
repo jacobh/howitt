@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                        SELECT \n                            t.*,\n                            COALESCE(array_agg(tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids\n                        FROM trips t\n                        LEFT JOIN trip_rides tr ON tr.trip_id = t.id\n                        GROUP BY t.id, t.name, t.created_at, t.user_id\n                    ",
+  "query": "\n                        SELECT \n                            t.*,\n                            tr.ride_ids,\n                            tr.media_ids\n                        FROM trips t\n                        INNER JOIN trip_relations tr ON tr.id = t.id\n                    ",
   "describe": {
     "columns": [
       {
@@ -42,6 +42,11 @@
         "ordinal": 7,
         "name": "ride_ids",
         "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "media_ids",
+        "type_info": "UuidArray"
       }
     ],
     "parameters": {
@@ -55,8 +60,9 @@
       false,
       false,
       true,
-      null
+      true,
+      true
     ]
   },
-  "hash": "e3b4fd9ff5e0e61972049172e5e29ec1c9a451da7b8d23ad7e92844772d97b76"
+  "hash": "7b5455d240a1d9c8fa6bb8dff07012a95d779b34d780791ed85f87aa115cee2c"
 }

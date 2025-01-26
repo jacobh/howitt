@@ -70,18 +70,16 @@ impl Repo for PostgresTripRepo {
                     r#"
                         SELECT 
                             t.*,
-                            COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
-                            COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
+                            tr.ride_ids,
+                            tr.media_ids
                         FROM trips t
-                        LEFT JOIN trip_rides tr ON tr.trip_id = t.id
-                        LEFT JOIN trip_media tm ON tm.trip_id = t.id
+                        LEFT JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1
-                        GROUP BY t.id, t.name, t.created_at, t.user_id
                     "#,
                     user_id.as_uuid(),
                 )
-                    .fetch_all(conn.as_mut())
-                    .await
+                .fetch_all(conn.as_mut())
+                .await
             }
             TripFilter::WithUserAndSlug { user_id, slug } => {
                 sqlx::query_as!(
@@ -89,19 +87,17 @@ impl Repo for PostgresTripRepo {
                     r#"
                         SELECT 
                             t.*,
-                            COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
-                            COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
+                            tr.ride_ids,
+                            tr.media_ids
                         FROM trips t
-                        LEFT JOIN trip_rides tr ON tr.trip_id = t.id
-                        LEFT JOIN trip_media tm ON tm.trip_id = t.id
+                        LEFT JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1 AND slug = $2
-                        GROUP BY t.id, t.name, t.created_at, t.user_id
                     "#,
                     user_id.as_uuid(),
                     slug,
                 )
-                    .fetch_all(conn.as_mut())
-                    .await
+                .fetch_all(conn.as_mut())
+                .await
             }
             TripFilter::All => {
                 sqlx::query_as!(
@@ -109,12 +105,10 @@ impl Repo for PostgresTripRepo {
                     r#"
                         SELECT 
                             t.*,
-                            COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
-                            COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
+                            tr.ride_ids,
+                            tr.media_ids
                         FROM trips t
-                        LEFT JOIN trip_rides tr ON tr.trip_id = t.id
-                        LEFT JOIN trip_media tm ON tm.trip_id = t.id
-                        GROUP BY t.id, t.name, t.created_at, t.user_id
+                        INNER JOIN trip_relations tr ON tr.id = t.id
                     "#
                 )
                 .fetch_all(conn.as_mut())
@@ -137,13 +131,11 @@ impl Repo for PostgresTripRepo {
             r#"
                 SELECT 
                     t.*,
-                    COALESCE(array_agg(DISTINCT tr.ride_id) FILTER (WHERE tr.ride_id IS NOT NULL), ARRAY[]::uuid[]) as ride_ids,
-                    COALESCE(array_agg(DISTINCT tm.media_id) FILTER (WHERE tm.media_id IS NOT NULL), ARRAY[]::uuid[]) as media_ids
+                    tr.ride_ids,
+                    tr.media_ids
                 FROM trips t
-                LEFT JOIN trip_rides tr ON tr.trip_id = t.id
-                LEFT JOIN trip_media tm ON tm.trip_id = t.id
+                LEFT JOIN trip_relations tr ON tr.id = t.id
                 WHERE t.id = $1
-                GROUP BY t.id, t.name, t.created_at, t.user_id
             "#,
             id.as_uuid()
         );
