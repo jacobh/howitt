@@ -251,9 +251,13 @@ export enum TerminusEnd {
 
 export type Trip = {
   __typename?: "Trip";
+  description?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["TripId"]["output"];
   name: Scalars["String"]["output"];
   rides: Array<Ride>;
+  slug: Scalars["String"]["output"];
+  user: UserProfile;
+  year: Scalars["Int"]["output"];
 };
 
 export type UserProfile = {
@@ -331,6 +335,9 @@ export type TripItemFragment = {
   __typename?: "Trip";
   id: any;
   name: string;
+  year: number;
+  slug: string;
+  user: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "TripItemFragment" };
 
 export type LoginViewerInfoQueryVariables = Exact<{ [key: string]: never }>;
@@ -658,6 +665,18 @@ export const TripItemFragmentDoc = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "year" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
         ],
       },
     },
@@ -1216,6 +1235,18 @@ export const UserProfileQueryDocument = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "year" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
         ],
       },
     },

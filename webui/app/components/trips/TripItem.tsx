@@ -3,9 +3,14 @@ import { Link } from "@remix-run/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 
 export const TripItemFragment = gql(`
-    fragment tripItem on Trip {
+        fragment tripItem on Trip {
         id
         name
+        year
+        slug
+        user {
+          username
+        }
     }
 `);
 
@@ -27,7 +32,11 @@ export function TripItem({ trip: tripFragment }: Props): React.ReactNode {
   return (
     <div className="trip-item" css={tripItemCss}>
       <p className="trip-title" css={tripTitleCss}>
-        <Link to={`/trips/${trip.id}`}>{trip.name}</Link>
+        <Link
+          to={`/riders/${trip.user.username}/trips/${trip.year}/${trip.slug}`}
+        >
+          {trip.name}
+        </Link>
       </p>
     </div>
   );
