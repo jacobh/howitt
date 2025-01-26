@@ -1,3 +1,5 @@
+use std::iter;
+
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::models::media::{Media, MediaFilter, MediaId, MediaRelationId};
@@ -27,43 +29,36 @@ impl TryFrom<MediaRow> for Media {
     type Error = PostgresRepoError;
 
     fn try_from(row: MediaRow) -> Result<Self, Self::Error> {
-        let mut relation_ids = Vec::new();
-
-        // Add ride relations
-        if let Some(ride_ids) = row.ride_ids {
-            relation_ids.extend(
-                ride_ids
+        let relation_ids: Vec<_> = iter::empty()
+            .chain(
+                row.ride_ids
                     .into_iter()
-                    .map(|id| MediaRelationId::Ride(RideId::from(id))),
-            );
-        }
-
-        // Add route relations
-        if let Some(route_ids) = row.route_ids {
-            relation_ids.extend(
-                route_ids
+                    .flatten()
+                    .map(RideId::from)
+                    .map(MediaRelationId::from),
+            )
+            .chain(
+                row.route_ids
                     .into_iter()
-                    .map(|id| MediaRelationId::Route(RouteId::from(id))),
-            );
-        }
-
-        // Add trip relations
-        if let Some(trip_ids) = row.trip_ids {
-            relation_ids.extend(
-                trip_ids
+                    .flatten()
+                    .map(RouteId::from)
+                    .map(MediaRelationId::from),
+            )
+            .chain(
+                row.trip_ids
                     .into_iter()
-                    .map(|id| MediaRelationId::Trip(TripId::from(id))),
-            );
-        }
-
-        // Add POI relations
-        if let Some(poi_ids) = row.poi_ids {
-            relation_ids.extend(
-                poi_ids
+                    .flatten()
+                    .map(TripId::from)
+                    .map(MediaRelationId::from),
+            )
+            .chain(
+                row.poi_ids
                     .into_iter()
-                    .map(|id| MediaRelationId::PointOfInterest(PointOfInterestId::from(id))),
-            );
-        }
+                    .flatten()
+                    .map(PointOfInterestId::from)
+                    .map(MediaRelationId::from),
+            )
+            .collect();
 
         Ok(Media {
             id: MediaId::from(row.id),

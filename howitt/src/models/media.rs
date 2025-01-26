@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use derive_more::derive::From;
 
 use super::{
     point_of_interest::PointOfInterestId, ride::RideId, route::RouteId, trip::TripId, user::UserId,
@@ -7,7 +8,7 @@ use super::{
 
 pub type MediaId = ModelUuid<{ ModelName::Media }>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, From)]
 pub enum MediaRelationId {
     Ride(RideId),
     Route(RouteId),
