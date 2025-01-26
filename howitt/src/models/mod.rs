@@ -17,6 +17,7 @@ pub mod cuesheet;
 pub mod external_ref;
 pub mod filters;
 pub mod maybe_pair;
+pub mod media;
 pub mod point;
 pub mod point_of_interest;
 pub mod ride;
@@ -199,7 +200,7 @@ pub trait ModelId:
 
 #[derive(ConstParamTy, PartialEq, Eq, Clone, Copy)]
 pub enum ModelName {
-    Photo,
+    Media,
     Checkpoint,
     Ride,
     Route,
@@ -210,7 +211,7 @@ pub enum ModelName {
 impl ModelName {
     const fn to_str(self) -> &'static str {
         match self {
-            ModelName::Photo => "PHOTO",
+            ModelName::Media => "MEDIA",
             ModelName::Checkpoint => "CHECKPOINT",
             ModelName::Ride => "RIDE",
             ModelName::Route => "ROUTE",
