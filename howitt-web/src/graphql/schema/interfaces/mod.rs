@@ -1,3 +1,3 @@
-pub mod elevation_data;
+pub mod elevation_path;
 
-pub use elevation_data::*;
+pub use elevation_path::*;
