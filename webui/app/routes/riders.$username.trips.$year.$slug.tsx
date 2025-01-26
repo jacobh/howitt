@@ -90,12 +90,6 @@ export default function TripDetail(): React.ReactElement {
       >
         {trip ? (
           <>
-            {trip.description && (
-              <section css={{ margin: "24px 0" }}>
-                <p>{trip.description}</p>
-              </section>
-            )}
-
             {trip.legs.map((leg, i) => (
               <div key={i}>
                 <div css={{ marginTop: "12px" }}>
@@ -106,6 +100,12 @@ export default function TripDetail(): React.ReactElement {
                 ))}
               </div>
             ))}
+
+            {trip.description && (
+              <section css={{ margin: "24px 0" }}>
+                <p>{trip.description}</p>
+              </section>
+            )}
           </>
         ) : (
           <h3>Trip not found</h3>
