@@ -5,7 +5,6 @@ use howitt::{
     models::user::UserId,
     services::sync::rwgps::{RwgpsSyncService, SyncParams},
 };
-use howitt_clients::{ReqwestHttpClient, S3BucketClient};
 use howitt_fs::load_user_config;
 use howitt_fs::{load_routes, persist_user_config};
 use itertools::Itertools;
