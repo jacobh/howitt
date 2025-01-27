@@ -2,9 +2,6 @@ name: Kubernetes Deployment
 
 env:
   REGISTRY: ghcr.io
-  WEBUI_IMAGE_NAME: ${{ github.repository }}-webui
-  WEB_API_IMAGE_NAME: ${{ github.repository }}-web-api
-  WORKER_IMAGE_NAME: ${{ github.repository }}-worker
 
 on:
   push:
