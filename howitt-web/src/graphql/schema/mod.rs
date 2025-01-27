@@ -2,6 +2,7 @@ use super::context::SchemaData;
 
 pub mod interfaces;
 pub mod objects;
+pub mod query;
 pub mod scalars;
 
 pub use interfaces::*;
