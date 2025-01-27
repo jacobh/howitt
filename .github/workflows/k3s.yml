@@ -80,37 +80,50 @@ jobs:
             push-to-registry: true
 
     deploy:
-        needs: [build-and-push-images]
-        runs-on: ubuntu-latest
-        environment: Production
+      needs: [build-and-push-images]
+      runs-on: ubuntu-latest
+      environment: Production
+      strategy:
+        matrix:
+          deployment:
+            - name: webui
+              file: howitt-webui.yaml
+              is_deployment: true
+            - name: web-api
+              file: howitt-web-api.yaml
+              is_deployment: true
+            - name: worker
+              file: howitt-worker.yaml
+              is_deployment: true
+            - name: ingress
+              file: ingress.yml
+              is_deployment: false
 
-        steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
+      steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: Install kubectl
-          uses: azure/setup-kubectl@v3
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
 
-        - name: Configure kubectl
-          run: |
-            mkdir -p ~/.kube
-            echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-            chmod 600 ~/.kube/config
-        
-        - name: Update image tags
-          working-directory: ./k8s
-          run: |
-            sed -i "s/:main.*/:sha-${{ github.sha }}/" webui.yaml
-            sed -i "s/:main.*/:sha-${{ github.sha }}/" web-api.yaml
-            sed -i "s/:main.*/:sha-${{ github.sha }}/" worker.yaml
+      - name: Configure kubectl
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+      
+      - name: Update image tag
+        if: matrix.deployment.is_deployment
+        working-directory: ./k8s
+        run: |
+          sed -i "s/:main.*/:sha-${{ github.sha }}/" ${{ matrix.deployment.file }}
 
-        - name: Deploy to Kubernetes
-          working-directory: ./k8s
-          run: |
-            kubectl apply -f web-api.yaml,worker.yaml,webui.yaml,ingress.yml
+      - name: Deploy to Kubernetes
+        working-directory: ./k8s
+        run: |
+          kubectl apply -f ${{ matrix.deployment.file }}
 
-        - name: Wait for deployments to be ready
-          run: |
-            kubectl rollout status deployment/howitt-worker
-            kubectl rollout status deployment/howitt-web-api
-            kubectl rollout status deployment/howitt-webui
+      - name: Wait for deployment to be ready
+        if: matrix.deployment.is_deployment
+        run: |
+          kubectl rollout status deployment/howitt-${{ matrix.deployment.name }}
