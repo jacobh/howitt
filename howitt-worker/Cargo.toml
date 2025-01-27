@@ -4,3 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1"
+apalis = { version = "0.6", features = ["limit", "timeout"] }
+apalis-redis = { version = "0.6" }
+howitt = { path = "../howitt" }
+tokio = { version = "1", features = ["full"] }
+tracing = "*"
+tracing-subscriber = "0.3"

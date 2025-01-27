@@ -6,6 +6,7 @@
 extern crate self as howitt;
 
 pub mod ext;
+pub mod jobs;
 pub mod models;
 pub mod repos;
 pub mod services;
