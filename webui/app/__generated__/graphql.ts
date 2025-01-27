@@ -34,6 +34,7 @@ export type Scalars = {
    */
   DateTime: { input: any; output: any };
   IsoDate: { input: any; output: any };
+  MediaId: { input: any; output: any };
   PointOfInterestId: { input: any; output: any };
   RideId: { input: any; output: any };
   RouteId: { input: any; output: any };
@@ -84,6 +85,27 @@ export type ExternalRef = {
   canonicalUrl: Scalars["Url"]["output"];
 };
 
+export type Media = {
+  __typename?: "Media";
+  createdAt: Scalars["DateTime"]["output"];
+  id: Scalars["MediaId"]["output"];
+  path: Scalars["String"]["output"];
+  user: UserProfile;
+};
+
+export type MediaTarget = {
+  media: Array<Media>;
+};
+
+export type Mutation = {
+  __typename?: "Mutation";
+  updateTrip: UpdateTripOutput;
+};
+
+export type MutationUpdateTripArgs = {
+  input: UpdateTripInput;
+};
+
 export type NearbyRoute = {
   __typename?: "NearbyRoute";
   closestTerminus: Terminus;
@@ -98,9 +120,10 @@ export type PointDelta = {
   elevationGain: Scalars["Float"]["output"];
 };
 
-export type PointOfInterest = {
+export type PointOfInterest = MediaTarget & {
   __typename?: "PointOfInterest";
   id: Scalars["PointOfInterestId"]["output"];
+  media: Array<Media>;
   name: Scalars["String"]["output"];
   point: Array<Scalars["Float"]["output"]>;
   pointOfInterestType: PointOfInterestType;
@@ -158,20 +181,22 @@ export type QueryRoutesInput = {
   filters: Array<QueryRouteFilters>;
 };
 
-export type Ride = ElevationPath & {
-  __typename?: "Ride";
-  date: Scalars["IsoDate"]["output"];
-  distance: Scalars["Float"]["output"];
-  distancePoints: Array<Scalars["Float"]["output"]>;
-  elevationPoints: Array<Scalars["Float"]["output"]>;
-  finishedAt: Scalars["DateTime"]["output"];
-  id: Scalars["RideId"]["output"];
-  name: Scalars["String"]["output"];
-  points: Array<Array<Scalars["Float"]["output"]>>;
-  pointsJson: Scalars["String"]["output"];
-  startedAt: Scalars["DateTime"]["output"];
-  user: UserProfile;
-};
+export type Ride = ElevationPath &
+  MediaTarget & {
+    __typename?: "Ride";
+    date: Scalars["IsoDate"]["output"];
+    distance: Scalars["Float"]["output"];
+    distancePoints: Array<Scalars["Float"]["output"]>;
+    elevationPoints: Array<Scalars["Float"]["output"]>;
+    finishedAt: Scalars["DateTime"]["output"];
+    id: Scalars["RideId"]["output"];
+    media: Array<Media>;
+    name: Scalars["String"]["output"];
+    points: Array<Array<Scalars["Float"]["output"]>>;
+    pointsJson: Scalars["String"]["output"];
+    startedAt: Scalars["DateTime"]["output"];
+    user: UserProfile;
+  };
 
 export type RidePointsArgs = {
   pointsPerKm: Scalars["Int"]["input"];
@@ -181,35 +206,37 @@ export type RidePointsJsonArgs = {
   pointsPerKm: Scalars["Int"]["input"];
 };
 
-export type Route = ElevationPath & {
-  __typename?: "Route";
-  cues: Array<Cue>;
-  description?: Maybe<Scalars["String"]["output"]>;
-  direction?: Maybe<Direction>;
-  distance: Scalars["Float"]["output"];
-  distancePoints: Array<Scalars["Float"]["output"]>;
-  elevationAscentM: Scalars["Float"]["output"];
-  elevationDescentM: Scalars["Float"]["output"];
-  elevationPoints: Array<Scalars["Float"]["output"]>;
-  externalRef?: Maybe<ExternalRef>;
-  id: Scalars["RouteId"]["output"];
-  idealBike?: Maybe<BikeSpec>;
-  isMetaComplete: Scalars["Boolean"]["output"];
-  minimumBike?: Maybe<BikeSpec>;
-  name: Scalars["String"]["output"];
-  physicalDifficulty?: Maybe<DifficultyRating>;
-  points: Array<Array<Scalars["Float"]["output"]>>;
-  pointsCount: Scalars["Int"]["output"];
-  pointsJson: Scalars["String"]["output"];
-  samplePoints: Array<Array<Scalars["Float"]["output"]>>;
-  samplePointsCount: Scalars["Int"]["output"];
-  scouted?: Maybe<Scouted>;
-  slug: Scalars["String"]["output"];
-  tags?: Maybe<Array<Scalars["String"]["output"]>>;
-  technicalDifficulty?: Maybe<DifficultyRating>;
-  termini: Array<Terminus>;
-  user: UserProfile;
-};
+export type Route = ElevationPath &
+  MediaTarget & {
+    __typename?: "Route";
+    cues: Array<Cue>;
+    description?: Maybe<Scalars["String"]["output"]>;
+    direction?: Maybe<Direction>;
+    distance: Scalars["Float"]["output"];
+    distancePoints: Array<Scalars["Float"]["output"]>;
+    elevationAscentM: Scalars["Float"]["output"];
+    elevationDescentM: Scalars["Float"]["output"];
+    elevationPoints: Array<Scalars["Float"]["output"]>;
+    externalRef?: Maybe<ExternalRef>;
+    id: Scalars["RouteId"]["output"];
+    idealBike?: Maybe<BikeSpec>;
+    isMetaComplete: Scalars["Boolean"]["output"];
+    media: Array<Media>;
+    minimumBike?: Maybe<BikeSpec>;
+    name: Scalars["String"]["output"];
+    physicalDifficulty?: Maybe<DifficultyRating>;
+    points: Array<Array<Scalars["Float"]["output"]>>;
+    pointsCount: Scalars["Int"]["output"];
+    pointsJson: Scalars["String"]["output"];
+    samplePoints: Array<Array<Scalars["Float"]["output"]>>;
+    samplePointsCount: Scalars["Int"]["output"];
+    scouted?: Maybe<Scouted>;
+    slug: Scalars["String"]["output"];
+    tags?: Maybe<Array<Scalars["String"]["output"]>>;
+    technicalDifficulty?: Maybe<DifficultyRating>;
+    termini: Array<Terminus>;
+    user: UserProfile;
+  };
 
 export enum Scouted {
   No = "NO",
@@ -240,11 +267,12 @@ export enum TerminusEnd {
   Start = "START",
 }
 
-export type Trip = {
+export type Trip = MediaTarget & {
   __typename?: "Trip";
   description?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["TripId"]["output"];
   legs: Array<TripLeg>;
+  media: Array<Media>;
   name: Scalars["String"]["output"];
   slug: Scalars["String"]["output"];
   user: UserProfile;
@@ -256,6 +284,17 @@ export type TripLeg = ElevationPath & {
   distancePoints: Array<Scalars["Float"]["output"]>;
   elevationPoints: Array<Scalars["Float"]["output"]>;
   rides: Array<Ride>;
+};
+
+export type UpdateTripInput = {
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  name: Scalars["String"]["input"];
+  tripId: Scalars["TripId"]["input"];
+};
+
+export type UpdateTripOutput = {
+  __typename?: "UpdateTripOutput";
+  trip?: Maybe<Trip>;
 };
 
 export type UserProfile = {
@@ -340,6 +379,30 @@ export type RouteItemFragment = {
   elevationDescentM: number;
   isMetaComplete: boolean;
 } & { " $fragmentName"?: "RouteItemFragment" };
+
+export type EditTripFragment = {
+  __typename?: "Trip";
+  id: any;
+  name: string;
+  description?: string | null;
+} & { " $fragmentName"?: "EditTripFragment" };
+
+export type UpdateTripMutationVariables = Exact<{
+  input: UpdateTripInput;
+}>;
+
+export type UpdateTripMutation = {
+  __typename?: "Mutation";
+  updateTrip: {
+    __typename?: "UpdateTripOutput";
+    trip?: {
+      __typename?: "Trip";
+      id: any;
+      name: string;
+      description?: string | null;
+    } | null;
+  };
+};
 
 export type TripItemFragment = {
   __typename?: "Trip";
@@ -428,36 +491,44 @@ export type TripQueryQueryVariables = Exact<{
 export type TripQueryQuery = {
   __typename?: "Query";
   viewer?:
-    | ({ __typename?: "Viewer" } & {
+    | ({ __typename?: "Viewer"; id: string } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
       })
     | null;
   userWithUsername?: {
     __typename?: "UserProfile";
     username: string;
-    tripWithSlug?: {
-      __typename?: "Trip";
-      id: any;
-      name: string;
-      description?: string | null;
-      legs: Array<
-        {
-          __typename?: "TripLeg";
-          rides: Array<
-            { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
+    tripWithSlug?:
+      | ({
+          __typename?: "Trip";
+          id: any;
+          name: string;
+          description?: string | null;
+          user: { __typename?: "UserProfile"; id: any };
+          legs: Array<
+            {
+              __typename?: "TripLeg";
+              rides: Array<
+                {
+                  __typename?: "Ride";
+                  id: any;
+                  date: any;
+                  pointsJson: string;
+                } & {
+                  " $fragmentRefs"?: {
+                    RideItemFragment: RideItemFragment;
+                    ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
+                  };
+                }
+              >;
+            } & {
               " $fragmentRefs"?: {
-                RideItemFragment: RideItemFragment;
-                ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
+                ElevationPath_TripLeg_Fragment: ElevationPath_TripLeg_Fragment;
               };
             }
           >;
-        } & {
-          " $fragmentRefs"?: {
-            ElevationPath_TripLeg_Fragment: ElevationPath_TripLeg_Fragment;
-          };
-        }
-      >;
-    } | null;
+        } & { " $fragmentRefs"?: { EditTripFragment: EditTripFragment } })
+      | null;
   } | null;
 };
 
@@ -696,6 +767,27 @@ export const RideSummaryFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<RideSummaryFragment, unknown>;
+export const EditTripFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "editTrip" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "description" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EditTripFragment, unknown>;
 export const TripItemFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -868,6 +960,71 @@ export const NearbyRoutesInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<NearbyRoutesInfoFragment, unknown>;
+export const UpdateTripDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateTrip" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateTripInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateTrip" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "trip" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateTripMutation, UpdateTripMutationVariables>;
 export const LoginViewerInfoDocument = {
   kind: "Document",
   definitions: [
@@ -1379,6 +1536,7 @@ export const TripQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "viewerInfo" },
@@ -1424,6 +1582,23 @@ export const TripQueryDocument = {
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "FragmentSpread",
+                        name: { kind: "Name", value: "editTrip" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                          ],
+                        },
                       },
                       {
                         kind: "Field",
@@ -1516,6 +1691,22 @@ export const TripQueryDocument = {
               ],
             },
           },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "editTrip" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "description" } },
         ],
       },
     },

@@ -10,10 +10,13 @@ import { useQuery } from "@apollo/client";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { RideItem } from "~/components/rides/RideItem";
+import { useState } from "react";
+import { EditTripModal } from "~/components/trips/EditTripModal";
 
 const TRIP_QUERY = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
     viewer {
+      id
       ...viewerInfo
     }
 
@@ -23,6 +26,10 @@ const TRIP_QUERY = gql(`
         id
         name
         description
+        ...editTrip
+        user {
+          id
+        }
         legs {
           ...elevationPath
           rides {
@@ -40,6 +47,7 @@ const TRIP_QUERY = gql(`
 
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
 
   const { data } = useQuery(TRIP_QUERY, {
     variables: {
@@ -61,6 +69,9 @@ export default function TripDetail(): React.ReactElement {
 
   const trip = data?.userWithUsername?.tripWithSlug;
   const allRides = trip?.legs.flatMap((leg) => leg.rides) ?? [];
+
+  const isOwnTrip =
+    data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;
 
   return (
     <Container>
@@ -90,6 +101,11 @@ export default function TripDetail(): React.ReactElement {
       >
         {trip ? (
           <>
+            {isOwnTrip && (
+              <button onClick={(): void => setEditModalOpen(true)}>
+                Edit Trip
+              </button>
+            )}
             {trip.legs.map((leg, i) => (
               <div key={i}>
                 <div css={{ marginTop: "12px" }}>
@@ -108,6 +124,12 @@ export default function TripDetail(): React.ReactElement {
                 <p>{trip.description}</p>
               </section>
             )}
+
+            <EditTripModal
+              trip={trip}
+              isOpen={isEditModalOpen}
+              onClose={(): void => setEditModalOpen(false)}
+            />
           </>
         ) : (
           <h3>Trip not found</h3>

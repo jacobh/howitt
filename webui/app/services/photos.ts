@@ -19,7 +19,7 @@ const BASE_URL = "https://d330luy891602k.cloudfront.net";
 
 export function generatePhotoUrl(
   photo: Pick<Photo, "id">,
-  size: PhotoSize
+  size: PhotoSize,
 ): string {
   const ulid = photo.id.split("#")[1];
 
@@ -36,7 +36,7 @@ export function generatePhotoUrl(
             effort: 4,
           },
         },
-      })
+      }),
     ),
   ].join("/");
 }

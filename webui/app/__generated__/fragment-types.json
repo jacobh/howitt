@@ -1,5 +1,6 @@
 {
   "possibleTypes": {
-    "ElevationPath": ["Ride", "Route", "TripLeg"]
+    "ElevationPath": ["Ride", "Route", "TripLeg"],
+    "MediaTarget": ["PointOfInterest", "Ride", "Route", "Trip"]
   }
 }
