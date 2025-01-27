@@ -4,6 +4,7 @@ env:
   REGISTRY: ghcr.io
   WEBUI_IMAGE_NAME: ${{ github.repository }}-webui
   WEB_API_IMAGE_NAME: ${{ github.repository }}-web-api
+  WORKER_IMAGE_NAME: ${{ github.repository }}-worker
 
 on:
   push:
@@ -122,9 +123,65 @@ jobs:
             subject-name: ${{ env.REGISTRY }}/${{ env.WEB_API_IMAGE_NAME}}
             subject-digest: ${{ steps.push.outputs.digest }}
             push-to-registry: true
+
+    worker-build-and-push-image:
+        runs-on: ubuntu-latest
+        environment: Production
+
+        permissions:
+          contents: read
+          packages: write
+          attestations: write
+          id-token: write
+
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+        # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+        - name: Log in to the Container registry
+          uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+          with:
+            registry: ${{ env.REGISTRY }}
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+
+        # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
+        - name: Extract metadata (tags, labels) for Docker
+          id: meta
+          uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+          with:
+            images: ${{ env.REGISTRY }}/${{ env.WORKER_IMAGE_NAME }}
+            tags: |
+              type=ref,event=branch
+              type=sha,format=long,prefix=sha-
+        # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
+        # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see "[Usage](https://github.com/docker/build-push-action#usage)" in the README of the `docker/build-push-action` repository.
+        # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
+        - name: Build and push Docker image
+          id: push
+          uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+          with:
+            context: .
+            file: howitt-worker.Dockerfile
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
         
+        # This step generates an artifact attestation for the image, which is an unforgeable statement about where and how it was built. It increases supply chain security for people who consume the image. For more information, see "[AUTOTITLE](/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)."
+        - name: Generate artifact attestation
+          uses: actions/attest-build-provenance@v1
+          with:
+            subject-name: ${{ env.REGISTRY }}/${{ env.WORKER_IMAGE_NAME }}
+            subject-digest: ${{ steps.push.outputs.digest }}
+            push-to-registry: true
+
     deploy:
-        needs: [webui-build-and-push-image, web-api-build-and-push-image]
+        needs: [webui-build-and-push-image, web-api-build-and-push-image, worker-build-and-push-image]
         runs-on: ubuntu-latest
         environment: Production
 
@@ -144,15 +201,17 @@ jobs:
         - name: Update image tags
           working-directory: ./k8s
           run: |
-            sed -i "s/:main.*/:sha-${{ github.sha }}/" web-api.yaml
             sed -i "s/:main.*/:sha-${{ github.sha }}/" webui.yaml
+            sed -i "s/:main.*/:sha-${{ github.sha }}/" web-api.yaml
+            sed -i "s/:main.*/:sha-${{ github.sha }}/" worker.yaml
 
         - name: Deploy to Kubernetes
           working-directory: ./k8s
           run: |
-            kubectl apply -f web-api.yaml,webui.yaml,ingress.yml
+            kubectl apply -f web-api.yaml,worker.yaml,webui.yaml,ingress.yml
 
         - name: Wait for deployments to be ready
           run: |
+            kubectl rollout status deployment/howitt-worker
             kubectl rollout status deployment/howitt-web-api
             kubectl rollout status deployment/howitt-webui

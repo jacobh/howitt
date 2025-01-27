@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: howitt-worker
+  name: howitt-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: howitt-worker
+  template:
+    metadata:
+      labels:
+        service: howitt-worker
+    spec:
+      containers:
+        - image: ghcr.io/jacobh/howitt-worker:main@${GITHUB_SHA}
+          imagePullPolicy: Always
+          name: howitt-worker
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: howitt-db
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: howitt-db
+                  key: REDIS_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: howitt-jwt
+                  key: JWT_SECRET
+            - name: AWS_REGION
+              value: ap-southeast-2
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws
+                  key: AWS_SECRET_ACCESS_KEY
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always
