@@ -1892,6 +1892,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "howitt-worker"
+version = "0.1.0"
+
+[[package]]
 name = "howitt_client_types"
 version = "0.0.0"
 dependencies = [

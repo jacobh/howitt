@@ -1,18 +1,19 @@
 [workspace]
 
 members = [
-    "howitt",
+    "csaps",
+    "gtfs",
     "howitt_derive",
     "howitt-cli",
+    "howitt-client-types",
+    "howitt-clients",
     "howitt-fs",
     "howitt-postgresql",
     "howitt-web",
-    "howitt-clients",
-    "howitt-client-types",
-    "rwgps",
+    "howitt-worker",
+    "howitt",
     "rwgps-types",
-    "gtfs",
-    "csaps",
+    "rwgps",
 ]
 
 resolver = "2"
