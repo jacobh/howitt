@@ -1,6 +1,11 @@
+use apalis::prelude::*;
 use axum::{extract::State, http::StatusCode, Json};
 use axum_typed_multipart::{FieldData, TryFromMultipart, TypedMultipart};
 use howitt::{
+    jobs::{
+        media::{MediaJob, ProcessMedia},
+        Job,
+    },
     models::{
         media::{Media, MediaId},
         user::UserId,
@@ -44,7 +49,12 @@ pub fn generate_media_key(
 }
 
 pub async fn upload_media_handler(
-    State(state): State<AppState>,
+    State(AppState {
+        bucket_client,
+        media_repo,
+        job_storage,
+        ..
+    }): State<AppState>,
     login: Login,
     TypedMultipart(upload): TypedMultipart<UploadMediaRequest>,
 ) -> Result<(StatusCode, Json<serde_json::Value>), (StatusCode, Json<serde_json::Value>)> {
@@ -77,8 +87,7 @@ pub async fn upload_media_handler(
     };
 
     // Upload to S3
-    state
-        .bucket_client
+    bucket_client
         .put_object(&key, bytes.into(), params)
         .await
         .map_err(|e| {
@@ -90,7 +99,7 @@ pub async fn upload_media_handler(
 
     // Create media record
     let media = Media {
-        id: MediaId::from(media_id),
+        id: media_id.clone(),
         created_at: chrono::Utc::now(),
         user_id: login.session.user_id,
         path: key,
@@ -98,12 +107,26 @@ pub async fn upload_media_handler(
     };
 
     // Save to database
-    state.media_repo.put(media).await.map_err(|e| {
+    media_repo.put(media).await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({"error": format!("Failed to save to database: {}", e)})),
         )
     })?;
+
+    job_storage
+        .lock()
+        .await
+        .push(Job::from(MediaJob::from(ProcessMedia {
+            media_id: media_id.clone(),
+        })))
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": format!("Failed to enqueue job: {}", e)})),
+            )
+        })?;
 
     Ok((
         StatusCode::OK,

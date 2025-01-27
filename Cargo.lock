@@ -1915,6 +1915,8 @@ name = "howitt-web"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "apalis",
+ "apalis-redis",
  "async-graphql",
  "async-graphql-axum",
  "async-trait",

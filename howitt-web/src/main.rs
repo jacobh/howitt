@@ -2,13 +2,17 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use apalis_redis::RedisStorage;
 use async_graphql::dataloader::DataLoader;
 use axum::{
     extract::DefaultBodyLimit,
     routing::{get, post},
     Router,
 };
-use howitt::services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAuthService};
+use howitt::{
+    jobs::Job,
+    services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAuthService},
+};
 use howitt_client_types::BucketName;
 use howitt_clients::{RedisClient, S3BucketClient};
 use howitt_postgresql::{
@@ -45,6 +49,13 @@ async fn main() -> Result<(), anyhow::Error> {
     )
     .await?;
 
+    let conn = apalis_redis::connect(
+        std::env::var("REDIS_URL").unwrap_or(String::from("redis://127.0.0.1:6379/")),
+    )
+    .await?;
+
+    let job_storage: RedisStorage<Job> = RedisStorage::new(conn);
+
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
     let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
@@ -76,6 +87,7 @@ async fn main() -> Result<(), anyhow::Error> {
         user_auth_service,
         media_repo,
         bucket_client: Arc::new(bucket_client),
+        job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
     };
 
     let app = Router::new()
