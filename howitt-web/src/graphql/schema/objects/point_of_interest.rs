@@ -1,7 +1,9 @@
-use async_graphql::{Enum, Object};
-use howitt::models::{point_of_interest::PointOfInterestId, Model};
+use async_graphql::{Context, Enum, Object};
+use howitt::models::{media::MediaFilter, point_of_interest::PointOfInterestId, Model};
 
-use crate::graphql::schema::ModelId;
+use crate::graphql::{context::SchemaData, schema::ModelId};
+
+use super::media::Media;
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 #[graphql(remote = "howitt::models::point_of_interest::PointOfInterestType")]
@@ -27,5 +29,17 @@ impl PointOfInterest {
     }
     async fn point_of_interest_type(&self) -> PointOfInterestType {
         PointOfInterestType::from(self.0.point_of_interest_type.clone())
+    }
+    pub async fn media<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Media>, async_graphql::Error> {
+        let SchemaData { media_repo, .. } = ctx.data()?;
+
+        let media = media_repo
+            .filter_models(MediaFilter::ForPointOfInterest(self.0.id))
+            .await?;
+
+        Ok(media.into_iter().map(Media).collect())
     }
 }

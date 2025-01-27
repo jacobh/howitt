@@ -2,6 +2,7 @@ use async_graphql::{Context, Object};
 use chrono::{DateTime, Utc};
 use howitt::{
     models::{
+        media::MediaFilter,
         point::{
             progress::{DistanceProgress, Progress},
             Point,
@@ -15,6 +16,8 @@ use itertools::Itertools;
 use crate::graphql::context::SchemaData;
 
 use crate::graphql::schema::{user::UserProfile, IsoDate, ModelId};
+
+use super::media::Media;
 
 pub struct Ride(pub howitt::models::ride::Ride);
 
@@ -129,5 +132,17 @@ impl Ride {
             .ok_or(anyhow::anyhow!("User not found"))?;
 
         Ok(UserProfile(user))
+    }
+    pub async fn media<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Media>, async_graphql::Error> {
+        let SchemaData { media_repo, .. } = ctx.data()?;
+
+        let media = media_repo
+            .filter_models(MediaFilter::ForRide(self.0.id))
+            .await?;
+
+        Ok(media.into_iter().map(Media).collect())
     }
 }

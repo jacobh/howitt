@@ -1,6 +1,6 @@
 use async_graphql::dataloader::DataLoader;
 use howitt::{
-    repos::{PointOfInterestRepo, RideRepo, RouteModelRepo, TripRepo, UserRepo},
+    repos::{MediaRepo, PointOfInterestRepo, RideRepo, RouteModelRepo, TripRepo, UserRepo},
     services::{fetchers::SimplifiedRidePointsFetcher, user::auth::Login},
 };
 use howitt_clients::RedisClient;
@@ -15,6 +15,7 @@ pub struct SchemaData {
     pub user_repo: UserRepo,
     pub simplified_ride_points_fetcher: SimplifiedRidePointsFetcher<RedisClient>,
     pub user_loader: DataLoader<UserLoader>,
+    pub media_repo: MediaRepo,
 }
 
 pub struct RequestData {

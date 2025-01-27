@@ -1,6 +1,7 @@
 use async_graphql::{Context, Enum, Object};
 use howitt::{
     models::{
+        media::MediaFilter,
         point::{
             delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
             progress::{DistanceElevationProgress, DistanceProgress, Progress},
@@ -23,6 +24,8 @@ use crate::graphql::schema::{
     user::UserProfile,
     ModelId,
 };
+
+use super::media::Media;
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 #[graphql(remote = "howitt::models::route_description::DifficultyRating")]
@@ -391,5 +394,17 @@ impl Route {
         let user = user_repo.get(self.0.as_index().user_id).await?;
 
         Ok(UserProfile(user))
+    }
+    pub async fn media<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Media>, async_graphql::Error> {
+        let SchemaData { media_repo, .. } = ctx.data()?;
+
+        let media = media_repo
+            .filter_models(MediaFilter::ForRoute(self.0.id()))
+            .await?;
+
+        Ok(media.into_iter().map(Media).collect())
     }
 }

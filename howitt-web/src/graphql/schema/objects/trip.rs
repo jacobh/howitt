@@ -1,12 +1,14 @@
 use async_graphql::{Context, Object};
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::ext::iter::{ResultIterExt, ScanAllExt};
+use howitt::models::media::MediaFilter;
 use howitt::models::{ride::RideFilter, trip::TripId};
 use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 use crate::graphql::schema::{ride::Ride, ModelId};
 
+use super::media::Media;
 use super::user::UserProfile;
 
 pub struct Trip(pub howitt::models::trip::Trip);
@@ -110,5 +112,18 @@ impl Trip {
 
         // For this first cut, put all rides in a single leg
         Ok(vec![TripLeg(rides)])
+    }
+
+    pub async fn media<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Media>, async_graphql::Error> {
+        let SchemaData { media_repo, .. } = ctx.data()?;
+
+        let media = media_repo
+            .filter_models(MediaFilter::ForTrip(self.0.id))
+            .await?;
+
+        Ok(media.into_iter().map(Media).collect())
     }
 }

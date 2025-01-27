@@ -1,6 +1,7 @@
 pub mod cue;
 pub mod external_ref;
 pub mod geo;
+pub mod media;
 pub mod point_of_interest;
 pub mod query;
 pub mod ride;

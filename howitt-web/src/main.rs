@@ -78,6 +78,7 @@ async fn main() -> Result<(), anyhow::Error> {
         ride_repo,
         user_repo: user_repo.clone(),
         trip_repo,
+        media_repo: media_repo.clone(),
         user_loader: DataLoader::new(UserLoader::new(user_repo.clone()), tokio::spawn),
         simplified_ride_points_fetcher,
     });
