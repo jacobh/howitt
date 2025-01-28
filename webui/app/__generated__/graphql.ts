@@ -44,6 +44,11 @@ export type Scalars = {
   UserId: { input: any; output: any };
 };
 
+export type AddTripMediaInput = {
+  mediaIds: Array<Scalars["MediaId"]["input"]>;
+  tripId: Scalars["TripId"]["input"];
+};
+
 export type BikeSpec = {
   __typename?: "BikeSpec";
   frontSuspension: Array<Scalars["Float"]["output"]>;
@@ -99,7 +104,17 @@ export type MediaTarget = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  addTripMedia: TripMediaOutput;
+  removeTripMedia: TripMediaOutput;
   updateTrip: UpdateTripOutput;
+};
+
+export type MutationAddTripMediaArgs = {
+  input: AddTripMediaInput;
+};
+
+export type MutationRemoveTripMediaArgs = {
+  input: RemoveTripMediaInput;
 };
 
 export type MutationUpdateTripArgs = {
@@ -179,6 +194,11 @@ export type QueryRouteFilters = {
 
 export type QueryRoutesInput = {
   filters: Array<QueryRouteFilters>;
+};
+
+export type RemoveTripMediaInput = {
+  mediaIds: Array<Scalars["MediaId"]["input"]>;
+  tripId: Scalars["TripId"]["input"];
 };
 
 export type Ride = ElevationPath &
@@ -284,6 +304,11 @@ export type TripLeg = ElevationPath & {
   distancePoints: Array<Scalars["Float"]["output"]>;
   elevationPoints: Array<Scalars["Float"]["output"]>;
   rides: Array<Ride>;
+};
+
+export type TripMediaOutput = {
+  __typename?: "TripMediaOutput";
+  trip?: Maybe<Trip>;
 };
 
 export type UpdateTripInput = {
