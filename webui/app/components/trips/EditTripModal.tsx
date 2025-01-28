@@ -112,6 +112,7 @@ export function EditTripModal({
 }: Props): React.ReactElement {
   const trip = useFragment(EditTripFragment, tripFragment);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [name, setName] = useState(trip.name);
   const [description, setDescription] = useState(trip.description ?? "");
@@ -124,26 +125,34 @@ export function EditTripModal({
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
-      for (const file of acceptedFiles) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("name", file.name);
-        formData.append("relation_ids", JSON.stringify([trip.id]));
+      setUploading(true);
 
-        const response = await fetch("http://localhost:8000/upload/media", {
-          method: "POST",
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        });
+      try {
+        for (const file of acceptedFiles) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("name", file.name);
+          formData.append("relation_ids", JSON.stringify([trip.id]));
 
-        if (!response.ok) throw new Error("Upload failed");
+          const response = await fetch("http://localhost:8000/upload/media", {
+            method: "POST",
+            body: formData,
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+            },
+          });
 
+          if (!response.ok) throw new Error("Upload failed");
+        }
         refetch();
+      } catch (error) {
+        console.error("Upload failed:", error);
+        // You might want to show an error message to the user here
+      } finally {
+        setUploading(false);
       }
     },
-    [trip.id, refetch],
+    [trip.id, refetch]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -255,7 +264,9 @@ export function EditTripModal({
             </table>
             <div {...getRootProps()} css={dropzoneStyles}>
               <input {...getInputProps()} />
-              {isDragActive ? (
+              {uploading ? (
+                <p>Uploading files...</p>
+              ) : isDragActive ? (
                 <p>Drop the files here ...</p>
               ) : (
                 <p>Drag 'n' drop some files here, or click to select files</p>
