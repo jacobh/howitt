@@ -2,6 +2,7 @@ import { useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
 import { useRef, useState } from "react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
+import { makeMqs } from "~/styles/mediaQueries";
 
 export const EditTripFragment = gql(`
   fragment editTrip on Trip {
@@ -29,16 +30,40 @@ interface Props {
   onClose: () => void;
 }
 
-const modalStyles = css`
-  padding: 2rem;
-  border: 0;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 0.5rem 0.25rem hsl(0 0% 0% / 10%);
+const modalStyles = makeMqs([
+  css`
+    padding: 5vw;
+    border: 0;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 0.5rem 0.25rem hsl(0 0% 0% / 10%);
 
-  &::backdrop {
-    background: hsl(0 0% 0% / 50%);
-  }
-`;
+    width: 90vw;
+
+    &::backdrop {
+      background: hsl(0 0% 0% / 50%);
+    }
+  `,
+  css`
+    padding: 4vw;
+    width: 80vw;
+  `,
+  css`
+    padding: 3vw;
+    width: 70vw;
+  `,
+  css`
+    padding: 2vw;
+    width: 60vw;
+  `,
+  css`
+    padding: 2vw;
+    width: 50vw;
+  `,
+  css`
+    padding: 2vw;
+    width: 40vw;
+  `,
+]);
 
 const formStyles = css`
   display: flex;
@@ -46,8 +71,22 @@ const formStyles = css`
   gap: 1rem;
 `;
 
+const formFieldStyles = css`
+  display: grid;
+  grid-template-columns: minmax(75px, 6vw) 1fr;
+  gap: 1rem;
+  align-items: start;
+
+  label {
+    padding-top: 0.5rem;
+  }
+`;
+
 const inputStyles = css`
   padding: 0.5rem;
+  width: 100%;
+
+  border: 1px solid #ccc;
 `;
 
 const buttonGroupStyles = css`
@@ -98,7 +137,7 @@ export function EditTripModal({
   return (
     <dialog ref={dialogRef} css={modalStyles} onClose={onClose}>
       <form onSubmit={handleSubmit} css={formStyles}>
-        <div>
+        <div css={formFieldStyles}>
           <label htmlFor="name">Name</label>
           <input
             css={inputStyles}
@@ -106,11 +145,12 @@ export function EditTripModal({
             type="text"
             value={name}
             onChange={(e): void => setName(e.target.value)}
+            autoComplete="off"
             required
           />
         </div>
 
-        <div>
+        <div css={formFieldStyles}>
           <label htmlFor="description">Description</label>
           <textarea
             css={inputStyles}
