@@ -2,12 +2,14 @@ use anyhow::Result;
 use apalis::layers::ErrorHandlingLayer;
 use apalis::prelude::*;
 use apalis_redis::RedisStorage;
+use context::Context;
 use std::time::Duration;
 use tracing::{error, info};
 
 use howitt::jobs::Job;
 
-mod handlers;
+pub mod context;
+pub mod handlers;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -26,6 +28,7 @@ async fn main() -> Result<()> {
         .enable_tracing()
         .timeout(Duration::from_millis(30_000))
         .concurrency(4)
+        .data(Context::new().await?)
         .backend(storage)
         .build_fn(handlers::handle_job);
 
