@@ -31,6 +31,8 @@ pub trait BucketClient {
         body: bytes::Bytes,
         params: ObjectParams,
     ) -> Result<(), Self::Error>;
+
+    async fn get_object(&self, key: &str) -> Result<Option<bytes::Bytes>, Self::Error>;
 }
 
 pub struct HttpResponse {

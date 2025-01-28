@@ -56,6 +56,14 @@ impl BucketClient for S3BucketClient {
 
         Ok(())
     }
+
+    async fn get_object(&self, key: &str) -> Result<Option<bytes::Bytes>, Self::Error> {
+        match self.client.get(&key.into()).await {
+            Ok(result) => Ok(Some(result.bytes().await?)),
+            Err(object_store::Error::NotFound { .. }) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
 }
 
 #[derive(Debug)]
