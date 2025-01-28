@@ -11,18 +11,20 @@ import { ServerStyleContext } from "~/styles/server.context";
 import { getDataFromTree } from "@apollo/client/react/ssr";
 import { createApolloClient } from "./services/apollo";
 
+const API_BASE_URL = process.env.API_BASE_URL ?? "https://api.howittplains.net";
+
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  loadContext: AppLoadContext,
+  loadContext: AppLoadContext
 ): Promise<Response> {
   const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
 
   const client = createApolloClient({
     ssrMode: true,
-    graphqlUrl: process.env.GRAPHQL_URL ?? "https://api.howittplains.net/",
+    graphqlUrl: API_BASE_URL,
     getToken: () => cookieData.token,
   });
 
@@ -42,7 +44,7 @@ export default async function handleRequest(
   const html = renderToString(
     <ServerStyleContext.Provider value={null}>
       {App}
-    </ServerStyleContext.Provider>,
+    </ServerStyleContext.Provider>
   );
 
   const initialState = client.extract();
@@ -54,18 +56,18 @@ export default async function handleRequest(
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__APOLLO_STATE__=${JSON.stringify(
-            initialState,
+            initialState
           ).replace(/</g, "\\u003c")}`, // The replace call escapes the < character to prevent cross-site scripting attacks that are possible via the presence of </script> in a string literal
         }}
       />
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__ENV__=${JSON.stringify({
-            CLIENT_GRAPHQL_URL: process.env.CLIENT_GRAPHQL_URL,
+            API_BASE_URL,
           }).replace(/</g, "\\u003c")}`,
         }}
       />
-    </ServerStyleContext.Provider>,
+    </ServerStyleContext.Provider>
   );
 
   responseHeaders.set("Content-Type", "text/html");

@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import { useCallback, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FragmentType, gql, useFragment } from "~/__generated__";
+import { getApiBaseUrl } from "~/env.client";
 import { makeMqs } from "~/styles/mediaQueries";
 
 export const EditTripFragment = gql(`
@@ -134,7 +135,7 @@ export function EditTripModal({
           formData.append("name", file.name);
           formData.append("relation_ids", JSON.stringify([trip.id]));
 
-          const response = await fetch("http://localhost:8000/upload/media", {
+          const response = await fetch(`${getApiBaseUrl()}/upload/media`, {
             method: "POST",
             body: formData,
             headers: {

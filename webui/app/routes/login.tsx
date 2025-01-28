@@ -5,6 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { FormEvent, useCallback, useState } from "react";
 import { gql } from "~/__generated__";
+import { getApiBaseUrl } from "~/env.client";
 
 const containerCss = css`
   display: grid;
@@ -63,13 +64,10 @@ export default function Login(): React.ReactElement {
       e.preventDefault();
 
       try {
-        const res = await axios.post(
-          "https://api.howittplains.net/auth/login",
-          {
-            username,
-            password,
-          },
-        );
+        const res = await axios.post(`${getApiBaseUrl()}/auth/login`, {
+          username,
+          password,
+        });
 
         if (typeof res.data?.token === "string") {
           Cookies.set("token", res.data.token);
@@ -84,7 +82,7 @@ export default function Login(): React.ReactElement {
         setPassword("");
       }
     },
-    [username, password, navigate, refetch],
+    [username, password, navigate, refetch]
   );
 
   return (

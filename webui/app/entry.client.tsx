@@ -9,6 +9,7 @@ import { createEmotionCache } from "~/styles/createEmotionCache";
 import Cookies from "js-cookie";
 
 import { createApolloClient } from "./services/apollo";
+import { getApiBaseUrl } from "./env.client";
 
 interface ClientCacheProviderProps {
   children: React.ReactNode;
@@ -32,9 +33,7 @@ function ClientStyleCacheProvider({
 
 function Client(): React.ReactNode {
   const client = createApolloClient({
-    graphqlUrl:
-      (window as any).__ENV__.CLIENT_GRAPHQL_URL ??
-      "https://api.howittplains.net/",
+    graphqlUrl: getApiBaseUrl(),
     getToken: () => Cookies.get("token"),
     initialState: (window as any).__APOLLO_STATE__,
   });
