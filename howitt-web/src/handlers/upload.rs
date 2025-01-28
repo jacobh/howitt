@@ -7,7 +7,7 @@ use howitt::{
         Job,
     },
     models::{
-        media::{Media, MediaId},
+        media::{Media, MediaId, MediaRelationId},
         user::UserId,
     },
     repos::Repo,
@@ -25,6 +25,15 @@ pub struct UploadMediaRequest {
     #[form_data(limit = "unlimited")]
     pub file: FieldData<NamedTempFile>,
     pub name: String,
+    pub relation_ids: Option<String>, // JSON array of relation IDs
+}
+
+fn parse_relation_ids(
+    relation_ids: Option<String>,
+) -> Result<Vec<MediaRelationId>, serde_json::Error> {
+    relation_ids
+        .map(|ids| serde_json::from_str(&ids))
+        .unwrap_or(Ok(vec![]))
 }
 
 pub struct GenerateMediaKeyParams {
@@ -97,13 +106,20 @@ pub async fn upload_media_handler(
             )
         })?;
 
+    let relation_ids = parse_relation_ids(upload.relation_ids).map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"error": format!("Failed to parse relation ids: {}", e)})),
+        )
+    })?;
+
     // Create media record
     let media = Media {
         id: media_id.clone(),
         created_at: chrono::Utc::now(),
         user_id: login.session.user_id,
         path: key,
-        relation_ids: vec![],
+        relation_ids,
     };
 
     // Save to database
