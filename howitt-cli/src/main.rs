@@ -1,15 +1,21 @@
 #![feature(async_closure)]
 
+use std::sync::Arc;
+
+use apalis_redis::RedisStorage;
 use clap::{Parser, Subcommand};
+use howitt::jobs::Job;
 use howitt_postgresql::{
-    PostgresClient, PostgresPointOfInterestRepo, PostgresRidePointsRepo, PostgresRideRepo,
-    PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
+    PostgresClient, PostgresMediaRepo, PostgresPointOfInterestRepo, PostgresRidePointsRepo,
+    PostgresRideRepo, PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
 };
 
 mod commands;
 mod utils;
 
-use commands::{POICommands, RideCommands, RouteCommands, TripCommands, UserCommands};
+use commands::{
+    MediaCommands, POICommands, RideCommands, RouteCommands, TripCommands, UserCommands,
+};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -33,6 +39,8 @@ enum Commands {
     POI(POICommands),
     #[clap(subcommand)]
     Trip(TripCommands),
+    #[clap(subcommand)]
+    Media(MediaCommands),
     OnceOff,
 }
 
@@ -44,6 +52,8 @@ pub struct Context {
     pub ride_points_repo: PostgresRidePointsRepo,
     pub poi_repo: PostgresPointOfInterestRepo,
     pub trip_repo: PostgresTripRepo,
+    pub media_repo: PostgresMediaRepo,
+    pub job_storage: Arc<tokio::sync::Mutex<RedisStorage<Job>>>,
 }
 
 impl Context {
@@ -54,6 +64,13 @@ impl Context {
         )
         .await?;
 
+        let conn = apalis_redis::connect(
+            std::env::var("REDIS_URL").unwrap_or(String::from("redis://127.0.0.1:6379/")),
+        )
+        .await?;
+
+        let job_storage = RedisStorage::new(conn);
+
         Ok(Self {
             user_repo: PostgresUserRepo::new(postgres_client.clone()),
             route_repo: PostgresRouteRepo::new(postgres_client.clone()),
@@ -61,7 +78,9 @@ impl Context {
             ride_points_repo: PostgresRidePointsRepo::new(postgres_client.clone()),
             poi_repo: PostgresPointOfInterestRepo::new(postgres_client.clone()),
             trip_repo: PostgresTripRepo::new(postgres_client.clone()),
+            media_repo: PostgresMediaRepo::new(postgres_client.clone()),
             postgres_client,
+            job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
         })
     }
 }
@@ -78,6 +97,7 @@ async fn main() -> Result<(), anyhow::Error> {
         Commands::POI(cmd) => commands::poi::handle(cmd, context).await?,
         Commands::Rwgps(cmd) => commands::rwgps::handle(cmd, context).await?,
         Commands::Trip(cmd) => commands::trip::handle(cmd, context).await?,
+        Commands::Media(cmd) => commands::media::handle(cmd, context).await?,
         Commands::OnceOff => commands::once_off::handle(context).await?,
     }
 

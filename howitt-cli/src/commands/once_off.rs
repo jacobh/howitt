@@ -10,6 +10,8 @@ pub async fn handle(
         ride_points_repo,
         poi_repo,
         trip_repo,
+        media_repo,
+        job_storage,
     }: Context,
 ) -> Result<(), anyhow::Error> {
     Ok(())

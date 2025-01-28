@@ -1849,6 +1849,8 @@ name = "howitt-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "apalis",
+ "apalis-redis",
  "chrono",
  "chrono-tz",
  "clap",

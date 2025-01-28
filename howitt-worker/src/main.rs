@@ -24,9 +24,8 @@ async fn main() -> Result<()> {
     let worker = WorkerBuilder::new("howitt-worker")
         .layer(ErrorHandlingLayer::new())
         .enable_tracing()
-        .rate_limit(5, Duration::from_secs(1))
         .timeout(Duration::from_millis(30_000))
-        .concurrency(2)
+        .concurrency(4)
         .backend(storage)
         .build_fn(handlers::handle_job);
 
