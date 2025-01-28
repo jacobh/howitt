@@ -24,7 +24,7 @@ const documents = {
     types.RideSummaryFragmentDoc,
   "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n":
     types.RouteItemFragmentDoc,
-  "\n  fragment editTrip on Trip {\n    id\n    name \n    description\n  }\n":
+  "\n  fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n    }\n  }\n":
     types.EditTripFragmentDoc,
   "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n":
     types.UpdateTripDocument,
@@ -100,8 +100,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment editTrip on Trip {\n    id\n    name \n    description\n  }\n",
-): (typeof documents)["\n  fragment editTrip on Trip {\n    id\n    name \n    description\n  }\n"];
+  source: "\n  fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n    }\n  }\n",
+): (typeof documents)["\n  fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

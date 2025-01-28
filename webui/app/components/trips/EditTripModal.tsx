@@ -9,6 +9,11 @@ export const EditTripFragment = gql(`
     id
     name 
     description
+    media {
+      id
+      path
+      createdAt
+    }
   }
 `);
 
@@ -159,6 +164,47 @@ export function EditTripModal({
             onChange={(e): void => setDescription(e.target.value)}
             rows={4}
           />
+        </div>
+
+        <div css={formFieldStyles}>
+          <label htmlFor="media">Media</label>
+          <div>
+            <table
+              css={css`
+                width: 100%;
+                border-collapse: collapse;
+
+                th,
+                td {
+                  padding: 8px;
+                  text-align: left;
+                  border-bottom: 1px solid #ddd;
+                }
+
+                th {
+                  background-color: #f5f5f5;
+                  font-weight: 500;
+                }
+              `}
+            >
+              <thead>
+                <tr>
+                  <th>Path</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trip.media.map((media) => (
+                  <tr key={media.id}>
+                    <td>{media.path}</td>
+                    <td>
+                      {new Date(media.createdAt).toLocaleDateString("en-US")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div css={buttonGroupStyles}>
