@@ -150,7 +150,7 @@ export default function TripDetail(): React.ReactElement {
                       css={{
                         width: "100%",
                         height: "auto",
-                        borderRadius: "8px",
+                        borderRadius: "4px",
                       }}
                       alt=""
                     />
