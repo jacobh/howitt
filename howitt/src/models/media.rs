@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use derive_more::derive::From;
+use derive_more::derive::{Display, From};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -98,5 +98,96 @@ impl IndexModel for Media {
 
     fn id(&self) -> Self::Id {
         self.id
+    }
+}
+
+pub enum ImageContentType {
+    Jpeg,
+    Webp,
+}
+
+impl ImageContentType {
+    pub fn as_extension(&self) -> &'static str {
+        match self {
+            ImageContentType::Jpeg => "jpg",
+            ImageContentType::Webp => "webp",
+        }
+    }
+}
+
+#[derive(Debug, Display)]
+pub enum ImageDimensions {
+    #[display("{}x{}", _0, _0)]
+    Square(usize),
+    #[display("{}x{}", width, height)]
+    Rectangle { width: usize, height: usize },
+}
+
+#[derive(Debug, Display)]
+pub enum ImageSpec {
+    #[display("fit_{}", _0)]
+    Fit(ImageDimensions),
+    #[display("fill_{}", _0)]
+    Fill(ImageDimensions),
+}
+
+pub const IMAGE_SPECS: &[ImageSpec] = &[
+    ImageSpec::Fill(ImageDimensions::Square(300)),
+    ImageSpec::Fill(ImageDimensions::Square(600)),
+    ImageSpec::Fit(ImageDimensions::Square(800)),
+    ImageSpec::Fit(ImageDimensions::Square(1200)),
+    ImageSpec::Fit(ImageDimensions::Square(1600)),
+    ImageSpec::Fit(ImageDimensions::Square(2000)),
+    ImageSpec::Fit(ImageDimensions::Square(2400)),
+];
+
+#[cfg(test)]
+mod tests {
+    use super::{ImageDimensions, ImageSpec};
+
+    #[test]
+    fn test_image_dimensions_display() {
+        // Test square dimensions
+        let square = ImageDimensions::Square(100);
+        assert_eq!(square.to_string(), "100x100");
+
+        let large_square = ImageDimensions::Square(2048);
+        assert_eq!(large_square.to_string(), "2048x2048");
+
+        // Test rectangle dimensions
+        let rectangle = ImageDimensions::Rectangle {
+            width: 800,
+            height: 600,
+        };
+        assert_eq!(rectangle.to_string(), "800x600");
+
+        let portrait = ImageDimensions::Rectangle {
+            width: 600,
+            height: 800,
+        };
+        assert_eq!(portrait.to_string(), "600x800");
+    }
+
+    #[test]
+    fn test_image_spec_display() {
+        // Test fit dimensions
+        let fit_square = ImageSpec::Fit(ImageDimensions::Square(100));
+        assert_eq!(fit_square.to_string(), "fit_100x100");
+
+        let fit_rectangle = ImageSpec::Fit(ImageDimensions::Rectangle {
+            width: 800,
+            height: 600,
+        });
+        assert_eq!(fit_rectangle.to_string(), "fit_800x600");
+
+        // Test fill dimensions
+        let fill_square = ImageSpec::Fill(ImageDimensions::Square(300));
+        assert_eq!(fill_square.to_string(), "fill_300x300");
+
+        let fill_rectangle = ImageSpec::Fill(ImageDimensions::Rectangle {
+            width: 1024,
+            height: 768,
+        });
+        assert_eq!(fill_rectangle.to_string(), "fill_1024x768");
     }
 }
