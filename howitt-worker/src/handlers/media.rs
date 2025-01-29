@@ -1,6 +1,5 @@
-use howitt::models::media::{ImageContentType, ImageDimensions, ImageSpec, Media, IMAGE_SPECS};
+use howitt::models::media::{ImageContentType, ImageSpec, Media, IMAGE_SPECS};
 use howitt::services::media::keys::{generate_resized_media_key, GenerateResizedMediaKeyParams};
-use howitt::services::media::{calculate_square_center_crop, CropDimensions};
 use howitt_postgresql::PostgresRepoError;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImageView, ImageReader};
@@ -22,33 +21,21 @@ use crate::context::Context;
 
 fn resize(img: &DynamicImage, spec: &ImageSpec) -> DynamicImage {
     match spec {
-        ImageSpec::Fill(dimensions) => match dimensions {
-            ImageDimensions::Square(size) => {
-                let (width, height) = img.dimensions();
+        ImageSpec::Fill(dimensions) => {
+            let (width, height) = dimensions.dimensions();
 
-                let CropDimensions {
-                    x,
-                    y,
-                    width,
-                    height,
-                } = calculate_square_center_crop((width as usize, height as usize));
+            img.resize_to_fill(width as u32, height as u32, FilterType::Lanczos3)
+        }
+        ImageSpec::Fit(dimensions) => {
+            let (image_width, image_height) = img.dimensions();
+            let (width, height) = dimensions.dimensions();
 
-                let cropped = img.crop_imm(x as u32, y as u32, width as u32, height as u32);
-                cropped.resize_to_fill(*size as u32, *size as u32, FilterType::Lanczos3)
+            if image_width <= width as u32 && image_height <= height as u32 {
+                img.clone()
+            } else {
+                img.resize(width as u32, height as u32, FilterType::Lanczos3)
             }
-            ImageDimensions::Rectangle { .. } => {
-                unimplemented!("Rectangle fill dimensions not yet supported")
-            }
-        },
-        ImageSpec::Fit(dimensions) => match dimensions {
-            ImageDimensions::Square(size) => {
-                let target = *size as u32;
-                img.resize_to_fill(target, target, FilterType::Lanczos3)
-            }
-            ImageDimensions::Rectangle { .. } => {
-                unimplemented!("Rectangle fit dimensions not yet supported")
-            }
-        },
+        }
     }
 }
 
