@@ -38,7 +38,6 @@ dotenv = "0.15.0"
 axum_typed_multipart = { version = "*", features = ["tempfile_3"] }
 tempfile = "3"
 uuid = "*"
-sanitize-filename = "0.6.0"
 infer = "0.16.0"
 apalis = { version = "0.6", features = ["limit", "timeout"] }
 apalis-redis = { version = "0.6" }
