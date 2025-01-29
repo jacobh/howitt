@@ -143,6 +143,15 @@ pub enum ImageSpec {
     Fill(ImageDimensions),
 }
 
+impl ImageSpec {
+    pub fn dimensions(&self) -> &ImageDimensions {
+        match self {
+            ImageSpec::Fit(dimensions) => dimensions,
+            ImageSpec::Fill(dimensions) => dimensions,
+        }
+    }
+}
+
 pub const IMAGE_SPECS: &[ImageSpec] = &[
     ImageSpec::Fill(ImageDimensions::Square(300)),
     ImageSpec::Fill(ImageDimensions::Square(600)),
