@@ -101,8 +101,11 @@ impl IndexModel for Media {
     }
 }
 
+#[derive(Debug, Clone, Display)]
 pub enum ImageContentType {
+    #[display("image/jpeg")]
     Jpeg,
+    #[display("image/webp")]
     Webp,
 }
 
@@ -115,7 +118,7 @@ impl ImageContentType {
     }
 }
 
-#[derive(Debug, Display)]
+#[derive(Debug, Display, Clone)]
 pub enum ImageDimensions {
     #[display("{}x{}", _0, _0)]
     Square(usize),
@@ -123,7 +126,7 @@ pub enum ImageDimensions {
     Rectangle { width: usize, height: usize },
 }
 
-#[derive(Debug, Display)]
+#[derive(Debug, Display, Clone)]
 pub enum ImageSpec {
     #[display("fit_{}", _0)]
     Fit(ImageDimensions),
