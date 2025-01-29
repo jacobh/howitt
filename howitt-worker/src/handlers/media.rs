@@ -1,6 +1,6 @@
 use howitt::models::media::{ImageContentType, ImageDimensions, ImageSpec, Media, IMAGE_SPECS};
 use howitt::services::media::keys::{generate_resized_media_key, GenerateResizedMediaKeyParams};
-use howitt::services::media::{calculate_center_crop, CropDimensions};
+use howitt::services::media::{calculate_square_center_crop, CropDimensions};
 use howitt_postgresql::PostgresRepoError;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImageView, ImageReader};
@@ -31,7 +31,7 @@ fn resize(img: &DynamicImage, spec: &ImageSpec) -> DynamicImage {
                     y,
                     width,
                     height,
-                } = calculate_center_crop((width as usize, height as usize), dimensions);
+                } = calculate_square_center_crop((width as usize, height as usize));
 
                 let cropped = img.crop_imm(x as u32, y as u32, width as u32, height as u32);
                 cropped.resize_to_fill(*size as u32, *size as u32, FilterType::Lanczos3)

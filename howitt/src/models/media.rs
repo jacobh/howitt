@@ -126,6 +126,15 @@ pub enum ImageDimensions {
     Rectangle { width: usize, height: usize },
 }
 
+impl ImageDimensions {
+    pub fn dimensions(&self) -> (usize, usize) {
+        match self {
+            ImageDimensions::Square(size) => (*size, *size),
+            ImageDimensions::Rectangle { width, height } => (*width, *height),
+        }
+    }
+}
+
 #[derive(Debug, Display, Clone)]
 pub enum ImageSpec {
     #[display("fit_{}", _0)]
