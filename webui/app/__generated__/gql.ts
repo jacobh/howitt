@@ -24,7 +24,7 @@ const documents = {
     types.RideSummaryFragmentDoc,
   "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n":
     types.RouteItemFragmentDoc,
-  "\n  fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n    }\n  }\n":
+  "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n":
     types.EditTripFragmentDoc,
   "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n":
     types.UpdateTripDocument,
@@ -36,7 +36,7 @@ const documents = {
     types.RidesWithDateDocument,
   "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          date\n          pointsJson(pointsPerKm: $pointsPerKm)\n          ...rideItem\n        }\n        trips {\n          id\n          name\n          ...tripItem\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.UserProfileQueryDocument,
-  "\n  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        description\n        ...editTrip\n        user {\n          id\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            date\n            pointsJson(pointsPerKm: $pointsPerKm)\n            ...rideItem\n            ...elevationPath\n          }\n        }\n      }\n    }\n  }\n":
+  "\n  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        description\n        media {\n          id\n          imageSizes {\n            fit1200 {\n              webpUrl\n            }\n          }\n        }\n        ...editTrip\n        user {\n          id\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            date\n            pointsJson(pointsPerKm: $pointsPerKm)\n            ...rideItem\n            ...elevationPath\n          }\n        }\n      }\n    }\n  }\n":
     types.TripQueryDocument,
   "\n  query publicUsers {\n    publicUsers {\n        id\n        ...userItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.PublicUsersDocument,
@@ -100,8 +100,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n    }\n  }\n",
-): (typeof documents)["\n  fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n    }\n  }\n"];
+  source: "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n",
+): (typeof documents)["\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -136,8 +136,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        description\n        ...editTrip\n        user {\n          id\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            date\n            pointsJson(pointsPerKm: $pointsPerKm)\n            ...rideItem\n            ...elevationPath\n          }\n        }\n      }\n    }\n  }\n",
-): (typeof documents)["\n  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        description\n        ...editTrip\n        user {\n          id\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            date\n            pointsJson(pointsPerKm: $pointsPerKm)\n            ...rideItem\n            ...elevationPath\n          }\n        }\n      }\n    }\n  }\n"];
+  source: "\n  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        description\n        media {\n          id\n          imageSizes {\n            fit1200 {\n              webpUrl\n            }\n          }\n        }\n        ...editTrip\n        user {\n          id\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            date\n            pointsJson(pointsPerKm: $pointsPerKm)\n            ...rideItem\n            ...elevationPath\n          }\n        }\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        description\n        media {\n          id\n          imageSizes {\n            fit1200 {\n              webpUrl\n            }\n          }\n        }\n        ...editTrip\n        user {\n          id\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            date\n            pointsJson(pointsPerKm: $pointsPerKm)\n            ...rideItem\n            ...elevationPath\n          }\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

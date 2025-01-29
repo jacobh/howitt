@@ -82,7 +82,7 @@ export default function Login(): React.ReactElement {
         setPassword("");
       }
     },
-    [username, password, navigate, refetch]
+    [username, password, navigate, refetch],
   );
 
   return (

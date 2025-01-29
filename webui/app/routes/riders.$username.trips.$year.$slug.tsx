@@ -26,6 +26,14 @@ const TRIP_QUERY = gql(`
         id
         name
         description
+        media {
+          id
+          imageSizes {
+            fit1200 {
+              webpUrl
+            }
+          }
+        }
         ...editTrip
         user {
           id
@@ -122,6 +130,32 @@ export default function TripDetail(): React.ReactElement {
             {trip.description && (
               <section css={{ margin: "24px 0" }}>
                 <p>{trip.description}</p>
+              </section>
+            )}
+
+            {trip.media.length > 0 && (
+              <section css={{ margin: "24px 0" }}>
+                <h3 css={{ marginBottom: "16px" }}>Photos</h3>
+                <div
+                  css={{
+                    display: "grid",
+                    gap: "16px",
+                    gridTemplateColumns: "1fr",
+                  }}
+                >
+                  {trip.media.map((media) => (
+                    <img
+                      key={media.id}
+                      src={media.imageSizes.fit1200.webpUrl}
+                      css={{
+                        width: "100%",
+                        height: "auto",
+                        borderRadius: "8px",
+                      }}
+                      alt=""
+                    />
+                  ))}
+                </div>
               </section>
             )}
 

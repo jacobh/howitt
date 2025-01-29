@@ -8,7 +8,7 @@ import { getApiBaseUrl } from "~/env.client";
 import { makeMqs } from "~/styles/mediaQueries";
 
 export const EditTripFragment = gql(`
-  fragment editTrip on Trip {
+    fragment editTrip on Trip {
     id
     name 
     description
@@ -16,6 +16,11 @@ export const EditTripFragment = gql(`
       id
       path
       createdAt
+      imageSizes {
+        fill600 {
+          webpUrl
+        }
+      }
     }
   }
 `);
@@ -248,6 +253,7 @@ export function EditTripModal({
             >
               <thead>
                 <tr>
+                  <th>Thumbnail</th>
                   <th>Path</th>
                   <th>Created At</th>
                 </tr>
@@ -255,6 +261,18 @@ export function EditTripModal({
               <tbody>
                 {trip.media.map((media) => (
                   <tr key={media.id}>
+                    <td css={{ width: "120px" }}>
+                      <img
+                        src={media.imageSizes.fill600.webpUrl}
+                        css={{
+                          width: "100px",
+                          height: "100px",
+                          objectFit: "cover",
+                          borderRadius: "4px",
+                        }}
+                        alt=""
+                      />
+                    </td>
                     <td>{media.path}</td>
                     <td>
                       {new Date(media.createdAt).toLocaleDateString("en-US")}

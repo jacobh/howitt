@@ -90,10 +90,36 @@ export type ExternalRef = {
   canonicalUrl: Scalars["Url"]["output"];
 };
 
+export enum ImageMode {
+  Fill = "FILL",
+  Fit = "FIT",
+}
+
+export type ImageSize = {
+  __typename?: "ImageSize";
+  height: Scalars["Int"]["output"];
+  jpegUrl: Scalars["String"]["output"];
+  mode: ImageMode;
+  webpUrl: Scalars["String"]["output"];
+  width: Scalars["Int"]["output"];
+};
+
+export type ImageSizes = {
+  __typename?: "ImageSizes";
+  fill300: ImageSize;
+  fill600: ImageSize;
+  fit800: ImageSize;
+  fit1200: ImageSize;
+  fit1600: ImageSize;
+  fit2000: ImageSize;
+  fit2400: ImageSize;
+};
+
 export type Media = {
   __typename?: "Media";
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["MediaId"]["output"];
+  imageSizes: ImageSizes;
   path: Scalars["String"]["output"];
   user: UserProfile;
 };
@@ -410,7 +436,16 @@ export type EditTripFragment = {
   id: any;
   name: string;
   description?: string | null;
-  media: Array<{ __typename?: "Media"; id: any; path: string; createdAt: any }>;
+  media: Array<{
+    __typename?: "Media";
+    id: any;
+    path: string;
+    createdAt: any;
+    imageSizes: {
+      __typename?: "ImageSizes";
+      fill600: { __typename?: "ImageSize"; webpUrl: string };
+    };
+  }>;
 } & { " $fragmentName"?: "EditTripFragment" };
 
 export type UpdateTripMutationVariables = Exact<{
@@ -530,6 +565,14 @@ export type TripQueryQuery = {
           id: any;
           name: string;
           description?: string | null;
+          media: Array<{
+            __typename?: "Media";
+            id: any;
+            imageSizes: {
+              __typename?: "ImageSizes";
+              fit1200: { __typename?: "ImageSize"; webpUrl: string };
+            };
+          }>;
           user: { __typename?: "UserProfile"; id: any };
           legs: Array<
             {
@@ -818,6 +861,28 @@ export const EditTripFragmentDoc = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "path" } },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "imageSizes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "fill600" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "webpUrl" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -1622,6 +1687,44 @@ export const TripQueryDocument = {
                         name: { kind: "Name", value: "description" },
                       },
                       {
+                        kind: "Field",
+                        name: { kind: "Name", value: "media" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "imageSizes" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "fit1200" },
+                                    selectionSet: {
+                                      kind: "SelectionSet",
+                                      selections: [
+                                        {
+                                          kind: "Field",
+                                          name: {
+                                            kind: "Name",
+                                            value: "webpUrl",
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      {
                         kind: "FragmentSpread",
                         name: { kind: "Name", value: "editTrip" },
                       },
@@ -1754,6 +1857,28 @@ export const TripQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "path" } },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "imageSizes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "fill600" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "webpUrl" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
