@@ -29,7 +29,7 @@ const TRIP_QUERY = gql(`
         media {
           id
           imageSizes {
-            fit1200 {
+            fit1600 {
               webpUrl
             }
           }
@@ -146,7 +146,7 @@ export default function TripDetail(): React.ReactElement {
                   {trip.media.map((media) => (
                     <img
                       key={media.id}
-                      src={media.imageSizes.fit1200.webpUrl}
+                      src={media.imageSizes.fit1600.webpUrl}
                       css={{
                         width: "100%",
                         height: "auto",

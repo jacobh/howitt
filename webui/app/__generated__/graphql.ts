@@ -570,7 +570,7 @@ export type TripQueryQuery = {
             id: any;
             imageSizes: {
               __typename?: "ImageSizes";
-              fit1200: { __typename?: "ImageSize"; webpUrl: string };
+              fit1600: { __typename?: "ImageSize"; webpUrl: string };
             };
           }>;
           user: { __typename?: "UserProfile"; id: any };
@@ -1704,7 +1704,7 @@ export const TripQueryDocument = {
                                 selections: [
                                   {
                                     kind: "Field",
-                                    name: { kind: "Name", value: "fit1200" },
+                                    name: { kind: "Name", value: "fit1600" },
                                     selectionSet: {
                                       kind: "SelectionSet",
                                       selections: [

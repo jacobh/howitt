@@ -158,7 +158,7 @@ export function EditTripModal({
         setUploading(false);
       }
     },
-    [trip.id, refetch]
+    [trip.id, refetch],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
