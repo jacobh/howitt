@@ -1,6 +1,4 @@
 {
-    "rust-analyzer.linkedProjects": [
-        "./howitt/Cargo.toml"
-    ],
-    "editor.formatOnSave": true
+  "rust-analyzer.linkedProjects": ["./Cargo.toml"],
+  "editor.formatOnSave": true
 }
