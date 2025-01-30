@@ -20,6 +20,7 @@ async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", fe
 ] }
 howitt = { path = "../howitt" }
 howitt_clients = { path = "../howitt-clients" }
+exif = { path = "../exif" }
 howitt_client_types = { path = "../howitt-client-types" }
 geo = "*"
 chrono = "*"

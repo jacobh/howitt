@@ -1437,6 +1437,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "exif"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "geo",
+ "nom-exif",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "fast_chemail"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2010,6 +2020,7 @@ dependencies = [
  "chrono-tz",
  "derive_more",
  "dotenv",
+ "exif",
  "geo",
  "howitt",
  "howitt-postgresql",

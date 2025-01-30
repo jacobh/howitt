@@ -2,6 +2,7 @@
 
 members = [
     "csaps",
+    "exif",
     "gtfs",
     "howitt_derive",
     "howitt-cli",
