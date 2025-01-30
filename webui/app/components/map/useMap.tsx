@@ -17,7 +17,7 @@ import { MapContext } from "./context";
 type UseMapProps = Pick<
   MapProps,
   "initialView" | "onVisibleRoutesChanged" | "onRouteClicked"
->;
+> & { mapElementRef: React.RefObject<HTMLElement | null> };
 
 export const DEFAULT_VIEW: ViewOptions = {
   center: [146, -37],
@@ -29,6 +29,7 @@ export function useMap({
   initialView,
   onRouteClicked,
   onVisibleRoutesChanged,
+  mapElementRef,
 }: UseMapProps): { map: OlMap | undefined } {
   const { map: existingMap, setMap } = useContext(MapContext);
   const [isFirstMapRender, setIsFirstRender] = useState(true);
@@ -42,7 +43,7 @@ export function useMap({
       mapRef.current = existingMap;
       map = existingMap;
 
-      existingMap.setTarget("map");
+      existingMap.setTarget(mapElementRef.current ?? undefined);
     } else {
       console.log("initial map render");
 
@@ -50,7 +51,7 @@ export function useMap({
       useGeographic();
 
       const newMap = new OlMap({
-        target: "map",
+        target: mapElementRef.current ?? undefined,
         layers: [
           new TileLayer({
             preload: Infinity,
@@ -110,12 +111,12 @@ export function useMap({
           const distanceFromCenter = min(
             features
               .map((feature) =>
-                feature.getGeometry()?.getClosestPoint(viewState.center),
+                feature.getGeometry()?.getClosestPoint(viewState.center)
               )
               .filter(isNotNil)
               .map((closestPoint) =>
-                getDistance(closestPoint, viewState.center),
-              ),
+                getDistance(closestPoint, viewState.center)
+              )
           );
 
           return isNotNil(distanceFromCenter)
@@ -126,7 +127,7 @@ export function useMap({
         .flatMap(({ layer }) =>
           isNotNil(layer.getProperties().routeId)
             ? { routeId: layer.getProperties().routeId, distanceFromCenter: 0 }
-            : undefined,
+            : undefined
         )
         .filter(isNotNil);
 
@@ -151,6 +152,7 @@ export function useMap({
     isFirstMapRender,
     setIsFirstRender,
     onRouteClicked,
+    mapElementRef,
   ]);
 
   return { map: mapRef.current };

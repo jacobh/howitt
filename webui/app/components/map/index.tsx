@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { ViewOptions } from "ol/View";
 import {
   Route,
@@ -37,7 +37,7 @@ export interface MapProps {
     | { type: "routes"; routeIds: string[] }
     | { type: "view"; view: ViewOptions };
   onVisibleRoutesChanged?: (
-    routes: { routeId: string; distanceFromCenter: number }[],
+    routes: { routeId: string; distanceFromCenter: number }[]
   ) => void;
 
   onRouteClicked?: (routeId: string | undefined) => void;
@@ -62,10 +62,13 @@ export function Map({
   onVisibleRoutesChanged,
   onRouteClicked,
 }: MapProps): React.ReactElement {
+  const mapElementRef = useRef<HTMLDivElement>(null);
+
   const { map } = useMap({
     initialView,
     onVisibleRoutesChanged,
     onRouteClicked,
+    mapElementRef,
   });
 
   const hutStyle = useMemo<Style>(
@@ -82,7 +85,7 @@ export function Map({
           radius: 5,
         }),
       }),
-    [],
+    []
   );
 
   const stationStyle = useMemo<Style>(
@@ -99,7 +102,7 @@ export function Map({
           radius: 5,
         }),
       }),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -123,7 +126,7 @@ export function Map({
         if (isNotNil(layerRouteId)) {
           const isLayerRouteInCurrentRender = some(
             routes,
-            ({ route }) => route.id === layerRouteId,
+            ({ route }) => route.id === layerRouteId
           );
 
           if (!isLayerRouteInCurrentRender) {
@@ -135,12 +138,12 @@ export function Map({
 
         console.log(
           layerRideId,
-          some(rides, (ride) => ride.id === layerRideId),
+          some(rides, (ride) => ride.id === layerRideId)
         );
         if (isNotNil(layerRideId)) {
           const isLayerRideInCurrentRender = some(
             rides,
-            (ride) => ride.id === layerRideId,
+            (ride) => ride.id === layerRideId
           );
 
           if (!isLayerRideInCurrentRender) {
@@ -184,7 +187,7 @@ export function Map({
             features: [
               new Feature({ geometry: newLineString, routeId: route.id }),
             ],
-          }),
+          })
         );
 
         layer.setProperties({
@@ -210,7 +213,7 @@ export function Map({
       layer.setStyle(
         new Style({
           stroke: new Stroke({ color, width: 4 }),
-        }),
+        })
       );
 
       if (
@@ -262,7 +265,7 @@ export function Map({
             features: [
               new Feature({ geometry: newLineString, rideId: ride.id }),
             ],
-          }),
+          })
         );
 
         layer.setProperties({
@@ -290,7 +293,7 @@ export function Map({
       layer.setStyle(
         new Style({
           stroke: new Stroke({ color, width: 4 }),
-        }),
+        })
       );
 
       if (
@@ -314,7 +317,7 @@ export function Map({
     for (const checkpoint of checkpoints ?? []) {
       console.log(checkpoint.name);
       const existingLayer = layers.find(
-        (layer) => layer.getProperties().checkpointName === checkpoint.name,
+        (layer) => layer.getProperties().checkpointName === checkpoint.name
       );
 
       if (existingLayer === undefined) {
@@ -328,7 +331,7 @@ export function Map({
               checkpoint.pointOfInterestType === PointOfInterestType.Hut
                 ? hutStyle
                 : stationStyle,
-          }),
+          })
         );
       }
     }
@@ -341,7 +344,7 @@ export function Map({
     }
   }, [routes, checkpoints, map, initialView, hutStyle, stationStyle, rides]);
 
-  return <div css={mapCss} id="map" />;
+  return <div css={mapCss} ref={mapElementRef} />;
 }
 
 // function usePrevious<T>(value: T, initialValue: T): T {
