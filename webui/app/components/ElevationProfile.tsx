@@ -1,9 +1,8 @@
 import { css } from "@emotion/react";
-import { maxBy, minBy, sortBy } from "lodash";
 import { useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { FragmentType, gql, useFragment } from "~/__generated__";
-import { isNotNil } from "~/services/isNotNil";
+import { zipStrict } from "~/services/zipStrict";
 
 export const ElevationPathFragment = gql(`
   fragment elevationPath on ElevationPath {
@@ -21,20 +20,12 @@ interface DataPoint {
   distance: number;
 }
 
-function zipStrict<T, U>(items1: T[], items2: U[]): [T, U][] {
-  if (items1.length !== items2.length) {
-    throw new Error("items must have same length");
-  }
-
-  return items1.map((x, i) => [x, items2[i]]);
-}
-
 function computePoints(
   elevationPoints: number[],
-  distancePoints: number[],
+  distancePoints: number[]
 ): DataPoint[] {
   return zipStrict(elevationPoints, distancePoints).map(
-    ([elevation, distance]) => ({ elevation, distance }),
+    ([elevation, distance]) => ({ elevation, distance })
   );
 }
 
@@ -49,12 +40,8 @@ export function ElevationProfile({
 
   const points = useMemo(
     () => computePoints(data.elevationPoints, data.distancePoints),
-    [data],
+    [data]
   );
-
-  const minElevationAt = minBy(points, ({ elevation }) => elevation)?.distance;
-
-  const maxElevationAt = maxBy(points, ({ elevation }) => elevation)?.distance;
 
   return (
     <div css={elevationProfileWrapperCss}>
@@ -62,49 +49,10 @@ export function ElevationProfile({
         <AreaChart data={points}>
           <XAxis
             dataKey="distance"
-            // minTickGap={50}
-            ticks={sortBy(
-              [
-                0,
-                minElevationAt,
-                maxElevationAt,
-                points.at(-1)?.distance,
-              ].filter(isNotNil),
-              (x) => x,
-            )}
-            tickFormatter={(tick): string => {
-              const formattedDistance = `${
-                Math.round((tick / 1000) * 10) / 10
-              }km`;
-
-              const point = points.find((p) => p.distance == tick);
-
-              if (!point) {
-                return formattedDistance;
-              }
-
-              const isFirst = point.distance === 0;
-              const isLast = point.distance === points.at(-1)?.distance;
-              const isMaxElevation = point.distance === maxElevationAt;
-              const isMinElevation = point.distance === minElevationAt;
-
-              const arrow = [
-                isFirst ? `←` : undefined,
-                isLast ? `→` : undefined,
-                isMinElevation ? `↓` : undefined,
-                isMaxElevation ? `↑` : undefined,
-              ]
-                .filter(isNotNil)
-                .at(0);
-
-              const formattedElevation = `${arrow} ${Math.round(
-                point.elevation,
-              )}m`;
-
-              return [formattedDistance, formattedElevation]
-                .filter(isNotNil)
-                .join(" ");
-            }}
+            minTickGap={75}
+            tickFormatter={(tick): string =>
+              `${Math.round((tick / 1000) * 10) / 10}km`
+            }
           />
           <YAxis
             domain={["dataMin", "dataMax"]}
