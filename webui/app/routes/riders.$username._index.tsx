@@ -11,7 +11,7 @@ import { useParams } from "@remix-run/react";
 import { sortBy } from "lodash";
 import { RideItem } from "~/components/rides/RideItem";
 import { css } from "@emotion/react";
-import { COLORS } from "~/styles/theme";
+import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";
 
 const USER_PROFILE_QUERY = gql(`
@@ -39,10 +39,10 @@ const USER_PROFILE_QUERY = gql(`
 
 const rideItemContainerCss = css`
   padding: 20px 1.5%;
-  border-bottom: 1px solid ${COLORS.offWhite};
+  border-bottom: 1px solid ${tokens.colors.offWhite};
 
   &:hover {
-    background-color: ${COLORS.offWhite};
+    background-color: ${tokens.colors.offWhite};
   }
 `;
 
@@ -66,7 +66,7 @@ export default function UserProfile(): React.ReactElement {
 
   const sidebarRides = sortBy(
     data?.userWithUsername?.recentRides ?? [],
-    (ride) => ride.date,
+    (ride) => ride.date
   )
     .reverse()
     .slice(0, 30);

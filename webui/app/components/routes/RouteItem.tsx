@@ -1,7 +1,7 @@
 import { SerializedStyles, css } from "@emotion/react";
 import { Link, useSearchParams } from "@remix-run/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
-import { COLORS } from "~/styles/theme";
+import { tokens } from "~/styles/tokens";
 import { RouteVitals, routeSubtitleArrowCss } from "./RouteVitals";
 
 export const RouteItemFragment = gql(`
@@ -32,7 +32,7 @@ const defaultRouteTitleCss = css({
 
 const titlePostfixCss = css`
   text-decoration: none;
-  color: ${COLORS.darkGrey};
+  color: ${tokens.colors.darkGrey};
 `;
 
 const subtitleContainerCss = css`

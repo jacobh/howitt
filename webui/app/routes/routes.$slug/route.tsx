@@ -16,7 +16,7 @@ import {
 import { RouteVitals } from "~/components/routes/RouteVitals";
 import { makeMqs } from "~/styles/mediaQueries";
 import { css } from "@emotion/react";
-import { COLORS } from "~/styles/theme";
+import { tokens } from "~/styles/tokens";
 import { DataTable } from "~/components/DataTable";
 import { capitalize } from "lodash";
 
@@ -107,8 +107,8 @@ export default function Route(): React.ReactElement {
 
   const nearbyRoutes = (route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== route?.id,
-    ),
+      (nearby) => nearby.closestTerminus.route.id !== route?.id
+    )
   );
 
   const routes: DisplayedRoute[] = [
@@ -164,7 +164,7 @@ export default function Route(): React.ReactElement {
               )}
               {route.externalRef ? (
                 <section css={contentSectionCss}>
-                  <p css={{ color: COLORS.darkGrey }}>
+                  <p css={{ color: tokens.colors.darkGrey }}>
                     <a
                       target="_blank"
                       rel="noreferrer"

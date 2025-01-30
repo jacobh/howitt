@@ -10,7 +10,7 @@ import {
 } from "~/components/layout";
 import { RouteItem } from "~/components/routes/RouteItem";
 import { css } from "@emotion/react";
-import { COLORS } from "~/styles/theme";
+import { tokens } from "~/styles/tokens";
 import { isNotNil } from "~/services/isNotNil";
 import { sortBy } from "lodash";
 import { useSearchParams } from "@remix-run/react";
@@ -39,18 +39,18 @@ const HOME_QUERY_WITH_POINTS = gql(`
 
 const routeItemContainerCss = css`
   padding: 20px 1.5%;
-  border-bottom: 1px solid ${COLORS.offWhite};
+  border-bottom: 1px solid ${tokens.colors.offWhite};
 
   &:hover {
-    background-color: ${COLORS.offWhite};
+    background-color: ${tokens.colors.offWhite};
   }
 `;
 
 const clickedRouteItemContainerCss = css(
   routeItemContainerCss,
   css`
-    background-color: ${COLORS.offWhite};
-  `,
+    background-color: ${tokens.colors.offWhite};
+  `
 );
 
 const routeTitleCss = css`
@@ -89,11 +89,11 @@ export default function Routes(): React.ReactElement {
   });
 
   const [clickedRouteId, setClickedRouteId] = useState<string | undefined>(
-    undefined,
+    undefined
   );
 
   const [hoveredRouteId, setHoveredRouteId] = useState<string | undefined>(
-    undefined,
+    undefined
   );
 
   const [visibleRouteIds, setVisibleRouteIds] = useState<
@@ -106,9 +106,9 @@ export default function Routes(): React.ReactElement {
   > = useMemo(
     () =>
       Object.fromEntries(
-        (data?.queryRoutes ?? []).map((route) => [route.id, route]),
+        (data?.queryRoutes ?? []).map((route) => [route.id, route])
       ),
-    [data],
+    [data]
   );
 
   const sidebarRoutes = useMemo(
@@ -116,13 +116,13 @@ export default function Routes(): React.ReactElement {
       isNotNil(visibleRouteIds)
         ? sortBy(
             visibleRouteIds,
-            ({ distanceFromCenter }) => distanceFromCenter,
+            ({ distanceFromCenter }) => distanceFromCenter
           )
             .filter(({ routeId }) => routeId !== clickedRouteId)
             .map(({ routeId }) => routeIdMap[routeId])
             .filter(isNotNil)
         : Object.values(routeIdMap),
-    [clickedRouteId, routeIdMap, visibleRouteIds],
+    [clickedRouteId, routeIdMap, visibleRouteIds]
   );
 
   const mapRoutes = useMemo(
@@ -139,7 +139,7 @@ export default function Routes(): React.ReactElement {
             ? ("highlighted" as const)
             : undefined,
       })),
-    [clickedRouteId, data?.queryRoutes, data2?.queryRoutes, hoveredRouteId],
+    [clickedRouteId, data?.queryRoutes, data2?.queryRoutes, hoveredRouteId]
   );
 
   return (

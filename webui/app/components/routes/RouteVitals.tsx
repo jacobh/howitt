@@ -1,14 +1,14 @@
 import { css } from "@emotion/react";
 import { Route } from "~/__generated__/graphql";
 import { formatDistance, formatVertical } from "~/services/format";
-import { COLORS } from "~/styles/theme";
+import { tokens } from "~/styles/tokens";
 
 interface Props {
   route: Pick<Route, "distance" | "elevationAscentM" | "elevationDescentM">;
 }
 
 const routeSubtitleCss = css`
-  color: ${COLORS.midGrey};
+  color: ${tokens.colors.midGrey};
 
   display: grid;
   grid-auto-flow: column;
@@ -18,7 +18,7 @@ const routeSubtitleCss = css`
   line-height: 1.25rem; /* 20px */
 `;
 export const routeSubtitleArrowCss = css`
-  color: ${COLORS.midGrey};
+  color: ${tokens.colors.midGrey};
 
   width: 30px;
   display: inline-block;

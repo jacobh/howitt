@@ -8,7 +8,7 @@ import {
   Nav,
 } from "~/components/layout";
 import { css } from "@emotion/react";
-import { COLORS } from "~/styles/theme";
+import { tokens } from "~/styles/tokens";
 import { Link } from "@remix-run/react";
 import { FragmentType, useFragment } from "~/__generated__";
 
@@ -26,10 +26,10 @@ const PublicUsersQuery = gql(`
 
 const userItemContainerCss = css`
   padding: 20px 1.5%;
-  border-bottom: 1px solid ${COLORS.offWhite};
+  border-bottom: 1px solid ${tokens.colors.offWhite};
 
   &:hover {
-    background-color: ${COLORS.offWhite};
+    background-color: ${tokens.colors.offWhite};
   }
 `;
 

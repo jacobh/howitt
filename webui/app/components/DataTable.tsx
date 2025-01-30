@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import { isNotNil } from "~/services/isNotNil";
-import { COLORS } from "~/styles/theme";
+import { tokens } from "~/styles/tokens";
 
 interface TableItem {
   name: string;
@@ -16,11 +16,11 @@ const dataTableCss = css`
   width: 100%;
 
   td {
-    border-left: 1px solid ${COLORS.offWhite};
+    border-left: 1px solid ${tokens.colors.offWhite};
     padding: 5px 10%;
 
     &:last-child {
-      border-right: 1px solid ${COLORS.offWhite};
+      border-right: 1px solid ${tokens.colors.offWhite};
     }
   }
 
@@ -29,10 +29,10 @@ const dataTableCss = css`
     grid-auto-flow: column;
     grid-template-columns: 1fr 1fr;
 
-    border-top: 1px solid ${COLORS.offWhite};
+    border-top: 1px solid ${tokens.colors.offWhite};
 
     &:last-child {
-      border-bottom: 1px solid ${COLORS.offWhite};
+      border-bottom: 1px solid ${tokens.colors.offWhite};
     }
   }
 `;
