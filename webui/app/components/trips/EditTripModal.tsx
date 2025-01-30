@@ -37,6 +37,16 @@ const UpdateTripMutation = gql(`
   }
 `);
 
+const RemoveTripMediaMutation = gql(`
+  mutation RemoveTripMedia($input: RemoveTripMediaInput!) {
+    removeTripMedia(input: $input) {
+      trip {
+        id
+      }
+    }
+  }
+`);
+
 interface Props {
   trip: FragmentType<typeof EditTripFragment>;
   isOpen: boolean;
@@ -122,7 +132,7 @@ export function EditTripModal({
         setUploading(false);
       }
     },
-    [trip.id, refetch]
+    [trip.id, refetch],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -155,6 +165,26 @@ export function EditTripModal({
           tripId: trip.id,
           name,
           description: description || null,
+        },
+      },
+    });
+  };
+
+  const [removeMedia, { loading: removingMedia }] = useMutation(
+    RemoveTripMediaMutation,
+    {
+      onCompleted: () => {
+        refetch();
+      },
+    },
+  );
+
+  const handleDeleteMedia = (mediaId: string): void => {
+    removeMedia({
+      variables: {
+        input: {
+          tripId: trip.id,
+          mediaIds: [mediaId],
         },
       },
     });
@@ -213,6 +243,7 @@ export function EditTripModal({
                   <th>Thumbnail</th>
                   <th>Path</th>
                   <th>Created At</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -233,6 +264,37 @@ export function EditTripModal({
                     <td>{media.path}</td>
                     <td>
                       {new Date(media.createdAt).toLocaleDateString("en-US")}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={(): void => handleDeleteMedia(media.id)}
+                        disabled={removingMedia}
+                        css={css`
+                          padding: 4px 8px;
+                          background-color: transparent;
+                          color: #666;
+                          border: 1px solid #ccc;
+                          border-radius: 4px;
+                          cursor: pointer;
+                          font-size: 0.875rem;
+
+                          &:hover {
+                            background-color: #f5f5f5;
+                            color: #ff4444;
+                            border-color: #ff4444;
+                          }
+
+                          &:disabled {
+                            background-color: #f5f5f5;
+                            color: #999;
+                            border-color: #ddd;
+                            cursor: not-allowed;
+                          }
+                        `}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

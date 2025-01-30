@@ -465,6 +465,18 @@ export type UpdateTripMutation = {
   };
 };
 
+export type RemoveTripMediaMutationVariables = Exact<{
+  input: RemoveTripMediaInput;
+}>;
+
+export type RemoveTripMediaMutation = {
+  __typename?: "Mutation";
+  removeTripMedia: {
+    __typename?: "TripMediaOutput";
+    trip?: { __typename?: "Trip"; id: any } | null;
+  };
+};
+
 export type TripItemFragment = {
   __typename?: "Trip";
   id: any;
@@ -1128,6 +1140,69 @@ export const UpdateTripDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdateTripMutation, UpdateTripMutationVariables>;
+export const RemoveTripMediaDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "RemoveTripMedia" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "RemoveTripMediaInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "removeTripMedia" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "trip" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  RemoveTripMediaMutation,
+  RemoveTripMediaMutationVariables
+>;
 export const LoginViewerInfoDocument = {
   kind: "Document",
   definitions: [

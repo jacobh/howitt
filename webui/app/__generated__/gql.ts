@@ -28,6 +28,8 @@ const documents = {
     types.EditTripFragmentDoc,
   "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n":
     types.UpdateTripDocument,
+  "\n  mutation RemoveTripMedia($input: RemoveTripMediaInput!) {\n    removeTripMedia(input: $input) {\n      trip {\n        id\n      }\n    }\n  }\n":
+    types.RemoveTripMediaDocument,
   "\n        fragment tripItem on Trip {\n        id\n        name\n        year\n        slug\n        user {\n          username\n        }\n    }\n":
     types.TripItemFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
@@ -108,6 +110,12 @@ export function gql(
 export function gql(
   source: "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n",
 ): (typeof documents)["\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation RemoveTripMedia($input: RemoveTripMediaInput!) {\n    removeTripMedia(input: $input) {\n      trip {\n        id\n      }\n    }\n  }\n",
+): (typeof documents)["\n  mutation RemoveTripMedia($input: RemoveTripMediaInput!) {\n    removeTripMedia(input: $input) {\n      trip {\n        id\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
