@@ -7,10 +7,10 @@ edition = "2021"
 anyhow = "1"
 apalis = { version = "0.6", features = ["limit", "timeout"] }
 apalis-redis = { version = "0.6" }
-howitt = { path = "../howitt" }
-howitt_clients = { path = "../howitt-clients" }
-howitt_client_types = { path = "../howitt-client-types" }
-howitt-postgresql = { path = "../howitt-postgresql" }
+howitt = { path = "../../lib/howitt" }
+howitt_clients = { path = "../../lib/howitt-clients" }
+howitt_client_types = { path = "../../lib/howitt-client-types" }
+howitt-postgresql = { path = "../../lib/howitt-postgresql" }
 tokio = { version = "1", features = ["full"] }
 tracing = "*"
 tracing-subscriber = "0.3"

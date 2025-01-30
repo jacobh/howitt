@@ -5,15 +5,15 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-howitt = { path = "../howitt" }
-howitt-fs = { path = "../howitt-fs" }
-howitt-postgresql = { path = "../howitt-postgresql" }
-howitt_clients = { path = "../howitt-clients" }
-howitt_client_types = { path = "../howitt-client-types" }
+howitt = { path = "../../lib/howitt" }
+howitt-fs = { path = "../../lib/howitt-fs" }
+howitt-postgresql = { path = "../../lib/howitt-postgresql" }
+howitt_clients = { path = "../../lib/howitt-clients" }
+howitt_client_types = { path = "../../lib/howitt-client-types" }
 anyhow = "*"
 rayon = "*"
-rwgps = { path = "../rwgps" }
-rwgps_types = { path = "../rwgps-types" }
+rwgps = { path = "../../lib/rwgps" }
+rwgps_types = { path = "../../lib/rwgps-types" }
 toml = "*"
 serde_json = "*"
 inquire = "*"

@@ -10,7 +10,7 @@ axum-macros = "*"
 tower = "*"
 tower-http = { version = "*", features = ["full"] }
 async-graphql-axum = { git = "https://github.com/async-graphql/async-graphql.git" }
-howitt-postgresql = { path = "../howitt-postgresql" }
+howitt-postgresql = { path = "../../lib/howitt-postgresql" }
 anyhow = "*"
 async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", features = [
     "uuid",
@@ -18,10 +18,10 @@ async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", fe
     "url",
     "dataloader",
 ] }
-howitt = { path = "../howitt" }
-howitt_clients = { path = "../howitt-clients" }
-exif = { path = "../exif" }
-howitt_client_types = { path = "../howitt-client-types" }
+howitt = { path = "../../lib/howitt" }
+howitt_clients = { path = "../../lib/howitt-clients" }
+exif = { path = "../../lib/exif" }
+howitt_client_types = { path = "../../lib/howitt-client-types" }
 geo = "*"
 chrono = "*"
 chrono-tz = "*"

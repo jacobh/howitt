@@ -1,20 +1,5 @@
 [workspace]
 
-members = [
-    "csaps",
-    "exif",
-    "gtfs",
-    "howitt_derive",
-    "howitt-cli",
-    "howitt-client-types",
-    "howitt-clients",
-    "howitt-fs",
-    "howitt-postgresql",
-    "howitt-web",
-    "howitt-worker",
-    "howitt",
-    "rwgps-types",
-    "rwgps",
-]
+members = ["src/*/*"]
 
 resolver = "2"

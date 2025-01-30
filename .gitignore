@@ -2,4 +2,4 @@
 /data
 .DS_Store
 **/.env
-howitt-postgresql/refinery_k8s.toml
+src/lib/howitt-postgresql/refinery_k8s.toml
