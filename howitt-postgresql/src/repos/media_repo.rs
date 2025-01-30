@@ -23,6 +23,8 @@ struct MediaRow {
     route_ids: Option<Vec<Uuid>>,
     trip_ids: Option<Vec<Uuid>>,
     poi_ids: Option<Vec<Uuid>>,
+    point: Option<serde_json::Value>,
+    captured_at: Option<DateTime<Utc>>,
 }
 
 impl TryFrom<MediaRow> for Media {
@@ -66,6 +68,11 @@ impl TryFrom<MediaRow> for Media {
             user_id: UserId::from(row.user_id),
             path: row.path,
             relation_ids,
+            point: match row.point {
+                Some(point) => Some(serde_json::from_value(point)?),
+                None => None,
+            },
+            captured_at: row.captured_at,
         })
     }
 }
@@ -257,15 +264,21 @@ impl Repo for PostgresMediaRepo {
                 id,
                 created_at,
                 user_id,
-                path
-            ) VALUES ($1, $2, $3, $4)
+                path,
+                point,
+                captured_at
+            ) VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (id) DO UPDATE 
-            SET path = EXCLUDED.path
+            SET path = EXCLUDED.path,
+                point = EXCLUDED.point,
+                captured_at = EXCLUDED.captured_at
             "#,
             media.id.as_uuid(),
             media.created_at,
             media.user_id.as_uuid(),
             media.path,
+            media.point.map(|p| serde_json::to_value(p).unwrap()),
+            media.captured_at,
         );
         query.execute(tx.as_mut()).await?;
 

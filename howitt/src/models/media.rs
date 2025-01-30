@@ -54,6 +54,8 @@ pub struct Media {
     pub user_id: UserId,
     pub path: String,
     pub relation_ids: Vec<MediaRelationId>,
+    pub point: Option<geo::Point<f64>>,
+    pub captured_at: Option<DateTime<Utc>>,
 }
 
 impl Media {

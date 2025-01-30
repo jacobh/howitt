@@ -98,6 +98,8 @@ pub async fn upload_media_handler(
         user_id: login.session.user_id,
         path: key,
         relation_ids,
+        point: None,
+        captured_at: None,
     };
 
     // Save to database
