@@ -1,5 +1,5 @@
 use apalis::prelude::*;
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{body::Bytes, extract::State, http::StatusCode, Json};
 use axum_typed_multipart::{FieldData, TryFromMultipart, TypedMultipart};
 use howitt::{
     jobs::{
@@ -15,14 +15,13 @@ use howitt::{
 };
 use howitt_client_types::{BucketClient, ObjectParams};
 use serde_json::json;
-use tempfile::NamedTempFile;
 
 use crate::app_state::AppState;
 
 #[derive(TryFromMultipart)]
 pub struct UploadMediaRequest {
     #[form_data(limit = "unlimited")]
-    pub file: FieldData<NamedTempFile>,
+    pub file: FieldData<Bytes>,
     pub name: String,
     pub relation_ids: Option<String>, // JSON array of relation IDs
 }
@@ -54,13 +53,7 @@ pub async fn upload_media_handler(
     });
 
     // Get the file contents
-    let file = upload.file.contents;
-    let bytes = std::fs::read(file.path()).map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": format!("Failed to read temp file: {}", e)})),
-        )
-    })?;
+    let bytes = upload.file.contents;
 
     let kind = infer::get(&bytes).ok_or_else(|| {
         (

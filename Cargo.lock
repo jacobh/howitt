@@ -2020,7 +2020,6 @@ dependencies = [
  "itertools 0.14.0",
  "serde",
  "serde_json",
- "tempfile",
  "test-case",
  "thiserror 2.0.11",
  "tokio",
