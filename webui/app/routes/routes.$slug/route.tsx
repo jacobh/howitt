@@ -4,7 +4,6 @@ import { gql } from "~/__generated__";
 import { DisplayedRoute, Map } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
-import { Photo } from "./Photo";
 import { isNotNil } from "~/services/isNotNil";
 import { NearbyRoutes } from "./NearbyRoutes";
 import {
@@ -107,8 +106,8 @@ export default function Route(): React.ReactElement {
 
   const nearbyRoutes = (route?.termini ?? []).flatMap((t) =>
     t.nearbyRoutes.filter(
-      (nearby) => nearby.closestTerminus.route.id !== route?.id,
-    ),
+      (nearby) => nearby.closestTerminus.route.id !== route?.id
+    )
   );
 
   const routes: DisplayedRoute[] = [
@@ -216,11 +215,6 @@ export default function Route(): React.ReactElement {
           ) : (
             <></>
           )}
-          {[].map((photo: any) => (
-            <section css={contentSectionCss} key={photo.id}>
-              <Photo photo={photo} />
-            </section>
-          ))}
           {nearbyRoutes.length > 0 ? (
             <section css={contentSectionCss}>
               {route?.termini.map((terminus) => (
