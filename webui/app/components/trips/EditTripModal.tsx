@@ -1,11 +1,11 @@
 import { useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
 import Cookies from "js-cookie";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { getApiBaseUrl } from "~/env.client";
-import { makeMqs } from "~/styles/mediaQueries";
+import { Modal } from "../Modal";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -43,41 +43,6 @@ interface Props {
   refetch: () => void;
   onClose: () => void;
 }
-
-const modalStyles = makeMqs([
-  css`
-    padding: 5vw;
-    border: 0;
-    border-radius: 0.5rem;
-    box-shadow: 0 0 0.5rem 0.25rem hsl(0 0% 0% / 10%);
-
-    width: 90vw;
-
-    &::backdrop {
-      background: hsl(0 0% 0% / 50%);
-    }
-  `,
-  css`
-    padding: 4vw;
-    width: 80vw;
-  `,
-  css`
-    padding: 3vw;
-    width: 70vw;
-  `,
-  css`
-    padding: 2vw;
-    width: 60vw;
-  `,
-  css`
-    padding: 2vw;
-    width: 50vw;
-  `,
-  css`
-    padding: 2vw;
-    width: 40vw;
-  `,
-]);
 
 const formStyles = css`
   display: flex;
@@ -117,7 +82,6 @@ export function EditTripModal({
   refetch,
 }: Props): React.ReactElement {
   const trip = useFragment(EditTripFragment, tripFragment);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const [name, setName] = useState(trip.name);
@@ -158,7 +122,7 @@ export function EditTripModal({
         setUploading(false);
       }
     },
-    [trip.id, refetch],
+    [trip.id, refetch]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -196,15 +160,8 @@ export function EditTripModal({
     });
   };
 
-  // Show/hide modal
-  if (isOpen) {
-    dialogRef.current?.showModal();
-  } else {
-    dialogRef.current?.close();
-  }
-
   return (
-    <dialog ref={dialogRef} css={modalStyles} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} css={formStyles}>
         <div css={formFieldStyles}>
           <label htmlFor="name">Name</label>
@@ -303,6 +260,6 @@ export function EditTripModal({
           </button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   );
 }
