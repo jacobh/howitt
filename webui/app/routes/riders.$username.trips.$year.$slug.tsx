@@ -13,7 +13,7 @@ import { RideItem } from "~/components/rides/RideItem";
 import { useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
 
-const TRIP_QUERY = gql(`
+const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
     viewer {
       id
@@ -57,7 +57,7 @@ export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
 
-  const { data, refetch } = useQuery(TRIP_QUERY, {
+  const { data, refetch } = useQuery(TripQuery, {
     variables: {
       username: params.username ?? "",
       slug: params.slug ?? "",
@@ -65,7 +65,7 @@ export default function TripDetail(): React.ReactElement {
     },
   });
 
-  const { data: data2 } = useQuery(TRIP_QUERY, {
+  const { data: data2 } = useQuery(TripQuery, {
     variables: {
       username: params.username ?? "",
       slug: params.slug ?? "",

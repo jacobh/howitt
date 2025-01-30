@@ -15,7 +15,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { sortBy } from "lodash";
 import { useSearchParams } from "@remix-run/react";
 
-const HOME_QUERY_NO_POINTS = gql(`
+const HomeQueryNoPoints = gql(`
   query homeQuery($input: QueryRoutesInput!) {
     queryRoutes(input: $input) {
       id
@@ -28,7 +28,7 @@ const HOME_QUERY_NO_POINTS = gql(`
   }
 `);
 
-const HOME_QUERY_WITH_POINTS = gql(`
+const HomeQueryWithPoints = gql(`
   query homeQueryPointOnly($input: QueryRoutesInput!) {
     queryRoutes(input: $input) {
       id
@@ -75,13 +75,13 @@ export default function Routes(): React.ReactElement {
 
   const filters = isNotNil(tags) ? [{ hasSomeTags: tags }] : [];
 
-  const { data } = useQuery(HOME_QUERY_NO_POINTS, {
+  const { data } = useQuery(HomeQueryNoPoints, {
     variables: {
       input: { filters },
     },
   });
 
-  const { data: data2 } = useQuery(HOME_QUERY_WITH_POINTS, {
+  const { data: data2 } = useQuery(HomeQueryWithPoints, {
     variables: {
       input: { filters },
     },

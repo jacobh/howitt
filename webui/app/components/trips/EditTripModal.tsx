@@ -25,7 +25,7 @@ export const EditTripFragment = gql(`
   }
 `);
 
-const UPDATE_TRIP = gql(`
+const UpdateTripMutation = gql(`
   mutation UpdateTrip($input: UpdateTripInput!) {
     updateTrip(input: $input) {
       trip {
@@ -87,7 +87,7 @@ export function EditTripModal({
   const [name, setName] = useState(trip.name);
   const [description, setDescription] = useState(trip.description ?? "");
 
-  const [updateTrip, { loading }] = useMutation(UPDATE_TRIP, {
+  const [updateTrip, { loading }] = useMutation(UpdateTripMutation, {
     onCompleted: () => {
       onClose();
     },

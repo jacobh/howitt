@@ -20,7 +20,7 @@ import { tokens } from "~/styles/tokens";
 import { DataTable } from "~/components/DataTable";
 import { capitalize } from "lodash";
 
-const ROUTE_QUERY = gql(`
+const RouteQuery = gql(`
 query RouteQuery($slug: String!) {
   routeWithSlug(slug: $slug) {
     id
@@ -99,7 +99,7 @@ const tagLinkCss = css`
 export default function Route(): React.ReactElement {
   const params = useParams();
 
-  const { data } = useQuery(ROUTE_QUERY, {
+  const { data } = useQuery(RouteQuery, {
     variables: { slug: params.slug ?? "" },
   });
 

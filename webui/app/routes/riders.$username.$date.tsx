@@ -12,7 +12,7 @@ import { gql } from "~/__generated__";
 import { useQuery } from "@apollo/client";
 import { ElevationProfile } from "~/components/ElevationProfile";
 
-const RIDES_WITH_DATE_QUERY = gql(`
+const RidesWithDateQuery = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {
     viewer {
       ...viewerInfo
@@ -33,7 +33,7 @@ const RIDES_WITH_DATE_QUERY = gql(`
 function UserProfileDate(): React.ReactElement {
   const params = useParams();
 
-  const { data } = useQuery(RIDES_WITH_DATE_QUERY, {
+  const { data } = useQuery(RidesWithDateQuery, {
     variables: {
       username: params.username ?? "",
       date: params.date ?? "",
@@ -41,7 +41,7 @@ function UserProfileDate(): React.ReactElement {
     },
   });
 
-  const { data: data2 } = useQuery(RIDES_WITH_DATE_QUERY, {
+  const { data: data2 } = useQuery(RidesWithDateQuery, {
     variables: {
       username: params.username ?? "",
       date: params.date ?? "",
@@ -110,7 +110,7 @@ function UserProfileDate(): React.ReactElement {
               ? {
                   type: "rides",
                   rideIds: data.userWithUsername.ridesWithDate.map(
-                    ({ id }) => id,
+                    ({ id }) => id
                   ),
                 }
               : undefined

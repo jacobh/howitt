@@ -14,7 +14,7 @@ import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";
 
-const USER_PROFILE_QUERY = gql(`
+const UserProfileQuery = gql(`
   query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
     userWithUsername(username: $username) {
         id
@@ -55,11 +55,11 @@ const sectionHeaderCss = css`
 export default function UserProfile(): React.ReactElement {
   const params = useParams();
 
-  const { data } = useQuery(USER_PROFILE_QUERY, {
+  const { data } = useQuery(UserProfileQuery, {
     variables: { username: params.username ?? "", pointsPerKm: 1 },
   });
 
-  const { data: data2 } = useQuery(USER_PROFILE_QUERY, {
+  const { data: data2 } = useQuery(UserProfileQuery, {
     variables: { username: params.username ?? "", pointsPerKm: 8 },
     ssr: false,
   });
