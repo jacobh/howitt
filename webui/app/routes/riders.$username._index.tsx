@@ -66,7 +66,7 @@ export default function UserProfile(): React.ReactElement {
 
   const sidebarRides = sortBy(
     data?.userWithUsername?.recentRides ?? [],
-    (ride) => ride.date
+    (ride) => ride.date,
   )
     .reverse()
     .slice(0, 30);

@@ -110,7 +110,7 @@ function UserProfileDate(): React.ReactElement {
               ? {
                   type: "rides",
                   rideIds: data.userWithUsername.ridesWithDate.map(
-                    ({ id }) => id
+                    ({ id }) => id,
                   ),
                 }
               : undefined

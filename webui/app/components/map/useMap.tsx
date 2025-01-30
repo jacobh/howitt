@@ -111,12 +111,12 @@ export function useMap({
           const distanceFromCenter = min(
             features
               .map((feature) =>
-                feature.getGeometry()?.getClosestPoint(viewState.center)
+                feature.getGeometry()?.getClosestPoint(viewState.center),
               )
               .filter(isNotNil)
               .map((closestPoint) =>
-                getDistance(closestPoint, viewState.center)
-              )
+                getDistance(closestPoint, viewState.center),
+              ),
           );
 
           return isNotNil(distanceFromCenter)
@@ -127,7 +127,7 @@ export function useMap({
         .flatMap(({ layer }) =>
           isNotNil(layer.getProperties().routeId)
             ? { routeId: layer.getProperties().routeId, distanceFromCenter: 0 }
-            : undefined
+            : undefined,
         )
         .filter(isNotNil);
 
