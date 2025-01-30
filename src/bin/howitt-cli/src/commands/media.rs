@@ -1,10 +1,7 @@
 use apalis::prelude::Storage;
 use clap::Subcommand;
 use howitt::{
-    jobs::{
-        media::{MediaJob, ProcessMedia},
-        Job,
-    },
+    jobs::{media::MediaJob, Job},
     models::media::MediaFilter,
     repos::Repo,
 };
@@ -32,9 +29,7 @@ pub async fn handle(
                 job_storage
                     .lock()
                     .await
-                    .push(Job::from(MediaJob::from(ProcessMedia {
-                        media_id: media_item.id,
-                    })))
+                    .push(Job::from(MediaJob::Process(media_item.id)))
                     .await?;
 
                 println!("Enqueued processing job for media {}", media_item.id);

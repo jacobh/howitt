@@ -11,10 +11,7 @@ use webp::WebPConfig;
 use apalis::prelude::*;
 use tracing::info;
 
-use howitt::{
-    jobs::media::{MediaJob, ProcessMedia},
-    repos::Repo,
-};
+use howitt::{jobs::media::MediaJob, repos::Repo};
 use howitt_client_types::{BucketClient, ObjectParams};
 
 use crate::context::Context;
@@ -130,7 +127,7 @@ pub async fn handle_media_job(job: MediaJob, ctx: Data<Context>) -> Result<(), M
     info!("Handling job: {:?}", job);
 
     match job {
-        MediaJob::Process(ProcessMedia { media_id }) => {
+        MediaJob::Process(media_id) => {
             let media = ctx.media_repo.get(media_id).await?;
 
             let bytes = ctx
@@ -166,6 +163,9 @@ pub async fn handle_media_job(job: MediaJob, ctx: Data<Context>) -> Result<(), M
             }
 
             Ok(())
+        }
+        MediaJob::InferLocation(media_id) => {
+            unimplemented!()
         }
     }
 }

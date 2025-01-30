@@ -3,10 +3,7 @@ use axum::{body::Bytes, extract::State, http::StatusCode, Json};
 use axum_typed_multipart::{FieldData, TryFromMultipart, TypedMultipart};
 use exif::{parse_exif, ParsedExifData};
 use howitt::{
-    jobs::{
-        media::{MediaJob, ProcessMedia},
-        Job,
-    },
+    jobs::{media::MediaJob, Job},
     models::media::{Media, MediaId, MediaRelationId},
     repos::Repo,
     services::{
@@ -109,9 +106,7 @@ pub async fn upload_media_handler(
     job_storage
         .lock()
         .await
-        .push(Job::from(MediaJob::from(ProcessMedia {
-            media_id: media_id.clone(),
-        })))
+        .push(Job::from(MediaJob::Process(media_id.clone())))
         .await
         .map_err(|e| {
             (
