@@ -40,6 +40,7 @@ uuid = "*"
 infer = "0.16.0"
 apalis = { version = "0.6", features = ["limit", "timeout"] }
 apalis-redis = { version = "0.6" }
+nom-exif = "*"
 
 
 [dev-dependencies]

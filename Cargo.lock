@@ -2018,6 +2018,7 @@ dependencies = [
  "http",
  "infer",
  "itertools 0.14.0",
+ "nom-exif",
  "serde",
  "serde_json",
  "test-case",
@@ -2044,7 +2045,7 @@ dependencies = [
  "howitt_clients",
  "image",
  "libwebp-sys",
- "thiserror 1.0.69",
+ "thiserror 2.0.11",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -2577,6 +2578,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
+name = "iso6709parse"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e8731493611ee073436908f372020038da3715865a68d024f4fa3d800f13ac7"
+dependencies = [
+ "geo-types",
+ "nom",
+]
+
+[[package]]
 name = "itertools"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2954,6 +2965,21 @@ checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
 dependencies = [
  "memchr",
  "minimal-lexical",
+]
+
+[[package]]
+name = "nom-exif"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a57d8aa24d0b90b42817a9309b56a4d1966feb443d44476bd4ea8de3114f170"
+dependencies = [
+ "bytes",
+ "chrono",
+ "iso6709parse",
+ "nom",
+ "regex",
+ "thiserror 1.0.69",
+ "tracing",
 ]
 
 [[package]]
