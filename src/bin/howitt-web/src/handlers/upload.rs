@@ -91,7 +91,7 @@ pub async fn upload_media_handler(
         user_id: login.session.user_id,
         path: key,
         relation_ids,
-        point,
+        point: point.clone(),
         captured_at,
     };
 
@@ -114,6 +114,20 @@ pub async fn upload_media_handler(
                 Json(json!({"error": format!("Failed to enqueue job: {}", e)})),
             )
         })?;
+
+    if point.is_none() {
+        job_storage
+            .lock()
+            .await
+            .push(Job::from(MediaJob::InferLocation(media_id.clone())))
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(json!({"error": format!("Failed to enqueue job: {}", e)})),
+                )
+            })?;
+    }
 
     Ok((
         StatusCode::OK,

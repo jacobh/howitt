@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use chrono::Duration;
 use thiserror::Error;
 
@@ -23,9 +25,9 @@ where
     RideRepo: Repo<Model = crate::models::ride::Ride>,
     RidePointsRepo: Repo<Model = RidePoints>,
 {
-    media_repo: MediaRepo,
-    ride_repo: RideRepo,
-    ride_points_repo: RidePointsRepo,
+    media_repo: Arc<MediaRepo>,
+    ride_repo: Arc<RideRepo>,
+    ride_points_repo: Arc<RidePointsRepo>,
 }
 
 impl<MediaRepo, RideRepo, RidePointsRepo> MediaGeoInferrer<MediaRepo, RideRepo, RidePointsRepo>
@@ -35,9 +37,9 @@ where
     RidePointsRepo: Repo<Model = RidePoints>,
 {
     pub fn new(
-        media_repo: MediaRepo,
-        ride_repo: RideRepo,
-        ride_points_repo: RidePointsRepo,
+        media_repo: Arc<MediaRepo>,
+        ride_repo: Arc<RideRepo>,
+        ride_points_repo: Arc<RidePointsRepo>,
     ) -> Self {
         Self {
             media_repo,

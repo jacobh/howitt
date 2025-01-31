@@ -1,5 +1,6 @@
 use howitt::models::media::{ImageContentType, ImageSpec, Media, IMAGE_SPECS};
 use howitt::services::media::keys::{generate_resized_media_key, GenerateResizedMediaKeyParams};
+use howitt::services::media::MediaGeoInferrer;
 use howitt_postgresql::PostgresRepoError;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImageView, ImageReader};
@@ -121,6 +122,8 @@ pub enum MediaJobError {
     TaskJoin(#[from] tokio::task::JoinError),
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("Location infer failed")]
+    LocationInferFailed(anyhow::Error),
 }
 
 pub async fn handle_media_job(job: MediaJob, ctx: Data<Context>) -> Result<(), MediaJobError> {
@@ -165,7 +168,20 @@ pub async fn handle_media_job(job: MediaJob, ctx: Data<Context>) -> Result<(), M
             Ok(())
         }
         MediaJob::InferLocation(media_id) => {
-            unimplemented!()
+            let media = ctx.media_repo.get(media_id).await?;
+
+            let inferrer = MediaGeoInferrer::new(
+                ctx.media_repo.clone(),
+                ctx.ride_repo.clone(),
+                ctx.ride_points_repo.clone(),
+            );
+
+            inferrer
+                .infer_point_and_save(&media)
+                .await
+                .map_err(MediaJobError::LocationInferFailed)?;
+
+            Ok(())
         }
     }
 }
