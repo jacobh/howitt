@@ -93,9 +93,7 @@ export function Nav(props: NavProps): React.ReactNode {
       </h3>
       <div css={userInfoCss}>
         {viewer ? (
-          <Link to={`/riders/${viewer.profile.username}`}>
-            {viewer.profile.username}
-          </Link>
+          <Link to={`/settings`}>{viewer.profile.username}</Link>
         ) : (
           <Link to="/login">Login</Link>
         )}

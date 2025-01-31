@@ -117,10 +117,12 @@ export type ImageSizes = {
 
 export type Media = {
   __typename?: "Media";
+  capturedAt?: Maybe<Scalars["DateTime"]["output"]>;
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["MediaId"]["output"];
   imageSizes: ImageSizes;
   path: Scalars["String"]["output"];
+  point?: Maybe<Array<Scalars["Float"]["output"]>>;
   user: UserProfile;
 };
 
@@ -350,6 +352,7 @@ export type UpdateTripOutput = {
 
 export type UserProfile = {
   __typename?: "UserProfile";
+  email?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["UserId"]["output"];
   recentRides: Array<Ride>;
   ridesWithDate: Array<Ride>;
@@ -741,6 +744,23 @@ export type HomeQueryPointOnlyQueryVariables = Exact<{
 export type HomeQueryPointOnlyQuery = {
   __typename?: "Query";
   queryRoutes: Array<{ __typename?: "Route"; id: any; pointsJson: string }>;
+};
+
+export type SettingsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type SettingsQuery = {
+  __typename?: "Query";
+  viewer?:
+    | ({
+        __typename?: "Viewer";
+        profile: {
+          __typename?: "UserProfile";
+          id: any;
+          username: string;
+          email?: string | null;
+        };
+      } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
+    | null;
 };
 
 export const ElevationPathFragmentDoc = {
@@ -2585,3 +2605,70 @@ export const HomeQueryPointOnlyDocument = {
   HomeQueryPointOnlyQuery,
   HomeQueryPointOnlyQueryVariables
 >;
+export const SettingsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "settings" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "profile" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "username" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SettingsQuery, SettingsQueryVariables>;

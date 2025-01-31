@@ -52,6 +52,8 @@ const documents = {
     types.HomeQueryDocument,
   "\n  query homeQueryPointOnly($input: QueryRoutesInput!) {\n    queryRoutes(input: $input) {\n      id\n      pointsJson\n    }\n  }\n":
     types.HomeQueryPointOnlyDocument,
+  "\n  query settings {\n    viewer {\n        profile {\n            id\n            username\n            email\n        }\n      ...viewerInfo\n    }\n  }\n":
+    types.SettingsDocument,
 };
 
 /**
@@ -182,6 +184,12 @@ export function gql(
 export function gql(
   source: "\n  query homeQueryPointOnly($input: QueryRoutesInput!) {\n    queryRoutes(input: $input) {\n      id\n      pointsJson\n    }\n  }\n",
 ): (typeof documents)["\n  query homeQueryPointOnly($input: QueryRoutesInput!) {\n    queryRoutes(input: $input) {\n      id\n      pointsJson\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query settings {\n    viewer {\n        profile {\n            id\n            username\n            email\n        }\n      ...viewerInfo\n    }\n  }\n",
+): (typeof documents)["\n  query settings {\n    viewer {\n        profile {\n            id\n            username\n            email\n        }\n      ...viewerInfo\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};
