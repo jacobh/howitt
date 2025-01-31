@@ -11,6 +11,30 @@ interface Props {
   setUploading: (uploading: boolean) => void;
 }
 
+export class MediaUploadClient {
+  constructor(
+    private readonly apiBaseUrl: string,
+    private readonly token: string
+  ) {}
+
+  async uploadMedia(file: File, relationIds: string[]): Promise<void> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("name", file.name);
+    formData.append("relation_ids", JSON.stringify(relationIds));
+
+    const response = await fetch(`${this.apiBaseUrl}/upload/media`, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error("Upload failed");
+  }
+}
+
 export function MediaDropzone({
   tripId,
   onUploadComplete,
@@ -22,22 +46,15 @@ export function MediaDropzone({
       setUploading(true);
 
       try {
+        const client = new MediaUploadClient(
+          getApiBaseUrl(),
+          Cookies.get("token") ?? ""
+        );
+
         for (const file of acceptedFiles) {
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("name", file.name);
-          formData.append("relation_ids", JSON.stringify([tripId]));
-
-          const response = await fetch(`${getApiBaseUrl()}/upload/media`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              Authorization: `Bearer ${Cookies.get("token")}`,
-            },
-          });
-
-          if (!response.ok) throw new Error("Upload failed");
+          await client.uploadMedia(file, [tripId]);
         }
+
         onUploadComplete();
       } catch (error) {
         console.error("Upload failed:", error);
