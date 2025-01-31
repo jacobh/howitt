@@ -7,6 +7,7 @@ use image::{DynamicImage, GenericImageView, ImageReader};
 use libwebp_sys::WebPPreset;
 use std::io::Cursor;
 use thiserror::Error;
+use tokio::sync::oneshot;
 use webp::WebPConfig;
 
 use apalis::prelude::*;
@@ -16,6 +17,21 @@ use howitt::{jobs::media::MediaJob, repos::Repo};
 use howitt_client_types::{BucketClient, ObjectParams};
 
 use crate::context::Context;
+
+async fn rayon_spawn_blocking<F, T>(f: F) -> T
+where
+    F: FnOnce() -> T + Send + 'static,
+    T: Send + 'static,
+{
+    let (tx, rx) = oneshot::channel();
+
+    rayon::spawn(move || {
+        let result = f();
+        let _ = tx.send(result);
+    });
+
+    rx.await.expect("Rayon task panicked")
+}
 
 fn resize(img: &DynamicImage, spec: &ImageSpec) -> DynamicImage {
     match spec {
@@ -120,6 +136,8 @@ pub enum MediaJobError {
     Upload(#[from] UploadError),
     #[error("Task join error: {0}")]
     TaskJoin(#[from] tokio::task::JoinError),
+    #[error("RecvError: {0}")]
+    RecvError(#[from] tokio::sync::oneshot::error::RecvError),
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
     #[error("Location infer failed")]
@@ -149,17 +167,16 @@ pub async fn handle_media_job(job: MediaJob, ctx: Data<Context>) -> Result<(), M
 
             for image_spec in IMAGE_SPECS.iter() {
                 let img_clone = img.clone();
-                let resized =
-                    tokio::task::spawn_blocking(move || resize(&img_clone, image_spec)).await?;
+
+                let resized = rayon_spawn_blocking(move || resize(&img_clone, &image_spec)).await;
 
                 for content_type in [ImageContentType::Jpeg, ImageContentType::Webp] {
                     let resized_clone = resized.clone();
                     let content_type_clone = content_type.clone();
 
-                    let buffer = tokio::task::spawn_blocking(move || {
-                        encode(&resized_clone, &content_type_clone)
-                    })
-                    .await??;
+                    let buffer =
+                        rayon_spawn_blocking(move || encode(&resized_clone, &content_type_clone))
+                            .await?;
 
                     upload_image(&ctx, &media, buffer, image_spec, &content_type).await?;
                 }
