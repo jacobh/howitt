@@ -3,7 +3,7 @@ use chrono::{Duration, Utc};
 use howitt::models::{ride::RideFilter, user::UserId};
 use itertools::Itertools;
 
-use crate::graphql::context::SchemaData;
+use crate::graphql::context::{RequestData, SchemaData};
 use crate::graphql::schema::{ride::Ride, trip::Trip, IsoDate, ModelId};
 
 pub struct UserProfile(pub howitt::models::user::User);
@@ -13,9 +13,29 @@ impl UserProfile {
     async fn id(&self) -> ModelId<UserId> {
         ModelId::from(self.0.id)
     }
+
     async fn username(&self) -> &str {
         &self.0.username
     }
+
+    async fn email<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Option<String>, async_graphql::Error> {
+        let RequestData { login } = ctx.data()?;
+
+        // Only return email if the viewer is the profile owner
+        Ok(if let Some(login) = login {
+            if login.session.user_id == self.0.id {
+                Some(self.0.email.clone())
+            } else {
+                None
+            }
+        } else {
+            None
+        })
+    }
+
     async fn recent_rides<'ctx>(
         &self,
         ctx: &Context<'ctx>,
