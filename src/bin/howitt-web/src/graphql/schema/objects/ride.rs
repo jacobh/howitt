@@ -145,4 +145,7 @@ impl Ride {
 
         Ok(media.into_iter().map(Media).collect())
     }
+    pub async fn content_at(&self) -> DateTime<Utc> {
+        self.0.started_at.clone()
+    }
 }

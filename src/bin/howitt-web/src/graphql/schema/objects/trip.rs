@@ -1,4 +1,7 @@
+use std::iter;
+
 use async_graphql::{Context, Object};
+use chrono::DateTime;
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::ext::iter::{ResultIterExt, ScanAllExt};
 use howitt::models::media::MediaFilter;
@@ -6,9 +9,11 @@ use howitt::models::{ride::RideFilter, trip::TripId};
 use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
+use crate::graphql::schema::TemporalContentBlock;
 use crate::graphql::schema::{ride::Ride, ModelId};
 
 use super::media::Media;
+use super::note::Note;
 use super::user::UserProfile;
 
 pub struct Trip(pub howitt::models::trip::Trip);
@@ -125,5 +130,57 @@ impl Trip {
             .await?;
 
         Ok(media.into_iter().map(Media).collect())
+    }
+
+    pub async fn temporal_content_blocks<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<TemporalContentBlock>, async_graphql::Error> {
+        let SchemaData {
+            media_repo,
+            ride_repo,
+            ..
+        } = ctx.data()?;
+
+        // Convert trip description to a Note if it exists
+        let notes = self
+            .0
+            .description
+            .as_ref()
+            .map(|desc| {
+                TemporalContentBlock::Note(Note {
+                    content_at: DateTime::from_timestamp(0, 0).unwrap(), // 1970-01-01
+                    text: desc.clone(),
+                })
+            })
+            .into_iter();
+
+        // Get media blocks
+        let media_blocks = media_repo
+            .filter_models(MediaFilter::ForTrip(self.0.id))
+            .await?
+            .into_iter()
+            .map(|m| TemporalContentBlock::Media(Media(m)));
+
+        // Get ride blocks
+        let ride_blocks = ride_repo
+            .filter_models(RideFilter::ForTrip(self.0.id))
+            .await?
+            .into_iter()
+            .map(|r| TemporalContentBlock::Ride(Ride(r)));
+
+        // Combine all blocks and sort by content_at timestamp
+        let blocks: Vec<TemporalContentBlock> = iter::empty()
+            .chain(notes)
+            .chain(media_blocks)
+            .chain(ride_blocks)
+            .sorted_by_key(|block| match block {
+                TemporalContentBlock::Ride(r) => r.0.started_at,
+                TemporalContentBlock::Media(m) => m.0.captured_at.unwrap_or(m.0.created_at),
+                TemporalContentBlock::Note(n) => n.content_at,
+            })
+            .collect_vec();
+
+        Ok(blocks)
     }
 }

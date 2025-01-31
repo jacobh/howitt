@@ -44,6 +44,10 @@ impl Media {
         self.0.captured_at
     }
 
+    pub async fn content_at(&self) -> DateTime<Utc> {
+        self.0.captured_at.unwrap_or(self.0.created_at).clone()
+    }
+
     async fn image_sizes(&self) -> ImageSizes {
         const BASE_URL: &str = "https://howitt-media.s3.ap-southeast-4.amazonaws.com/";
 
