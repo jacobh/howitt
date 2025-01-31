@@ -1,6 +1,7 @@
 {
   "possibleTypes": {
     "ElevationPath": ["Ride", "Route", "TripLeg"],
-    "MediaTarget": ["PointOfInterest", "Ride", "Route", "Trip"]
+    "MediaTarget": ["PointOfInterest", "Ride", "Route", "Trip"],
+    "TemporalContentBlock": ["Media", "Note", "Ride"]
   }
 }

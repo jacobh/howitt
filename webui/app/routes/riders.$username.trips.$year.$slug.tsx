@@ -25,15 +25,6 @@ const TripQuery = gql(`
       tripWithSlug(slug: $slug) {
         id
         name
-        description
-        media {
-          id
-          imageSizes {
-            fit1600 {
-              webpUrl
-            }
-          }
-        }
         ...editTrip
         user {
           id
@@ -42,10 +33,28 @@ const TripQuery = gql(`
           ...elevationPath
           rides {
             id
-            date
-            pointsJson(pointsPerKm: $pointsPerKm)
-            ...rideItem
             ...elevationPath
+            pointsJson(pointsPerKm: $pointsPerKm)
+          }
+        }
+        temporalContentBlocks {
+          __typename
+          contentAt
+          ... on Ride {
+            rideId: id
+            date
+            ...rideItem
+          }
+          ... on Media {
+            mediaId: id
+            imageSizes {
+              fit1600 {
+                webpUrl
+              }
+            }
+          }
+          ... on Note {
+            text
           }
         }
       }
@@ -114,50 +123,48 @@ export default function TripDetail(): React.ReactElement {
                 Edit Trip
               </button>
             )}
+
             {trip.legs.map((leg, i) => (
               <div key={i}>
                 <div css={{ marginTop: "12px" }}>
                   <ElevationProfile data={leg} />
                 </div>
-                {leg.rides.map((ride) => (
-                  <div key={ride.id} css={{ margin: "20px 0" }}>
-                    <RideItem ride={ride} />
-                  </div>
-                ))}
               </div>
             ))}
 
-            {trip.description && (
-              <section css={{ margin: "24px 0" }}>
-                <p>{trip.description}</p>
-              </section>
-            )}
-
-            {trip.media.length > 0 && (
-              <section css={{ margin: "24px 0" }}>
-                <h3 css={{ marginBottom: "16px" }}>Photos</h3>
+            {/* New content blocks rendering */}
+            <div css={{ margin: "20px 0" }}>
+              {trip.temporalContentBlocks.map((block) => (
                 <div
-                  css={{
-                    display: "grid",
-                    gap: "16px",
-                    gridTemplateColumns: "1fr",
-                  }}
+                  key={`${block.__typename}-${(block as any).rideId ?? (block as any).mediaId ?? block.contentAt}`}
                 >
-                  {trip.media.map((media) => (
+                  {block.__typename === "Ride" && (
+                    <div css={{ margin: "20px 0" }}>
+                      <RideItem ride={block} />
+                    </div>
+                  )}
+
+                  {block.__typename === "Note" && (
+                    <section css={{ margin: "24px 0" }}>
+                      <p>{block.text}</p>
+                    </section>
+                  )}
+
+                  {block.__typename === "Media" && (
                     <img
-                      key={media.id}
-                      src={media.imageSizes.fit1600.webpUrl}
+                      src={block.imageSizes.fit1600.webpUrl}
                       css={{
                         width: "100%",
                         height: "auto",
                         borderRadius: "4px",
+                        margin: "16px 0",
                       }}
                       alt=""
                     />
-                  ))}
+                  )}
                 </div>
-              </section>
-            )}
+              ))}
+            </div>
 
             <EditTripModal
               trip={trip}

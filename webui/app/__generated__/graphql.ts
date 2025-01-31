@@ -115,9 +115,10 @@ export type ImageSizes = {
   fit2400: ImageSize;
 };
 
-export type Media = {
+export type Media = TemporalContentBlock & {
   __typename?: "Media";
   capturedAt?: Maybe<Scalars["DateTime"]["output"]>;
+  contentAt: Scalars["DateTime"]["output"];
   createdAt: Scalars["DateTime"]["output"];
   id: Scalars["MediaId"]["output"];
   imageSizes: ImageSizes;
@@ -154,6 +155,12 @@ export type NearbyRoute = {
   closestTerminus: Terminus;
   closestTerminusDelta: PointDelta;
   delta: PointDelta;
+};
+
+export type Note = TemporalContentBlock & {
+  __typename?: "Note";
+  contentAt: Scalars["DateTime"]["output"];
+  text: Scalars["String"]["output"];
 };
 
 export type PointDelta = {
@@ -230,8 +237,10 @@ export type RemoveTripMediaInput = {
 };
 
 export type Ride = ElevationPath &
-  MediaTarget & {
+  MediaTarget &
+  TemporalContentBlock & {
     __typename?: "Ride";
+    contentAt: Scalars["DateTime"]["output"];
     date: Scalars["IsoDate"]["output"];
     distance: Scalars["Float"]["output"];
     distancePoints: Array<Scalars["Float"]["output"]>;
@@ -298,6 +307,11 @@ export enum SlopeEnd {
   Uphill = "UPHILL",
 }
 
+export type TemporalContentBlock = {
+  /** Timestamp associated with this content */
+  contentAt: Scalars["DateTime"]["output"];
+};
+
 export type Terminus = {
   __typename?: "Terminus";
   bearing: Scalars["Float"]["output"];
@@ -323,6 +337,7 @@ export type Trip = MediaTarget & {
   media: Array<Media>;
   name: Scalars["String"]["output"];
   slug: Scalars["String"]["output"];
+  temporalContentBlocks: Array<TemporalContentBlock>;
   user: UserProfile;
   year: Scalars["Int"]["output"];
 };
@@ -579,28 +594,13 @@ export type TripQueryQuery = {
           __typename?: "Trip";
           id: any;
           name: string;
-          description?: string | null;
-          media: Array<{
-            __typename?: "Media";
-            id: any;
-            imageSizes: {
-              __typename?: "ImageSizes";
-              fit1600: { __typename?: "ImageSize"; webpUrl: string };
-            };
-          }>;
           user: { __typename?: "UserProfile"; id: any };
           legs: Array<
             {
               __typename?: "TripLeg";
               rides: Array<
-                {
-                  __typename?: "Ride";
-                  id: any;
-                  date: any;
-                  pointsJson: string;
-                } & {
+                { __typename?: "Ride"; id: any; pointsJson: string } & {
                   " $fragmentRefs"?: {
-                    RideItemFragment: RideItemFragment;
                     ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
                   };
                 }
@@ -610,6 +610,24 @@ export type TripQueryQuery = {
                 ElevationPath_TripLeg_Fragment: ElevationPath_TripLeg_Fragment;
               };
             }
+          >;
+          temporalContentBlocks: Array<
+            | {
+                __typename: "Media";
+                contentAt: any;
+                mediaId: any;
+                imageSizes: {
+                  __typename?: "ImageSizes";
+                  fit1600: { __typename?: "ImageSize"; webpUrl: string };
+                };
+              }
+            | { __typename: "Note"; text: string; contentAt: any }
+            | ({
+                __typename: "Ride";
+                date: any;
+                contentAt: any;
+                rideId: any;
+              } & { " $fragmentRefs"?: { RideItemFragment: RideItemFragment } })
           >;
         } & { " $fragmentRefs"?: { EditTripFragment: EditTripFragment } })
       | null;
@@ -1778,48 +1796,6 @@ export const TripQueryDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       {
-                        kind: "Field",
-                        name: { kind: "Name", value: "description" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "media" },
-                        selectionSet: {
-                          kind: "SelectionSet",
-                          selections: [
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "id" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "imageSizes" },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "fit1600" },
-                                    selectionSet: {
-                                      kind: "SelectionSet",
-                                      selections: [
-                                        {
-                                          kind: "Field",
-                                          name: {
-                                            kind: "Name",
-                                            value: "webpUrl",
-                                          },
-                                        },
-                                      ],
-                                    },
-                                  },
-                                ],
-                              },
-                            },
-                          ],
-                        },
-                      },
-                      {
                         kind: "FragmentSpread",
                         name: { kind: "Name", value: "editTrip" },
                       },
@@ -1857,8 +1833,11 @@ export const TripQueryDocument = {
                                     name: { kind: "Name", value: "id" },
                                   },
                                   {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "date" },
+                                    kind: "FragmentSpread",
+                                    name: {
+                                      kind: "Name",
+                                      value: "elevationPath",
+                                    },
                                   },
                                   {
                                     kind: "Field",
@@ -1880,16 +1859,108 @@ export const TripQueryDocument = {
                                       },
                                     ],
                                   },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "temporalContentBlocks" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "__typename" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "contentAt" },
+                            },
+                            {
+                              kind: "InlineFragment",
+                              typeCondition: {
+                                kind: "NamedType",
+                                name: { kind: "Name", value: "Ride" },
+                              },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    alias: { kind: "Name", value: "rideId" },
+                                    name: { kind: "Name", value: "id" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "date" },
+                                  },
                                   {
                                     kind: "FragmentSpread",
                                     name: { kind: "Name", value: "rideItem" },
                                   },
+                                ],
+                              },
+                            },
+                            {
+                              kind: "InlineFragment",
+                              typeCondition: {
+                                kind: "NamedType",
+                                name: { kind: "Name", value: "Media" },
+                              },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
                                   {
-                                    kind: "FragmentSpread",
-                                    name: {
-                                      kind: "Name",
-                                      value: "elevationPath",
+                                    kind: "Field",
+                                    alias: { kind: "Name", value: "mediaId" },
+                                    name: { kind: "Name", value: "id" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "imageSizes" },
+                                    selectionSet: {
+                                      kind: "SelectionSet",
+                                      selections: [
+                                        {
+                                          kind: "Field",
+                                          name: {
+                                            kind: "Name",
+                                            value: "fit1600",
+                                          },
+                                          selectionSet: {
+                                            kind: "SelectionSet",
+                                            selections: [
+                                              {
+                                                kind: "Field",
+                                                name: {
+                                                  kind: "Name",
+                                                  value: "webpUrl",
+                                                },
+                                              },
+                                            ],
+                                          },
+                                        },
+                                      ],
                                     },
+                                  },
+                                ],
+                              },
+                            },
+                            {
+                              kind: "InlineFragment",
+                              typeCondition: {
+                                kind: "NamedType",
+                                name: { kind: "Name", value: "Note" },
+                              },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "text" },
                                   },
                                 ],
                               },
