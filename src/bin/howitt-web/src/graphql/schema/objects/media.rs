@@ -36,6 +36,14 @@ impl Media {
         Ok(UserProfile(user))
     }
 
+    async fn point(&self) -> Option<Vec<f64>> {
+        self.0.point.map(|p| vec![p.x(), p.y()])
+    }
+
+    async fn captured_at(&self) -> Option<DateTime<Utc>> {
+        self.0.captured_at
+    }
+
     async fn image_sizes(&self) -> ImageSizes {
         const BASE_URL: &str = "https://howitt-media.s3.ap-southeast-4.amazonaws.com/";
 
