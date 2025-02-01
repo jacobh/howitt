@@ -13,6 +13,25 @@ export const EditTripFragment = gql(`
     id
     name 
     description
+    temporalContentBlocks {
+      __typename
+      contentAt
+      ... on Note {
+        text
+      }
+      ... on Media {
+        mediaId: id
+        imageSizes {
+          fit1200 {
+            webpUrl
+          }
+        }
+      }
+      ... on Ride {
+        rideId: id
+        name
+      }
+    }
     media {
       id
       path
@@ -164,6 +183,62 @@ export function EditTripModal({
                 onChange={(e): void => setDescription(e.target.value)}
                 rows={4}
               />
+            </div>
+          </TabItem>
+
+          <TabItem label="Content">
+            <h2>Content</h2>
+            <div
+              css={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+            >
+              {trip.temporalContentBlocks.map((block, index) => (
+                <div
+                  key={`${block.__typename}-${index}`}
+                  css={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div css={{ color: "#666", fontSize: "0.9em" }}>
+                    {new Date(block.contentAt).toLocaleString()}
+                    {" - "}
+                    {block.__typename}
+                  </div>
+
+                  {block.__typename === "Note" && (
+                    <textarea
+                      css={inputStyles}
+                      value={block.text}
+                      onChange={(e): void => {
+                        // TODO: Implement note updating
+                        console.log("Update note:", e.target.value);
+                      }}
+                      rows={3}
+                    />
+                  )}
+
+                  {block.__typename === "Media" && (
+                    <img
+                      src={block.imageSizes.fit1200.webpUrl}
+                      css={{ maxWidth: "600px", borderRadius: "4px" }}
+                      alt=""
+                    />
+                  )}
+
+                  {block.__typename === "Ride" && (
+                    <div
+                      css={{
+                        padding: "0.5rem",
+                        backgroundColor: "#f5f5f5",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {block.name}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </TabItem>
 

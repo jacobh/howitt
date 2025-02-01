@@ -24,7 +24,7 @@ const documents = {
     types.RideSummaryFragmentDoc,
   "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n":
     types.RouteItemFragmentDoc,
-  "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n":
+  "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n":
     types.EditTripFragmentDoc,
   "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n":
     types.UpdateTripDocument,
@@ -104,8 +104,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n",
-): (typeof documents)["\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n"];
+  source: "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n",
+): (typeof documents)["\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
