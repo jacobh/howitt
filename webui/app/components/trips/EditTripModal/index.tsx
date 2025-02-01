@@ -8,6 +8,7 @@ import { MediaDropzone } from "./components/MediaDropzone";
 import { TabItem } from "./components/TabItem";
 import { TabList } from "./components/TabList";
 import { match, P } from "ts-pattern";
+import { isNotNil } from "~/services/isNotNil";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -248,17 +249,30 @@ export function EditTripModal({
     (e: React.FormEvent): void => {
       e.preventDefault();
 
+      // Extract notes from localContentBlocks
+      const notes = localContentBlocks
+        .map((block) =>
+          match(block)
+            .with({ __typename: "Note" }, (note) => ({
+              timestamp: note.contentAt,
+              text: note.text,
+            }))
+            .otherwise(() => null),
+        )
+        .filter(isNotNil);
+
       updateTrip({
         variables: {
           input: {
             tripId: trip.id,
             name,
             description: description || null,
+            notes,
           },
         },
       });
     },
-    [trip.id, name, description, updateTrip],
+    [trip.id, name, description, localContentBlocks, updateTrip],
   );
 
   return (

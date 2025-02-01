@@ -336,6 +336,7 @@ export type Trip = MediaTarget & {
   legs: Array<TripLeg>;
   media: Array<Media>;
   name: Scalars["String"]["output"];
+  notes: Array<Note>;
   slug: Scalars["String"]["output"];
   temporalContentBlocks: Array<TemporalContentBlock>;
   user: UserProfile;
@@ -354,9 +355,15 @@ export type TripMediaOutput = {
   trip?: Maybe<Trip>;
 };
 
+export type TripNoteInput = {
+  text: Scalars["String"]["input"];
+  timestamp: Scalars["DateTime"]["input"];
+};
+
 export type UpdateTripInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   name: Scalars["String"]["input"];
+  notes: Array<TripNoteInput>;
   tripId: Scalars["TripId"]["input"];
 };
 
