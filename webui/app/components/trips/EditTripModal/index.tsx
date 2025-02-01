@@ -9,6 +9,7 @@ import { TabItem } from "./components/TabItem";
 import { TabList } from "./components/TabList";
 import { match, P } from "ts-pattern";
 import { isNotNil } from "~/services/isNotNil";
+import { Temporal } from "@js-temporal/polyfill";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -192,9 +193,10 @@ export function EditTripModal({
         .with("start", () => {
           const firstBlock = localContentBlocks.at(0);
           const firstTimestamp = firstBlock
-            ? new Date(firstBlock.contentAt).getTime()
-            : new Date().getTime();
-          const newTimestamp = new Date(firstTimestamp - 3600000).toISOString();
+            ? Temporal.Instant.from(firstBlock.contentAt)
+            : Temporal.Now.instant();
+          // Subtract 1 hour from the timestamp
+          const newTimestamp = firstTimestamp.subtract({ hours: 1 }).toString();
 
           return [
             {
@@ -208,9 +210,10 @@ export function EditTripModal({
         .with("end", () => {
           const lastBlock = localContentBlocks.at(-1);
           const lastTimestamp = lastBlock
-            ? new Date(lastBlock.contentAt).getTime()
-            : new Date().getTime();
-          const newTimestamp = new Date(lastTimestamp + 3600000).toISOString();
+            ? Temporal.Instant.from(lastBlock.contentAt)
+            : Temporal.Now.instant();
+          // Add 1 hour to the timestamp
+          const newTimestamp = lastTimestamp.add({ hours: 1 }).toString();
 
           return [
             ...localContentBlocks,
@@ -224,18 +227,24 @@ export function EditTripModal({
         .with(P.number, (i) => {
           const currentBlock = localContentBlocks[i];
           const nextBlock = localContentBlocks.at(i + 1);
-          const currentTimestamp = new Date(currentBlock.contentAt).getTime();
-          const nextTimestamp = nextBlock
-            ? new Date(nextBlock.contentAt).getTime()
-            : new Date().getTime();
-          const averageTimestamp = new Date(
-            (currentTimestamp + nextTimestamp) / 2,
-          ).toISOString();
+
+          const currentInstant = Temporal.Instant.from(currentBlock.contentAt);
+          const nextInstant = nextBlock
+            ? Temporal.Instant.from(nextBlock.contentAt)
+            : Temporal.Now.instant();
+
+          // Calculate the midpoint between timestamps
+          const diffSeconds = nextInstant
+            .since(currentInstant)
+            .total("seconds");
+          const newTimestamp = currentInstant
+            .add({ seconds: Math.floor(diffSeconds / 2) })
+            .toString();
 
           const newBlocks = [...localContentBlocks];
           newBlocks.splice(i + 1, 0, {
             __typename: "Note" as const,
-            contentAt: averageTimestamp,
+            contentAt: newTimestamp,
             text: "",
           });
           return newBlocks;
@@ -349,7 +358,9 @@ export function EditTripModal({
                       css={contentBlockStyles}
                     >
                       <div css={contentMetaStyles}>
-                        {new Date(block.contentAt).toLocaleString()}
+                        {Temporal.Instant.from(block.contentAt)
+                          .toZonedDateTimeISO(Temporal.Now.timeZoneId())
+                          .toLocaleString()}
                         {" - "}
                         {block.__typename}
                       </div>
