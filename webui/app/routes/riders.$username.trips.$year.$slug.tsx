@@ -13,6 +13,7 @@ import { RideItem } from "~/components/rides/RideItem";
 import { useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
 import { match } from "ts-pattern";
+import { css } from "@emotion/react";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -62,6 +63,29 @@ const TripQuery = gql(`
     }
   }
 `);
+
+const rideItemStyles = css({
+  margin: "20px 0",
+});
+
+const noteStyles = css({
+  margin: "24px 0",
+});
+
+const mediaStyles = css({
+  width: "100%",
+  height: "auto",
+  borderRadius: "4px",
+  margin: "16px 0",
+});
+
+const elevationContainerStyles = css({
+  marginTop: "12px",
+});
+
+const temporalBlocksContainerStyles = css({
+  margin: "20px 0",
+});
 
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
@@ -127,25 +151,22 @@ export default function TripDetail(): React.ReactElement {
 
             {trip.legs.map((leg, i) => (
               <div key={i}>
-                <div css={{ marginTop: "12px" }}>
+                <div css={elevationContainerStyles}>
                   <ElevationProfile data={leg} />
                 </div>
               </div>
             ))}
 
-            <div css={{ margin: "20px 0" }}>
+            <div css={temporalBlocksContainerStyles}>
               {trip.temporalContentBlocks.map((block) =>
                 match(block)
                   .with({ __typename: "Ride" }, (ride) => (
-                    <div key={`ride-${ride.rideId}`} css={{ margin: "20px 0" }}>
+                    <div key={`ride-${ride.rideId}`} css={rideItemStyles}>
                       <RideItem ride={ride} />
                     </div>
                   ))
                   .with({ __typename: "Note" }, (note) => (
-                    <section
-                      key={`note-${note.contentAt}`}
-                      css={{ margin: "24px 0" }}
-                    >
+                    <section key={`note-${note.contentAt}`} css={noteStyles}>
                       <p>{note.text}</p>
                     </section>
                   ))
@@ -153,12 +174,7 @@ export default function TripDetail(): React.ReactElement {
                     <img
                       key={`media-${media.mediaId}`}
                       src={media.imageSizes.fit1600.webpUrl}
-                      css={{
-                        width: "100%",
-                        height: "auto",
-                        borderRadius: "4px",
-                        margin: "16px 0",
-                      }}
+                      css={mediaStyles}
                       alt=""
                     />
                   ))
