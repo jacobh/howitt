@@ -64,7 +64,7 @@ const TripQuery = gql(`
 
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
-  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [isEditModalOpen, setEditModalOpen] = useState(true);
 
   const { data, refetch } = useQuery(TripQuery, {
     variables: {
