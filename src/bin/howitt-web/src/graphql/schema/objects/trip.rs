@@ -132,6 +132,17 @@ impl Trip {
         Ok(media.into_iter().map(Media).collect())
     }
 
+    async fn notes(&self) -> Vec<Note> {
+        self.0
+            .notes
+            .iter()
+            .map(|note| Note {
+                content_at: note.timestamp,
+                text: note.text.clone(),
+            })
+            .collect()
+    }
+
     pub async fn temporal_content_blocks<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -142,18 +153,13 @@ impl Trip {
             ..
         } = ctx.data()?;
 
-        // Convert trip description to a Note if it exists
-        let notes = self
-            .0
-            .description
-            .as_ref()
-            .map(|desc| {
-                TemporalContentBlock::Note(Note {
-                    content_at: DateTime::from_timestamp(0, 0).unwrap(), // 1970-01-01
-                    text: desc.clone(),
-                })
+        // Convert trip notes to TemporalContentBlocks
+        let notes = self.0.notes.iter().map(|note| {
+            TemporalContentBlock::Note(Note {
+                content_at: note.timestamp,
+                text: note.text.clone(),
             })
-            .into_iter();
+        });
 
         // Get media blocks
         let media_blocks = media_repo
