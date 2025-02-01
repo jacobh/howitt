@@ -16,5 +16,9 @@ export class MediaStack extends cdk.Stack {
         restrictPublicBuckets: false,
       },
     });
+
+    const backupsBucket = new Bucket(this, "howitt-backups", {
+      bucketName: "howitt-backups",
+    });
   }
 }
