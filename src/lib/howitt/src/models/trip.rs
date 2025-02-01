@@ -1,5 +1,6 @@
 use super::{media::MediaId, ride::RideId, user::UserId, IndexModel, ModelName, ModelUuid};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 pub type TripId = ModelUuid<{ ModelName::Trip }>;
 
@@ -12,6 +13,7 @@ pub struct Trip {
     pub slug: String,
     pub year: i32,
     pub description: Option<String>,
+    pub notes: Vec<TripNote>,
     pub ride_ids: Vec<RideId>,
     pub media_ids: Vec<MediaId>,
 }
@@ -30,4 +32,10 @@ impl IndexModel for Trip {
     fn id(&self) -> Self::Id {
         self.id
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TripNote {
+    pub timestamp: DateTime<Utc>,
+    pub text: String,
 }

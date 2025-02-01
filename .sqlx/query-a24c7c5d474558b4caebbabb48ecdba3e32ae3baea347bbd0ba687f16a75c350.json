@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO trips (\n                    id,\n                    name,\n                    slug,\n                    year,\n                    description,\n                    created_at,\n                    user_id,\n                    notes\n                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n                ON CONFLICT (id) DO UPDATE \n                SET \n                    name = EXCLUDED.name,\n                    slug = EXCLUDED.slug,\n                    year = EXCLUDED.year,\n                    description = EXCLUDED.description,\n                    notes = EXCLUDED.notes\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Int4",
+        "Text",
+        "Timestamptz",
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a24c7c5d474558b4caebbabb48ecdba3e32ae3baea347bbd0ba687f16a75c350"
+}

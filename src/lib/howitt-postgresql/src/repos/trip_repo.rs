@@ -18,6 +18,7 @@ struct TripRow {
     year: i32,
     description: Option<String>,
     user_id: Uuid,
+    notes: Option<serde_json::Value>,
     ride_ids: Option<Vec<Uuid>>,
     media_ids: Option<Vec<Uuid>>,
 }
@@ -34,6 +35,11 @@ impl TryFrom<TripRow> for Trip {
             description: row.description,
             created_at: row.created_at,
             user_id: UserId::from(row.user_id),
+            notes: row
+                .notes
+                .map(|n| serde_json::from_value(n))
+                .transpose()?
+                .unwrap_or_default(),
             ride_ids: row
                 .ride_ids
                 .unwrap_or_default()
@@ -159,14 +165,16 @@ impl Repo for PostgresTripRepo {
                     year,
                     description,
                     created_at,
-                    user_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    user_id,
+                    notes
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 ON CONFLICT (id) DO UPDATE 
                 SET 
                     name = EXCLUDED.name,
                     slug = EXCLUDED.slug,
                     year = EXCLUDED.year,
-                    description = EXCLUDED.description
+                    description = EXCLUDED.description,
+                    notes = EXCLUDED.notes
             "#,
             trip.id.as_uuid(),
             trip.name,
@@ -175,6 +183,7 @@ impl Repo for PostgresTripRepo {
             trip.description,
             trip.created_at,
             trip.user_id.as_uuid(),
+            serde_json::to_value(&trip.notes)?,
         );
 
         query.execute(tx.as_mut()).await?;
