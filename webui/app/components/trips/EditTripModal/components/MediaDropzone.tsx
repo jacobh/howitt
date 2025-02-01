@@ -4,6 +4,23 @@ import { useDropzone } from "react-dropzone";
 import Cookies from "js-cookie";
 import { getApiBaseUrl } from "~/env.client";
 
+const dropzoneStyles = css({
+  border: "2px dashed #cccccc",
+  borderRadius: "4px",
+  padding: "20px",
+  textAlign: "center",
+  background: "#ffffff",
+  cursor: "pointer",
+  marginTop: "16px",
+  "&:hover": {
+    borderColor: "#999999",
+  },
+});
+
+const dragActiveStyles = css({
+  background: "#f0f0f0",
+});
+
 interface Props {
   tripId: string;
   onUploadComplete: () => void;
@@ -72,22 +89,11 @@ export function MediaDropzone({
     },
   });
 
-  const dropzoneStyles = css`
-    border: 2px dashed #cccccc;
-    border-radius: 4px;
-    padding: 20px;
-    text-align: center;
-    background: ${isDragActive ? "#f0f0f0" : "#ffffff"};
-    cursor: pointer;
-    margin-top: 16px;
-
-    &:hover {
-      border-color: #999999;
-    }
-  `;
-
   return (
-    <div {...getRootProps()} css={dropzoneStyles}>
+    <div
+      {...getRootProps()}
+      css={[dropzoneStyles, isDragActive && dragActiveStyles]}
+    >
       <input {...getInputProps()} />
       {uploading ? (
         <p>Uploading files...</p>

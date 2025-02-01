@@ -1,6 +1,6 @@
 import { useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { Modal } from "../../Modal";
 import { MediaTable } from "./components/MediaTable";
@@ -94,7 +94,6 @@ const formFieldStyles = css`
 const inputStyles = css`
   padding: 0.5rem;
   width: 100%;
-
   border: 1px solid #ccc;
 `;
 
@@ -103,6 +102,34 @@ const buttonGroupStyles = css`
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 1rem;
+`;
+
+const contentBlockContainerStyles = css`
+  display: flex;
+  flex-direction: column;
+  gap: "1rem";
+`;
+
+const contentBlockStyles = css`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const contentMetaStyles = css`
+  color: #666;
+  font-size: 0.9em;
+`;
+
+const mediaImageStyles = css`
+  max-width: 600px;
+  border-radius: 4px;
+`;
+
+const rideBlockStyles = css`
+  padding: 0.5rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
 `;
 
 export function EditTripModal({
@@ -131,30 +158,36 @@ export function EditTripModal({
     },
   );
 
-  const handleRemoveMedia = (mediaId: string): void => {
-    removeMedia({
-      variables: {
-        input: {
-          tripId: trip.id,
-          mediaIds: [mediaId],
+  const handleRemoveMedia = useCallback(
+    (mediaId: string): void => {
+      removeMedia({
+        variables: {
+          input: {
+            tripId: trip.id,
+            mediaIds: [mediaId],
+          },
         },
-      },
-    });
-  };
+      });
+    },
+    [removeMedia, trip.id],
+  );
 
-  const handleSubmit = (e: React.FormEvent): void => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    (e: React.FormEvent): void => {
+      e.preventDefault();
 
-    updateTrip({
-      variables: {
-        input: {
-          tripId: trip.id,
-          name,
-          description: description || null,
+      updateTrip({
+        variables: {
+          input: {
+            tripId: trip.id,
+            name,
+            description: description || null,
+          },
         },
-      },
-    });
-  };
+      });
+    },
+    [trip.id, name, description, updateTrip],
+  );
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -188,19 +221,13 @@ export function EditTripModal({
 
           <TabItem label="Content">
             <h2>Content</h2>
-            <div
-              css={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-            >
+            <div css={contentBlockContainerStyles}>
               {trip.temporalContentBlocks.map((block, index) => (
                 <div
                   key={`${block.__typename}-${index}`}
-                  css={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.5rem",
-                  }}
+                  css={contentBlockStyles}
                 >
-                  <div css={{ color: "#666", fontSize: "0.9em" }}>
+                  <div css={contentMetaStyles}>
                     {new Date(block.contentAt).toLocaleString()}
                     {" - "}
                     {block.__typename}
@@ -221,21 +248,13 @@ export function EditTripModal({
                   {block.__typename === "Media" && (
                     <img
                       src={block.imageSizes.fit1200.webpUrl}
-                      css={{ maxWidth: "600px", borderRadius: "4px" }}
+                      css={mediaImageStyles}
                       alt=""
                     />
                   )}
 
                   {block.__typename === "Ride" && (
-                    <div
-                      css={{
-                        padding: "0.5rem",
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      {block.name}
-                    </div>
+                    <div css={rideBlockStyles}>{block.name}</div>
                   )}
                 </div>
               ))}

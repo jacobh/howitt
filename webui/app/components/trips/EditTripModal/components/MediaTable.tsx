@@ -48,6 +48,17 @@ const deleteButtonCss = css`
   }
 `;
 
+const thumbnailCellCss = css({
+  width: "120px",
+});
+
+const thumbnailImageCss = css({
+  width: "100px",
+  height: "100px",
+  objectFit: "cover",
+  borderRadius: "4px",
+});
+
 export function MediaTable({
   trip: tripFragment,
   onRemoveMedia,
@@ -68,15 +79,10 @@ export function MediaTable({
       <tbody>
         {trip.media.map((media) => (
           <tr key={media.id}>
-            <td css={{ width: "120px" }}>
+            <td css={thumbnailCellCss}>
               <img
                 src={media.imageSizes.fill600.webpUrl}
-                css={{
-                  width: "100px",
-                  height: "100px",
-                  objectFit: "cover",
-                  borderRadius: "4px",
-                }}
+                css={thumbnailImageCss}
                 alt=""
               />
             </td>
