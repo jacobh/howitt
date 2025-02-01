@@ -17,23 +17,14 @@ const modalStyles = makeMqs([
   `,
   css`
     padding: 4vw;
-    width: 80vw;
+    min-width: 500px;
+    max-width: 1000px;
   `,
   css`
     padding: 3vw;
-    width: 70vw;
   `,
   css`
     padding: 2vw;
-    width: 60vw;
-  `,
-  css`
-    padding: 2vw;
-    width: 50vw;
-  `,
-  css`
-    padding: 2vw;
-    width: 40vw;
   `,
 ]);
 
