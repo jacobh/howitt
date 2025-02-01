@@ -7,6 +7,7 @@ import { MediaTable } from "./components/MediaTable";
 import { MediaDropzone } from "./components/MediaDropzone";
 import { TabItem } from "./components/TabItem";
 import { TabList } from "./components/TabList";
+import { match, P } from "ts-pattern";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -167,50 +168,53 @@ export function EditTripModal({
 
   const handleAddNote = useCallback(
     (index: number | "start" | "end") => {
-      let newNote;
-      let updatedBlocks;
+      const updatedBlocks = match(index)
+        .with("start", () => {
+          const firstBlock = localContentBlocks[0];
+          const firstTimestamp = new Date(firstBlock.contentAt).getTime();
+          const newTimestamp = new Date(firstTimestamp - 3600000).toISOString();
 
-      if (index === "start") {
-        const firstBlock = localContentBlocks[0];
-        const firstTimestamp = new Date(firstBlock.contentAt).getTime();
-        const newTimestamp = new Date(firstTimestamp - 3600000).toISOString(); // 1 hour before
+          return [
+            {
+              __typename: "Note" as const,
+              contentAt: newTimestamp,
+              text: "",
+            },
+            ...localContentBlocks,
+          ];
+        })
+        .with("end", () => {
+          const lastBlock = localContentBlocks[localContentBlocks.length - 1];
+          const lastTimestamp = new Date(lastBlock.contentAt).getTime();
+          const newTimestamp = new Date(lastTimestamp + 3600000).toISOString();
 
-        newNote = {
-          __typename: "Note" as const,
-          contentAt: newTimestamp,
-          text: "",
-        };
-        updatedBlocks = [newNote, ...localContentBlocks];
-      } else if (index === "end") {
-        const lastBlock = localContentBlocks[localContentBlocks.length - 1];
-        const lastTimestamp = new Date(lastBlock.contentAt).getTime();
-        const newTimestamp = new Date(lastTimestamp + 3600000).toISOString(); // 1 hour after
+          return [
+            ...localContentBlocks,
+            {
+              __typename: "Note" as const,
+              contentAt: newTimestamp,
+              text: "",
+            },
+          ];
+        })
+        .with(P.number, (i) => {
+          const currentBlock = localContentBlocks[i];
+          const nextBlock = localContentBlocks[i + 1];
+          const currentTimestamp = new Date(currentBlock.contentAt).getTime();
+          const nextTimestamp = new Date(nextBlock.contentAt).getTime();
+          const averageTimestamp = new Date(
+            (currentTimestamp + nextTimestamp) / 2,
+          ).toISOString();
 
-        newNote = {
-          __typename: "Note" as const,
-          contentAt: newTimestamp,
-          text: "",
-        };
-        updatedBlocks = [...localContentBlocks, newNote];
-      } else {
-        const currentBlock = localContentBlocks[index];
-        const nextBlock = localContentBlocks[index + 1];
-
-        const currentTimestamp = new Date(currentBlock.contentAt).getTime();
-        const nextTimestamp = new Date(nextBlock.contentAt).getTime();
-        const averageTimestamp = new Date(
-          (currentTimestamp + nextTimestamp) / 2,
-        ).toISOString();
-
-        newNote = {
-          __typename: "Note" as const,
-          contentAt: averageTimestamp,
-          text: "",
-        };
-
-        updatedBlocks = [...localContentBlocks];
-        updatedBlocks.splice(index + 1, 0, newNote);
-      }
+          const newBlocks = [...localContentBlocks];
+          newBlocks.splice(i + 1, 0, {
+            __typename: "Note" as const,
+            contentAt: averageTimestamp,
+            text: "",
+          });
+          return newBlocks;
+        })
+        .exhaustive();
 
       setLocalContentBlocks(updatedBlocks);
     },
@@ -308,33 +312,33 @@ export function EditTripModal({
                       {block.__typename}
                     </div>
 
-                    {block.__typename === "Note" && (
-                      <textarea
-                        css={inputStyles}
-                        value={block.text}
-                        onChange={(e): void => {
-                          const updatedBlocks = [...localContentBlocks];
-                          updatedBlocks[index] = {
-                            ...block,
-                            text: e.target.value,
-                          };
-                          setLocalContentBlocks(updatedBlocks);
-                        }}
-                        rows={3}
-                      />
-                    )}
-
-                    {block.__typename === "Media" && (
-                      <img
-                        src={block.imageSizes.fit1200.webpUrl}
-                        css={mediaImageStyles}
-                        alt=""
-                      />
-                    )}
-
-                    {block.__typename === "Ride" && (
-                      <div css={rideBlockStyles}>{block.name}</div>
-                    )}
+                    {match(block)
+                      .with({ __typename: "Note" }, (note) => (
+                        <textarea
+                          css={inputStyles}
+                          value={note.text}
+                          onChange={(e): void => {
+                            const updatedBlocks = [...localContentBlocks];
+                            updatedBlocks[index] = {
+                              ...note,
+                              text: e.target.value,
+                            };
+                            setLocalContentBlocks(updatedBlocks);
+                          }}
+                          rows={3}
+                        />
+                      ))
+                      .with({ __typename: "Media" }, (media) => (
+                        <img
+                          src={media.imageSizes.fit1200.webpUrl}
+                          css={mediaImageStyles}
+                          alt=""
+                        />
+                      ))
+                      .with({ __typename: "Ride" }, (ride) => (
+                        <div css={rideBlockStyles}>{ride.name}</div>
+                      ))
+                      .exhaustive()}
                   </div>
                   {index < localContentBlocks.length - 1 && (
                     <div
