@@ -95,6 +95,9 @@ jobs:
             - name: ingress
               file: ingress.yml
               is_deployment: false
+            - name: db-backup
+              file: howitt-db-backup.yaml
+              is_deployment: false
 
       steps:
       - name: Checkout repository
