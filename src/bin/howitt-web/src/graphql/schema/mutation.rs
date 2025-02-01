@@ -1,18 +1,26 @@
 use std::collections::HashSet;
 
 use async_graphql::*;
+use chrono::{DateTime, Utc};
 use howitt::models::media::MediaId;
-use howitt::models::trip::TripId;
+use howitt::models::trip::{TripId, TripNote};
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
 use crate::graphql::schema::{trip::Trip, ModelId};
 
 #[derive(InputObject)]
+pub struct TripNoteInput {
+    pub text: String,
+    pub timestamp: DateTime<Utc>,
+}
+
+#[derive(InputObject)]
 pub struct UpdateTripInput {
     pub trip_id: ModelId<TripId>,
     pub name: String,
     pub description: Option<String>,
+    pub notes: Vec<TripNoteInput>,
 }
 
 #[derive(SimpleObject)]
@@ -66,6 +74,14 @@ impl Mutation {
         // Update the fields
         trip.name = input.name;
         trip.description = input.description;
+        trip.notes = input
+            .notes
+            .into_iter()
+            .map(|note| TripNote {
+                timestamp: note.timestamp,
+                text: note.text,
+            })
+            .collect();
 
         // Save changes
         trip_repo.put(trip.clone()).await?;
