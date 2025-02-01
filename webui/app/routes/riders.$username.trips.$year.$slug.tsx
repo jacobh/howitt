@@ -14,6 +14,7 @@ import { useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
 import { match } from "ts-pattern";
 import { css } from "@emotion/react";
+import Markdown from "react-markdown";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -167,7 +168,7 @@ export default function TripDetail(): React.ReactElement {
                   ))
                   .with({ __typename: "Note" }, (note) => (
                     <section key={`note-${note.contentAt}`} css={noteStyles}>
-                      <p>{note.text}</p>
+                      <Markdown>{note.text}</Markdown>
                     </section>
                   ))
                   .with({ __typename: "Media" }, (media) => (
