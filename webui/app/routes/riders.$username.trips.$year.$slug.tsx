@@ -89,7 +89,7 @@ const temporalBlocksContainerStyles = css({
 
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
-  const [isEditModalOpen, setEditModalOpen] = useState(true);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
 
   const { data, refetch } = useQuery(TripQuery, {
     variables: {
