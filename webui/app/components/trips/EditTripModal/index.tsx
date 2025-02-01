@@ -132,6 +132,19 @@ const rideBlockStyles = css`
   border-radius: 4px;
 `;
 
+const addNoteButtonStyles = css`
+  border: 1px dashed #ccc;
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  color: #666;
+  margin: 0.5rem 20px;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+`;
+
 export function EditTripModal({
   trip: tripFragment,
   isOpen,
@@ -139,6 +152,9 @@ export function EditTripModal({
   refetch,
 }: Props): React.ReactElement {
   const trip = useFragment(EditTripFragment, tripFragment);
+  const [localContentBlocks, setLocalContentBlocks] = useState(
+    trip.temporalContentBlocks,
+  );
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(trip.name);
   const [description, setDescription] = useState(trip.description ?? "");
@@ -148,6 +164,30 @@ export function EditTripModal({
       onClose();
     },
   });
+
+  const handleAddNote = useCallback(
+    (index: number) => {
+      const currentBlock = localContentBlocks[index];
+      const nextBlock = localContentBlocks[index + 1];
+
+      const currentTimestamp = new Date(currentBlock.contentAt).getTime();
+      const nextTimestamp = new Date(nextBlock.contentAt).getTime();
+      const averageTimestamp = new Date(
+        (currentTimestamp + nextTimestamp) / 2,
+      ).toISOString();
+
+      const newNote = {
+        __typename: "Note" as const,
+        contentAt: averageTimestamp,
+        text: "",
+      };
+
+      const updatedBlocks = [...localContentBlocks];
+      updatedBlocks.splice(index + 1, 0, newNote);
+      setLocalContentBlocks(updatedBlocks);
+    },
+    [localContentBlocks],
+  );
 
   const [removeMedia, { loading: removingMedia }] = useMutation(
     RemoveTripMediaMutation,
@@ -222,41 +262,55 @@ export function EditTripModal({
           <TabItem label="Content">
             <h2>Content</h2>
             <div css={contentBlockContainerStyles}>
-              {trip.temporalContentBlocks.map((block, index) => (
-                <div
-                  key={`${block.__typename}-${index}`}
-                  css={contentBlockStyles}
-                >
-                  <div css={contentMetaStyles}>
-                    {new Date(block.contentAt).toLocaleString()}
-                    {" - "}
-                    {block.__typename}
+              {localContentBlocks.map((block, index) => (
+                <>
+                  <div
+                    key={`${block.__typename}-${index}`}
+                    css={contentBlockStyles}
+                  >
+                    <div css={contentMetaStyles}>
+                      {new Date(block.contentAt).toLocaleString()}
+                      {" - "}
+                      {block.__typename}
+                    </div>
+
+                    {block.__typename === "Note" && (
+                      <textarea
+                        css={inputStyles}
+                        value={block.text}
+                        onChange={(e): void => {
+                          const updatedBlocks = [...localContentBlocks];
+                          updatedBlocks[index] = {
+                            ...block,
+                            text: e.target.value,
+                          };
+                          setLocalContentBlocks(updatedBlocks);
+                        }}
+                        rows={3}
+                      />
+                    )}
+
+                    {block.__typename === "Media" && (
+                      <img
+                        src={block.imageSizes.fit1200.webpUrl}
+                        css={mediaImageStyles}
+                        alt=""
+                      />
+                    )}
+
+                    {block.__typename === "Ride" && (
+                      <div css={rideBlockStyles}>{block.name}</div>
+                    )}
                   </div>
-
-                  {block.__typename === "Note" && (
-                    <textarea
-                      css={inputStyles}
-                      value={block.text}
-                      onChange={(e): void => {
-                        // TODO: Implement note updating
-                        console.log("Update note:", e.target.value);
-                      }}
-                      rows={3}
-                    />
+                  {index < localContentBlocks.length - 1 && (
+                    <div
+                      css={addNoteButtonStyles}
+                      onClick={(): void => handleAddNote(index)}
+                    >
+                      +
+                    </div>
                   )}
-
-                  {block.__typename === "Media" && (
-                    <img
-                      src={block.imageSizes.fit1200.webpUrl}
-                      css={mediaImageStyles}
-                      alt=""
-                    />
-                  )}
-
-                  {block.__typename === "Ride" && (
-                    <div css={rideBlockStyles}>{block.name}</div>
-                  )}
-                </div>
+                </>
               ))}
             </div>
           </TabItem>
