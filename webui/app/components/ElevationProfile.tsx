@@ -22,10 +22,10 @@ interface DataPoint {
 
 function computePoints(
   elevationPoints: number[],
-  distancePoints: number[]
+  distancePoints: number[],
 ): DataPoint[] {
   return zipStrict(elevationPoints, distancePoints).map(
-    ([elevation, distance]) => ({ elevation, distance })
+    ([elevation, distance]) => ({ elevation, distance }),
   );
 }
 
@@ -40,7 +40,7 @@ export function ElevationProfile({
 
   const points = useMemo(
     () => computePoints(data.elevationPoints, data.distancePoints),
-    [data]
+    [data],
   );
 
   return (

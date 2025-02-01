@@ -14,7 +14,7 @@ interface Props {
 export class MediaUploadClient {
   constructor(
     private readonly apiBaseUrl: string,
-    private readonly token: string
+    private readonly token: string,
   ) {}
 
   async uploadMedia(file: File, relationIds: string[]): Promise<void> {
@@ -48,7 +48,7 @@ export function MediaDropzone({
       try {
         const client = new MediaUploadClient(
           getApiBaseUrl(),
-          Cookies.get("token") ?? ""
+          Cookies.get("token") ?? "",
         );
 
         for (const file of acceptedFiles) {
@@ -62,7 +62,7 @@ export function MediaDropzone({
         setUploading(false);
       }
     },
-    [tripId, onUploadComplete, setUploading]
+    [tripId, onUploadComplete, setUploading],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
