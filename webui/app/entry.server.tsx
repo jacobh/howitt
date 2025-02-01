@@ -3,7 +3,7 @@ import createEmotionServer from "@emotion/server/create-instance";
 import { type AppLoadContext, type EntryContext } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
-import { ApolloProvider } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client/react/context/ApolloProvider";
 import * as cookie from "cookie";
 
 import { createEmotionCache } from "~/styles/createEmotionCache";

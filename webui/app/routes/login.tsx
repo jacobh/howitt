@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { css } from "@emotion/react";
 import { useNavigate } from "@remix-run/react";
 import axios from "axios";

@@ -1,7 +1,6 @@
 import type { LinksFunction, MetaDescriptor } from "@remix-run/node";
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
@@ -11,7 +10,7 @@ import { css, withEmotionCache } from "@emotion/react";
 import { useContext, useRef, useEffect, useState } from "react";
 import { ClientStyleContext } from "./styles/client.context";
 import { ServerStyleContext } from "./styles/server.context";
-import stylesheet from "./styles/tailwind.css";
+import stylesheet from "./styles/__generated__/tailwind.css?url";
 import { MapContext } from "./components/map";
 import OlMap from "ol/Map";
 
@@ -116,7 +115,6 @@ const Document = withEmotionCache(
           {children}
           <ScrollRestoration />
           <Scripts />
-          <LiveReload />
         </body>
       </html>
     );

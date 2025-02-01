@@ -9,7 +9,7 @@ import { Map } from "~/components/map";
 import { RideSummary } from "~/components/rides/RideSummary";
 import { Temporal } from "@js-temporal/polyfill";
 import { gql } from "~/__generated__";
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { ElevationProfile } from "~/components/ElevationProfile";
 
 const RidesWithDateQuery = gql(`

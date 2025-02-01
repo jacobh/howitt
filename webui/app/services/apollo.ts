@@ -1,9 +1,7 @@
-import {
-  ApolloClient,
-  InMemoryCache,
-  createHttpLink,
-  type NormalizedCacheObject,
-} from "@apollo/client";
+import { createHttpLink } from "@apollo/client/link/http/createHttpLink";
+import { ApolloClient } from "@apollo/client/core/ApolloClient";
+import { NormalizedCacheObject } from "@apollo/client/cache/inmemory/types";
+import { InMemoryCache } from "@apollo/client/cache/inmemory/inMemoryCache";
 import { setContext } from "@apollo/client/link/context";
 import possibleTypes from "../__generated__/fragment-types.json";
 

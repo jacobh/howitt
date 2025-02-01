@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "../__generated__/gql";
 import { Container, Nav } from "~/components/layout";
 import { css } from "@emotion/react";

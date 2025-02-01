@@ -6,7 +6,7 @@ import {
   SidebarContainer,
 } from "~/components/layout";
 import { Map } from "~/components/map";
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { RideItem } from "~/components/rides/RideItem";
