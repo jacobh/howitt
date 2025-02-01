@@ -165,23 +165,79 @@ const deleteNoteButtonStyles = css`
   }
 `;
 
-type WithAdjacent<T> = {
-  block: T;
-  prevBlock: T | null;
-  nextBlock: T | null;
-  index: number;
-};
+type BlockWithPositionInfo<T> =
+  | {
+      position: "first";
+      block: T;
+      nextBlock: T | undefined;
+      prevBlock: undefined;
+      idx: 0;
+    }
+  | {
+      position: "middle";
+      block: T;
+      prevBlock: T | undefined;
+      nextBlock: T | undefined;
+      idx: number;
+    }
+  | {
+      position: "last";
+      block: T;
+      prevBlock: T;
+      nextBlock: undefined;
+      idx: number;
+    }
+  | {
+      position: "only";
+      block: T;
+      prevBlock: undefined;
+      nextBlock: undefined;
+      idx: 0;
+    };
 
-const withAdjacentBlocks = <T extends Array<any>>(
-  blocks: T,
-): WithAdjacent<T[number]>[] => {
-  return blocks.map((block, index) => ({
-    block,
-    prevBlock: index > 0 ? blocks.at(index - 1) : null,
-    nextBlock: index < blocks.length - 1 ? blocks.at(index + 1) : null,
-    index,
-  }));
-};
+function blocksWithPositionInfo<T>(blocks: T[]): BlockWithPositionInfo<T>[] {
+  if (blocks.length === 1) {
+    return [
+      {
+        position: "only" as const,
+        block: blocks[0],
+        prevBlock: undefined,
+        nextBlock: undefined,
+        idx: 0 as const,
+      },
+    ];
+  }
+
+  return blocks.map((block, idx) => {
+    if (idx === 0) {
+      return {
+        position: "first" as const,
+        block,
+        prevBlock: undefined,
+        nextBlock: blocks[1],
+        idx: 0 as const,
+      };
+    }
+
+    if (idx === blocks.length - 1) {
+      return {
+        position: "last" as const,
+        block,
+        prevBlock: blocks[idx - 1],
+        nextBlock: undefined,
+        idx,
+      };
+    }
+
+    return {
+      position: "middle" as const,
+      block,
+      prevBlock: blocks[idx - 1],
+      nextBlock: blocks[idx + 1],
+      idx,
+    };
+  });
+}
 
 export function EditTripModal({
   trip: tripFragment,
@@ -376,11 +432,11 @@ export function EditTripModal({
                   Add note at start
                 </div>
               )}
-              {withAdjacentBlocks(localContentBlocks).map(
-                ({ block, nextBlock, index }) => (
+              {blocksWithPositionInfo(localContentBlocks).map(
+                ({ block, nextBlock, position, idx }) => (
                   <>
                     <div
-                      key={`${block.__typename}-${index}`}
+                      key={`${block.__typename}-${idx}`}
                       css={contentBlockStyles}
                     >
                       <div css={contentMetaStyles}>
@@ -399,7 +455,7 @@ export function EditTripModal({
                               value={note.text}
                               onChange={(e): void => {
                                 const updatedBlocks = [...localContentBlocks];
-                                updatedBlocks[index] = {
+                                updatedBlocks[idx] = {
                                   ...note,
                                   text: e.target.value,
                                 };
@@ -409,7 +465,7 @@ export function EditTripModal({
                             />
                             <button
                               type="button"
-                              onClick={(): void => handleDeleteNote(index)}
+                              onClick={(): void => handleDeleteNote(idx)}
                               css={deleteNoteButtonStyles}
                               title="Delete note"
                             >
@@ -429,33 +485,29 @@ export function EditTripModal({
                         ))
                         .exhaustive()}
                     </div>
-                    {index < localContentBlocks.length - 1 &&
-                      match({ block, nextBlock })
-                        .with(
-                          {
-                            block: { __typename: P.not("Note") },
-                            nextBlock: { __typename: P.not("Note") },
-                          },
-                          () => (
-                            <div
-                              css={addNoteButtonStyles}
-                              onClick={(): void => handleAddNote(index)}
-                            >
-                              +
-                            </div>
+                    {match({ block, nextBlock, position })
+                      .with(
+                        {
+                          block: { __typename: P.not("Note") },
+                          nextBlock: P.union(
+                            { __typename: P.not("Note") },
+                            P.nullish,
                           ),
-                        )
-                        .otherwise(() => null)}
+                        },
+                        () => (
+                          <div
+                            css={addNoteButtonStyles}
+                            onClick={(): void => handleAddNote(idx)}
+                          >
+                            +
+                          </div>
+                        ),
+                      )
+                      .otherwise(() => (
+                        <></>
+                      ))}
                   </>
                 ),
-              )}
-              {localContentBlocks.at(-1)?.__typename !== "Note" && (
-                <div
-                  css={addNoteButtonStyles}
-                  onClick={(): void => handleAddNote("end")}
-                >
-                  Add note at end
-                </div>
               )}
             </div>
           </TabItem>
