@@ -12,6 +12,7 @@ import { ElevationProfile } from "~/components/ElevationProfile";
 import { RideItem } from "~/components/rides/RideItem";
 import { useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
+import { match } from "ts-pattern";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -132,27 +133,26 @@ export default function TripDetail(): React.ReactElement {
               </div>
             ))}
 
-            {/* New content blocks rendering */}
             <div css={{ margin: "20px 0" }}>
-              {trip.temporalContentBlocks.map((block) => (
-                <div
-                  key={`${block.__typename}-${(block as any).rideId ?? (block as any).mediaId ?? block.contentAt}`}
-                >
-                  {block.__typename === "Ride" && (
-                    <div css={{ margin: "20px 0" }}>
-                      <RideItem ride={block} />
+              {trip.temporalContentBlocks.map((block) =>
+                match(block)
+                  .with({ __typename: "Ride" }, (ride) => (
+                    <div key={`ride-${ride.rideId}`} css={{ margin: "20px 0" }}>
+                      <RideItem ride={ride} />
                     </div>
-                  )}
-
-                  {block.__typename === "Note" && (
-                    <section css={{ margin: "24px 0" }}>
-                      <p>{block.text}</p>
+                  ))
+                  .with({ __typename: "Note" }, (note) => (
+                    <section
+                      key={`note-${note.contentAt}`}
+                      css={{ margin: "24px 0" }}
+                    >
+                      <p>{note.text}</p>
                     </section>
-                  )}
-
-                  {block.__typename === "Media" && (
+                  ))
+                  .with({ __typename: "Media" }, (media) => (
                     <img
-                      src={block.imageSizes.fit1600.webpUrl}
+                      key={`media-${media.mediaId}`}
+                      src={media.imageSizes.fit1600.webpUrl}
                       css={{
                         width: "100%",
                         height: "auto",
@@ -161,9 +161,9 @@ export default function TripDetail(): React.ReactElement {
                       }}
                       alt=""
                     />
-                  )}
-                </div>
-              ))}
+                  ))
+                  .exhaustive(),
+              )}
             </div>
 
             <EditTripModal
