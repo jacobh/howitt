@@ -147,6 +147,24 @@ const addNoteButtonStyles = css`
   }
 `;
 
+type WithAdjacent<T> = {
+  block: T;
+  prevBlock: T | null;
+  nextBlock: T | null;
+  index: number;
+};
+
+const withAdjacentBlocks = <T extends Array<any>>(
+  blocks: T,
+): WithAdjacent<T[number]>[] => {
+  return blocks.map((block, index) => ({
+    block,
+    prevBlock: index > 0 ? blocks.at(index - 1) : null,
+    nextBlock: index < blocks.length - 1 ? blocks.at(index + 1) : null,
+    index,
+  }));
+};
+
 export function EditTripModal({
   trip: tripFragment,
   isOpen,
@@ -171,8 +189,10 @@ export function EditTripModal({
     (index: number | "start" | "end") => {
       const updatedBlocks = match(index)
         .with("start", () => {
-          const firstBlock = localContentBlocks[0];
-          const firstTimestamp = new Date(firstBlock.contentAt).getTime();
+          const firstBlock = localContentBlocks.at(0);
+          const firstTimestamp = firstBlock
+            ? new Date(firstBlock.contentAt).getTime()
+            : new Date().getTime();
           const newTimestamp = new Date(firstTimestamp - 3600000).toISOString();
 
           return [
@@ -185,8 +205,10 @@ export function EditTripModal({
           ];
         })
         .with("end", () => {
-          const lastBlock = localContentBlocks[localContentBlocks.length - 1];
-          const lastTimestamp = new Date(lastBlock.contentAt).getTime();
+          const lastBlock = localContentBlocks.at(-1);
+          const lastTimestamp = lastBlock
+            ? new Date(lastBlock.contentAt).getTime()
+            : new Date().getTime();
           const newTimestamp = new Date(lastTimestamp + 3600000).toISOString();
 
           return [
@@ -200,9 +222,11 @@ export function EditTripModal({
         })
         .with(P.number, (i) => {
           const currentBlock = localContentBlocks[i];
-          const nextBlock = localContentBlocks[i + 1];
+          const nextBlock = localContentBlocks.at(i + 1);
           const currentTimestamp = new Date(currentBlock.contentAt).getTime();
-          const nextTimestamp = new Date(nextBlock.contentAt).getTime();
+          const nextTimestamp = nextBlock
+            ? new Date(nextBlock.contentAt).getTime()
+            : new Date().getTime();
           const averageTimestamp = new Date(
             (currentTimestamp + nextTimestamp) / 2,
           ).toISOString();
@@ -308,68 +332,83 @@ export function EditTripModal({
           <TabItem label="Content">
             <h2>Content</h2>
             <div css={contentBlockContainerStyles}>
-              <div
-                css={addNoteButtonStyles}
-                onClick={(): void => handleAddNote("start")}
-              >
-                Add note at start
-              </div>
-              {localContentBlocks.map((block, index) => (
-                <>
-                  <div
-                    key={`${block.__typename}-${index}`}
-                    css={contentBlockStyles}
-                  >
-                    <div css={contentMetaStyles}>
-                      {new Date(block.contentAt).toLocaleString()}
-                      {" - "}
-                      {block.__typename}
-                    </div>
-
-                    {match(block)
-                      .with({ __typename: "Note" }, (note) => (
-                        <textarea
-                          css={inputStyles}
-                          value={note.text}
-                          onChange={(e): void => {
-                            const updatedBlocks = [...localContentBlocks];
-                            updatedBlocks[index] = {
-                              ...note,
-                              text: e.target.value,
-                            };
-                            setLocalContentBlocks(updatedBlocks);
-                          }}
-                          rows={3}
-                        />
-                      ))
-                      .with({ __typename: "Media" }, (media) => (
-                        <img
-                          src={media.imageSizes.fit1200.webpUrl}
-                          css={mediaImageStyles}
-                          alt=""
-                        />
-                      ))
-                      .with({ __typename: "Ride" }, (ride) => (
-                        <div css={rideBlockStyles}>{ride.name}</div>
-                      ))
-                      .exhaustive()}
-                  </div>
-                  {index < localContentBlocks.length - 1 && (
+              {localContentBlocks.at(0)?.__typename !== "Note" && (
+                <div
+                  css={addNoteButtonStyles}
+                  onClick={(): void => handleAddNote("start")}
+                >
+                  Add note at start
+                </div>
+              )}
+              {withAdjacentBlocks(localContentBlocks).map(
+                ({ block, nextBlock, index }) => (
+                  <>
                     <div
-                      css={addNoteButtonStyles}
-                      onClick={(): void => handleAddNote(index)}
+                      key={`${block.__typename}-${index}`}
+                      css={contentBlockStyles}
                     >
-                      +
+                      <div css={contentMetaStyles}>
+                        {new Date(block.contentAt).toLocaleString()}
+                        {" - "}
+                        {block.__typename}
+                      </div>
+
+                      {match(block)
+                        .with({ __typename: "Note" }, (note) => (
+                          <textarea
+                            css={inputStyles}
+                            value={note.text}
+                            onChange={(e): void => {
+                              const updatedBlocks = [...localContentBlocks];
+                              updatedBlocks[index] = {
+                                ...note,
+                                text: e.target.value,
+                              };
+                              setLocalContentBlocks(updatedBlocks);
+                            }}
+                            rows={3}
+                          />
+                        ))
+                        .with({ __typename: "Media" }, (media) => (
+                          <img
+                            src={media.imageSizes.fit1200.webpUrl}
+                            css={mediaImageStyles}
+                            alt=""
+                          />
+                        ))
+                        .with({ __typename: "Ride" }, (ride) => (
+                          <div css={rideBlockStyles}>{ride.name}</div>
+                        ))
+                        .exhaustive()}
                     </div>
-                  )}
-                </>
-              ))}
-              <div
-                css={addNoteButtonStyles}
-                onClick={(): void => handleAddNote("end")}
-              >
-                Add note at end
-              </div>
+                    {index < localContentBlocks.length - 1 &&
+                      match({ block, nextBlock })
+                        .with(
+                          {
+                            block: { __typename: P.not("Note") },
+                            nextBlock: { __typename: P.not("Note") },
+                          },
+                          () => (
+                            <div
+                              css={addNoteButtonStyles}
+                              onClick={(): void => handleAddNote(index)}
+                            >
+                              +
+                            </div>
+                          ),
+                        )
+                        .otherwise(() => null)}
+                  </>
+                ),
+              )}
+              {localContentBlocks.at(-1)?.__typename !== "Note" && (
+                <div
+                  css={addNoteButtonStyles}
+                  onClick={(): void => handleAddNote("end")}
+                >
+                  Add note at end
+                </div>
+              )}
             </div>
           </TabItem>
 
