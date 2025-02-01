@@ -166,24 +166,52 @@ export function EditTripModal({
   });
 
   const handleAddNote = useCallback(
-    (index: number) => {
-      const currentBlock = localContentBlocks[index];
-      const nextBlock = localContentBlocks[index + 1];
+    (index: number | "start" | "end") => {
+      let newNote;
+      let updatedBlocks;
 
-      const currentTimestamp = new Date(currentBlock.contentAt).getTime();
-      const nextTimestamp = new Date(nextBlock.contentAt).getTime();
-      const averageTimestamp = new Date(
-        (currentTimestamp + nextTimestamp) / 2,
-      ).toISOString();
+      if (index === "start") {
+        const firstBlock = localContentBlocks[0];
+        const firstTimestamp = new Date(firstBlock.contentAt).getTime();
+        const newTimestamp = new Date(firstTimestamp - 3600000).toISOString(); // 1 hour before
 
-      const newNote = {
-        __typename: "Note" as const,
-        contentAt: averageTimestamp,
-        text: "",
-      };
+        newNote = {
+          __typename: "Note" as const,
+          contentAt: newTimestamp,
+          text: "",
+        };
+        updatedBlocks = [newNote, ...localContentBlocks];
+      } else if (index === "end") {
+        const lastBlock = localContentBlocks[localContentBlocks.length - 1];
+        const lastTimestamp = new Date(lastBlock.contentAt).getTime();
+        const newTimestamp = new Date(lastTimestamp + 3600000).toISOString(); // 1 hour after
 
-      const updatedBlocks = [...localContentBlocks];
-      updatedBlocks.splice(index + 1, 0, newNote);
+        newNote = {
+          __typename: "Note" as const,
+          contentAt: newTimestamp,
+          text: "",
+        };
+        updatedBlocks = [...localContentBlocks, newNote];
+      } else {
+        const currentBlock = localContentBlocks[index];
+        const nextBlock = localContentBlocks[index + 1];
+
+        const currentTimestamp = new Date(currentBlock.contentAt).getTime();
+        const nextTimestamp = new Date(nextBlock.contentAt).getTime();
+        const averageTimestamp = new Date(
+          (currentTimestamp + nextTimestamp) / 2,
+        ).toISOString();
+
+        newNote = {
+          __typename: "Note" as const,
+          contentAt: averageTimestamp,
+          text: "",
+        };
+
+        updatedBlocks = [...localContentBlocks];
+        updatedBlocks.splice(index + 1, 0, newNote);
+      }
+
       setLocalContentBlocks(updatedBlocks);
     },
     [localContentBlocks],
@@ -262,6 +290,12 @@ export function EditTripModal({
           <TabItem label="Content">
             <h2>Content</h2>
             <div css={contentBlockContainerStyles}>
+              <div
+                css={addNoteButtonStyles}
+                onClick={(): void => handleAddNote("start")}
+              >
+                Add note at start
+              </div>
               {localContentBlocks.map((block, index) => (
                 <>
                   <div
@@ -312,6 +346,12 @@ export function EditTripModal({
                   )}
                 </>
               ))}
+              <div
+                css={addNoteButtonStyles}
+                onClick={(): void => handleAddNote("end")}
+              >
+                Add note at end
+              </div>
             </div>
           </TabItem>
 
