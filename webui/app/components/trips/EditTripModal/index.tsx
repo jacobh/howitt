@@ -181,6 +181,7 @@ export function EditTripModal({
 
   const [updateTrip, { loading }] = useMutation(UpdateTripMutation, {
     onCompleted: () => {
+      refetch();
       onClose();
     },
   });
