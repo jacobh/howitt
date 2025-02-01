@@ -21,6 +21,7 @@ pub fn build_schema(data: SchemaData) -> Schema {
     )
     .register_output_type::<ElevationPath>()
     .register_output_type::<MediaTarget>()
+    .register_output_type::<TemporalContentBlock>()
     .data(data)
     .finish()
 }
