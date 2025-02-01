@@ -148,6 +148,23 @@ const addNoteButtonStyles = css`
   }
 `;
 
+const noteContainerStyles = css`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const deleteNoteButtonStyles = css`
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 0.25rem;
+
+  &:hover {
+    color: #ff4444;
+  }
+`;
+
 type WithAdjacent<T> = {
   block: T;
   prevBlock: T | null;
@@ -251,6 +268,15 @@ export function EditTripModal({
         })
         .exhaustive();
 
+      setLocalContentBlocks(updatedBlocks);
+    },
+    [localContentBlocks],
+  );
+
+  const handleDeleteNote = useCallback(
+    (index: number) => {
+      const updatedBlocks = [...localContentBlocks];
+      updatedBlocks.splice(index, 1);
       setLocalContentBlocks(updatedBlocks);
     },
     [localContentBlocks],
@@ -367,19 +393,29 @@ export function EditTripModal({
 
                       {match(block)
                         .with({ __typename: "Note" }, (note) => (
-                          <textarea
-                            css={inputStyles}
-                            value={note.text}
-                            onChange={(e): void => {
-                              const updatedBlocks = [...localContentBlocks];
-                              updatedBlocks[index] = {
-                                ...note,
-                                text: e.target.value,
-                              };
-                              setLocalContentBlocks(updatedBlocks);
-                            }}
-                            rows={3}
-                          />
+                          <div css={noteContainerStyles}>
+                            <textarea
+                              css={inputStyles}
+                              value={note.text}
+                              onChange={(e): void => {
+                                const updatedBlocks = [...localContentBlocks];
+                                updatedBlocks[index] = {
+                                  ...note,
+                                  text: e.target.value,
+                                };
+                                setLocalContentBlocks(updatedBlocks);
+                              }}
+                              rows={3}
+                            />
+                            <button
+                              type="button"
+                              onClick={(): void => handleDeleteNote(index)}
+                              css={deleteNoteButtonStyles}
+                              title="Delete note"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         ))
                         .with({ __typename: "Media" }, (media) => (
                           <img
