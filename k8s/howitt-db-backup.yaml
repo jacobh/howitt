@@ -1,0 +1,85 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: howitt-db-backup
+  labels:
+    app: howitt-db-backup
+spec:
+  schedule: "0 17 * * *"  # Run daily at 3 AM Brisbane time (17:00 UTC)
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: db-backup
+            image: postgres:17-alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting database backup process..."
+              
+              # Install AWS CLI
+              echo "Installing AWS CLI..."
+              apk add --no-cache aws-cli
+              
+              # Get current date components
+              echo "Computing date components..."
+              YEAR=$(date +%Y)
+              MONTH=$(date +%m)
+              DAY=$(date +%d)
+              WEEKDAY=$(date +%u)
+              DATE_TIME=$(date +%Y-%m-%d_%H-%M-%S)
+              
+              # Create backup file
+              echo "Creating database backup..."
+              BACKUP_FILE=$(mktemp)
+              pg_dump $DATABASE_URL | gzip > $BACKUP_FILE
+              echo "Backup created successfully"
+              
+              # Always create daily backup
+              echo "Uploading daily backup to S3..."
+              aws s3 cp $BACKUP_FILE \
+                s3://howitt-backups/postgresql/daily/$DATE_TIME.sql.gz
+              
+              # If it's Monday, create a weekly backup
+              if [ "$WEEKDAY" = "1" ]; then
+                echo "Today is Monday - uploading weekly backup to S3..."
+                aws s3 cp $BACKUP_FILE \
+                  s3://howitt-backups/postgresql/weekly/$DATE_TIME.sql.gz
+              fi
+              
+              # If it's the first of the month, create a monthly backup
+              if [ "$DAY" = "01" ]; then
+                echo "First day of month - uploading monthly backup to S3..."
+                aws s3 cp $BACKUP_FILE \
+                  s3://howitt-backups/postgresql/monthly/$DATE_TIME.sql.gz
+              fi
+              
+              # Clean up temp file
+              echo "Cleaning up temporary backup file..."
+              rm $BACKUP_FILE
+              
+              echo "Backup process completed successfully"
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: howitt-db
+                  key: DATABASE_URL
+            - name: AWS_REGION
+              value: ap-southeast-4
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws
+                  key: AWS_SECRET_ACCESS_KEY
+          restartPolicy: OnFailure
