@@ -5,6 +5,8 @@ import { FragmentType, gql, useFragment } from "~/__generated__";
 import { Modal } from "../../Modal";
 import { MediaTable } from "./components/MediaTable";
 import { MediaDropzone } from "./components/MediaDropzone";
+import { TabItem } from "./components/TabItem";
+import { TabList } from "./components/TabList";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -107,7 +109,7 @@ export function EditTripModal({
       onCompleted: () => {
         refetch();
       },
-    }
+    },
   );
 
   const handleRemoveMedia = (mediaId: string): void => {
@@ -138,33 +140,34 @@ export function EditTripModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} css={formStyles}>
-        <div css={formFieldStyles}>
-          <label htmlFor="name">Name</label>
-          <input
-            css={inputStyles}
-            id="name"
-            type="text"
-            value={name}
-            onChange={(e): void => setName(e.target.value)}
-            autoComplete="off"
-            required
-          />
-        </div>
+        <TabList>
+          <TabItem label="Trip">
+            <div css={formFieldStyles}>
+              <label htmlFor="name">Name</label>
+              <input
+                css={inputStyles}
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e): void => setName(e.target.value)}
+                autoComplete="off"
+                required
+              />
+            </div>
 
-        <div css={formFieldStyles}>
-          <label htmlFor="description">Description</label>
-          <textarea
-            css={inputStyles}
-            id="description"
-            value={description}
-            onChange={(e): void => setDescription(e.target.value)}
-            rows={4}
-          />
-        </div>
+            <div css={formFieldStyles}>
+              <label htmlFor="description">Description</label>
+              <textarea
+                css={inputStyles}
+                id="description"
+                value={description}
+                onChange={(e): void => setDescription(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </TabItem>
 
-        <div css={formFieldStyles}>
-          <label htmlFor="media">Media</label>
-          <div>
+          <TabItem label="Media">
             <MediaTable
               trip={tripFragment}
               onRemoveMedia={handleRemoveMedia}
@@ -176,8 +179,8 @@ export function EditTripModal({
               uploading={uploading}
               setUploading={setUploading}
             />
-          </div>
-        </div>
+          </TabItem>
+        </TabList>
 
         <div css={buttonGroupStyles}>
           <button type="button" onClick={onClose}>
