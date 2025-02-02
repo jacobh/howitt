@@ -11,6 +11,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { Temporal } from "@js-temporal/polyfill";
 import { ResultOf } from "@graphql-typed-document-node/core";
 import { blocksWithPositionInfo } from "./utils/blocksWithPositionInfo";
+import { useMutative } from "use-mutative";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -210,7 +211,7 @@ export function EditTripModal({
   refetch,
 }: Props): React.ReactElement {
   const trip = useFragment(EditTripFragment, tripFragment);
-  const [localContentBlocks, setLocalContentBlocks] = useState(
+  const [localContentBlocks, setLocalContentBlocks] = useMutative(
     trip.temporalContentBlocks,
   );
   const [uploading, setUploading] = useState(false);
@@ -226,95 +227,85 @@ export function EditTripModal({
 
   const handleAddNote = useCallback(
     (index: number | "start" | "end") => {
-      const updatedBlocks = match(index)
-        .with("start", () => {
-          const firstBlock = localContentBlocks.at(0);
-          const firstTimestamp = firstBlock
-            ? Temporal.Instant.from(firstBlock.contentAt)
-            : Temporal.Now.instant();
-          // Subtract 1 hour from the timestamp
-          const newTimestamp = firstTimestamp.subtract({ hours: 1 }).toString();
+      setLocalContentBlocks((draft) => {
+        match(index)
+          .with("start", () => {
+            const firstBlock = draft.at(0);
+            const firstTimestamp = firstBlock
+              ? Temporal.Instant.from(firstBlock.contentAt)
+              : Temporal.Now.instant();
+            const newTimestamp = firstTimestamp
+              .subtract({ hours: 1 })
+              .toString();
 
-          return [
-            {
+            draft.unshift({
               __typename: "Note" as const,
               contentAt: newTimestamp,
               text: "",
-            },
-            ...localContentBlocks,
-          ];
-        })
-        .with("end", () => {
-          const lastBlock = localContentBlocks.at(-1);
-          const lastTimestamp = lastBlock
-            ? Temporal.Instant.from(lastBlock.contentAt)
-            : Temporal.Now.instant();
-          // Add 1 hour to the timestamp
-          const newTimestamp = lastTimestamp.add({ hours: 1 }).toString();
+            });
+          })
+          .with("end", () => {
+            const lastBlock = draft.at(-1);
+            const lastTimestamp = lastBlock
+              ? Temporal.Instant.from(lastBlock.contentAt)
+              : Temporal.Now.instant();
+            const newTimestamp = lastTimestamp.add({ hours: 1 }).toString();
 
-          return [
-            ...localContentBlocks,
-            {
+            draft.push({
               __typename: "Note" as const,
               contentAt: newTimestamp,
               text: "",
-            },
-          ];
-        })
-        .with(P.number, (i) => {
-          const currentBlock = localContentBlocks[i];
-          const nextBlock = localContentBlocks.at(i + 1);
+            });
+          })
+          .with(P.number, (i) => {
+            const currentBlock = draft[i];
+            const nextBlock = draft.at(i + 1);
 
-          const currentInstant = Temporal.Instant.from(currentBlock.contentAt);
-          const nextInstant = nextBlock
-            ? Temporal.Instant.from(nextBlock.contentAt)
-            : Temporal.Now.instant();
+            const currentInstant = Temporal.Instant.from(
+              currentBlock.contentAt,
+            );
+            const nextInstant = nextBlock
+              ? Temporal.Instant.from(nextBlock.contentAt)
+              : Temporal.Now.instant();
 
-          // Calculate the midpoint between timestamps
-          const diffSeconds = nextInstant
-            .since(currentInstant)
-            .total("seconds");
-          const newTimestamp = currentInstant
-            .add({ seconds: Math.floor(diffSeconds / 2) })
-            .toString();
+            const diffSeconds = nextInstant
+              .since(currentInstant)
+              .total("seconds");
+            const newTimestamp = currentInstant
+              .add({ seconds: Math.floor(diffSeconds / 2) })
+              .toString();
 
-          const newBlocks = [...localContentBlocks];
-          newBlocks.splice(i + 1, 0, {
-            __typename: "Note" as const,
-            contentAt: newTimestamp,
-            text: "",
-          });
-          return newBlocks;
-        })
-        .exhaustive();
-
-      setLocalContentBlocks(updatedBlocks);
+            draft.splice(i + 1, 0, {
+              __typename: "Note" as const,
+              contentAt: newTimestamp,
+              text: "",
+            });
+          })
+          .exhaustive();
+      });
     },
-    [localContentBlocks],
+    [setLocalContentBlocks],
   );
 
   const handleUpdateNote = useCallback(
     (index: number, text: string) => {
-      const updatedBlocks = [...localContentBlocks];
-      const note = updatedBlocks[index];
-      if (note.__typename === "Note") {
-        updatedBlocks[index] = {
-          ...note,
-          text,
-        };
-        setLocalContentBlocks(updatedBlocks);
-      }
+      setLocalContentBlocks((draft) => {
+        const note = draft[index];
+        if (note.__typename === "Note") {
+          note.text = text;
+        }
+      });
     },
-    [localContentBlocks],
+    [setLocalContentBlocks],
   );
 
   const handleDeleteNote = useCallback(
     (index: number) => {
-      const updatedBlocks = [...localContentBlocks];
-      updatedBlocks.splice(index, 1);
-      setLocalContentBlocks(updatedBlocks);
+      setLocalContentBlocks((draft) => {
+        draft.splice(index, 1);
+      });
     },
-    [localContentBlocks],
+    [setLocalContentBlocks],
   );
 
   const [removeMedia, { loading: removingMedia }] = useMutation(

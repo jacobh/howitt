@@ -34,6 +34,7 @@
     "isbot": "^5.1.21",
     "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.21",
+    "mutative": "^1.1.0",
     "ol": "^7.5.2",
     "radix-ui": "^1.1.2",
     "react": "^19.0.0",
@@ -41,7 +42,8 @@
     "react-dropzone-esm": "^15.2.0",
     "react-markdown": "^9.0.3",
     "recharts": "^2.15.0",
-    "ts-pattern": "^5.6.2"
+    "ts-pattern": "^5.6.2",
+    "use-mutative": "^1.2.0"
   },
   "devDependencies": {
     "@graphql-codegen/fragment-matcher": "^5.0.2",
