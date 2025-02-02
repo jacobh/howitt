@@ -1,6 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Bucket, StorageClass } from "aws-cdk-lib/aws-s3";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 
 export class MediaStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -15,6 +17,30 @@ export class MediaStack extends cdk.Stack {
         ignorePublicAcls: false,
         restrictPublicBuckets: false,
       },
+    });
+
+    // Create CloudFront distribution
+    const distribution = new cloudfront.Distribution(
+      this,
+      "MediaDistribution",
+      {
+        defaultBehavior: {
+          origin: new origins.S3Origin(mediaBucket),
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        },
+        priceClass: cloudfront.PriceClass.PRICE_CLASS_ALL,
+        enableLogging: true,
+        minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+      }
+    );
+
+    new cdk.CfnOutput(this, "MediaDistributionDomainName", {
+      value: distribution.distributionDomainName,
+      description: "Media CloudFront Distribution Domain Name",
     });
 
     const backupsBucket = new Bucket(this, "howitt-backups", {
