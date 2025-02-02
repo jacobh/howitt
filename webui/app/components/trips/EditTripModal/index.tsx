@@ -5,6 +5,7 @@ import { FragmentType, gql, useFragment } from "~/__generated__";
 import { Modal } from "../../Modal";
 import { MediaTable } from "./components/MediaTable";
 import { MediaDropzone } from "./components/MediaDropzone";
+import { RideTable } from "./components/RideTable";
 import * as Tabs from "@radix-ui/react-tabs";
 import { match, P } from "ts-pattern";
 import { isNotNil } from "~/services/isNotNil";
@@ -18,6 +19,7 @@ export const EditTripFragment = gql(`
     id
     name 
     description
+    ...tripRides
     temporalContentBlocks {
       __typename
       contentAt
@@ -287,6 +289,9 @@ export function EditTripModal({
             <Tabs.Trigger value="trip" css={tabTriggerStyles}>
               Trip
             </Tabs.Trigger>
+            <Tabs.Trigger value="rides" css={tabTriggerStyles}>
+              Rides
+            </Tabs.Trigger>
             <Tabs.Trigger value="content" css={tabTriggerStyles}>
               Content
             </Tabs.Trigger>
@@ -319,6 +324,10 @@ export function EditTripModal({
                 rows={4}
               />
             </div>
+          </Tabs.Content>
+
+          <Tabs.Content value="rides" css={tabContentStyles}>
+            <RideTable trip={trip} />
           </Tabs.Content>
 
           <Tabs.Content value="content" css={tabContentStyles}>

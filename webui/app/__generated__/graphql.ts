@@ -337,6 +337,7 @@ export type Trip = MediaTarget & {
   media: Array<Media>;
   name: Scalars["String"]["output"];
   notes: Array<Note>;
+  rides: Array<Ride>;
   slug: Scalars["String"]["output"];
   temporalContentBlocks: Array<TemporalContentBlock>;
   user: UserProfile;
@@ -456,7 +457,20 @@ export type RouteItemFragment = {
   isMetaComplete: boolean;
 } & { " $fragmentName"?: "RouteItemFragment" };
 
-export type EditTripFragment = {
+export type TripRidesFragment = {
+  __typename?: "Trip";
+  id: any;
+  rides: Array<{
+    __typename?: "Ride";
+    id: any;
+    name: string;
+    startedAt: any;
+    finishedAt: any;
+    distance: number;
+  }>;
+} & { " $fragmentName"?: "TripRidesFragment" };
+
+export type EditTripFragment = ({
   __typename?: "Trip";
   id: any;
   name: string;
@@ -484,7 +498,9 @@ export type EditTripFragment = {
       fill600: { __typename?: "ImageSize"; webpUrl: string };
     };
   }>;
-} & { " $fragmentName"?: "EditTripFragment" };
+} & { " $fragmentRefs"?: { TripRidesFragment: TripRidesFragment } }) & {
+  " $fragmentName"?: "EditTripFragment";
+};
 
 export type UpdateTripMutationVariables = Exact<{
   input: UpdateTripInput;
@@ -906,6 +922,39 @@ export const RideSummaryFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<RideSummaryFragment, unknown>;
+export const TripRidesFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripRides" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "rides" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "distance" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TripRidesFragment, unknown>;
 export const EditTripFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -922,6 +971,10 @@ export const EditTripFragmentDoc = {
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "description" } },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "tripRides" },
+          },
           {
             kind: "Field",
             name: { kind: "Name", value: "temporalContentBlocks" },
@@ -1034,6 +1087,34 @@ export const EditTripFragmentDoc = {
                     ],
                   },
                 },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripRides" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "rides" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "distance" } },
               ],
             },
           },
@@ -2080,6 +2161,34 @@ export const TripQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripRides" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "rides" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "distance" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
       name: { kind: "Name", value: "viewerInfo" },
       typeCondition: {
         kind: "NamedType",
@@ -2115,6 +2224,10 @@ export const TripQueryDocument = {
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "description" } },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "tripRides" },
+          },
           {
             kind: "Field",
             name: { kind: "Name", value: "temporalContentBlocks" },
