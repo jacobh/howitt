@@ -68,7 +68,12 @@ const TripQuery = gql(`
 `);
 
 const rideItemStyles = css({
-  margin: "20px 0",
+  margin: "24px 0",
+});
+
+const rideMapStyles = css({
+  height: "450px",
+  marginBottom: "24px",
 });
 
 const noteStyles = css({
@@ -80,6 +85,12 @@ const mediaStyles = css({
   height: "auto",
   borderRadius: "4px",
   margin: "16px 0",
+});
+
+const dividerStyles = css({
+  margin: "32px 0",
+  border: 0,
+  borderTop: "1px solid #e5e7eb",
 });
 
 const elevationContainerStyles = css({
@@ -175,7 +186,8 @@ export default function TripDetail(): React.ReactElement {
                 match(block)
                   .with({ __typename: "Ride" }, (ride) => (
                     <div key={`ride-${ride.rideId}`} css={rideItemStyles}>
-                      <div css={{ height: "450px" }}>
+                      <hr css={dividerStyles} />
+                      <div css={rideMapStyles}>
                         <MapComponent
                           interactive={false}
                           rides={[rideIdRideMap.get(ride.rideId)].filter(
@@ -187,7 +199,6 @@ export default function TripDetail(): React.ReactElement {
                           }}
                         />
                       </div>
-
                       <RideItem ride={ride} />
                     </div>
                   ))
