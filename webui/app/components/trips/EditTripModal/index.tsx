@@ -225,7 +225,7 @@ export function EditTripModal({
     },
   });
 
-  const handleAddNote = useCallback(
+  const onAddNote = useCallback(
     (index: number | "start" | "end") => {
       setLocalContentBlocks((draft) => {
         match(index)
@@ -287,7 +287,7 @@ export function EditTripModal({
     [setLocalContentBlocks],
   );
 
-  const handleUpdateNote = useCallback(
+  const onUpdateNote = useCallback(
     (index: number, text: string) => {
       setLocalContentBlocks((draft) => {
         const note = draft[index];
@@ -299,7 +299,7 @@ export function EditTripModal({
     [setLocalContentBlocks],
   );
 
-  const handleDeleteNote = useCallback(
+  const onDeleteNote = useCallback(
     (index: number) => {
       setLocalContentBlocks((draft) => {
         draft.splice(index, 1);
@@ -409,7 +409,7 @@ export function EditTripModal({
               {localContentBlocks.at(0)?.__typename !== "Note" && (
                 <div
                   css={addNoteButtonStyles}
-                  onClick={(): void => handleAddNote("start")}
+                  onClick={(): void => onAddNote("start")}
                 >
                   Add note at start
                 </div>
@@ -436,13 +436,13 @@ export function EditTripModal({
                               css={inputStyles}
                               value={note.text}
                               onChange={(e): void => {
-                                handleUpdateNote(idx, e.target.value);
+                                onUpdateNote(idx, e.target.value);
                               }}
                               rows={3}
                             />
                             <button
                               type="button"
-                              onClick={(): void => handleDeleteNote(idx)}
+                              onClick={(): void => onDeleteNote(idx)}
                               css={deleteNoteButtonStyles}
                               title="Delete note"
                             >
@@ -474,7 +474,7 @@ export function EditTripModal({
                         () => (
                           <div
                             css={addNoteButtonStyles}
-                            onClick={(): void => handleAddNote(idx)}
+                            onClick={(): void => onAddNote(idx)}
                           >
                             +
                           </div>
