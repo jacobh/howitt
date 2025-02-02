@@ -17,6 +17,17 @@ export class MediaStack extends cdk.Stack {
         ignorePublicAcls: false,
         restrictPublicBuckets: false,
       },
+      lifecycleRules: [
+        {
+          enabled: true,
+          transitions: [
+            {
+              storageClass: StorageClass.INTELLIGENT_TIERING,
+              transitionAfter: cdk.Duration.days(0),
+            },
+          ],
+        },
+      ],
     });
 
     // Create CloudFront distribution
