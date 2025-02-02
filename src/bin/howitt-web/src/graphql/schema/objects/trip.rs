@@ -1,5 +1,6 @@
 use std::iter;
 
+use anyhow::anyhow;
 use async_graphql::{Context, Object};
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::ext::iter::{ResultIterExt, ScanAllExt};
@@ -146,37 +147,33 @@ impl Trip {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<TemporalContentBlock>, async_graphql::Error> {
-        let SchemaData {
-            media_repo,
-            ride_repo,
-            ..
-        } = ctx.data()?;
-
-        // Convert trip notes to TemporalContentBlocks
-        let notes = self.0.notes.iter().map(|note| {
-            TemporalContentBlock::Note(Note {
-                content_at: note.timestamp,
-                text: note.text.clone(),
-            })
-        });
-
-        // Get media blocks
-        let media_blocks = media_repo
-            .filter_models(MediaFilter::ForTrip(self.0.id))
+        let note_blocks = self
+            .notes(ctx)
             .await?
             .into_iter()
-            .map(|m| TemporalContentBlock::Media(Media(m)));
+            .map(TemporalContentBlock::Note);
 
-        // Get ride blocks
-        let ride_blocks = ride_repo
-            .filter_models(RideFilter::ForTrip(self.0.id))
+        let media_blocks = self
+            .media(ctx)
             .await?
             .into_iter()
-            .map(|r| TemporalContentBlock::Ride(Ride(r)));
+            .map(TemporalContentBlock::Media);
 
-        // Combine all blocks and sort by content_at timestamp
+        let leg = self
+            .legs(ctx)
+            .await?
+            .into_iter()
+            .nth(0)
+            .ok_or(anyhow!("Leg missing"))?;
+
+        let ride_blocks = leg
+            .rides(ctx)
+            .await?
+            .into_iter()
+            .map(TemporalContentBlock::Ride);
+
         let blocks: Vec<TemporalContentBlock> = iter::empty()
-            .chain(notes)
+            .chain(note_blocks)
             .chain(media_blocks)
             .chain(ride_blocks)
             .sorted_by_key(|block| match block {
