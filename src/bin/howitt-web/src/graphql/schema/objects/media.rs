@@ -49,7 +49,7 @@ impl Media {
     }
 
     async fn image_sizes(&self) -> ImageSizes {
-        const BASE_URL: &str = "https://howitt-media.s3.ap-southeast-4.amazonaws.com/";
+        const BASE_URL: &str = "https://d36p712mevhglz.cloudfront.net/";
 
         ImageSizes {
             fill_300: self.create_image_size(&IMAGE_SPECS[0], BASE_URL),
