@@ -49,6 +49,10 @@ export const EditTripFragment = gql(`
   }
 `);
 
+export type EditTripFragmentValue = ResultOf<typeof EditTripFragment>;
+export type TemporalContentBlockValue =
+  EditTripFragmentValue["temporalContentBlocks"][number];
+
 const UpdateTripMutation = gql(`
   mutation UpdateTrip($input: UpdateTripInput!) {
     updateTrip(input: $input) {
@@ -289,6 +293,21 @@ export function EditTripModal({
     [localContentBlocks],
   );
 
+  const handleUpdateNote = useCallback(
+    (index: number, text: string) => {
+      const updatedBlocks = [...localContentBlocks];
+      const note = updatedBlocks[index];
+      if (note.__typename === "Note") {
+        updatedBlocks[index] = {
+          ...note,
+          text,
+        };
+        setLocalContentBlocks(updatedBlocks);
+      }
+    },
+    [localContentBlocks],
+  );
+
   const handleDeleteNote = useCallback(
     (index: number) => {
       const updatedBlocks = [...localContentBlocks];
@@ -426,12 +445,7 @@ export function EditTripModal({
                               css={inputStyles}
                               value={note.text}
                               onChange={(e): void => {
-                                const updatedBlocks = [...localContentBlocks];
-                                updatedBlocks[idx] = {
-                                  ...note,
-                                  text: e.target.value,
-                                };
-                                setLocalContentBlocks(updatedBlocks);
+                                handleUpdateNote(idx, e.target.value);
                               }}
                               rows={3}
                             />
