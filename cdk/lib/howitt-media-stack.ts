@@ -25,7 +25,7 @@ export class MediaStack extends cdk.Stack {
       "MediaDistribution",
       {
         defaultBehavior: {
-          origin: new origins.S3Origin(mediaBucket),
+          origin: origins.S3BucketOrigin.withOriginAccessControl(mediaBucket),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
@@ -33,7 +33,6 @@ export class MediaStack extends cdk.Stack {
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         },
         priceClass: cloudfront.PriceClass.PRICE_CLASS_ALL,
-        enableLogging: true,
         minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
       }
     );
