@@ -9,12 +9,14 @@ import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { RideItem } from "~/components/rides/RideItem";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
 import { match } from "ts-pattern";
 import { css } from "@emotion/react";
 import Markdown from "react-markdown";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { Map as MapComponent } from "~/components/map";
+import { isNotNil } from "~/services/isNotNil";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -110,8 +112,18 @@ export default function TripDetail(): React.ReactElement {
     ssr: false,
   });
 
-  const trip = data?.userWithUsername?.tripWithSlug;
-  const allRides = trip?.legs.flatMap((leg) => leg.rides) ?? [];
+  const trip =
+    data2?.userWithUsername?.tripWithSlug ??
+    data?.userWithUsername?.tripWithSlug;
+
+  const allRides = useMemo(
+    () => trip?.legs.flatMap((leg) => leg.rides) ?? [],
+    [trip?.legs],
+  );
+
+  const rideIdRideMap = useMemo(() => {
+    return new Map(allRides.map((ride) => [ride.id, ride] as const));
+  }, [allRides]);
 
   const isOwnTrip =
     data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;
@@ -163,6 +175,19 @@ export default function TripDetail(): React.ReactElement {
                 match(block)
                   .with({ __typename: "Ride" }, (ride) => (
                     <div key={`ride-${ride.rideId}`} css={rideItemStyles}>
+                      <div css={{ height: "450px" }}>
+                        <MapComponent
+                          interactive={false}
+                          rides={[rideIdRideMap.get(ride.rideId)].filter(
+                            isNotNil,
+                          )}
+                          initialView={{
+                            type: "rides",
+                            rideIds: [ride.rideId],
+                          }}
+                        />
+                      </div>
+
                       <RideItem ride={ride} />
                     </div>
                   ))
