@@ -36,6 +36,21 @@ impl UserProfile {
         })
     }
 
+    async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
+        let SchemaData { ride_repo, .. } = ctx.data()?;
+
+        let rides = ride_repo
+            .filter_models(RideFilter::ForUser {
+                user_id: self.0.id,
+                started_at: None,
+            })
+            .await?;
+
+        let rides = rides.into_iter().map(Ride).collect_vec();
+
+        Ok(rides)
+    }
+
     async fn recent_rides<'ctx>(
         &self,
         ctx: &Context<'ctx>,

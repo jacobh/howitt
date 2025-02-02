@@ -1,6 +1,5 @@
 use std::iter;
 
-use anyhow::anyhow;
 use async_graphql::{Context, Object};
 use futures::future::try_join3;
 use howitt::ext::futures::FuturesIteratorExt;

@@ -378,6 +378,7 @@ export type UserProfile = {
   email?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["UserId"]["output"];
   recentRides: Array<Ride>;
+  rides: Array<Ride>;
   ridesWithDate: Array<Ride>;
   tripWithSlug?: Maybe<Trip>;
   trips: Array<Trip>;
@@ -475,6 +476,7 @@ export type TripMediaFragment = {
 export type TripRidesFragment = {
   __typename?: "Trip";
   id: any;
+  user: { __typename?: "UserProfile"; username: string };
   rides: Array<{
     __typename?: "Ride";
     id: any;
@@ -484,6 +486,25 @@ export type TripRidesFragment = {
     distance: number;
   }>;
 } & { " $fragmentName"?: "TripRidesFragment" };
+
+export type AllRidesQueryVariables = Exact<{
+  username: Scalars["String"]["input"];
+}>;
+
+export type AllRidesQuery = {
+  __typename?: "Query";
+  userWithUsername?: {
+    __typename?: "UserProfile";
+    rides: Array<{
+      __typename?: "Ride";
+      id: any;
+      name: string;
+      startedAt: any;
+      finishedAt: any;
+      distance: number;
+    }>;
+  } | null;
+};
 
 export type EditTripFragment = ({
   __typename?: "Trip";
@@ -946,6 +967,16 @@ export const TripRidesFragmentDoc = {
           { kind: "Field", name: { kind: "Name", value: "id" } },
           {
             kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
             name: { kind: "Name", value: "rides" },
             selectionSet: {
               kind: "SelectionSet",
@@ -1135,6 +1166,16 @@ export const EditTripFragmentDoc = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
           {
             kind: "Field",
             name: { kind: "Name", value: "rides" },
@@ -1374,6 +1415,79 @@ export const NearbyRoutesInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<NearbyRoutesInfoFragment, unknown>;
+export const AllRidesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "AllRides" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "username" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "userWithUsername" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "username" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "username" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rides" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "startedAt" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "finishedAt" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "distance" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AllRidesQuery, AllRidesQueryVariables>;
 export const UpdateTripDocument = {
   kind: "Document",
   definitions: [
@@ -2249,6 +2363,16 @@ export const TripQueryDocument = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
           {
             kind: "Field",
             name: { kind: "Name", value: "rides" },

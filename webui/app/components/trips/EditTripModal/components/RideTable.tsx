@@ -1,10 +1,15 @@
 import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { sortBy } from "lodash";
 
 export const TripRidesFragment = gql(`
   fragment tripRides on Trip {
     id
+    user {
+        username
+    }
     rides {
       id
       name
@@ -15,12 +20,33 @@ export const TripRidesFragment = gql(`
   }
 `);
 
+const AllRidesQuery = gql(`
+    query AllRides($username: String!) {
+      userWithUsername(username: $username) {
+        rides {
+          id
+          name
+          startedAt
+          finishedAt
+          distance
+        }
+      }
+    }
+  `);
+
 interface Props {
   trip: FragmentType<typeof TripRidesFragment>;
 }
+const rideTableContainerCss = css`
+  max-height: 67vh;
+  overflow: hidden;
+  border: 1px solid #ddd;
+`;
+
 const rideTableCss = css`
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 
   th,
   td {
@@ -32,6 +58,31 @@ const rideTableCss = css`
   th {
     background-color: #f5f5f5;
     font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  tbody {
+    display: block;
+    overflow-y: auto;
+    max-height: calc(67vh - 41px); /* 41px accounts for header height */
+  }
+
+  thead,
+  tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f8f8f8;
+    }
   }
 `;
 
@@ -39,6 +90,13 @@ const checkboxCss = css`
   width: 20px;
   height: 20px;
   cursor: pointer;
+  pointer-events: none;
+`;
+
+const loadingStyles = css`
+  padding: 16px;
+  color: #666;
+  font-style: italic;
 `;
 
 export function RideTable({ trip: tripFragment }: Props): React.ReactElement {
@@ -47,6 +105,12 @@ export function RideTable({ trip: tripFragment }: Props): React.ReactElement {
   const [includedRideIds, setIncludedRideIds] = useState<Set<string>>(
     new Set(trip.rides.map((ride) => ride.id)),
   );
+
+  const { data: allRidesData, loading } = useQuery(AllRidesQuery, {
+    variables: {
+      username: trip.user.username,
+    },
+  });
 
   const handleToggleRide = (rideId: string): void => {
     setIncludedRideIds((prev) => {
@@ -60,33 +124,44 @@ export function RideTable({ trip: tripFragment }: Props): React.ReactElement {
     });
   };
 
+  const rides = useMemo(() => {
+    const unsortedRides = allRidesData?.userWithUsername?.rides ?? [];
+    return sortBy(unsortedRides, (ride) => ride.startedAt).reverse();
+  }, [allRidesData]);
+
+  if (loading) {
+    return <div css={loadingStyles}>Loading rides...</div>;
+  }
+
   return (
-    <table css={rideTableCss}>
-      <thead>
-        <tr>
-          <th>Started At</th>
-          <th>Name</th>
-          <th>Distance</th>
-          <th>Include?</th>
-        </tr>
-      </thead>
-      <tbody>
-        {trip.rides.map((ride) => (
-          <tr key={ride.id}>
-            <td>{new Date(ride.startedAt).toLocaleString()}</td>
-            <td>{ride.name}</td>
-            <td>{(ride.distance / 1000).toFixed(1)}km</td>
-            <td>
-              <input
-                type="checkbox"
-                css={checkboxCss}
-                checked={includedRideIds.has(ride.id)}
-                onChange={(): void => handleToggleRide(ride.id)}
-              />
-            </td>
+    <div css={rideTableContainerCss}>
+      <table css={rideTableCss}>
+        <thead>
+          <tr>
+            <th>Started At</th>
+            <th>Name</th>
+            <th>Distance</th>
+            <th>Include?</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rides.map((ride) => (
+            <tr key={ride.id} onClick={(): void => handleToggleRide(ride.id)}>
+              <td>{new Date(ride.startedAt).toLocaleString()}</td>
+              <td>{ride.name}</td>
+              <td>{(ride.distance / 1000).toFixed(1)}km</td>
+              <td>
+                <input
+                  type="checkbox"
+                  css={checkboxCss}
+                  checked={includedRideIds.has(ride.id)}
+                  readOnly
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
