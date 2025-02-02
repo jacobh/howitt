@@ -2021,6 +2021,7 @@ dependencies = [
  "derive_more",
  "dotenv",
  "exif",
+ "futures",
  "geo",
  "howitt",
  "howitt-postgresql",

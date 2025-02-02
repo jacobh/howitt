@@ -2,6 +2,7 @@ use std::iter;
 
 use anyhow::anyhow;
 use async_graphql::{Context, Object};
+use futures::future::try_join3;
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::ext::iter::{ResultIterExt, ScanAllExt};
 use howitt::models::media::MediaFilter;
@@ -147,30 +148,20 @@ impl Trip {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<TemporalContentBlock>, async_graphql::Error> {
-        let note_blocks = self
-            .notes(ctx)
-            .await?
-            .into_iter()
-            .map(TemporalContentBlock::Note);
+        let fetch_rides = async || {
+            let legs = self.legs(ctx).await?;
+            let leg = legs.into_iter().nth(0).ok_or(anyhow!("Leg missing"))?;
+            leg.rides(ctx).await
+        };
 
-        let media_blocks = self
-            .media(ctx)
-            .await?
-            .into_iter()
-            .map(TemporalContentBlock::Media);
+        let (notes, media, rides) =
+            try_join3(self.notes(ctx), self.media(ctx), fetch_rides()).await?;
 
-        let leg = self
-            .legs(ctx)
-            .await?
-            .into_iter()
-            .nth(0)
-            .ok_or(anyhow!("Leg missing"))?;
+        let note_blocks = notes.into_iter().map(TemporalContentBlock::Note);
 
-        let ride_blocks = leg
-            .rides(ctx)
-            .await?
-            .into_iter()
-            .map(TemporalContentBlock::Ride);
+        let media_blocks = media.into_iter().map(TemporalContentBlock::Media);
+
+        let ride_blocks = rides.into_iter().map(TemporalContentBlock::Ride);
 
         let blocks: Vec<TemporalContentBlock> = iter::empty()
             .chain(note_blocks)
