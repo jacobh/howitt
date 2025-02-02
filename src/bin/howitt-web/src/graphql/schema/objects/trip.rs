@@ -109,15 +109,23 @@ impl Trip {
         Ok(UserProfile(user))
     }
 
-    async fn legs<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<TripLeg>, async_graphql::Error> {
+    async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
         let SchemaData { ride_repo, .. } = ctx.data()?;
 
         let rides = ride_repo
             .filter_models(RideFilter::ForTrip(self.0.id))
             .await?;
 
+        Ok(rides.into_iter().map(Ride).collect())
+    }
+
+    async fn legs<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<TripLeg>, async_graphql::Error> {
+        let rides = self.rides(ctx).await?;
+
         // For this first cut, put all rides in a single leg
-        Ok(vec![TripLeg(rides)])
+        Ok(vec![TripLeg(
+            rides.into_iter().map(|ride| ride.0).collect(),
+        )])
     }
 
     pub async fn media<'ctx>(
@@ -148,14 +156,8 @@ impl Trip {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<TemporalContentBlock>, async_graphql::Error> {
-        let fetch_rides = async || {
-            let legs = self.legs(ctx).await?;
-            let leg = legs.into_iter().nth(0).ok_or(anyhow!("Leg missing"))?;
-            leg.rides(ctx).await
-        };
-
         let (notes, media, rides) =
-            try_join3(self.notes(ctx), self.media(ctx), fetch_rides()).await?;
+            try_join3(self.notes(ctx), self.media(ctx), self.rides(ctx)).await?;
 
         let note_blocks = notes.into_iter().map(TemporalContentBlock::Note);
 
