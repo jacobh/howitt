@@ -106,10 +106,19 @@ const buttonGroupStyles = css`
   margin-top: 1rem;
 `;
 
+const contentTabStyles = css`
+  max-height: 80vh;
+  overflow: hidden;
+  border: 1px solid #ddd;
+`;
+
 const contentBlockContainerStyles = css`
   display: flex;
   flex-direction: column;
-  gap: "1rem";
+  gap: 1rem;
+  overflow-y: auto;
+  max-height: 80vh;
+  padding: 1rem;
 `;
 
 const contentBlockStyles = css`
@@ -322,88 +331,89 @@ export function EditTripModal({
           </Tabs.Content>
 
           <Tabs.Content value="content" css={tabContentStyles}>
-            <h2>Content</h2>
-            <div css={contentBlockContainerStyles}>
-              {localContentBlocks.at(0)?.__typename !== "Note" && (
-                <div
-                  css={addNoteButtonStyles}
-                  onClick={(): void => onCreateNote("start")}
-                >
-                  Add note at start
-                </div>
-              )}
-              {blocksWithPositionInfo(localContentBlocks).map(
-                ({ block, nextBlock, position, idx }) => (
-                  <>
-                    <div
-                      key={`${block.__typename}-${idx}`}
-                      css={contentBlockStyles}
-                    >
-                      <div css={contentMetaStyles}>
-                        {Temporal.Instant.from(block.contentAt)
-                          .toZonedDateTimeISO(Temporal.Now.timeZoneId())
-                          .toLocaleString()}
-                        {" - "}
-                        {block.__typename}
-                      </div>
+            <div css={contentTabStyles}>
+              <div css={contentBlockContainerStyles}>
+                {localContentBlocks.at(0)?.__typename !== "Note" && (
+                  <div
+                    css={addNoteButtonStyles}
+                    onClick={(): void => onCreateNote("start")}
+                  >
+                    Add note at start
+                  </div>
+                )}
+                {blocksWithPositionInfo(localContentBlocks).map(
+                  ({ block, nextBlock, position, idx }) => (
+                    <>
+                      <div
+                        key={`${block.__typename}-${idx}`}
+                        css={contentBlockStyles}
+                      >
+                        <div css={contentMetaStyles}>
+                          {Temporal.Instant.from(block.contentAt)
+                            .toZonedDateTimeISO(Temporal.Now.timeZoneId())
+                            .toLocaleString()}
+                          {" - "}
+                          {block.__typename}
+                        </div>
 
-                      {match(block)
-                        .with({ __typename: "Note" }, (note) => (
-                          <div css={noteContainerStyles}>
-                            <textarea
-                              css={inputStyles}
-                              value={note.text}
-                              onChange={(e): void => {
-                                onUpdateNote(idx, e.target.value);
-                              }}
-                              rows={3}
+                        {match(block)
+                          .with({ __typename: "Note" }, (note) => (
+                            <div css={noteContainerStyles}>
+                              <textarea
+                                css={inputStyles}
+                                value={note.text}
+                                onChange={(e): void => {
+                                  onUpdateNote(idx, e.target.value);
+                                }}
+                                rows={3}
+                              />
+                              <button
+                                type="button"
+                                onClick={(): void => onDeleteNote(idx)}
+                                css={deleteNoteButtonStyles}
+                                title="Delete note"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))
+                          .with({ __typename: "Media" }, (media) => (
+                            <img
+                              src={media.imageSizes.fit1200.webpUrl}
+                              css={mediaImageStyles}
+                              alt=""
                             />
-                            <button
-                              type="button"
-                              onClick={(): void => onDeleteNote(idx)}
-                              css={deleteNoteButtonStyles}
-                              title="Delete note"
+                          ))
+                          .with({ __typename: "Ride" }, (ride) => (
+                            <div css={rideBlockStyles}>{ride.name}</div>
+                          ))
+                          .exhaustive()}
+                      </div>
+                      {match({ block, nextBlock, position })
+                        .with(
+                          {
+                            block: { __typename: P.not("Note") },
+                            nextBlock: P.union(
+                              { __typename: P.not("Note") },
+                              P.nullish,
+                            ),
+                          },
+                          () => (
+                            <div
+                              css={addNoteButtonStyles}
+                              onClick={(): void => onCreateNote(idx)}
                             >
-                              ✕
-                            </button>
-                          </div>
-                        ))
-                        .with({ __typename: "Media" }, (media) => (
-                          <img
-                            src={media.imageSizes.fit1200.webpUrl}
-                            css={mediaImageStyles}
-                            alt=""
-                          />
-                        ))
-                        .with({ __typename: "Ride" }, (ride) => (
-                          <div css={rideBlockStyles}>{ride.name}</div>
-                        ))
-                        .exhaustive()}
-                    </div>
-                    {match({ block, nextBlock, position })
-                      .with(
-                        {
-                          block: { __typename: P.not("Note") },
-                          nextBlock: P.union(
-                            { __typename: P.not("Note") },
-                            P.nullish,
+                              +
+                            </div>
                           ),
-                        },
-                        () => (
-                          <div
-                            css={addNoteButtonStyles}
-                            onClick={(): void => onCreateNote(idx)}
-                          >
-                            +
-                          </div>
-                        ),
-                      )
-                      .otherwise(() => (
-                        <></>
-                      ))}
-                  </>
-                ),
-              )}
+                        )
+                        .otherwise(() => (
+                          <></>
+                        ))}
+                    </>
+                  ),
+                )}
+              </div>
             </div>
           </Tabs.Content>
 

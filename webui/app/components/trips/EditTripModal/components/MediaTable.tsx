@@ -22,9 +22,16 @@ interface Props {
   removingMedia: boolean;
 }
 
+const mediaTableContainerCss = css`
+  max-height: 67vh;
+  overflow: hidden;
+  border: 1px solid #ddd;
+`;
+
 const mediaTableCss = css`
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 
   th,
   td {
@@ -36,6 +43,44 @@ const mediaTableCss = css`
   th {
     background-color: #f5f5f5;
     font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  th:nth-of-type(1),
+  td:nth-of-type(1) {
+    width: 120px;
+  } /* Thumbnail */
+  th:nth-of-type(2),
+  td:nth-of-type(2) {
+    width: auto;
+  } /* Path - takes remaining space */
+  th:nth-of-type(3),
+  td:nth-of-type(3) {
+    width: 100px;
+  } /* Created At */
+  th:nth-of-type(4),
+  td:nth-of-type(4) {
+    width: 80px;
+  } /* Actions */
+
+  td:nth-of-type(2) {
+    white-space: normal;
+    word-break: break-all;
+  }
+
+  tbody {
+    display: block;
+    overflow-y: auto;
+    max-height: calc(67vh - 41px); /* 41px accounts for header height */
+  }
+
+  thead,
+  tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
   }
 `;
 
@@ -73,6 +118,10 @@ const thumbnailImageCss = css({
   borderRadius: "4px",
 });
 
+const getFileName = (path: string): string => {
+  return path.split("/").pop() || path;
+};
+
 export function MediaTable({
   trip: tripFragment,
   onRemoveMedia,
@@ -81,40 +130,42 @@ export function MediaTable({
   const trip = useFragment(TripMediaFragment, tripFragment);
 
   return (
-    <table css={mediaTableCss}>
-      <thead>
-        <tr>
-          <th>Thumbnail</th>
-          <th>Path</th>
-          <th>Created At</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {trip.media.map((media) => (
-          <tr key={media.id}>
-            <td css={thumbnailCellCss}>
-              <img
-                src={media.imageSizes.fill600.webpUrl}
-                css={thumbnailImageCss}
-                alt=""
-              />
-            </td>
-            <td>{media.path}</td>
-            <td>{new Date(media.createdAt).toLocaleDateString("en-US")}</td>
-            <td>
-              <button
-                type="button"
-                onClick={(): void => onRemoveMedia(media.id)}
-                disabled={removingMedia}
-                css={deleteButtonCss}
-              >
-                Delete
-              </button>
-            </td>
+    <div css={mediaTableContainerCss}>
+      <table css={mediaTableCss}>
+        <thead>
+          <tr>
+            <th>Thumbnail</th>
+            <th>Path</th>
+            <th>Created At</th>
+            <th>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {trip.media.map((media) => (
+            <tr key={media.id}>
+              <td css={thumbnailCellCss}>
+                <img
+                  src={media.imageSizes.fill600.webpUrl}
+                  css={thumbnailImageCss}
+                  alt=""
+                />
+              </td>
+              <td>{getFileName(media.path)}</td>
+              <td>{new Date(media.createdAt).toLocaleDateString("en-US")}</td>
+              <td>
+                <button
+                  type="button"
+                  onClick={(): void => onRemoveMedia(media.id)}
+                  disabled={removingMedia}
+                  css={deleteButtonCss}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
