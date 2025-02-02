@@ -78,6 +78,28 @@ const rideMapStyles = css({
 
 const noteStyles = css({
   margin: "24px 0",
+
+  "ul, ol": {
+    marginLeft: "24px",
+    marginTop: "12px",
+    marginBottom: "12px",
+  },
+
+  ul: {
+    listStyleType: "disc",
+  },
+
+  ol: {
+    listStyleType: "decimal",
+  },
+
+  li: {
+    marginBottom: "8px",
+
+    "&:last-child": {
+      marginBottom: 0,
+    },
+  },
 });
 
 const mediaStyles = css({
