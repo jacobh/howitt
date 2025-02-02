@@ -81,8 +81,12 @@ export enum Direction {
 export type ElevationPath = {
   /** Array of distance points */
   distancePoints: Array<Scalars["Float"]["output"]>;
+  /** Array of distance points */
+  distancePointsJson: Scalars["String"]["output"];
   /** Array of elevation points */
   elevationPoints: Array<Scalars["Float"]["output"]>;
+  /** Array of elevation points */
+  elevationPointsJson: Scalars["String"]["output"];
 };
 
 export type ExternalRef = {
@@ -244,7 +248,9 @@ export type Ride = ElevationPath &
     date: Scalars["IsoDate"]["output"];
     distance: Scalars["Float"]["output"];
     distancePoints: Array<Scalars["Float"]["output"]>;
+    distancePointsJson: Scalars["String"]["output"];
     elevationPoints: Array<Scalars["Float"]["output"]>;
+    elevationPointsJson: Scalars["String"]["output"];
     finishedAt: Scalars["DateTime"]["output"];
     id: Scalars["RideId"]["output"];
     media: Array<Media>;
@@ -271,9 +277,11 @@ export type Route = ElevationPath &
     direction?: Maybe<Direction>;
     distance: Scalars["Float"]["output"];
     distancePoints: Array<Scalars["Float"]["output"]>;
+    distancePointsJson: Scalars["String"]["output"];
     elevationAscentM: Scalars["Float"]["output"];
     elevationDescentM: Scalars["Float"]["output"];
     elevationPoints: Array<Scalars["Float"]["output"]>;
+    elevationPointsJson: Scalars["String"]["output"];
     externalRef?: Maybe<ExternalRef>;
     id: Scalars["RouteId"]["output"];
     idealBike?: Maybe<BikeSpec>;
@@ -347,7 +355,9 @@ export type Trip = MediaTarget & {
 export type TripLeg = ElevationPath & {
   __typename?: "TripLeg";
   distancePoints: Array<Scalars["Float"]["output"]>;
+  distancePointsJson: Scalars["String"]["output"];
   elevationPoints: Array<Scalars["Float"]["output"]>;
+  elevationPointsJson: Scalars["String"]["output"];
   rides: Array<Ride>;
 };
 
@@ -401,20 +411,20 @@ export type Viewer = {
 
 type ElevationPath_Ride_Fragment = {
   __typename?: "Ride";
-  elevationPoints: Array<number>;
-  distancePoints: Array<number>;
+  elevationPointsJson: string;
+  distancePointsJson: string;
 } & { " $fragmentName"?: "ElevationPath_Ride_Fragment" };
 
 type ElevationPath_Route_Fragment = {
   __typename?: "Route";
-  elevationPoints: Array<number>;
-  distancePoints: Array<number>;
+  elevationPointsJson: string;
+  distancePointsJson: string;
 } & { " $fragmentName"?: "ElevationPath_Route_Fragment" };
 
 type ElevationPath_TripLeg_Fragment = {
   __typename?: "TripLeg";
-  elevationPoints: Array<number>;
-  distancePoints: Array<number>;
+  elevationPointsJson: string;
+  distancePointsJson: string;
 } & { " $fragmentName"?: "ElevationPath_TripLeg_Fragment" };
 
 export type ElevationPathFragment =
@@ -859,8 +869,14 @@ export const ElevationPathFragmentDoc = {
       selectionSet: {
         kind: "SelectionSet",
         selections: [
-          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
-          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "elevationPointsJson" },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "distancePointsJson" },
+          },
         ],
       },
     },
@@ -1864,8 +1880,14 @@ export const RidesWithDateDocument = {
       selectionSet: {
         kind: "SelectionSet",
         selections: [
-          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
-          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "elevationPointsJson" },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "distancePointsJson" },
+          },
         ],
       },
     },
@@ -2577,8 +2599,14 @@ export const TripQueryDocument = {
       selectionSet: {
         kind: "SelectionSet",
         selections: [
-          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
-          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "elevationPointsJson" },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "distancePointsJson" },
+          },
         ],
       },
     },
@@ -2990,8 +3018,14 @@ export const RouteQueryDocument = {
       selectionSet: {
         kind: "SelectionSet",
         selections: [
-          { kind: "Field", name: { kind: "Name", value: "elevationPoints" } },
-          { kind: "Field", name: { kind: "Name", value: "distancePoints" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "elevationPointsJson" },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "distancePointsJson" },
+          },
         ],
       },
     },

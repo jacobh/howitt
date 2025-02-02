@@ -123,6 +123,18 @@ impl Ride {
 
         Ok(progress.into_iter().map(|p| p.distance_m).collect())
     }
+    pub async fn elevation_points_json<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<String, async_graphql::Error> {
+        Ok(serde_json::to_string(&self.elevation_points(ctx).await?)?)
+    }
+    pub async fn distance_points_json<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<String, async_graphql::Error> {
+        Ok(serde_json::to_string(&self.distance_points(ctx).await?)?)
+    }
     async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
         let SchemaData { user_loader, .. } = ctx.data()?;
 

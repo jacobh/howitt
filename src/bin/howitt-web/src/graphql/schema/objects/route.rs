@@ -373,6 +373,18 @@ impl Route {
         // Extract just the distance values
         Ok(progress.into_iter().map(|p| p.distance_m).collect())
     }
+    pub async fn elevation_points_json<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<String, async_graphql::Error> {
+        Ok(serde_json::to_string(&self.elevation_points(ctx).await?)?)
+    }
+    pub async fn distance_points_json<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<String, async_graphql::Error> {
+        Ok(serde_json::to_string(&self.distance_points(ctx).await?)?)
+    }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
         let SchemaData {
             route_repo,

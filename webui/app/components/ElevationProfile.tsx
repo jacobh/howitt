@@ -6,8 +6,8 @@ import { zipStrict } from "~/services/zipStrict";
 
 export const ElevationPathFragment = gql(`
   fragment elevationPath on ElevationPath {
-    elevationPoints
-    distancePoints
+    elevationPointsJson
+    distancePointsJson
   }
 `);
 
@@ -39,7 +39,11 @@ export function ElevationProfile({
   const data = useFragment(ElevationPathFragment, dataFragment);
 
   const points = useMemo(
-    () => computePoints(data.elevationPoints, data.distancePoints),
+    () =>
+      computePoints(
+        JSON.parse(data.elevationPointsJson),
+        JSON.parse(data.distancePointsJson),
+      ),
     [data],
   );
 

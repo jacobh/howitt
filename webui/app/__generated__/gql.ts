@@ -14,7 +14,7 @@ import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 const documents = {
-  "\n  fragment elevationPath on ElevationPath {\n    elevationPoints\n    distancePoints\n  }\n":
+  "\n  fragment elevationPath on ElevationPath {\n    elevationPointsJson\n    distancePointsJson\n  }\n":
     types.ElevationPathFragmentDoc,
   "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ":
     types.ViewerInfoFragmentDoc,
@@ -80,8 +80,8 @@ export function gql(source: string): unknown;
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment elevationPath on ElevationPath {\n    elevationPoints\n    distancePoints\n  }\n",
-): (typeof documents)["\n  fragment elevationPath on ElevationPath {\n    elevationPoints\n    distancePoints\n  }\n"];
+  source: "\n  fragment elevationPath on ElevationPath {\n    elevationPointsJson\n    distancePointsJson\n  }\n",
+): (typeof documents)["\n  fragment elevationPath on ElevationPath {\n    elevationPointsJson\n    distancePointsJson\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

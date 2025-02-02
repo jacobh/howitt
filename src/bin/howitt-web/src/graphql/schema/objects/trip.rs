@@ -73,6 +73,18 @@ impl TripLeg {
             .flatten()
             .collect())
     }
+    pub async fn elevation_points_json<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<String, async_graphql::Error> {
+        Ok(serde_json::to_string(&self.elevation_points(ctx).await?)?)
+    }
+    pub async fn distance_points_json<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<String, async_graphql::Error> {
+        Ok(serde_json::to_string(&self.distance_points(ctx).await?)?)
+    }
 }
 
 #[Object]
