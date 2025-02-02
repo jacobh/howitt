@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import OlMap from "ol/Map";
 import { getDistance } from "ol/sphere";
 import View, { ViewOptions } from "ol/View";
@@ -12,11 +12,14 @@ import BaseEvent from "ol/events/Event";
 import { isNotNil } from "~/services/isNotNil";
 import { debounce, min } from "lodash";
 import { MapProps } from ".";
-import { PrimaryMapContext } from "./context";
 
 type UseMapProps = Pick<
   MapProps,
-  "initialView" | "onVisibleRoutesChanged" | "onRouteClicked"
+  | "mapInstance"
+  | "onNewMapInstance"
+  | "initialView"
+  | "onVisibleRoutesChanged"
+  | "onRouteClicked"
 > & { mapElementRef: React.RefObject<HTMLElement | null> };
 
 export const DEFAULT_VIEW: ViewOptions = {
@@ -26,6 +29,8 @@ export const DEFAULT_VIEW: ViewOptions = {
 };
 
 export function useMap({
+  mapInstance: existingMapInstance,
+  onNewMapInstance,
   initialView,
   onRouteClicked,
   onVisibleRoutesChanged,
@@ -37,7 +42,11 @@ export function useMap({
   useEffect(() => {
     let map: OlMap | undefined = undefined;
 
-    if (mapRef.current) {
+    if (existingMapInstance) {
+      map = existingMapInstance;
+      mapRef.current = existingMapInstance;
+      map.setTarget(mapElementRef.current ?? undefined);
+    } else if (mapRef.current) {
       map = mapRef.current;
       map.setTarget(mapElementRef.current ?? undefined);
     } else {
@@ -62,6 +71,9 @@ export function useMap({
 
       mapRef.current = newMap;
       map = newMap;
+      if (onNewMapInstance) {
+        onNewMapInstance(newMap);
+      }
     }
 
     if (isFirstMapRender) {
@@ -139,6 +151,8 @@ export function useMap({
       map.getView().un("change:center", onViewChange);
     };
   }, [
+    existingMapInstance,
+    onNewMapInstance,
     initialView,
     onVisibleRoutesChanged,
     isFirstMapRender,

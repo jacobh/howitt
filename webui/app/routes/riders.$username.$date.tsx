@@ -5,12 +5,12 @@ import {
   Nav,
   SidebarContainer,
 } from "~/components/layout";
-import { Map } from "~/components/map";
 import { RideSummary } from "~/components/rides/RideSummary";
 import { Temporal } from "@js-temporal/polyfill";
 import { gql } from "~/__generated__";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { ElevationProfile } from "~/components/ElevationProfile";
+import { PrimaryMap } from "~/components/map/PrimaryMap";
 
 const RidesWithDateQuery = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {
@@ -104,7 +104,7 @@ function UserProfileDate(): React.ReactElement {
         )}
       </SidebarContainer>
       <MapContainer>
-        <Map
+        <PrimaryMap
           initialView={
             data?.userWithUsername?.ridesWithDate
               ? {

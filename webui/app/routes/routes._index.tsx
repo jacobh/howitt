@@ -1,4 +1,4 @@
-import { DEFAULT_VIEW, Map } from "../components/map";
+import { DEFAULT_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "../__generated__/gql";
 import { useMemo, useState } from "react";
@@ -14,6 +14,7 @@ import { tokens } from "~/styles/tokens";
 import { isNotNil } from "~/services/isNotNil";
 import { sortBy } from "lodash";
 import { useSearchParams } from "@remix-run/react";
+import { PrimaryMap } from "~/components/map/PrimaryMap";
 
 const HomeQueryNoPoints = gql(`
   query homeQuery($input: QueryRoutesInput!) {
@@ -182,7 +183,7 @@ export default function Routes(): React.ReactElement {
         ))}
       </SidebarContainer>
       <MapContainer>
-        <Map
+        <PrimaryMap
           routes={mapRoutes}
           initialView={{
             type: "view",

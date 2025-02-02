@@ -1,4 +1,4 @@
-import { DEFAULT_VIEW, Map } from "../components/map";
+import { DEFAULT_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "../__generated__/gql";
 import {
@@ -11,6 +11,7 @@ import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { Link } from "@remix-run/react";
 import { FragmentType, useFragment } from "~/__generated__";
+import { PrimaryMap } from "~/components/map/PrimaryMap";
 
 const PublicUsersQuery = gql(`
   query publicUsers {
@@ -71,7 +72,7 @@ export default function Users(): React.ReactElement {
         ))}
       </SidebarContainer>
       <MapContainer>
-        <Map
+        <PrimaryMap
           initialView={{
             type: "view",
             view: DEFAULT_VIEW,

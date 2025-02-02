@@ -1,4 +1,4 @@
-import { DEFAULT_VIEW, Map } from "../components/map";
+import { DEFAULT_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "../__generated__/gql";
 import {
@@ -13,6 +13,7 @@ import { RideItem } from "~/components/rides/RideItem";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";
+import { PrimaryMap } from "~/components/map/PrimaryMap";
 
 const UserProfileQuery = gql(`
   query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
@@ -108,7 +109,7 @@ export default function UserProfile(): React.ReactElement {
         )}
       </SidebarContainer>
       <MapContainer>
-        <Map
+        <PrimaryMap
           initialView={{
             type: "view",
             view: DEFAULT_VIEW,

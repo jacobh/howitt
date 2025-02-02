@@ -5,7 +5,6 @@ import {
   Nav,
   SidebarContainer,
 } from "~/components/layout";
-import { Map } from "~/components/map";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
@@ -15,6 +14,7 @@ import { EditTripModal } from "~/components/trips/EditTripModal";
 import { match } from "ts-pattern";
 import { css } from "@emotion/react";
 import Markdown from "react-markdown";
+import { PrimaryMap } from "~/components/map/PrimaryMap";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -196,7 +196,7 @@ export default function TripDetail(): React.ReactElement {
       </SidebarContainer>
 
       <MapContainer>
-        <Map
+        <PrimaryMap
           initialView={{
             type: "rides",
             rideIds: allRides.map(({ id }) => id),

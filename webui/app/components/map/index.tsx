@@ -18,6 +18,7 @@ import { some } from "lodash";
 import { useMap } from "./useMap";
 import { Extent } from "ol/extent";
 import { match, P } from "ts-pattern";
+import OlMap from "ol/Map";
 
 export { PrimaryMapContext } from "./context";
 
@@ -27,6 +28,8 @@ export interface DisplayedRoute {
 }
 
 export interface MapProps {
+  mapInstance?: OlMap | undefined;
+  onNewMapInstance?: (map: OlMap) => void;
   routes?: DisplayedRoute[];
   rides?: Pick<Ride, "id" | "pointsJson">[];
   checkpoints?: Pick<
@@ -97,10 +100,14 @@ export function Map({
   initialView,
   onVisibleRoutesChanged,
   onRouteClicked,
+  mapInstance,
+  onNewMapInstance,
 }: MapProps): React.ReactElement {
   const mapElementRef = useRef<HTMLDivElement>(null);
 
   const { map } = useMap({
+    mapInstance,
+    onNewMapInstance,
     initialView,
     onVisibleRoutesChanged,
     onRouteClicked,

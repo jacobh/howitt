@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { Link, useParams } from "@remix-run/react";
 import { gql } from "~/__generated__";
-import { DisplayedRoute, Map } from "../../components/map";
+import { DisplayedRoute } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { isNotNil } from "~/services/isNotNil";
@@ -18,6 +18,7 @@ import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { DataTable } from "~/components/DataTable";
 import { capitalize } from "lodash";
+import { PrimaryMap } from "~/components/map/PrimaryMap";
 
 const RouteQuery = gql(`
 query RouteQuery($slug: String!) {
@@ -225,7 +226,7 @@ export default function Route(): React.ReactElement {
         </div>
       </SidebarContainer>
       <MapContainer>
-        <Map
+        <PrimaryMap
           routes={routes}
           initialView={
             route ? { type: "routes", routeIds: [route.id] } : undefined
