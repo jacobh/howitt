@@ -52,6 +52,7 @@ const sidebarContainerOuterCss = makeMqs([
     width: 100%;
     height: calc(100vh - 50px);
     box-shadow: none;
+    overflow-y: auto;
   `,
 ]);
 
@@ -84,9 +85,7 @@ const sidebarContainerInnerCss = makeMqs([
   `,
   css`
     padding: max(18px, 1vw) 6%;
-    height: inherit;
-    display: flex;
-    flex-direction: column;
+    min-height: min-content;
   `,
 ]);
 
@@ -95,17 +94,7 @@ const sidebarTitleCss = css`
   display: flex;
 `;
 
-const sidebarChildrenCss = makeMqs([
-  css``,
-  css``,
-  css``,
-  css``,
-  css`
-    overflow-x: hidden;
-    overflow-y: scroll;
-  `,
-]);
-
+const sidebarChildrenCss = makeMqs([css``, css``, css``, css``, css``]);
 const titleSegmentCss = css`
   flex-shrink: 1;
 `;
