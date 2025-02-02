@@ -24,13 +24,13 @@ export class MediaStack extends cdk.Stack {
           id: "PostgreSQL Daily Backups",
           enabled: true,
           prefix: "postgresql/daily/",
-          expiration: cdk.Duration.days(14),
+          expiration: cdk.Duration.days(30),
         },
         {
           id: "PostgreSQL Weekly Backups",
           enabled: true,
           prefix: "postgresql/weekly/",
-          expiration: cdk.Duration.days(45),
+          expiration: cdk.Duration.days(180),
         },
         {
           id: "PostgreSQL Monthly Backups",
