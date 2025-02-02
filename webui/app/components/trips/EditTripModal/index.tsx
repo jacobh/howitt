@@ -5,8 +5,7 @@ import { FragmentType, gql, useFragment } from "~/__generated__";
 import { Modal } from "../../Modal";
 import { MediaTable } from "./components/MediaTable";
 import { MediaDropzone } from "./components/MediaDropzone";
-import { TabItem } from "./components/TabItem";
-import { TabList } from "./components/TabList";
+import * as Tabs from "@radix-ui/react-tabs";
 import { match, P } from "ts-pattern";
 import { isNotNil } from "~/services/isNotNil";
 import { Temporal } from "@js-temporal/polyfill";
@@ -162,6 +161,39 @@ const deleteNoteButtonStyles = css`
 
   &:hover {
     color: #ff4444;
+  }
+`;
+
+const tabsRootStyles = css`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+`;
+
+const tabsListStyles = css`
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 1rem;
+`;
+
+const tabTriggerStyles = css`
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  &[data-state="active"] {
+    border-bottom: 2px solid #000;
+  }
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+`;
+
+const tabContentStyles = css`
+  &[data-state="inactive"] {
+    display: none;
   }
 `;
 
@@ -394,8 +426,20 @@ export function EditTripModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} css={formStyles}>
-        <TabList>
-          <TabItem label="Trip">
+        <Tabs.Root defaultValue="trip" css={tabsRootStyles}>
+          <Tabs.List css={tabsListStyles}>
+            <Tabs.Trigger value="trip" css={tabTriggerStyles}>
+              Trip
+            </Tabs.Trigger>
+            <Tabs.Trigger value="content" css={tabTriggerStyles}>
+              Content
+            </Tabs.Trigger>
+            <Tabs.Trigger value="media" css={tabTriggerStyles}>
+              Media
+            </Tabs.Trigger>
+          </Tabs.List>
+
+          <Tabs.Content value="trip" css={tabContentStyles}>
             <div css={formFieldStyles}>
               <label htmlFor="name">Name</label>
               <input
@@ -419,9 +463,9 @@ export function EditTripModal({
                 rows={4}
               />
             </div>
-          </TabItem>
+          </Tabs.Content>
 
-          <TabItem label="Content">
+          <Tabs.Content value="content" css={tabContentStyles}>
             <h2>Content</h2>
             <div css={contentBlockContainerStyles}>
               {localContentBlocks.at(0)?.__typename !== "Note" && (
@@ -510,9 +554,9 @@ export function EditTripModal({
                 ),
               )}
             </div>
-          </TabItem>
+          </Tabs.Content>
 
-          <TabItem label="Media">
+          <Tabs.Content value="media" css={tabContentStyles}>
             <MediaTable
               trip={tripFragment}
               onRemoveMedia={handleRemoveMedia}
@@ -524,8 +568,8 @@ export function EditTripModal({
               uploading={uploading}
               setUploading={setUploading}
             />
-          </TabItem>
-        </TabList>
+          </Tabs.Content>
+        </Tabs.Root>
 
         <div css={buttonGroupStyles}>
           <button type="button" onClick={onClose}>
