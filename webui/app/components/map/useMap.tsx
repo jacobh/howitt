@@ -31,19 +31,15 @@ export function useMap({
   onVisibleRoutesChanged,
   mapElementRef,
 }: UseMapProps): { map: OlMap | undefined } {
-  const { map: existingMap, setMap } = useContext(PrimaryMapContext);
   const [isFirstMapRender, setIsFirstRender] = useState(true);
   const mapRef = useRef<OlMap>(undefined);
 
   useEffect(() => {
-    let map: OlMap;
-    if (existingMap instanceof OlMap) {
-      console.log("map already rendered");
+    let map: OlMap | undefined = undefined;
 
-      mapRef.current = existingMap;
-      map = existingMap;
-
-      existingMap.setTarget(mapElementRef.current ?? undefined);
+    if (mapRef.current) {
+      map = mapRef.current;
+      map.setTarget(mapElementRef.current ?? undefined);
     } else {
       console.log("initial map render");
 
@@ -64,16 +60,14 @@ export function useMap({
         ],
       });
 
-      setMap(newMap);
       mapRef.current = newMap;
       map = newMap;
     }
 
-    if (isFirstMapRender && initialView?.type === "view") {
-      map.setView(new View({ ...initialView.view, enableRotation: false }));
-    }
-    if (existingMap === undefined) {
-      map.setView(new View(DEFAULT_VIEW));
+    if (isFirstMapRender) {
+      if (initialView?.type === "view") {
+        map.setView(new View({ ...initialView.view, enableRotation: false }));
+      } else map.setView(new View(DEFAULT_VIEW));
     }
 
     setIsFirstRender(false);
@@ -145,8 +139,6 @@ export function useMap({
       map.getView().un("change:center", onViewChange);
     };
   }, [
-    existingMap,
-    setMap,
     initialView,
     onVisibleRoutesChanged,
     isFirstMapRender,
