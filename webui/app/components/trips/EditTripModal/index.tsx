@@ -11,7 +11,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { Temporal } from "@js-temporal/polyfill";
 import { ResultOf } from "@graphql-typed-document-node/core";
 import { blocksWithPositionInfo } from "./utils/blocksWithPositionInfo";
-import { useMutative } from "use-mutative";
+import { useLocalContentBlocks } from "./hooks/useLocalContentBlocks";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -211,9 +211,10 @@ export function EditTripModal({
   refetch,
 }: Props): React.ReactElement {
   const trip = useFragment(EditTripFragment, tripFragment);
-  const [localContentBlocks, setLocalContentBlocks] = useMutative(
-    trip.temporalContentBlocks,
-  );
+
+  const { localContentBlocks, onCreateNote, onUpdateNote, onDeleteNote } =
+    useLocalContentBlocks(trip.temporalContentBlocks);
+
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(trip.name);
   const [description, setDescription] = useState(trip.description ?? "");
@@ -224,89 +225,6 @@ export function EditTripModal({
       onClose();
     },
   });
-
-  const onAddNote = useCallback(
-    (index: number | "start" | "end") => {
-      setLocalContentBlocks((draft) => {
-        match(index)
-          .with("start", () => {
-            const firstBlock = draft.at(0);
-            const firstTimestamp = firstBlock
-              ? Temporal.Instant.from(firstBlock.contentAt)
-              : Temporal.Now.instant();
-            const newTimestamp = firstTimestamp
-              .subtract({ hours: 1 })
-              .toString();
-
-            draft.unshift({
-              __typename: "Note" as const,
-              contentAt: newTimestamp,
-              text: "",
-            });
-          })
-          .with("end", () => {
-            const lastBlock = draft.at(-1);
-            const lastTimestamp = lastBlock
-              ? Temporal.Instant.from(lastBlock.contentAt)
-              : Temporal.Now.instant();
-            const newTimestamp = lastTimestamp.add({ hours: 1 }).toString();
-
-            draft.push({
-              __typename: "Note" as const,
-              contentAt: newTimestamp,
-              text: "",
-            });
-          })
-          .with(P.number, (i) => {
-            const currentBlock = draft[i];
-            const nextBlock = draft.at(i + 1);
-
-            const currentInstant = Temporal.Instant.from(
-              currentBlock.contentAt,
-            );
-            const nextInstant = nextBlock
-              ? Temporal.Instant.from(nextBlock.contentAt)
-              : Temporal.Now.instant();
-
-            const diffSeconds = nextInstant
-              .since(currentInstant)
-              .total("seconds");
-            const newTimestamp = currentInstant
-              .add({ seconds: Math.floor(diffSeconds / 2) })
-              .toString();
-
-            draft.splice(i + 1, 0, {
-              __typename: "Note" as const,
-              contentAt: newTimestamp,
-              text: "",
-            });
-          })
-          .exhaustive();
-      });
-    },
-    [setLocalContentBlocks],
-  );
-
-  const onUpdateNote = useCallback(
-    (index: number, text: string) => {
-      setLocalContentBlocks((draft) => {
-        const note = draft[index];
-        if (note.__typename === "Note") {
-          note.text = text;
-        }
-      });
-    },
-    [setLocalContentBlocks],
-  );
-
-  const onDeleteNote = useCallback(
-    (index: number) => {
-      setLocalContentBlocks((draft) => {
-        draft.splice(index, 1);
-      });
-    },
-    [setLocalContentBlocks],
-  );
 
   const [removeMedia, { loading: removingMedia }] = useMutation(
     RemoveTripMediaMutation,
@@ -409,7 +327,7 @@ export function EditTripModal({
               {localContentBlocks.at(0)?.__typename !== "Note" && (
                 <div
                   css={addNoteButtonStyles}
-                  onClick={(): void => onAddNote("start")}
+                  onClick={(): void => onCreateNote("start")}
                 >
                   Add note at start
                 </div>
@@ -474,7 +392,7 @@ export function EditTripModal({
                         () => (
                           <div
                             css={addNoteButtonStyles}
-                            onClick={(): void => onAddNote(idx)}
+                            onClick={(): void => onCreateNote(idx)}
                           >
                             +
                           </div>
