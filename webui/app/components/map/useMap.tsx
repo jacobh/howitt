@@ -20,6 +20,7 @@ type UseMapProps = Pick<
   | "initialView"
   | "onVisibleRoutesChanged"
   | "onRouteClicked"
+  | "interactive"
 > & { mapElementRef: React.RefObject<HTMLElement | null> };
 
 export const DEFAULT_VIEW: ViewOptions = {
@@ -35,6 +36,7 @@ export function useMap({
   onRouteClicked,
   onVisibleRoutesChanged,
   mapElementRef,
+  interactive = true,
 }: UseMapProps): { map: OlMap | undefined } {
   const [isFirstMapRender, setIsFirstRender] = useState(true);
   const mapRef = useRef<OlMap>(undefined);
@@ -67,6 +69,7 @@ export function useMap({
             }),
           }),
         ],
+        ...(interactive ? {} : { interactions: [], controls: [] }),
       });
 
       mapRef.current = newMap;
@@ -151,6 +154,7 @@ export function useMap({
       map.getView().un("change:center", onViewChange);
     };
   }, [
+    interactive,
     existingMapInstance,
     onNewMapInstance,
     initialView,

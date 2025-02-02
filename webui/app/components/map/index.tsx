@@ -43,6 +43,7 @@ export interface MapProps {
   onVisibleRoutesChanged?: (
     routes: { routeId: string; distanceFromCenter: number }[],
   ) => void;
+  interactive?: boolean;
 
   onRouteClicked?: (routeId: string | undefined) => void;
 }
@@ -102,6 +103,7 @@ export function Map({
   onRouteClicked,
   mapInstance,
   onNewMapInstance,
+  interactive = true,
 }: MapProps): React.ReactElement {
   const mapElementRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +114,7 @@ export function Map({
     onVisibleRoutesChanged,
     onRouteClicked,
     mapElementRef,
+    interactive,
   });
 
   useEffect(() => {
