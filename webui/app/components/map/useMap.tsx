@@ -12,7 +12,7 @@ import BaseEvent from "ol/events/Event";
 import { isNotNil } from "~/services/isNotNil";
 import { debounce, min } from "lodash";
 import { MapProps } from ".";
-import { MapContext } from "./context";
+import { PrimaryMapContext } from "./context";
 
 type UseMapProps = Pick<
   MapProps,
@@ -31,7 +31,7 @@ export function useMap({
   onVisibleRoutesChanged,
   mapElementRef,
 }: UseMapProps): { map: OlMap | undefined } {
-  const { map: existingMap, setMap } = useContext(MapContext);
+  const { map: existingMap, setMap } = useContext(PrimaryMapContext);
   const [isFirstMapRender, setIsFirstRender] = useState(true);
   const mapRef = useRef<OlMap>(undefined);
 

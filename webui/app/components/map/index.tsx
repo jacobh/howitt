@@ -19,7 +19,7 @@ import { useMap } from "./useMap";
 import { Extent } from "ol/extent";
 import { match, P } from "ts-pattern";
 
-export { MapContext } from "./context";
+export { PrimaryMapContext } from "./context";
 
 export interface DisplayedRoute {
   route: Pick<Route, "id" | "pointsJson">;

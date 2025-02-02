@@ -11,7 +11,7 @@ import { useContext, useRef, useEffect, useState } from "react";
 import { ClientStyleContext } from "./styles/client.context";
 import { ServerStyleContext } from "./styles/server.context";
 import stylesheet from "./styles/__generated__/tailwind.css?url";
-import { MapContext } from "./components/map";
+import { PrimaryMapContext } from "./components/map";
 import OlMap from "ol/Map";
 
 export const meta = (): MetaDescriptor[] => [
@@ -126,11 +126,11 @@ export default function App(): React.ReactNode {
 
   return (
     <Document>
-      <MapContext.Provider value={{ map, setMap }}>
+      <PrimaryMapContext.Provider value={{ map, setMap }}>
         <main css={mainCss}>
           <Outlet />
         </main>
-      </MapContext.Provider>
+      </PrimaryMapContext.Provider>
     </Document>
   );
 }

@@ -1,9 +1,11 @@
 import OlMap from "ol/Map";
 import { createContext } from "react";
 
-export interface MapContext {
+export interface PrimaryMapContext {
   map?: OlMap | undefined;
   setMap: (map: OlMap) => void;
 }
 
-export const MapContext = createContext<MapContext>({ setMap: () => {} });
+export const PrimaryMapContext = createContext<PrimaryMapContext>({
+  setMap: () => {},
+});
