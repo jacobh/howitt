@@ -17,6 +17,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { some } from "lodash";
 import { useMap } from "./useMap";
 import { Extent } from "ol/extent";
+import { match, P } from "ts-pattern";
 
 export { MapContext } from "./context";
 
@@ -54,6 +55,41 @@ const mapCss = css`
   height: 100%;
 `;
 
+export const ROUTE_STYLES = {
+  default: new Style({
+    stroke: new Stroke({ color: "#a54331", width: 4 }),
+  }),
+  muted: new Style({
+    stroke: new Stroke({ color: "#808080", width: 4 }),
+  }),
+  highlighted: new Style({
+    stroke: new Stroke({ color: "#39abbf", width: 4 }),
+  }),
+};
+
+export const CHECKPOINT_STYLES = {
+  hut: new Style({
+    image: new Circle({
+      fill: new Fill({ color: "rgba(255,255,255,0.4)" }),
+      stroke: new Stroke({ color: "#5e8019", width: 1.25 }),
+      radius: 5,
+    }),
+  }),
+  station: new Style({
+    image: new Circle({
+      fill: new Fill({ color: "rgba(255,255,255,0.4)" }),
+      stroke: new Stroke({ color: "#4b6eaf", width: 1.25 }),
+      radius: 5,
+    }),
+  }),
+};
+
+export const RIDE_STYLES = {
+  default: new Style({
+    stroke: new Stroke({ color: "#29892e", width: 4 }),
+  }),
+};
+
 export function Map({
   routes,
   rides,
@@ -70,40 +106,6 @@ export function Map({
     onRouteClicked,
     mapElementRef,
   });
-
-  const hutStyle = useMemo<Style>(
-    () =>
-      new Style({
-        image: new Circle({
-          fill: new Fill({
-            color: "rgba(255,255,255,0.4)",
-          }),
-          stroke: new Stroke({
-            color: "#5e8019",
-            width: 1.25,
-          }),
-          radius: 5,
-        }),
-      }),
-    [],
-  );
-
-  const stationStyle = useMemo<Style>(
-    () =>
-      new Style({
-        image: new Circle({
-          fill: new Fill({
-            color: "rgba(255,255,255,0.4)",
-          }),
-          stroke: new Stroke({
-            color: "#4b6eaf",
-            width: 1.25,
-          }),
-          radius: 5,
-        }),
-      }),
-    [],
-  );
 
   useEffect(() => {
     if (!map) {
@@ -196,24 +198,12 @@ export function Map({
         });
       }
 
-      let color;
-
-      switch (style) {
-        case "muted":
-          color = "#808080";
-          break;
-        case "highlighted":
-          color = "#39abbf";
-          break;
-        default:
-          color = "#a54331";
-          break;
-      }
-
       layer.setStyle(
-        new Style({
-          stroke: new Stroke({ color, width: 4 }),
-        }),
+        match(style)
+          .with("muted", () => ROUTE_STYLES.muted)
+          .with("highlighted", () => ROUTE_STYLES.highlighted)
+          .with(P.union("default", undefined), () => ROUTE_STYLES.default)
+          .exhaustive(),
       );
 
       if (
@@ -274,27 +264,7 @@ export function Map({
         });
       }
 
-      const color = "#29892e";
-
-      // let color;
-
-      // switch (style) {
-      //   case "muted":
-      //     color = "#808080";
-      //     break;
-      //   case "highlighted":
-      //     color = "#39abbf";
-      //     break;
-      //   default:
-      //     color = "#a54331";
-      //     break;
-      // }
-
-      layer.setStyle(
-        new Style({
-          stroke: new Stroke({ color, width: 4 }),
-        }),
-      );
+      layer.setStyle(RIDE_STYLES.default);
 
       if (
         initialView?.type === "rides" &&
@@ -327,10 +297,13 @@ export function Map({
               features: [new Feature(new Point(checkpoint.point))],
             }),
             properties: { checkpointName: checkpoint.name },
-            style:
-              checkpoint.pointOfInterestType === PointOfInterestType.Hut
-                ? hutStyle
-                : stationStyle,
+            style: match(checkpoint.pointOfInterestType)
+              .with(PointOfInterestType.Hut, () => CHECKPOINT_STYLES.hut)
+              .with(
+                PointOfInterestType.RailwayStation,
+                () => CHECKPOINT_STYLES.station,
+              )
+              .otherwise(() => CHECKPOINT_STYLES.station),
           }),
         );
       }
@@ -342,57 +315,7 @@ export function Map({
         duration: 0,
       });
     }
-  }, [routes, checkpoints, map, initialView, hutStyle, stationStyle, rides]);
+  }, [routes, checkpoints, map, initialView, rides]);
 
   return <div css={mapCss} ref={mapElementRef} />;
 }
-
-// function usePrevious<T>(value: T, initialValue: T): T {
-//   const ref = useRef(initialValue);
-//   useEffect(() => {
-//     ref.current = value;
-//   });
-//   return ref.current;
-// }
-
-// function useEffectDebugger(
-//   effect: React.EffectCallback,
-//   dependencies: React.DependencyList,
-//   dependencyNames: string[] = []
-// ): void {
-//   const previousDeps = usePrevious(dependencies, []);
-
-//   const changedDeps = dependencies.reduce(
-//     (
-//       accum: Record<
-//         string,
-//         {
-//           before: unknown;
-//           after: unknown;
-//         }
-//       >,
-//       dependency,
-//       index
-//     ) => {
-//       if (dependency !== previousDeps[index]) {
-//         const keyName = dependencyNames[index] || index;
-//         return {
-//           ...accum,
-//           [keyName]: {
-//             before: previousDeps[index],
-//             after: dependency,
-//           },
-//         };
-//       }
-
-//       return accum;
-//     },
-//     {}
-//   );
-
-//   if (Object.keys(changedDeps).length) {
-//     console.log("[use-effect-debugger] ", changedDeps);
-//   }
-
-//   useEffect(effect, dependencies);
-// }
