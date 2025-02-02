@@ -1,9 +1,23 @@
 import { css } from "@emotion/react";
-import { FragmentType, useFragment } from "~/__generated__";
-import { EditTripFragment } from "..";
+import { FragmentType, gql, useFragment } from "~/__generated__";
 
+export const TripMediaFragment = gql(`
+  fragment tripMedia on Trip {
+    id
+    media {
+      id
+      path
+      createdAt
+      imageSizes {
+        fill600 {
+          webpUrl
+        }
+      }
+    }
+  }
+`);
 interface Props {
-  trip: FragmentType<typeof EditTripFragment>;
+  trip: FragmentType<typeof TripMediaFragment>;
   onRemoveMedia: (mediaId: string) => void;
   removingMedia: boolean;
 }
@@ -64,7 +78,7 @@ export function MediaTable({
   onRemoveMedia,
   removingMedia,
 }: Props): React.ReactElement {
-  const trip = useFragment(EditTripFragment, tripFragment);
+  const trip = useFragment(TripMediaFragment, tripFragment);
 
   return (
     <table css={mediaTableCss}>

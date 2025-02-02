@@ -457,6 +457,21 @@ export type RouteItemFragment = {
   isMetaComplete: boolean;
 } & { " $fragmentName"?: "RouteItemFragment" };
 
+export type TripMediaFragment = {
+  __typename?: "Trip";
+  id: any;
+  media: Array<{
+    __typename?: "Media";
+    id: any;
+    path: string;
+    createdAt: any;
+    imageSizes: {
+      __typename?: "ImageSizes";
+      fill600: { __typename?: "ImageSize"; webpUrl: string };
+    };
+  }>;
+} & { " $fragmentName"?: "TripMediaFragment" };
+
 export type TripRidesFragment = {
   __typename?: "Trip";
   id: any;
@@ -488,19 +503,12 @@ export type EditTripFragment = ({
     | { __typename: "Note"; text: string; contentAt: any }
     | { __typename: "Ride"; name: string; contentAt: any; rideId: any }
   >;
-  media: Array<{
-    __typename?: "Media";
-    id: any;
-    path: string;
-    createdAt: any;
-    imageSizes: {
-      __typename?: "ImageSizes";
-      fill600: { __typename?: "ImageSize"; webpUrl: string };
-    };
-  }>;
-} & { " $fragmentRefs"?: { TripRidesFragment: TripRidesFragment } }) & {
-  " $fragmentName"?: "EditTripFragment";
-};
+} & {
+  " $fragmentRefs"?: {
+    TripRidesFragment: TripRidesFragment;
+    TripMediaFragment: TripMediaFragment;
+  };
+}) & { " $fragmentName"?: "EditTripFragment" };
 
 export type UpdateTripMutationVariables = Exact<{
   input: UpdateTripInput;
@@ -955,6 +963,59 @@ export const TripRidesFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<TripRidesFragment, unknown>;
+export const TripMediaFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripMedia" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "media" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "path" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "imageSizes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "fill600" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "webpUrl" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TripMediaFragment, unknown>;
 export const EditTripFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -974,6 +1035,10 @@ export const EditTripFragmentDoc = {
           {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripRides" },
+          },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "tripMedia" },
           },
           {
             kind: "Field",
@@ -1056,6 +1121,48 @@ export const EditTripFragmentDoc = {
               ],
             },
           },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripRides" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "rides" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "distance" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripMedia" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "media" },
@@ -1087,34 +1194,6 @@ export const EditTripFragmentDoc = {
                     ],
                   },
                 },
-              ],
-            },
-          },
-        ],
-      },
-    },
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "tripRides" },
-      typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "Trip" },
-      },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "rides" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "name" } },
-                { kind: "Field", name: { kind: "Name", value: "startedAt" } },
-                { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
-                { kind: "Field", name: { kind: "Name", value: "distance" } },
               ],
             },
           },
@@ -2189,6 +2268,54 @@ export const TripQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripMedia" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "media" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "path" } },
+                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "imageSizes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "fill600" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "webpUrl" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
       name: { kind: "Name", value: "viewerInfo" },
       typeCondition: {
         kind: "NamedType",
@@ -2227,6 +2354,10 @@ export const TripQueryDocument = {
           {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripRides" },
+          },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "tripMedia" },
           },
           {
             kind: "Field",
@@ -2303,40 +2434,6 @@ export const TripQueryDocument = {
                         name: { kind: "Name", value: "id" },
                       },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "media" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "id" } },
-                { kind: "Field", name: { kind: "Name", value: "path" } },
-                { kind: "Field", name: { kind: "Name", value: "createdAt" } },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "imageSizes" },
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "fill600" },
-                        selectionSet: {
-                          kind: "SelectionSet",
-                          selections: [
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "webpUrl" },
-                            },
-                          ],
-                        },
-                      },
                     ],
                   },
                 },

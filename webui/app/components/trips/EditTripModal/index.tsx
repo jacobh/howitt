@@ -20,6 +20,7 @@ export const EditTripFragment = gql(`
     name 
     description
     ...tripRides
+    ...tripMedia
     temporalContentBlocks {
       __typename
       contentAt
@@ -37,16 +38,6 @@ export const EditTripFragment = gql(`
       ... on Ride {
         rideId: id
         name
-      }
-    }
-    media {
-      id
-      path
-      createdAt
-      imageSizes {
-        fill600 {
-          webpUrl
-        }
       }
     }
   }
@@ -418,7 +409,7 @@ export function EditTripModal({
 
           <Tabs.Content value="media" css={tabContentStyles}>
             <MediaTable
-              trip={tripFragment}
+              trip={trip}
               onRemoveMedia={handleRemoveMedia}
               removingMedia={removingMedia}
             />
