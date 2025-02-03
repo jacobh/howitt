@@ -19,6 +19,7 @@ import { DataTable } from "~/components/DataTable";
 import { capitalize } from "lodash";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
+import { useMemo } from "react";
 
 const RouteQuery = gql(`
 query RouteQuery($slug: String!) {
@@ -117,6 +118,12 @@ export default function Route(): React.ReactElement {
       buildRouteTrack(nearby.closestTerminus.route, "muted"),
     ),
   ].filter(isNotNil);
+
+  const initialView = useMemo(
+    () =>
+      route ? { type: "tracks" as const, trackIds: [route.id] } : undefined,
+    [route],
+  );
 
   const tableItems = [
     { name: "Technical Difficulty", value: route?.technicalDifficulty },
@@ -225,12 +232,7 @@ export default function Route(): React.ReactElement {
         </div>
       </SidebarContainer>
       <MapContainer>
-        <PrimaryMap
-          tracks={tracks}
-          initialView={
-            route ? { type: "tracks", trackIds: [route.id] } : undefined
-          }
-        />
+        <PrimaryMap tracks={tracks} initialView={initialView} />
       </MapContainer>
     </Container>
   );

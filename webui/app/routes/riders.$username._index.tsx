@@ -1,4 +1,4 @@
-import { DEFAULT_VIEW } from "../components/map";
+import { DEFAULT_INITIAL_VIEW, DEFAULT_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "../__generated__/gql";
 import {
@@ -111,10 +111,7 @@ export default function UserProfile(): React.ReactElement {
       </SidebarContainer>
       <MapContainer>
         <PrimaryMap
-          initialView={{
-            type: "view",
-            view: DEFAULT_VIEW,
-          }}
+          initialView={DEFAULT_INITIAL_VIEW}
           tracks={(
             data2?.userWithUsername?.recentRides ??
             data?.userWithUsername?.recentRides

@@ -47,6 +47,11 @@ export const DEFAULT_VIEW: ViewOptions = {
   enableRotation: false,
 };
 
+export const DEFAULT_INITIAL_VIEW = {
+  type: "view" as const,
+  view: DEFAULT_VIEW,
+};
+
 const mapCss = css`
   width: 100%;
   height: 100%;

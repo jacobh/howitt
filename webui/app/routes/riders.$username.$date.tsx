@@ -12,6 +12,7 @@ import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
+import { useMemo } from "react";
 
 const RidesWithDateQuery = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {
@@ -50,6 +51,17 @@ function UserProfileDate(): React.ReactElement {
     },
     ssr: false,
   });
+
+  const initialView = useMemo(
+    () =>
+      data?.userWithUsername?.ridesWithDate
+        ? {
+            type: "tracks" as const,
+            trackIds: data.userWithUsername.ridesWithDate.map(({ id }) => id),
+          }
+        : undefined,
+    [data],
+  );
 
   // Format the date for display using Temporal
   const displayDate = params.date
@@ -106,16 +118,7 @@ function UserProfileDate(): React.ReactElement {
       </SidebarContainer>
       <MapContainer>
         <PrimaryMap
-          initialView={
-            data?.userWithUsername?.ridesWithDate
-              ? {
-                  type: "tracks",
-                  trackIds: data.userWithUsername.ridesWithDate.map(
-                    ({ id }) => id,
-                  ),
-                }
-              : undefined
-          }
+          initialView={initialView}
           tracks={(
             data2?.userWithUsername?.ridesWithDate ??
             data?.userWithUsername?.ridesWithDate

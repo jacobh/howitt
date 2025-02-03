@@ -29,7 +29,7 @@ export function useInitialView({
 
   useEffect(() => {
     setIsInitialViewSet(false);
-  }, [map, initialView]);
+  }, [initialView]);
 
   useEffect(() => {
     if (!map || isInitialViewSet) {
@@ -74,7 +74,7 @@ export function useInitialView({
     }
 
     setIsInitialViewSet(true);
-  }, [map, tracks, initialView, isInitialViewSet]);
+  }, [map, initialView, isInitialViewSet]);
 
   return { isInitialViewSet };
 }

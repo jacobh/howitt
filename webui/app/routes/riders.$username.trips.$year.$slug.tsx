@@ -161,6 +161,14 @@ export default function TripDetail(): React.ReactElement {
     );
   }, [allRides]);
 
+  const initialView = useMemo(
+    () => ({
+      type: "tracks" as const,
+      trackIds: allRides.map(({ id }) => id),
+    }),
+    [allRides],
+  );
+
   const isOwnTrip =
     data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;
 
@@ -218,10 +226,13 @@ export default function TripDetail(): React.ReactElement {
                           tracks={[rideIdRideMap.get(ride.rideId)].filter(
                             isNotNil,
                           )}
-                          initialView={{
-                            type: "tracks",
-                            trackIds: [ride.rideId],
-                          }}
+                          initialView={useMemo(
+                            () => ({
+                              type: "tracks",
+                              trackIds: [ride.rideId],
+                            }),
+                            [ride.rideId],
+                          )}
                         />
                       </div>
                       <RideItem ride={ride} />
@@ -258,10 +269,7 @@ export default function TripDetail(): React.ReactElement {
 
       <MapContainer>
         <PrimaryMap
-          initialView={{
-            type: "tracks",
-            trackIds: allRides.map(({ id }) => id),
-          }}
+          initialView={initialView}
           tracks={
             (
               data2?.userWithUsername?.tripWithSlug ??
