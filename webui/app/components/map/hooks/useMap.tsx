@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import OlMap from "ol/Map";
 import { getDistance } from "ol/sphere";
 import View, { ViewOptions } from "ol/View";
@@ -36,17 +36,17 @@ export function useMap({
   mapElementRef,
   interactive = true,
 }: UseMapProps): { map: OlMap | undefined } {
-  const mapRef = useRef<OlMap>(undefined);
+  const [map, setMap] = useState<OlMap | undefined>(undefined);
 
   useEffect(() => {
     if (existingMapInstance) {
-      mapRef.current = existingMapInstance;
+      setMap(existingMapInstance);
       existingMapInstance.setTarget(mapElementRef.current ?? undefined);
       return;
     }
 
-    if (mapRef.current) {
-      mapRef.current.setTarget(mapElementRef.current ?? undefined);
+    if (map) {
+      map.setTarget(mapElementRef.current ?? undefined);
       return;
     }
 
@@ -67,12 +67,11 @@ export function useMap({
       ...(interactive ? {} : { interactions: [], controls: [] }),
     });
 
-    mapRef.current = newMap;
+    setMap(newMap);
     onNewMapInstance?.(newMap);
-  }, [existingMapInstance, interactive, onNewMapInstance, mapElementRef]);
+  }, [existingMapInstance, mapElementRef, map]);
 
   useEffect(() => {
-    const map = mapRef.current;
     if (!map) return;
 
     const clickListener = (event: MapBrowserEvent<any>): void => {
@@ -86,10 +85,9 @@ export function useMap({
     map.on("click", clickListener);
 
     return () => map.un("click", clickListener);
-  }, [onRouteClicked]);
+  }, [onRouteClicked, map]);
 
   useEffect(() => {
-    const map = mapRef.current;
     if (!map) return;
 
     const onViewChange = debounce((event: BaseEvent): void => {
@@ -133,6 +131,7 @@ export function useMap({
     map.getView().on("change:center", onViewChange);
 
     return () => map.getView().un("change:center", onViewChange);
-  }, [onVisibleRoutesChanged]);
-  return { map: mapRef.current };
+  }, [onVisibleRoutesChanged, map]);
+
+  return { map };
 }
