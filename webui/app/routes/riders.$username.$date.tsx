@@ -11,6 +11,7 @@ import { gql } from "~/__generated__";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { buildRideTrack } from "~/components/map/types";
 
 const RidesWithDateQuery = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {
@@ -115,10 +116,10 @@ function UserProfileDate(): React.ReactElement {
                 }
               : undefined
           }
-          rides={
+          tracks={(
             data2?.userWithUsername?.ridesWithDate ??
             data?.userWithUsername?.ridesWithDate
-          }
+          )?.map((ride) => buildRideTrack(ride))}
         />
       </MapContainer>
     </Container>

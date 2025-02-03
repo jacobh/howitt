@@ -25,7 +25,6 @@ export { PrimaryMapContext } from "./context";
 export interface MapProps {
   mapInstance?: OlMap | undefined;
   onNewMapInstance?: (map: OlMap) => void;
-  rides?: Pick<Ride, "id" | "pointsJson">[];
   tracks?: Track[];
   checkpoints?: Pick<
     PointOfInterest,
@@ -96,7 +95,6 @@ export const RIDE_STYLES = {
 
 export function Map({
   tracks = [],
-  rides,
   checkpoints,
   initialView,
   onVisibleRoutesChanged,
@@ -116,16 +114,8 @@ export function Map({
     interactive,
   });
 
-  const rideTracks: Track[] = (rides ?? []).map((ride) => ({
-    id: ride.id,
-    kind: "ride",
-    points: JSON.parse(ride.pointsJson),
-  }));
-
-  const allTracks = [...tracks, ...rideTracks];
-
-  useInitialView({ map, tracks: allTracks, initialView });
-  useTrackLayers({ map, tracks: allTracks });
+  useInitialView({ map, tracks, initialView });
+  useTrackLayers({ map, tracks });
 
   useEffect(() => {
     if (!map) {

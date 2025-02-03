@@ -14,6 +14,7 @@ import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { buildRideTrack } from "~/components/map/types";
 
 const UserProfileQuery = gql(`
   query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
@@ -114,10 +115,10 @@ export default function UserProfile(): React.ReactElement {
             type: "view",
             view: DEFAULT_VIEW,
           }}
-          rides={
+          tracks={(
             data2?.userWithUsername?.recentRides ??
             data?.userWithUsername?.recentRides
-          }
+          )?.map((ride) => buildRideTrack(ride))}
         />
       </MapContainer>
     </Container>

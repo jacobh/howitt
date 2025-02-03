@@ -17,6 +17,7 @@ import Markdown from "react-markdown";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { Map as MapComponent } from "~/components/map";
 import { isNotNil } from "~/services/isNotNil";
+import { buildRideTrack } from "~/components/map/types";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -155,7 +156,9 @@ export default function TripDetail(): React.ReactElement {
   );
 
   const rideIdRideMap = useMemo(() => {
-    return new Map(allRides.map((ride) => [ride.id, ride] as const));
+    return new Map(
+      allRides.map((ride) => [ride.id, buildRideTrack(ride)] as const),
+    );
   }, [allRides]);
 
   const isOwnTrip =
@@ -212,7 +215,7 @@ export default function TripDetail(): React.ReactElement {
                       <div css={rideMapStyles}>
                         <MapComponent
                           interactive={false}
-                          rides={[rideIdRideMap.get(ride.rideId)].filter(
+                          tracks={[rideIdRideMap.get(ride.rideId)].filter(
                             isNotNil,
                           )}
                           initialView={{
@@ -259,11 +262,13 @@ export default function TripDetail(): React.ReactElement {
             type: "tracks",
             trackIds: allRides.map(({ id }) => id),
           }}
-          rides={
+          tracks={
             (
               data2?.userWithUsername?.tripWithSlug ??
               data?.userWithUsername?.tripWithSlug
-            )?.legs.flatMap((leg) => leg.rides) ?? []
+            )?.legs
+              .flatMap((leg) => leg.rides)
+              .map((ride) => buildRideTrack(ride)) ?? []
           }
         />
       </MapContainer>
