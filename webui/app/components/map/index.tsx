@@ -110,7 +110,6 @@ export function Map({
   const { map } = useMap({
     mapInstance,
     onNewMapInstance,
-    initialView,
     onVisibleRoutesChanged,
     onRouteClicked,
     mapElementRef,

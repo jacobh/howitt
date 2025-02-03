@@ -17,7 +17,6 @@ type UseMapProps = Pick<
   MapProps,
   | "mapInstance"
   | "onNewMapInstance"
-  | "initialView"
   | "onVisibleRoutesChanged"
   | "onRouteClicked"
   | "interactive"
@@ -32,7 +31,6 @@ export const DEFAULT_VIEW: ViewOptions = {
 export function useMap({
   mapInstance: existingMapInstance,
   onNewMapInstance,
-  initialView,
   onRouteClicked,
   onVisibleRoutesChanged,
   mapElementRef,
@@ -148,7 +146,6 @@ export function useMap({
     interactive,
     existingMapInstance,
     onNewMapInstance,
-    initialView,
     onVisibleRoutesChanged,
     onRouteClicked,
     mapElementRef,
