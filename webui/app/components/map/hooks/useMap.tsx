@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import OlMap from "ol/Map";
 import { getDistance } from "ol/sphere";
 import View, { ViewOptions } from "ol/View";
@@ -39,62 +39,58 @@ export function useMap({
   const mapRef = useRef<OlMap>(undefined);
 
   useEffect(() => {
-    let map: OlMap | undefined = undefined;
-
     if (existingMapInstance) {
-      map = existingMapInstance;
       mapRef.current = existingMapInstance;
-      map.setTarget(mapElementRef.current ?? undefined);
-    } else if (mapRef.current) {
-      map = mapRef.current;
-      map.setTarget(mapElementRef.current ?? undefined);
-    } else {
-      console.log("initial map render");
-
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      useGeographic();
-
-      const newMap = new OlMap({
-        target: mapElementRef.current ?? undefined,
-        layers: [
-          new TileLayer({
-            preload: Infinity,
-            source: new XYZ({
-              urls: [
-                "https://d2o31mmlexa59r.cloudfront.net/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
-              ],
-            }),
-          }),
-        ],
-        ...(interactive ? {} : { interactions: [], controls: [] }),
-      });
-
-      mapRef.current = newMap;
-      map = newMap;
-      if (onNewMapInstance) {
-        onNewMapInstance(newMap);
-      }
+      existingMapInstance.setTarget(mapElementRef.current ?? undefined);
+      return;
     }
 
+    if (mapRef.current) {
+      mapRef.current.setTarget(mapElementRef.current ?? undefined);
+      return;
+    }
+
+    useGeographic();
+
+    const newMap = new OlMap({
+      target: mapElementRef.current ?? undefined,
+      layers: [
+        new TileLayer({
+          preload: Infinity,
+          source: new XYZ({
+            urls: [
+              "https://d2o31mmlexa59r.cloudfront.net/landscape/{z}/{x}/{y}.png?apikey=f1165310fdfb499d9793b076ed26c08e",
+            ],
+          }),
+        }),
+      ],
+      ...(interactive ? {} : { interactions: [], controls: [] }),
+    });
+
+    mapRef.current = newMap;
+    onNewMapInstance?.(newMap);
+  }, [existingMapInstance, interactive, onNewMapInstance, mapElementRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
     const clickListener = (event: MapBrowserEvent<any>): void => {
-      const clickedFeatures = map.getFeaturesAtPixel(event.pixel, {
+      const feature = map.getFeaturesAtPixel(event.pixel, {
         hitTolerance: 20.0,
-      });
-      const feature = clickedFeatures[0];
+      })[0];
 
-      if (!isNotNil(feature)) {
-        if (isNotNil(onRouteClicked)) {
-          onRouteClicked(undefined);
-        }
-        return;
-      }
-
-      const { routeId } = feature.getProperties();
-
-      if (isNotNil(onRouteClicked)) {
-        onRouteClicked(routeId);
-      }
+      onRouteClicked?.(feature?.getProperties().routeId);
     };
+
+    map.on("click", clickListener);
+
+    return () => map.un("click", clickListener);
+  }, [onRouteClicked]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
 
     const onViewChange = debounce((event: BaseEvent): void => {
       const view = event.target as View;
@@ -134,22 +130,9 @@ export function useMap({
       }
     }, 250);
 
-    map.on("click", clickListener);
     map.getView().on("change:center", onViewChange);
 
-    return () => {
-      map.setTarget(undefined);
-      map.un("click", clickListener);
-      map.getView().un("change:center", onViewChange);
-    };
-  }, [
-    interactive,
-    existingMapInstance,
-    onNewMapInstance,
-    onVisibleRoutesChanged,
-    onRouteClicked,
-    mapElementRef,
-  ]);
-
+    return () => map.getView().un("change:center", onViewChange);
+  }, [onVisibleRoutesChanged]);
   return { map: mapRef.current };
 }
