@@ -216,8 +216,8 @@ export default function TripDetail(): React.ReactElement {
                             isNotNil,
                           )}
                           initialView={{
-                            type: "rides",
-                            rideIds: [ride.rideId],
+                            type: "tracks",
+                            trackIds: [ride.rideId],
                           }}
                         />
                       </div>
@@ -256,8 +256,8 @@ export default function TripDetail(): React.ReactElement {
       <MapContainer>
         <PrimaryMap
           initialView={{
-            type: "rides",
-            rideIds: allRides.map(({ id }) => id),
+            type: "tracks",
+            trackIds: allRides.map(({ id }) => id),
           }}
           rides={
             (

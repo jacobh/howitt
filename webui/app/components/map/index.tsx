@@ -38,8 +38,7 @@ export interface MapProps {
     "name" | "point" | "pointOfInterestType"
   >[];
   initialView?:
-    | { type: "rides"; rideIds: string[] }
-    | { type: "routes"; routeIds: string[] }
+    | { type: "tracks"; trackIds: string[] }
     | { type: "view"; view: ViewOptions };
   onVisibleRoutesChanged?: (
     routes: { routeId: string; distanceFromCenter: number }[],

@@ -16,8 +16,7 @@ interface UseInitialViewProps {
   map: OlMap | undefined;
   tracks: Track[];
   initialView?:
-    | { type: "rides"; rideIds: string[] }
-    | { type: "routes"; routeIds: string[] }
+    | { type: "tracks"; trackIds: string[] }
     | { type: "view"; view: ViewOptions };
 }
 
@@ -45,15 +44,11 @@ export function useInitialView({
 
     let initialBounds: Extent | undefined = undefined;
 
-    // Calculate bounds for rides/routes
+    // Calculate bounds for tracks
     for (const track of tracks) {
       if (
-        (initialView?.type === "routes" &&
-          track.kind === "route" &&
-          initialView.routeIds.includes(track.id)) ||
-        (initialView?.type === "rides" &&
-          track.kind === "ride" &&
-          initialView.rideIds.includes(track.id))
+        initialView?.type === "tracks" &&
+        initialView.trackIds.includes(track.id)
       ) {
         const lineString = new LineString(track.points);
         if (!initialBounds) {

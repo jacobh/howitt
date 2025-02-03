@@ -229,7 +229,7 @@ export default function Route(): React.ReactElement {
         <PrimaryMap
           routes={routes}
           initialView={
-            route ? { type: "routes", routeIds: [route.id] } : undefined
+            route ? { type: "tracks", trackIds: [route.id] } : undefined
           }
         />
       </MapContainer>

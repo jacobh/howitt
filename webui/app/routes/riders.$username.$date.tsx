@@ -108,8 +108,8 @@ function UserProfileDate(): React.ReactElement {
           initialView={
             data?.userWithUsername?.ridesWithDate
               ? {
-                  type: "rides",
-                  rideIds: data.userWithUsername.ridesWithDate.map(
+                  type: "tracks",
+                  trackIds: data.userWithUsername.ridesWithDate.map(
                     ({ id }) => id,
                   ),
                 }
