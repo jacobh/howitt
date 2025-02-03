@@ -226,13 +226,10 @@ export default function TripDetail(): React.ReactElement {
                           tracks={[rideIdRideMap.get(ride.rideId)].filter(
                             isNotNil,
                           )}
-                          initialView={useMemo(
-                            () => ({
-                              type: "tracks",
-                              trackIds: [ride.rideId],
-                            }),
-                            [ride.rideId],
-                          )}
+                          initialView={{
+                            type: "tracks",
+                            trackIds: [ride.rideId],
+                          }}
                         />
                       </div>
                       <RideItem ride={ride} />
