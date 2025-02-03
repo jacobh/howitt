@@ -15,6 +15,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { sortBy } from "lodash";
 import { useSearchParams } from "@remix-run/react";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { buildRouteTrack } from "~/components/map/types";
 
 const HomeQueryNoPoints = gql(`
   query homeQuery($input: QueryRoutesInput!) {
@@ -128,18 +129,19 @@ export default function Routes(): React.ReactElement {
 
   const mapRoutes = useMemo(
     () =>
-      (data2?.queryRoutes ?? data?.queryRoutes ?? []).map((route) => ({
-        route: {
-          id: route.id,
-          pointsJson:
-            (route as any).pointsJson ??
-            JSON.stringify((route as any).samplePoints),
-        },
-        style:
+      (data2?.queryRoutes ?? data?.queryRoutes ?? []).map((route) =>
+        buildRouteTrack(
+          {
+            id: route.id,
+            pointsJson:
+              (route as any).pointsJson ??
+              JSON.stringify((route as any).samplePoints),
+          },
           hoveredRouteId === route.id || clickedRouteId === route.id
-            ? ("highlighted" as const)
+            ? "highlighted"
             : undefined,
-      })),
+        ),
+      ),
     [clickedRouteId, data?.queryRoutes, data2?.queryRoutes, hoveredRouteId],
   );
 
@@ -184,7 +186,7 @@ export default function Routes(): React.ReactElement {
       </SidebarContainer>
       <MapContainer>
         <PrimaryMap
-          routes={mapRoutes}
+          tracks={mapRoutes}
           initialView={{
             type: "view",
             view: DEFAULT_VIEW,

@@ -22,15 +22,9 @@ import { Track } from "./types";
 
 export { PrimaryMapContext } from "./context";
 
-export interface DisplayedRoute {
-  route: Pick<Route, "id" | "pointsJson">;
-  style?: "default" | "muted" | "highlighted";
-}
-
 export interface MapProps {
   mapInstance?: OlMap | undefined;
   onNewMapInstance?: (map: OlMap) => void;
-  routes?: DisplayedRoute[];
   rides?: Pick<Ride, "id" | "pointsJson">[];
   tracks?: Track[];
   checkpoints?: Pick<
@@ -102,7 +96,6 @@ export const RIDE_STYLES = {
 
 export function Map({
   tracks = [],
-  routes,
   rides,
   checkpoints,
   initialView,
@@ -124,21 +117,13 @@ export function Map({
     interactive,
   });
 
-  // Convert routes and rides to tracks
-  const routeTracks: Track[] = (routes ?? []).map(({ route, style }) => ({
-    id: route.id,
-    kind: "route",
-    points: JSON.parse(route.pointsJson),
-    style,
-  }));
-
   const rideTracks: Track[] = (rides ?? []).map((ride) => ({
     id: ride.id,
     kind: "ride",
     points: JSON.parse(ride.pointsJson),
   }));
 
-  const allTracks = [...tracks, ...rideTracks, ...routeTracks];
+  const allTracks = [...tracks, ...rideTracks];
 
   useInitialView({ map, tracks: allTracks, initialView });
   useTrackLayers({ map, tracks: allTracks });

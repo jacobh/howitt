@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { Link, useParams } from "@remix-run/react";
 import { gql } from "~/__generated__";
-import { DisplayedRoute } from "../../components/map";
 import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { isNotNil } from "~/services/isNotNil";
@@ -19,6 +18,7 @@ import { tokens } from "~/styles/tokens";
 import { DataTable } from "~/components/DataTable";
 import { capitalize } from "lodash";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { buildRouteTrack } from "~/components/map/types";
 
 const RouteQuery = gql(`
 query RouteQuery($slug: String!) {
@@ -111,12 +111,11 @@ export default function Route(): React.ReactElement {
     ),
   );
 
-  const routes: DisplayedRoute[] = [
-    route ? { route } : undefined,
-    ...nearbyRoutes.map((nearby) => ({
-      route: nearby.closestTerminus.route,
-      style: "muted" as const,
-    })),
+  const tracks = [
+    route ? buildRouteTrack(route) : undefined,
+    ...nearbyRoutes.map((nearby) =>
+      buildRouteTrack(nearby.closestTerminus.route, "muted"),
+    ),
   ].filter(isNotNil);
 
   const tableItems = [
@@ -227,7 +226,7 @@ export default function Route(): React.ReactElement {
       </SidebarContainer>
       <MapContainer>
         <PrimaryMap
-          routes={routes}
+          tracks={tracks}
           initialView={
             route ? { type: "tracks", trackIds: [route.id] } : undefined
           }
