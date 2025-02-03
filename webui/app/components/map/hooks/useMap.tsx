@@ -11,7 +11,7 @@ import VectorSource from "ol/source/Vector";
 import BaseEvent from "ol/events/Event";
 import { isNotNil } from "~/services/isNotNil";
 import { debounce, min } from "lodash";
-import { MapProps } from ".";
+import { MapProps } from "..";
 
 type UseMapProps = Pick<
   MapProps,

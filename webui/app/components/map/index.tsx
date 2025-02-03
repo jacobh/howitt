@@ -10,17 +10,14 @@ import { Feature } from "ol";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { Style, Stroke, Circle } from "ol/style";
-import { LineString, Point } from "ol/geom";
+import { Point } from "ol/geom";
 import Fill from "ol/style/Fill";
-import { css } from "@emotion/react";
-import { isNotNil } from "~/services/isNotNil";
-import { some } from "lodash";
-import { useMap } from "./useMap";
-import { Extent } from "ol/extent";
-import { match, P } from "ts-pattern";
 import OlMap from "ol/Map";
-import { useTrackLayers } from "./useTrackLayers";
-import { useInitialView } from "./useInitialView";
+import { css } from "@emotion/react";
+import { match, P } from "ts-pattern";
+import { useMap } from "./hooks/useMap";
+import { useTrackLayers } from "./hooks/useTrackLayers";
+import { useInitialView } from "./hooks/useInitialView";
 
 export { PrimaryMapContext } from "./context";
 
