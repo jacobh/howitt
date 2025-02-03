@@ -38,7 +38,6 @@ export function useMap({
   mapElementRef,
   interactive = true,
 }: UseMapProps): { map: OlMap | undefined } {
-  const [isFirstMapRender, setIsFirstRender] = useState(true);
   const mapRef = useRef<OlMap>(undefined);
 
   useEffect(() => {
@@ -78,14 +77,6 @@ export function useMap({
         onNewMapInstance(newMap);
       }
     }
-
-    if (isFirstMapRender) {
-      if (initialView?.type === "view") {
-        map.setView(new View({ ...initialView.view, enableRotation: false }));
-      } else map.setView(new View(DEFAULT_VIEW));
-    }
-
-    setIsFirstRender(false);
 
     const clickListener = (event: MapBrowserEvent<any>): void => {
       const clickedFeatures = map.getFeaturesAtPixel(event.pixel, {
@@ -159,8 +150,6 @@ export function useMap({
     onNewMapInstance,
     initialView,
     onVisibleRoutesChanged,
-    isFirstMapRender,
-    setIsFirstRender,
     onRouteClicked,
     mapElementRef,
   ]);

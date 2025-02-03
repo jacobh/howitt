@@ -20,6 +20,7 @@ import { Extent } from "ol/extent";
 import { match, P } from "ts-pattern";
 import OlMap from "ol/Map";
 import { useTrackLayers } from "./useTrackLayers";
+import { useInitialView } from "./useInitialView";
 
 export { PrimaryMapContext } from "./context";
 
@@ -149,8 +150,8 @@ export function Map({
 
   const allTracks = [...tracks, ...rideTracks, ...routeTracks];
 
-  // Use the new hook for track layers
-  useTrackLayers({ map, tracks: allTracks, initialView });
+  useInitialView({ map, tracks: allTracks, initialView });
+  useTrackLayers({ map, tracks: allTracks });
 
   useEffect(() => {
     if (!map) {

@@ -9,29 +9,18 @@ import { Track } from "./index";
 import { ROUTE_STYLES, RIDE_STYLES } from "./index";
 import { isNotNil } from "~/services/isNotNil";
 import { some } from "lodash";
-import { Extent } from "ol/extent";
-import { ViewOptions } from "ol/View";
 
 interface UseTrackLayersProps {
   map: OlMap | undefined;
   tracks: Track[];
-  initialView?:
-    | { type: "rides"; rideIds: string[] }
-    | { type: "routes"; routeIds: string[] }
-    | { type: "view"; view: ViewOptions };
 }
 
-export function useTrackLayers({
-  map,
-  tracks,
-  initialView,
-}: UseTrackLayersProps) {
+export function useTrackLayers({ map, tracks }: UseTrackLayersProps) {
   useEffect(() => {
     if (!map) {
       return;
     }
 
-    let initialBounds: Extent | undefined = undefined;
     const layers = map.getLayers().getArray();
 
     // cleanup any tracks that have been dropped
@@ -105,34 +94,6 @@ export function useTrackLayers({
           .with(P.union("default", undefined), () => styles.default)
           .exhaustive(),
       );
-
-      if (
-        (initialView?.type === "routes" &&
-          track.kind === "route" &&
-          initialView.routeIds.includes(track.id)) ||
-        (initialView?.type === "rides" &&
-          track.kind === "ride" &&
-          initialView.rideIds.includes(track.id))
-      ) {
-        const lineString = new LineString(track.points);
-        if (!initialBounds) {
-          initialBounds = lineString.getExtent();
-        } else {
-          initialBounds = [
-            Math.min(initialBounds[0], lineString.getExtent()[0]),
-            Math.min(initialBounds[1], lineString.getExtent()[1]),
-            Math.max(initialBounds[2], lineString.getExtent()[2]),
-            Math.max(initialBounds[3], lineString.getExtent()[3]),
-          ];
-        }
-      }
     }
-
-    if (initialBounds) {
-      map.getView().fit(initialBounds, {
-        padding: [100, 100, 100, 100],
-        duration: 0,
-      });
-    }
-  }, [map, tracks, initialView]);
+  }, [map, tracks]);
 }
