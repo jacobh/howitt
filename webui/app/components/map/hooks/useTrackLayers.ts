@@ -5,7 +5,7 @@ import VectorSource from "ol/source/Vector";
 import { LineString } from "ol/geom";
 import { match, P } from "ts-pattern";
 import OlMap from "ol/Map";
-import { Track } from "../index";
+import { Track } from "../types";
 import { ROUTE_STYLES, RIDE_STYLES } from "../index";
 import { isNotNil } from "~/services/isNotNil";
 import { some } from "lodash";

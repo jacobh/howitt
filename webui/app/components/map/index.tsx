@@ -18,18 +18,12 @@ import { match, P } from "ts-pattern";
 import { useMap } from "./hooks/useMap";
 import { useTrackLayers } from "./hooks/useTrackLayers";
 import { useInitialView } from "./hooks/useInitialView";
+import { Track } from "./types";
 
 export { PrimaryMapContext } from "./context";
 
 export interface DisplayedRoute {
   route: Pick<Route, "id" | "pointsJson">;
-  style?: "default" | "muted" | "highlighted";
-}
-
-export interface Track {
-  id: string;
-  kind: "ride" | "route";
-  points: [number, number][];
   style?: "default" | "muted" | "highlighted";
 }
 
