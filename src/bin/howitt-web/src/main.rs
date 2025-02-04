@@ -89,6 +89,14 @@ async fn main() -> Result<(), anyhow::Error> {
         media_repo,
         bucket_client: Arc::new(bucket_client),
         job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
+        user_repo: user_repo.clone(),
+        rwgps: app_state::RwgpsConfig {
+            client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
+            client_secret: std::env::var("RWGPS_CLIENT_SECRET")
+                .expect("RWGPS_CLIENT_SECRET must be set"),
+            redirect_uri: std::env::var("RWGPS_REDIRECT_URI")
+                .expect("RWGPS_REDIRECT_URI must be set"),
+        },
     };
 
     let app = Router::new()
@@ -97,6 +105,10 @@ async fn main() -> Result<(), anyhow::Error> {
             get(handlers::graphql::graphiql_handler).post(handlers::graphql::graphql_handler),
         )
         .route("/auth/login", post(handlers::auth::login_handler))
+        .route(
+            "/auth/rwgps/callback",
+            get(handlers::rwgps::rwgps_callback_handler),
+        )
         .route(
             "/upload/media",
             post(handlers::upload::upload_media_handler)
