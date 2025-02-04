@@ -41,7 +41,7 @@ pub async fn handle(
                 email,
                 password,
                 created_at,
-                linked_accounts: vec![],
+                rwgps_connection: None,
             };
 
             user_repo.put(user).await?;

@@ -1,6 +1,7 @@
 use argon2::password_hash::PasswordHashString;
 use chrono::{serde::ts_seconds, DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use super::{IndexModel, ModelName, ModelUuid};
 
@@ -13,12 +14,17 @@ pub struct User {
     pub password: PasswordHashString,
     pub email: String,
     pub created_at: DateTime<Utc>,
-    pub linked_accounts: Vec<LinkedAccount>,
+    pub rwgps_connection: Option<UserRwgpsConnection>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LinkedAccount {
-    Rwgps(usize),
+#[derive(Debug, Clone)]
+pub struct UserRwgpsConnection {
+    pub id: Uuid,
+    pub user_id: UserId,
+    pub rwgps_user_id: i32,
+    pub access_token: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]

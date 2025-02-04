@@ -23,7 +23,7 @@ itertools = "*"
 prettytable-rs = "*"
 ulid = "*"
 chrono = "*"
-uuid = "*"
+uuid = { version = "*", features = ["v7"] }
 chrono-tz = "*"
 derive_more = { version = "*", features = ["full"] }
 apalis = { version = "0.6", features = ["limit", "timeout"] }
