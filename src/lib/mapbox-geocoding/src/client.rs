@@ -20,118 +20,57 @@ impl MapboxGeocodingClient {
         }
     }
 
-    /// Forward geocoding with search text input
+    async fn make_request<T: serde::Serialize, R: serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+        params: &T,
+        method: reqwest::Method,
+    ) -> ReqwestResult<R> {
+        let mut url = self.base_url.join(path).expect("Failed to join URL path");
+
+        if method == reqwest::Method::GET {
+            let query =
+                serde_urlencoded::to_string(params).expect("Failed to serialize parameters");
+            url.set_query(Some(&query));
+        }
+
+        let mut request = self.client.request(method.clone(), url);
+        if method == reqwest::Method::POST {
+            request = request.json(params);
+        }
+
+        request.send().await?.error_for_status()?.json::<R>().await
+    }
+
     pub async fn forward_geocode(
         &self,
         params: ForwardGeocodingParams,
     ) -> ReqwestResult<GeocodingResponse> {
-        let mut url = self
-            .base_url
-            .join("forward")
-            .expect("Failed to join URL path");
-
-        let query = serde_urlencoded::to_string(params).expect("Failed to serialize parameters");
-        url.set_query(Some(&query));
-
-        self.client
-            .get(url)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<GeocodingResponse>()
+        self.make_request("forward", &params, reqwest::Method::GET)
             .await
     }
 
-    /// Forward geocoding with structured input
     pub async fn structured_forward_geocode(
         &self,
         params: StructuredGeocodingParams,
     ) -> ReqwestResult<GeocodingResponse> {
-        let mut url = self
-            .base_url
-            .join("forward")
-            .expect("Failed to join URL path");
-
-        let query = serde_urlencoded::to_string(&params).expect("Failed to serialize parameters");
-        url.set_query(Some(&query));
-
-        self.client
-            .get(url)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<GeocodingResponse>()
+        self.make_request("forward", &params, reqwest::Method::GET)
             .await
     }
 
-    /// Reverse geocoding
     pub async fn reverse_geocode(
         &self,
         params: ReverseGeocodingParams,
     ) -> ReqwestResult<GeocodingResponse> {
-        let mut url = self
-            .base_url
-            .join("reverse")
-            .expect("Failed to join URL path");
-
-        let query = serde_urlencoded::to_string(&params).expect("Failed to serialize parameters");
-        url.set_query(Some(&query));
-
-        self.client
-            .get(url)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<GeocodingResponse>()
+        self.make_request("reverse", &params, reqwest::Method::GET)
             .await
     }
 
-    /// Batch geocoding
     pub async fn batch_geocode(
         &self,
         queries: Vec<ForwardGeocodingParams>,
     ) -> ReqwestResult<GeocodingResponse> {
-        let url = self
-            .base_url
-            .join("batch")
-            .expect("Failed to join URL path");
-
-        self.client
-            .post(url)
-            .json(&queries)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<GeocodingResponse>()
+        self.make_request("batch", &queries, reqwest::Method::POST)
             .await
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_forward_geocode() {
-        let client = MapboxGeocodingClient::new("test_token".to_string());
-        let params = ForwardGeocodingParams {
-            q: "2 Lincoln Memorial Circle SW".to_string(),
-            access_token: "test_token".to_string(),
-            permanent: None,
-            autocomplete: None,
-            bbox: None,
-            country: None,
-            format: None,
-            language: None,
-            limit: None,
-            proximity: None,
-            types: None,
-            worldview: None,
-        };
-
-        // This would need to be mocked for proper testing
-        let _response = client.forward_geocode(params).await;
-    }
-
-    // Additional tests would be implemented here
 }

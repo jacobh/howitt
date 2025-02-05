@@ -8,6 +8,3 @@ serde = { version = "*", features = ["derive"] }
 reqwest = { version = "*", features = ["json"] }
 serde_urlencoded = "*"
 url = "*"
-
-[dev-dependencies]
-tokio = { version = "*", features = ["full"] }

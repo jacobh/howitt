@@ -2813,7 +2813,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_urlencoded",
- "tokio",
  "url",
 ]
 
