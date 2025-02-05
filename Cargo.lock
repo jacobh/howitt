@@ -1954,6 +1954,7 @@ dependencies = [
  "howitt_clients",
  "inquire",
  "itertools 0.14.0",
+ "mapbox-geocoding",
  "prettytable-rs",
  "rayon",
  "rwgps",

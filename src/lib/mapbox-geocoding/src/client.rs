@@ -2,7 +2,7 @@ use crate::schema::*;
 use reqwest::{Client as ReqwestClient, Result as ReqwestResult};
 use url::Url;
 
-const BASE_URL: &str = "https://api.mapbox.com/search/geocode/v6";
+const BASE_URL: &str = "https://api.mapbox.com/search/geocode/v6/";
 
 pub struct MapboxGeocodingClient {
     client: ReqwestClient,

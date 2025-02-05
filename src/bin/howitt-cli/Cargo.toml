@@ -28,3 +28,4 @@ chrono-tz = "*"
 derive_more = { version = "*", features = ["full"] }
 apalis = { version = "0.6", features = ["limit", "timeout"] }
 apalis-redis = { version = "0.6" }
+mapbox-geocoding = { path = "../../lib/mapbox-geocoding" }
