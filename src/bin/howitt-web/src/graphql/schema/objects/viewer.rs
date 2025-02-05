@@ -1,5 +1,6 @@
 use anyhow::anyhow;
-use async_graphql::{dataloader::DataLoader, Context, Object};
+use async_graphql::{Context, Object};
+use chrono::Utc;
 use howitt::services::user::auth::Login;
 use url::Url;
 
@@ -34,10 +35,16 @@ impl Viewer {
         ctx: &Context<'ctx>,
     ) -> Result<String, async_graphql::Error> {
         let SchemaData {
-            rwgps_client_id, ..
+            rwgps_client_id,
+            user_auth_service,
+            ..
         } = ctx.data()?;
 
-        let token = &self.0.token;
+        let Login { token, .. } = user_auth_service.generate_login(
+            self.0.session.user_id,
+            Utc::now(),
+            chrono::Duration::minutes(20),
+        )?;
 
         let url = Url::parse_with_params(
             "https://ridewithgps.com/oauth/authorize",

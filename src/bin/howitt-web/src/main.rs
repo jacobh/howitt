@@ -82,6 +82,7 @@ async fn main() -> Result<(), anyhow::Error> {
         user_loader: DataLoader::new(UserLoader::new(user_repo.clone()), tokio::spawn),
         simplified_ride_points_fetcher,
         rwgps_client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
+        user_auth_service: user_auth_service.clone(),
     });
 
     let app_state = app_state::AppState {

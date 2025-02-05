@@ -56,7 +56,7 @@ impl UserAuthService {
         DecodingKey::from_secret(self.jwt_secret.as_bytes())
     }
 
-    fn generate_token(
+    pub fn generate_token(
         &self,
         session: &UserSession,
     ) -> Result<JwtString, jsonwebtoken::errors::Error> {
@@ -67,7 +67,7 @@ impl UserAuthService {
         )?))
     }
 
-    fn generate_session(
+    pub fn generate_session(
         &self,
         user_id: UserId,
         now: DateTime<Utc>,
@@ -80,7 +80,7 @@ impl UserAuthService {
         }
     }
 
-    fn generate_login(
+    pub fn generate_login(
         &self,
         user_id: UserId,
         now: DateTime<Utc>,
