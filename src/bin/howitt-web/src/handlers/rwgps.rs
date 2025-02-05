@@ -22,17 +22,9 @@ pub struct RwgpsCallbackParams {
     state: String, // CSRF token
 }
 
-// #[derive(Debug, Serialize)]
-// pub struct RwgpsTokenResponse {
-//     access_token: String,
-//     rwgps_user_id: i32,
-// }
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RideWithGpsExtraTokenFields {
-    #[serde(skip_serializing_if = "Option::is_none")]
     created_at: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     user_id: Option<i64>,
 }
 

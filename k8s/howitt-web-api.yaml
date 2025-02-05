@@ -53,11 +53,17 @@ spec:
                   name: howitt-jwt
                   key: JWT_SECRET
             - name: RWGPS_CLIENT_ID
-              value: "your_client_id_here"
+              valueFrom:
+                secretKeyRef:
+                  name: rwgps-credentials
+                  key: RWGPS_CLIENT_ID
             - name: RWGPS_CLIENT_SECRET 
-              value: "your_client_secret_here"
+              valueFrom:
+                secretKeyRef:
+                  name: rwgps-credentials
+                  key: RWGPS_CLIENT_SECRET
             - name: RWGPS_REDIRECT_URI
-              value: "https://howittplains.net/settings"
+              value: "https://api.howittplains.net/auth/rwgps/callback"
             - name: AWS_REGION
               value: ap-southeast-2
             - name: AWS_ACCESS_KEY_ID
