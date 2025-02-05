@@ -1,6 +1,6 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use chrono::Utc;
-use howitt::{models::user::UserRwgpsConnection, repos::Repo, services::user::auth::Login};
+use howitt::{models::user::UserRwgpsConnection, repos::Repo};
 use http::StatusCode;
 use oauth2::basic::{
     BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
@@ -19,7 +19,7 @@ use crate::app_state::AppState;
 #[derive(Debug, Deserialize)]
 pub struct RwgpsCallbackParams {
     code: String,
-    state: String, // CSRF token
+    state: String, // jwt
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -54,9 +54,21 @@ type RwgpsClient<
 
 pub async fn rwgps_callback_handler(
     State(app_state): State<AppState>,
-    login: Login,
     Json(params): Json<RwgpsCallbackParams>,
 ) -> impl IntoResponse {
+    let login = match app_state.user_auth_service.verify(&params.state).await {
+        Ok(login) => login,
+        Err(e) => {
+            tracing::error!("Failed to verify auth state: {}", e);
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": "Invalid authentication state"
+                })),
+            );
+        }
+    };
+
     let client = RwgpsClient::new(ClientId::new(app_state.rwgps.client_id))
         .set_client_secret(ClientSecret::new(app_state.rwgps.client_secret))
         .set_auth_uri(AuthUrl::new("https://ridewithgps.com/oauth/authorize".to_string()).unwrap())
