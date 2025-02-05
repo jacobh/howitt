@@ -1,4 +1,5 @@
 use axum::extract::Query;
+use axum::response::Redirect;
 use axum::{extract::State, response::IntoResponse, Json};
 use chrono::Utc;
 use howitt::{models::user::UserRwgpsConnection, repos::Repo};
@@ -56,17 +57,17 @@ type RwgpsClient<
 pub async fn rwgps_callback_handler(
     State(app_state): State<AppState>,
     Query(params): Query<RwgpsCallbackParams>,
-) -> impl IntoResponse {
+) -> Box<dyn IntoResponse> {
     let login = match app_state.user_auth_service.verify(&params.state).await {
         Ok(login) => login,
         Err(e) => {
             tracing::error!("Failed to verify auth state: {}", e);
-            return (
+            return Box::new((
                 StatusCode::BAD_REQUEST,
                 Json(serde_json::json!({
                     "error": "Invalid authentication state"
                 })),
-            );
+            ));
         }
     };
 
@@ -90,12 +91,12 @@ pub async fn rwgps_callback_handler(
         Ok(token) => token,
         Err(e) => {
             tracing::error!("Failed to exchange RWGPS auth code: {}", e);
-            return (
+            return Box::new((
                 StatusCode::BAD_REQUEST,
                 Json(serde_json::json!({
                     "error": "Failed to exchange authorization code"
                 })),
-            );
+            ));
         }
     };
 
@@ -105,12 +106,12 @@ pub async fn rwgps_callback_handler(
     let rwgps_user_id = match extra_params.user_id {
         Some(user_id) => user_id as i32,
         None => {
-            return (
+            return Box::new((
                 StatusCode::BAD_REQUEST,
                 Json(serde_json::json!({
                     "error": "Missing RWGPS user ID in token response"
                 })),
-            );
+            ));
         }
     };
 
@@ -129,12 +130,12 @@ pub async fn rwgps_callback_handler(
         Ok(user) => user,
         Err(e) => {
             tracing::error!("Failed to fetch user: {}", e);
-            return (
+            return Box::new((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({
                     "error": "Failed to fetch user record"
                 })),
-            );
+            ));
         }
     };
 
@@ -144,18 +145,15 @@ pub async fn rwgps_callback_handler(
     // Save updated user
     if let Err(e) = app_state.user_repo.put(user).await {
         tracing::error!("Failed to save user with RWGPS connection: {}", e);
-        return (
+        return Box::new((
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({
                 "error": "Failed to save RWGPS connection"
             })),
-        );
+        ));
     }
 
-    (
-        StatusCode::OK,
-        Json(serde_json::json!({
-            "message": "Successfully linked RWGPS account"
-        })),
-    )
+    Box::new(Redirect::to(
+        "https://howittplains.net/settings?rwgps=connected",
+    ))
 }
