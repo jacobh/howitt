@@ -9,6 +9,8 @@ use itertools::Itertools;
 use crate::graphql::context::{RequestData, SchemaData};
 use crate::graphql::schema::{trip::Trip, ModelId};
 
+use super::viewer::Viewer;
+
 #[derive(InputObject)]
 pub struct TripNoteInput {
     pub text: String,
@@ -171,5 +173,28 @@ impl Mutation {
         Ok(TripMediaOutput {
             trip: Some(Trip(trip)),
         })
+    }
+
+    async fn clear_rwgps_connection(&self, ctx: &Context<'_>) -> Result<Viewer, Error> {
+        // Get required context data
+        let SchemaData { user_repo, .. } = ctx.data()?;
+        let RequestData { login } = ctx.data()?;
+
+        // Ensure user is logged in
+        let login = login
+            .as_ref()
+            .ok_or_else(|| Error::new("Authentication required"))?
+            .clone();
+
+        // Get the user
+        let mut user = user_repo.get(login.session.user_id).await?;
+
+        // Clear the RWGPS connection
+        user.rwgps_connection = None;
+
+        // Save changes
+        user_repo.put(user).await?;
+
+        Ok(Viewer(login))
     }
 }
