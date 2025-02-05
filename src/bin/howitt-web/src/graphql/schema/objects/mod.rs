@@ -8,4 +8,5 @@ pub mod ride;
 pub mod route;
 pub mod trip;
 pub mod user;
+pub mod user_rwgps_connection;
 pub mod viewer;
