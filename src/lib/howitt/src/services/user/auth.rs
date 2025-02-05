@@ -1,11 +1,11 @@
-use chrono::{Months, Utc};
+use chrono::{DateTime, Utc};
 use derive_more::derive::{Constructor, From, Into};
 use jsonwebtoken::{decode, DecodingKey, EncodingKey, Header, Validation};
 use serde::Serialize;
 use thiserror::Error;
 
 use crate::{
-    models::user::{UserFilter, UserSession},
+    models::user::{UserFilter, UserId, UserSession},
     repos::UserRepo,
 };
 
@@ -56,6 +56,41 @@ impl UserAuthService {
         DecodingKey::from_secret(self.jwt_secret.as_bytes())
     }
 
+    fn generate_token(
+        &self,
+        session: &UserSession,
+    ) -> Result<JwtString, jsonwebtoken::errors::Error> {
+        Ok(JwtString::from(jsonwebtoken::encode(
+            &Header::default(),
+            session,
+            &self.encode_key(),
+        )?))
+    }
+
+    fn generate_session(
+        &self,
+        user_id: UserId,
+        now: DateTime<Utc>,
+        ttl: chrono::Duration,
+    ) -> UserSession {
+        UserSession {
+            user_id,
+            expiry: now.checked_add_signed(ttl).unwrap(),
+            issued_at: now,
+        }
+    }
+
+    fn generate_login(
+        &self,
+        user_id: UserId,
+        now: DateTime<Utc>,
+        ttl: chrono::Duration,
+    ) -> Result<Login, jsonwebtoken::errors::Error> {
+        let session = self.generate_session(user_id, now, ttl);
+        let token = self.generate_token(&session)?;
+        Ok(Login { session, token })
+    }
+
     pub async fn login(
         &self,
         username: &str,
@@ -69,20 +104,11 @@ impl UserAuthService {
 
         match user {
             Some(user) => match verify_password(&user, password) {
-                Ok(()) => {
-                    let session = UserSession {
-                        user_id: user.id,
-                        expiry: Utc::now().checked_add_months(Months::new(12)).unwrap(),
-                        issued_at: Utc::now(),
-                    };
-
-                    let token = JwtString::from(jsonwebtoken::encode(
-                        &Header::default(),
-                        &session,
-                        &self.encode_key(),
-                    )?);
-                    Ok(Ok(Login { session, token }))
-                }
+                Ok(()) => Ok(Ok(self.generate_login(
+                    user.id,
+                    Utc::now(),
+                    chrono::Duration::days(365),
+                )?)),
                 Err(_) => Ok(Err(LoginFailed::PasswordVerificationFailed)),
             },
             None => Ok(Err(LoginFailed::UsernameNotFound)),
