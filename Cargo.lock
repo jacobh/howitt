@@ -2806,6 +2806,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "mapbox-geocoding"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_urlencoded",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "matchit"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
