@@ -1,3 +1,4 @@
+use axum::extract::Query;
 use axum::{extract::State, response::IntoResponse, Json};
 use chrono::Utc;
 use howitt::{models::user::UserRwgpsConnection, repos::Repo};
@@ -54,7 +55,7 @@ type RwgpsClient<
 
 pub async fn rwgps_callback_handler(
     State(app_state): State<AppState>,
-    Json(params): Json<RwgpsCallbackParams>,
+    Query(params): Query<RwgpsCallbackParams>,
 ) -> impl IntoResponse {
     let login = match app_state.user_auth_service.verify(&params.state).await {
         Ok(login) => login,
