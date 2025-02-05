@@ -35,6 +35,12 @@ pub enum LoginFailed {
 #[derive(Debug, From, Into, Serialize, Clone)]
 pub struct JwtString(String);
 
+impl JwtString {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 #[derive(Debug, Serialize, Clone)]
 pub struct Login {
     pub session: UserSession,

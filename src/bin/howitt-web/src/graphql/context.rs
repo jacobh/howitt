@@ -16,6 +16,7 @@ pub struct SchemaData {
     pub simplified_ride_points_fetcher: SimplifiedRidePointsFetcher<RedisClient>,
     pub user_loader: DataLoader<UserLoader>,
     pub media_repo: MediaRepo,
+    pub rwgps_client_id: String,
 }
 
 pub struct RequestData {

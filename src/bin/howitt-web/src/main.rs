@@ -81,6 +81,7 @@ async fn main() -> Result<(), anyhow::Error> {
         media_repo: media_repo.clone(),
         user_loader: DataLoader::new(UserLoader::new(user_repo.clone()), tokio::spawn),
         simplified_ride_points_fetcher,
+        rwgps_client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
     });
 
     let app_state = app_state::AppState {
