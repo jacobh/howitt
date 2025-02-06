@@ -1,11 +1,7 @@
-use std::{hash::Hash, marker::ConstParamTy, sync::Arc};
+use std::{hash::Hash, marker::ConstParamTy};
 
-use futures::FutureExt;
 use serde::{Deserialize, Serialize};
-use tokio::sync::OnceCell;
 use uuid::Timestamp;
-
-use crate::repos::AnyhowRepo;
 
 pub mod cardinal_direction;
 pub mod config;
@@ -84,78 +80,6 @@ pub trait IndexItem: 'static + Send + Sync + Clone {
     type Id: ModelId;
 
     fn model_id(&self) -> Self::Id;
-}
-
-#[derive(Clone)]
-enum ModelRefInitial<M: Model> {
-    Model(M),
-    Index(M::IndexItem),
-}
-
-pub struct ModelRefInner<M: Model> {
-    initial: ModelRefInitial<M>,
-    model: OnceCell<Result<Arc<M>, Arc<anyhow::Error>>>,
-}
-
-#[derive(Clone)]
-pub struct ModelRef<M: Model> {
-    inner: Arc<ModelRefInner<M>>,
-}
-
-impl<M> ModelRef<M>
-where
-    M: Model + Clone,
-{
-    fn new(initial: ModelRefInitial<M>) -> ModelRef<M> {
-        ModelRef {
-            inner: Arc::new(ModelRefInner {
-                initial,
-                model: OnceCell::new(),
-            }),
-        }
-    }
-    pub fn from_model(model: M) -> ModelRef<M> {
-        ModelRef::new(ModelRefInitial::Model(model))
-    }
-    pub fn from_index(index: M::IndexItem) -> ModelRef<M> {
-        ModelRef::new(ModelRefInitial::Index(index))
-    }
-    pub fn id(&self) -> M::Id {
-        match &self.inner.initial {
-            ModelRefInitial::Model(model) => model.id(),
-            ModelRefInitial::Index(index) => index.model_id(),
-        }
-    }
-    pub fn as_index(&self) -> &M::IndexItem {
-        match &self.inner.initial {
-            ModelRefInitial::Model(model) => model.as_index(),
-            ModelRefInitial::Index(index) => index,
-        }
-    }
-    pub async fn to_model<R: AsRef<dyn AnyhowRepo<Model = M>> + Send + Sync>(
-        &self,
-        repo: R,
-    ) -> Result<Arc<M>, Arc<anyhow::Error>> {
-        self.inner
-            .model
-            .get_or_init(move || match self.inner.initial.clone() {
-                ModelRefInitial::Model(model) => {
-                    futures::future::ready(Ok(Arc::new(model))).boxed()
-                }
-                ModelRefInitial::Index(index) => (async move {
-                    repo.as_ref()
-                        .get(index.model_id())
-                        .await
-                        .map(Arc::new)
-                        .map_err(Arc::new)
-                })
-                .boxed(),
-            })
-            .await
-            .as_ref()
-            .map(Clone::clone)
-            .map_err(Clone::clone)
-    }
 }
 
 pub trait ModelId:

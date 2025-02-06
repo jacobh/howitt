@@ -10,7 +10,6 @@ use howitt::{
         },
         route::RouteId,
         tag::Tag,
-        ModelRef,
     },
     services::generate_cuesheet::generate_cuesheet,
 };
@@ -108,7 +107,7 @@ pub enum TerminusEnd {
 
 pub struct Terminus {
     terminus: howitt::models::terminus::Terminus<ElevationPoint>,
-    route: ModelRef<howitt::models::route::Route>,
+    route: howitt::models::route::Route,
 }
 
 #[Object]
@@ -169,7 +168,6 @@ impl Terminus {
             .collect_vec();
 
         Ok(route
-            .as_index()
             .routes_near_terminus(&route_indexes, terminus.end)
             .into_iter()
             .filter_map(|(_, route, closest_point, delta)| {
@@ -188,7 +186,7 @@ impl Terminus {
                         closest_terminus_delta: PointDelta::from(terminus_delta),
                         closest_terminus: Terminus {
                             terminus: closest_terminus,
-                            route: ModelRef::from_index(route.clone()),
+                            route: route.clone(),
                         },
                     }
                 })
@@ -197,11 +195,11 @@ impl Terminus {
     }
 }
 
-pub struct Route(pub ModelRef<howitt::models::route::Route>);
+pub struct Route(pub howitt::models::route::Route);
 
 impl Route {
     fn route_description(&self) -> Option<&howitt::models::route_description::RouteDescription> {
-        self.0.as_index().description.as_ref()
+        self.0.description.as_ref()
     }
 }
 
@@ -211,16 +209,16 @@ impl Route {
         ModelId(self.0.id())
     }
     async fn external_ref(&self) -> Option<ExternalRef> {
-        self.0.as_index().external_ref.clone().map(ExternalRef)
+        self.0.external_ref.clone().map(ExternalRef)
     }
     async fn name(&self) -> &str {
-        &self.0.as_index().name
+        &self.0.name
     }
     async fn slug(&self) -> &str {
-        &self.0.as_index().slug
+        &self.0.slug
     }
     async fn distance(&self) -> f64 {
-        self.0.as_index().distance
+        self.0.distance
     }
     async fn elevation_ascent_m<'ctx>(
         &self,
@@ -267,7 +265,6 @@ impl Route {
     }
     async fn termini(&self) -> Vec<Terminus> {
         self.0
-            .as_index()
             .termini()
             .map(|t| t.map_points(|p| p.clone()).to_termini_vec())
             .unwrap_or_default()
@@ -322,7 +319,6 @@ impl Route {
     }
     async fn sample_points_count(&self) -> usize {
         self.0
-            .as_index()
             .sample_points
             .as_ref()
             .map(|points| points.len())
@@ -330,7 +326,6 @@ impl Route {
     }
     async fn sample_points(&self) -> Vec<Vec<f64>> {
         self.0
-            .as_index()
             .sample_points
             .iter()
             .flatten()
@@ -447,7 +442,7 @@ impl Route {
     async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
         let SchemaData { user_repo, .. } = ctx.data()?;
 
-        let user = user_repo.get(self.0.as_index().user_id).await?;
+        let user = user_repo.get(self.0.user_id).await?;
 
         Ok(UserProfile(user))
     }

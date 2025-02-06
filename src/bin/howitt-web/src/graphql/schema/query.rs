@@ -2,7 +2,6 @@ use async_graphql::*;
 use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
 use howitt::models::user::UserFilter;
-use howitt::models::ModelRef;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
@@ -79,11 +78,7 @@ impl Query {
 
         let routes = route_repo.filter_models(RouteFilter::Starred).await?;
 
-        Ok(routes
-            .into_iter()
-            .map(ModelRef::from_model)
-            .map(Route)
-            .collect())
+        Ok(routes.into_iter().map(Route).collect())
     }
     async fn query_routes<'ctx>(
         &self,
@@ -98,7 +93,7 @@ impl Query {
                 input
                     .filters
                     .iter()
-                    .all(|filter| filter.route_is_selected(route.0.as_index()))
+                    .all(|filter| filter.route_is_selected(&route.0))
             })
             .collect_vec())
     }
@@ -111,7 +106,7 @@ impl Query {
 
         let route = route_repo.get(id.0).await?;
 
-        Ok(Some(Route(ModelRef::from_model(route))))
+        Ok(Some(Route(route)))
     }
     async fn route_with_slug<'ctx>(
         &self,
@@ -122,7 +117,7 @@ impl Query {
 
         let route = route_repo.find_model(RouteFilter::Slug(slug)).await?;
 
-        Ok(route.map(|r| Route(ModelRef::from_model(r))))
+        Ok(route.map(|r| Route(r)))
     }
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
         let SchemaData { ride_repo, .. } = ctx.data()?;
