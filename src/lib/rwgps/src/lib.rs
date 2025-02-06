@@ -52,7 +52,19 @@ impl RwgpsClient {
         let mut request = self.client.request(method.clone(), url);
 
         if let Some(creds) = credentials {
-            request = request.query(&creds.to_query());
+            match creds {
+                Credentials::Token(token_creds) => {
+                    request = request
+                        .header(
+                            "Authorization",
+                            format!("Bearer {}", token_creds.auth_token),
+                        )
+                        .query(&creds.to_query());
+                }
+                _ => {
+                    request = request.query(&creds.to_query());
+                }
+            }
         }
 
         if let Some(p) = params {
