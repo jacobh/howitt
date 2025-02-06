@@ -1,9 +1,6 @@
 use howitt::{
     ext::iter::ResultIterExt,
-    models::{
-        ride::{RideId, RidePoints},
-        Model,
-    },
+    models::ride::{RideId, RidePoints},
     repos::Repo,
 };
 use uuid::Uuid;

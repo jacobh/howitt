@@ -8,7 +8,6 @@ use howitt::models::ride::RideId;
 use howitt::models::route::RouteId;
 use howitt::models::trip::TripId;
 use howitt::models::user::UserId;
-use howitt::models::Model;
 use howitt::repos::Repo;
 use uuid::Uuid;
 

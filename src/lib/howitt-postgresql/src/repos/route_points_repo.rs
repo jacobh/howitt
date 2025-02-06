@@ -1,9 +1,6 @@
 use howitt::{
     ext::iter::ResultIterExt,
-    models::{
-        route::{RouteId, RoutePoints, RoutePointsFilter},
-        Model,
-    },
+    models::route::{RouteId, RoutePoints, RoutePointsFilter},
     repos::Repo,
 };
 use uuid::Uuid;

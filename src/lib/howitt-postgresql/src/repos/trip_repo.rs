@@ -2,7 +2,6 @@ use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::models::trip::{Trip, TripFilter, TripId};
 use howitt::models::user::UserId;
-use howitt::models::Model;
 use howitt::models::{media::MediaId, ride::RideId};
 use howitt::repos::Repo;
 use itertools::Itertools;

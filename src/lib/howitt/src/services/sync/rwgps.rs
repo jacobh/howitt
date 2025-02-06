@@ -15,7 +15,6 @@ use crate::{
         route_description::RouteDescription,
         tag::Tag,
         user::UserId,
-        IndexItem,
     },
     repos::Repo,
     services::{
@@ -225,10 +224,7 @@ where
     ) -> Result<(), anyhow::Error> {
         let ride = self.rwgps_client.trip(trip_id).await?;
 
-        let id = RideId::get_or_from_datetime(
-            existing_ride.map(|ride| ride.model_id()),
-            &ride.created_at,
-        );
+        let id = RideId::get_or_from_datetime(existing_ride.map(|ride| ride.id), &ride.created_at);
 
         let points = ride
             .track_points

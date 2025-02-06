@@ -37,18 +37,6 @@ pub trait IndexModel {
     fn id(&self) -> Self::Id;
 }
 
-impl<T, ID> IndexItem for T
-where
-    T: IndexModel<Id = ID> + 'static + Send + Sync + Sized + Clone,
-    ID: ModelId,
-{
-    type Id = ID;
-
-    fn model_id(&self) -> Self::Id {
-        self.id()
-    }
-}
-
 impl<T, ID, F> Model for T
 where
     T: IndexModel<Id = ID, Filter = F> + Send + Sync + Sized + Clone + 'static,
@@ -62,12 +50,6 @@ where
     fn id(&self) -> Self::Id {
         self.id()
     }
-}
-
-pub trait IndexItem: 'static + Send + Sync + Clone {
-    type Id: ModelId;
-
-    fn model_id(&self) -> Self::Id;
 }
 
 pub trait ModelId:
