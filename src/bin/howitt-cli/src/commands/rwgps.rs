@@ -1,5 +1,3 @@
-use std::convert::identity;
-
 use clap::{arg, Args, Subcommand};
 use howitt::{
     models::user::UserId,
@@ -9,7 +7,6 @@ use howitt_fs::load_user_config;
 use howitt_fs::{load_routes, persist_user_config};
 use itertools::Itertools;
 use rwgps::RwgpsClient;
-use rwgps_types::RouteSummary;
 use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
@@ -104,8 +101,9 @@ pub async fn handle(
             }));
         }
         RwgpsCommands::Sync(SyncRwgps {
-            force_sync_bcs,
-            force_sync_rwgps_id,
+            ..
+            // force_sync_bcs,
+            // force_sync_rwgps_id,
         }) => {
             let config = load_user_config()?.unwrap();
             let rwgps_client = RwgpsClient::new(config.credentials());
@@ -116,16 +114,6 @@ pub async fn handle(
                 ride_points_repo,
                 rwgps_client,
                 rwgps_error: std::marker::PhantomData,
-                should_force_sync_route_fn: Some(|summary: &RouteSummary| {
-                    [
-                        *force_sync_bcs && summary.name.contains("[BCS]"),
-                        force_sync_rwgps_id
-                            .map(|id| id == summary.id)
-                            .unwrap_or(false),
-                    ]
-                    .into_iter()
-                    .any(identity)
-                }),
             };
 
             service

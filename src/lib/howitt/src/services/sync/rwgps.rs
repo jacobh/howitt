@@ -39,46 +39,34 @@ pub struct RwgpsSyncService<
     RidePointsRepo: Repo<Model = RidePoints>,
     RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
     RwgpsClientError: Into<anyhow::Error>,
-    ForceSyncRouteFn: Fn(&RouteSummary) -> bool,
 > {
     pub route_repo: RouteRepo,
     pub ride_repo: RideRepo,
     pub ride_points_repo: RidePointsRepo,
     pub rwgps_client: RwgpsClient,
     pub rwgps_error: PhantomData<RwgpsClientError>,
-    pub should_force_sync_route_fn: Option<ForceSyncRouteFn>,
 }
 
-impl<R1, R2, R3, C, E, F> RwgpsSyncService<R1, R2, R3, C, E, F>
+impl<R1, R2, R3, C, E> RwgpsSyncService<R1, R2, R3, C, E>
 where
     R1: Repo<Model = RouteModel>,
     R2: Repo<Model = Ride>,
     R3: Repo<Model = RidePoints>,
     C: rwgps_types::client::RwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
-    F: Fn(&RouteSummary) -> bool,
 {
     pub fn new(
         route_repo: R1,
         ride_repo: R2,
         ride_points_repo: R3,
         rwgps_client: C,
-        should_force_sync_route_fn: Option<F>,
-    ) -> RwgpsSyncService<R1, R2, R3, C, E, F> {
+    ) -> RwgpsSyncService<R1, R2, R3, C, E> {
         RwgpsSyncService {
             route_repo,
             ride_repo,
             ride_points_repo,
             rwgps_client,
             rwgps_error: PhantomData,
-            should_force_sync_route_fn,
-        }
-    }
-
-    fn should_force_sync_route(&self, summary: &RouteSummary) -> bool {
-        match &self.should_force_sync_route_fn {
-            Some(f) => f(summary),
-            None => false,
         }
     }
 
@@ -99,13 +87,7 @@ where
                     updated_at: summary.updated_at,
                     sync_version: Some(SYNC_VERSION),
                 }) {
-                    ExternalRefMatch::Fresh(route) => {
-                        if self.should_force_sync_route(&summary) {
-                            Some((summary, Some(route.clone())))
-                        } else {
-                            None
-                        }
-                    }
+                    ExternalRefMatch::Fresh(_) => None,
                     ExternalRefMatch::Stale(route) => Some((summary, Some(route.clone()))),
                     ExternalRefMatch::NotFound => Some((summary, None)),
                 }
