@@ -142,7 +142,7 @@ pub type RoutePointsRepo = Arc<dyn AnyhowRepo<Model = RoutePoints>>;
 pub type TripRepo = Arc<dyn AnyhowRepo<Model = Trip>>;
 pub type UserRepo = Arc<dyn AnyhowRepo<Model = User>>;
 
-pub struct RepoContext {
+pub struct Repos {
     pub media_repo: MediaRepo,
     pub point_of_interest_repo: PointOfInterestRepo,
     pub ride_points_repo: RidePointsRepo,

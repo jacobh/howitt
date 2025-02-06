@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::PostgresClient;
-use howitt::repos::RepoContext;
+use howitt::repos::Repos;
 
 mod media_repo;
 mod poi_repo;
@@ -22,7 +22,7 @@ pub use trip_repo::PostgresTripRepo;
 pub use user_repo::PostgresUserRepo;
 
 #[derive(Clone)]
-pub struct PostgresRepoContext {
+pub struct PostgresRepos {
     pub media_repo: PostgresMediaRepo,
     pub point_of_interest_repo: PostgresPointOfInterestRepo,
     pub ride_points_repo: PostgresRidePointsRepo,
@@ -33,9 +33,9 @@ pub struct PostgresRepoContext {
     pub user_repo: PostgresUserRepo,
 }
 
-impl PostgresRepoContext {
-    pub fn new(client: PostgresClient) -> PostgresRepoContext {
-        PostgresRepoContext {
+impl PostgresRepos {
+    pub fn new(client: PostgresClient) -> PostgresRepos {
+        PostgresRepos {
             media_repo: PostgresMediaRepo::new(client.clone()),
             point_of_interest_repo: PostgresPointOfInterestRepo::new(client.clone()),
             ride_points_repo: PostgresRidePointsRepo::new(client.clone()),
@@ -48,9 +48,9 @@ impl PostgresRepoContext {
     }
 }
 
-impl From<PostgresRepoContext> for RepoContext {
-    fn from(postgres_context: PostgresRepoContext) -> Self {
-        RepoContext {
+impl From<PostgresRepos> for Repos {
+    fn from(postgres_context: PostgresRepos) -> Self {
+        Repos {
             media_repo: Arc::new(postgres_context.media_repo),
             point_of_interest_repo: Arc::new(postgres_context.point_of_interest_repo),
             ride_points_repo: Arc::new(postgres_context.ride_points_repo),

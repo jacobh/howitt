@@ -11,12 +11,12 @@ use axum::{
 };
 use howitt::{
     jobs::Job,
-    repos::RepoContext,
+    repos::Repos,
     services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAuthService},
 };
 use howitt_client_types::BucketName;
 use howitt_clients::{RedisClient, S3BucketClient};
-use howitt_postgresql::{PostgresClient, PostgresRepoContext};
+use howitt_postgresql::{PostgresClient, PostgresRepos};
 use http::{header, Method};
 use tower_http::{
     compression::CompressionLayer,
@@ -60,8 +60,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
-    let postgres_repos = PostgresRepoContext::new(pg);
-    let repos: RepoContext = postgres_repos.clone().into();
+    let postgres_repos = PostgresRepos::new(pg);
+    let repos: Repos = postgres_repos.clone().into();
 
     let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
     let simplified_ride_points_fetcher =
