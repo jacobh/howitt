@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use reqwest::{RequestBuilder, Url};
+use reqwest::Url;
 use rwgps_types::credentials::Credentials;
 use thiserror::Error;
 
@@ -37,6 +37,35 @@ impl RwgpsClient {
     async fn acquire_semaphore_permit(&self) -> SemaphorePermit {
         self.semaphore.acquire().await.unwrap()
     }
+
+    async fn make_request<T: serde::Serialize, R: serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+        params: Option<&T>,
+        credentials: Option<&Credentials>,
+        method: reqwest::Method,
+    ) -> Result<R, RwgpsError> {
+        let _permit = self.acquire_semaphore_permit().await;
+
+        let url = self.base_url.join(path)?;
+
+        let mut request = self.client.request(method.clone(), url);
+
+        if let Some(creds) = credentials {
+            request = request.query(&creds.to_query());
+        }
+
+        if let Some(p) = params {
+            request = match method {
+                reqwest::Method::GET => request.query(p),
+                _ => request.json(p),
+            };
+        }
+
+        let response = request.send().await?.json_debug().await?;
+
+        Ok(response)
+    }
 }
 
 #[derive(Clone)]
@@ -52,87 +81,79 @@ impl AuthenticatedRwgpsClient {
         }
     }
 
-    fn get(&self, path: &str) -> Result<RequestBuilder, RwgpsError> {
-        Ok(self
-            .client
-            .client
-            .get(self.client.base_url.join(path)?)
-            .query(&self.credentials.to_query()))
-    }
-
     pub async fn user_info(
         &self,
     ) -> Result<rwgps_types::AuthenticatedUserDetailResponse, RwgpsError> {
-        let _permit = self.client.acquire_semaphore_permit().await;
-
-        let resp: rwgps_types::AuthenticatedUserDetailResponse = self
-            .get("/users/current.json")?
-            .send()
-            .await?
-            .json_debug()
-            .await?;
-
-        Ok(resp)
+        self.client
+            .make_request(
+                "/users/current.json",
+                None::<&()>,
+                Some(&self.credentials),
+                reqwest::Method::GET,
+            )
+            .await
     }
 
     pub async fn user_routes(
         &self,
         user_id: usize,
     ) -> Result<Vec<rwgps_types::RouteSummary>, RwgpsError> {
-        let _permit = self.client.acquire_semaphore_permit().await;
-
-        let resp: rwgps_types::ListResponse<rwgps_types::RouteSummary> = self
-            .get(&format!("/users/{user_id}/routes.json"))?
-            .query(&[("limit", "1000")])
-            .send()
-            .await?
-            .json_debug()
+        let response: rwgps_types::ListResponse<rwgps_types::RouteSummary> = self
+            .client
+            .make_request(
+                &format!("/users/{user_id}/routes.json"),
+                Some(&[("limit", "1000")]),
+                Some(&self.credentials),
+                reqwest::Method::GET,
+            )
             .await?;
 
-        Ok(resp.results)
+        Ok(response.results)
     }
 
     pub async fn user_trips(
         &self,
         user_id: usize,
     ) -> Result<Vec<rwgps_types::TripSummary>, RwgpsError> {
-        let _permit = self.client.acquire_semaphore_permit().await;
-
-        let resp: rwgps_types::ListResponse<rwgps_types::TripSummary> = self
-            .get(&format!("/users/{user_id}/trips.json"))?
-            .query(&[("limit", "5000")])
-            .send()
-            .await?
-            .json_debug()
+        let response: rwgps_types::ListResponse<rwgps_types::TripSummary> = self
+            .client
+            .make_request(
+                &format!("/users/{user_id}/trips.json"),
+                Some(&[("limit", "5000")]),
+                Some(&self.credentials),
+                reqwest::Method::GET,
+            )
             .await?;
 
-        Ok(resp.results)
+        Ok(response.results)
     }
 
     pub async fn route(&self, route_id: usize) -> Result<rwgps_types::Route, RwgpsError> {
-        let _permit = self.client.acquire_semaphore_permit().await;
-
-        let resp: rwgps_types::RouteResponse = self
-            .get(&format!("/routes/{route_id}.json"))?
-            .send()
-            .await?
-            .json_debug()
+        let response: rwgps_types::RouteResponse = self
+            .client
+            .make_request(
+                &format!("/routes/{route_id}.json"),
+                None::<&()>,
+                Some(&self.credentials),
+                reqwest::Method::GET,
+            )
             .await?;
 
-        Ok(resp.route)
+        Ok(response.route)
     }
 
     pub async fn trip(&self, trip_id: usize) -> Result<rwgps_types::Trip, RwgpsError> {
-        let _permit = self.client.acquire_semaphore_permit().await;
-
-        let resp: rwgps_types::TripResponse = self
-            .get(&format!("/trips/{trip_id}.json"))?
-            .send()
-            .await?
-            .json_debug()
+        let response: rwgps_types::TripResponse = self
+            .client
+            .make_request(
+                &format!("/trips/{trip_id}.json"),
+                None::<&()>,
+                Some(&self.credentials),
+                reqwest::Method::GET,
+            )
             .await?;
 
-        Ok(resp.trip)
+        Ok(response.trip)
     }
 }
 
