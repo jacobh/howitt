@@ -6,7 +6,7 @@ use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
 use howitt::models::user::UserId;
 
-use howitt::models::{route::RouteModel, Model};
+use howitt::models::Model;
 use howitt::repos::Repo;
 use uuid::Uuid;
 
@@ -158,16 +158,6 @@ impl TryFrom<RouteRow> for Route {
     }
 }
 
-impl TryFrom<RouteRow> for RouteModel {
-    type Error = PostgresRepoError;
-
-    fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
-        let route = Route::try_from(row)?;
-
-        Ok(RouteModel::new(route))
-    }
-}
-
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresRouteRepo {
     client: PostgresClient,
@@ -175,13 +165,10 @@ pub struct PostgresRouteRepo {
 
 #[async_trait::async_trait]
 impl Repo for PostgresRouteRepo {
-    type Model = RouteModel;
+    type Model = Route;
     type Error = PostgresRepoError;
 
-    async fn filter_models(
-        &self,
-        filter: RouteFilter,
-    ) -> Result<Vec<RouteModel>, PostgresRepoError> {
+    async fn filter_models(&self, filter: RouteFilter) -> Result<Vec<Route>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let rows = match filter {
@@ -202,15 +189,10 @@ impl Repo for PostgresRouteRepo {
             }
         };
 
-        Ok(rows
-            .into_iter()
-            .map(RouteModel::try_from)
-            .collect_result_vec()?)
+        Ok(rows.into_iter().map(Route::try_from).collect_result_vec()?)
     }
 
-    async fn all_indexes(
-        &self,
-    ) -> Result<Vec<<RouteModel as Model>::IndexItem>, PostgresRepoError> {
+    async fn all_indexes(&self) -> Result<Vec<<Route as Model>::IndexItem>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(
@@ -243,7 +225,7 @@ impl Repo for PostgresRouteRepo {
             .map(Route::try_from)
             .collect_result_vec()?)
     }
-    async fn get(&self, id: <RouteModel as Model>::Id) -> Result<RouteModel, PostgresRepoError> {
+    async fn get(&self, id: <Route as Model>::Id) -> Result<Route, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(
@@ -252,12 +234,12 @@ impl Repo for PostgresRouteRepo {
             id.as_uuid()
         );
 
-        Ok(RouteModel::try_from(query.fetch_one(conn.as_mut()).await?)?)
+        Ok(Route::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
     async fn get_index(
         &self,
-        id: <RouteModel as Model>::Id,
-    ) -> Result<<RouteModel as Model>::IndexItem, PostgresRepoError> {
+        id: <Route as Model>::Id,
+    ) -> Result<<Route as Model>::IndexItem, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(
@@ -287,10 +269,8 @@ impl Repo for PostgresRouteRepo {
 
         Ok(Route::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
-    async fn put(&self, model: RouteModel) -> Result<(), PostgresRepoError> {
+    async fn put(&self, route: Route) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
-
-        let RouteModel { route, .. } = model;
 
         let query = sqlx::query!(
             r#"insert into routes (

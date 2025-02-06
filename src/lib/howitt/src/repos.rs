@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use crate::ext::iter::ResultIterExt;
 use crate::models::{
-    config::Config, point_of_interest::PointOfInterest, ride::Ride, route::RouteModel, Model,
+    config::Config, point_of_interest::PointOfInterest, ride::Ride, route::Route, Model,
 };
 
 #[async_trait]
@@ -174,7 +174,7 @@ pub type MediaRepo = Arc<dyn AnyhowRepo<Model = Media>>;
 pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<Model = PointOfInterest>>;
 pub type RidePointsRepo = Arc<dyn AnyhowRepo<Model = RidePoints>>;
 pub type RideRepo = Arc<dyn AnyhowRepo<Model = Ride>>;
-pub type RouteModelRepo = Arc<dyn AnyhowRepo<Model = RouteModel>>;
+pub type RouteRepo = Arc<dyn AnyhowRepo<Model = Route>>;
 pub type RoutePointsRepo = Arc<dyn AnyhowRepo<Model = RoutePoints>>;
 pub type TripRepo = Arc<dyn AnyhowRepo<Model = Trip>>;
 pub type UserRepo = Arc<dyn AnyhowRepo<Model = User>>;

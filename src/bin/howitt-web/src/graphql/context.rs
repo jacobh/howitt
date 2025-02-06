@@ -1,6 +1,6 @@
 use async_graphql::dataloader::DataLoader;
 use howitt::{
-    repos::{MediaRepo, PointOfInterestRepo, RideRepo, RouteModelRepo, TripRepo, UserRepo},
+    repos::{MediaRepo, PointOfInterestRepo, RideRepo, RouteRepo, TripRepo, UserRepo},
     services::{
         fetchers::SimplifiedRidePointsFetcher,
         user::auth::{Login, UserAuthService},
@@ -12,7 +12,7 @@ use super::loaders::{route_points_loader::RoutePointsLoader, user_loader::UserLo
 
 pub struct SchemaData {
     pub poi_repo: PointOfInterestRepo,
-    pub route_repo: RouteModelRepo,
+    pub route_repo: RouteRepo,
     pub ride_repo: RideRepo,
     pub trip_repo: TripRepo,
     pub user_repo: UserRepo,

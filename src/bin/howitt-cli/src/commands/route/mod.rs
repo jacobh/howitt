@@ -46,8 +46,8 @@ pub async fn handle(
         }
         RouteCommands::Detail(args) => {
             let route_id = RouteId::from(Uuid::parse_str(&args.route_id)?);
-            let model = route_repo.get(route_id).await?;
-            dbg!(&model.route);
+            let route = route_repo.get(route_id).await?;
+            dbg!(&route);
 
             let route_points = route_points_repo.get(route_id).await?;
             let points = route_points.iter_elevation_points().cloned().collect_vec();
@@ -71,10 +71,10 @@ pub async fn handle(
             table.add_row(row!["id", "name", r->"km"]);
 
             for route in routes {
-                let distance_km = route.route.distance / 1000.0;
+                let distance_km = route.distance / 1000.0;
                 table.add_row(row![
-                    route.route.id(),
-                    route.route.name,
+                    route.id(),
+                    route.name,
                     r->format!("{distance_km:.1}")
                 ]);
             }

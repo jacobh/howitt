@@ -11,7 +11,7 @@ use crate::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         point::{ElevationPoint, TemporalElevationPoint},
         ride::{Ride, RideId, RidePoints},
-        route::{Route, RouteId, RouteModel, RoutePoints},
+        route::{Route, RouteId, RoutePoints},
         route_description::RouteDescription,
         tag::Tag,
         user::UserId,
@@ -34,7 +34,7 @@ pub struct SyncParams {
 }
 
 pub struct RwgpsSyncService<
-    RouteRepo: Repo<Model = RouteModel>,
+    RouteRepo: Repo<Model = Route>,
     RideRepo: Repo<Model = Ride>,
     RoutePointsRepo: Repo<Model = RoutePoints>,
     RidePointsRepo: Repo<Model = RidePoints>,
@@ -51,7 +51,7 @@ pub struct RwgpsSyncService<
 
 impl<R1, R2, R3, R4, C, E> RwgpsSyncService<R1, R2, R3, R4, C, E>
 where
-    R1: Repo<Model = RouteModel>,
+    R1: Repo<Model = Route>,
     R2: Repo<Model = Ride>,
     R3: Repo<Model = RoutePoints>,
     R4: Repo<Model = RidePoints>,
@@ -193,24 +193,21 @@ where
 
         let name = route.name.replace("[BCS]", "").trim().to_string();
 
-        let model = RouteModel::new(
-            Route {
-                id,
-                name: name.clone(),
-                slug: generate_slug(&name),
-                user_id: user_id.clone(),
-                distance: route.distance.unwrap_or(0.0),
-                description,
-                sample_points: Some(simplify_points(&points, SimplifyTarget::TotalPoints(50))),
-                external_ref: Some(ExternalRef {
-                    id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
-                    sync_version: Some(SYNC_VERSION),
-                    updated_at: route.updated_at,
-                }),
-                tags,
-            },
-            // points,
-        );
+        let model = Route {
+            id,
+            name: name.clone(),
+            slug: generate_slug(&name),
+            user_id: user_id.clone(),
+            distance: route.distance.unwrap_or(0.0),
+            description,
+            sample_points: Some(simplify_points(&points, SimplifyTarget::TotalPoints(50))),
+            external_ref: Some(ExternalRef {
+                id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
+                sync_version: Some(SYNC_VERSION),
+                updated_at: route.updated_at,
+            }),
+            tags,
+        };
 
         self.route_repo.put(model).await?;
         self.route_points_repo

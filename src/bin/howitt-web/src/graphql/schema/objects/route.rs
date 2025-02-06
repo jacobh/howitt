@@ -108,7 +108,7 @@ pub enum TerminusEnd {
 
 pub struct Terminus {
     terminus: howitt::models::terminus::Terminus<ElevationPoint>,
-    route: ModelRef<howitt::models::route::RouteModel>,
+    route: ModelRef<howitt::models::route::Route>,
 }
 
 #[Object]
@@ -197,7 +197,7 @@ impl Terminus {
     }
 }
 
-pub struct Route(pub ModelRef<howitt::models::route::RouteModel>);
+pub struct Route(pub ModelRef<howitt::models::route::Route>);
 
 impl Route {
     fn route_description(&self) -> Option<&howitt::models::route_description::RouteDescription> {

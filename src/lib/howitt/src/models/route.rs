@@ -14,7 +14,7 @@ use super::{
     tag::Tag,
     terminus::{Termini, TerminusEnd},
     user::UserId,
-    IndexItem, IndexModel, ModelName, ModelUuid,
+    IndexModel, ModelName, ModelUuid,
 };
 
 pub type RouteId = ModelUuid<{ ModelName::Route }>;
@@ -77,14 +77,6 @@ impl Route {
     }
 }
 
-impl IndexItem for Route {
-    type Id = RouteId;
-
-    fn model_id(&self) -> Self::Id {
-        self.id()
-    }
-}
-
 impl ExternallySourced for Route {
     fn external_ref(&self) -> Option<&ExternalRef> {
         self.external_ref.as_ref()
@@ -98,33 +90,12 @@ pub enum RouteFilter {
     Slug(String),
 }
 
-#[derive(Debug, Clone)]
-pub struct RouteModel {
-    pub route: Route,
-}
-impl RouteModel {
-    pub fn new(route: Route) -> RouteModel {
-        RouteModel { route }
-    }
-}
-
-impl PartialEq for RouteModel {
-    fn eq(&self, other: &Self) -> bool {
-        self.route == other.route
-    }
-}
-
-impl crate::models::Model for RouteModel {
+impl IndexModel for Route {
     type Id = RouteId;
-    type IndexItem = Route;
     type Filter = RouteFilter;
 
     fn id(&self) -> RouteId {
-        self.route.id()
-    }
-
-    fn as_index(&self) -> &Self::IndexItem {
-        &self.route
+        self.id()
     }
 }
 
