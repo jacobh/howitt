@@ -2,6 +2,7 @@ use howitt::jobs::rwgps::RwgpsJob;
 use howitt::models::user::UserFilter;
 use howitt::repos::Repos;
 use howitt::services::sync::rwgps_v2::sync_route::{sync_route, SyncRouteParams};
+use howitt::services::sync::rwgps_v2::sync_trip::{sync_trip, SyncTripParams};
 use rwgps_types::webhook::ItemType;
 use thiserror::Error;
 use tracing;
@@ -22,6 +23,8 @@ pub async fn handle_rwgps_job(
                 user_repo,
                 route_repo,
                 route_points_repo,
+                ride_repo,
+                ride_points_repo,
                 ..
             },
         rwgps_client,
@@ -67,7 +70,39 @@ pub async fn handle_rwgps_job(
                     );
                 }
                 ItemType::Trip => {
-                    unimplemented!()
+                    tracing::info!(
+                        trip_id = notification.item_id,
+                        user_id = notification.user_id,
+                        action = ?notification.action,
+                        "Processing RWGPS trip webhook"
+                    );
+
+                    // Get user from repo
+                    let user = user_repo
+                        .find_model(UserFilter::RwgpsId(notification.user_id as usize))
+                        .await?
+                        .ok_or(RwgpsJobError::Processing(anyhow::anyhow!(
+                            "No user found with RWGPS ID"
+                        )))?;
+                    // Get RWGPS connection
+                    let connection = user
+                        .rwgps_connection
+                        .ok_or_else(|| anyhow::anyhow!("User has no RWGPS connection"))?;
+
+                    // Sync the trip
+                    sync_trip(SyncTripParams {
+                        client: rwgps_client,
+                        ride_repo,
+                        ride_points_repo,
+                        rwgps_trip_id: notification.item_id as usize,
+                        connection,
+                    })
+                    .await?;
+
+                    tracing::info!(
+                        trip_id = notification.item_id,
+                        "Successfully processed RWGPS trip webhook"
+                    );
                 }
             }
         }
