@@ -7,7 +7,8 @@ use clap::{Parser, Subcommand};
 use howitt::jobs::Job;
 use howitt_postgresql::{
     PostgresClient, PostgresMediaRepo, PostgresPointOfInterestRepo, PostgresRidePointsRepo,
-    PostgresRideRepo, PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
+    PostgresRideRepo, PostgresRoutePointsRepo, PostgresRouteRepo, PostgresTripRepo,
+    PostgresUserRepo,
 };
 
 mod commands;
@@ -49,6 +50,7 @@ pub struct Context {
     pub user_repo: PostgresUserRepo,
     pub route_repo: PostgresRouteRepo,
     pub ride_repo: PostgresRideRepo,
+    pub route_points_repo: PostgresRoutePointsRepo,
     pub ride_points_repo: PostgresRidePointsRepo,
     pub poi_repo: PostgresPointOfInterestRepo,
     pub trip_repo: PostgresTripRepo,
@@ -75,6 +77,7 @@ impl Context {
             user_repo: PostgresUserRepo::new(postgres_client.clone()),
             route_repo: PostgresRouteRepo::new(postgres_client.clone()),
             ride_repo: PostgresRideRepo::new(postgres_client.clone()),
+            route_points_repo: PostgresRoutePointsRepo::new(postgres_client.clone()),
             ride_points_repo: PostgresRidePointsRepo::new(postgres_client.clone()),
             poi_repo: PostgresPointOfInterestRepo::new(postgres_client.clone()),
             trip_repo: PostgresTripRepo::new(postgres_client.clone()),

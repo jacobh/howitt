@@ -11,7 +11,7 @@ use crate::{
         external_ref::{ExternalId, ExternalRef, ExternalRefItemMap, ExternalRefMatch, RwgpsId},
         point::{ElevationPoint, TemporalElevationPoint},
         ride::{Ride, RideId, RidePoints},
-        route::{Route, RouteId, RouteModel},
+        route::{Route, RouteId, RouteModel, RoutePoints},
         route_description::RouteDescription,
         tag::Tag,
         user::UserId,
@@ -36,34 +36,39 @@ pub struct SyncParams {
 pub struct RwgpsSyncService<
     RouteRepo: Repo<Model = RouteModel>,
     RideRepo: Repo<Model = Ride>,
+    RoutePointsRepo: Repo<Model = RoutePoints>,
     RidePointsRepo: Repo<Model = RidePoints>,
     RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
     RwgpsClientError: Into<anyhow::Error>,
 > {
     pub route_repo: RouteRepo,
     pub ride_repo: RideRepo,
+    pub route_points_repo: RoutePointsRepo,
     pub ride_points_repo: RidePointsRepo,
     pub rwgps_client: RwgpsClient,
     pub rwgps_error: PhantomData<RwgpsClientError>,
 }
 
-impl<R1, R2, R3, C, E> RwgpsSyncService<R1, R2, R3, C, E>
+impl<R1, R2, R3, R4, C, E> RwgpsSyncService<R1, R2, R3, R4, C, E>
 where
     R1: Repo<Model = RouteModel>,
     R2: Repo<Model = Ride>,
-    R3: Repo<Model = RidePoints>,
+    R3: Repo<Model = RoutePoints>,
+    R4: Repo<Model = RidePoints>,
     C: rwgps_types::client::RwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
 {
     pub fn new(
         route_repo: R1,
         ride_repo: R2,
-        ride_points_repo: R3,
+        route_points_repo: R3,
+        ride_points_repo: R4,
         rwgps_client: C,
-    ) -> RwgpsSyncService<R1, R2, R3, C, E> {
+    ) -> RwgpsSyncService<R1, R2, R3, R4, C, E> {
         RwgpsSyncService {
             route_repo,
             ride_repo,
+            route_points_repo,
             ride_points_repo,
             rwgps_client,
             rwgps_error: PhantomData,
@@ -204,10 +209,13 @@ where
                 }),
                 tags,
             },
-            points,
+            // points,
         );
 
         self.route_repo.put(model).await?;
+        self.route_points_repo
+            .put(RoutePoints { id, points })
+            .await?;
 
         Ok(())
     }

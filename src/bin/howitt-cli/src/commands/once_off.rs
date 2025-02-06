@@ -12,6 +12,7 @@ pub async fn handle(
         trip_repo,
         media_repo,
         job_storage,
+        route_points_repo,
     }: Context,
 ) -> Result<(), anyhow::Error> {
     Ok(())

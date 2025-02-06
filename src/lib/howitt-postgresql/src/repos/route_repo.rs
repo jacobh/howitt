@@ -164,7 +164,7 @@ impl TryFrom<RouteRow> for RouteModel {
     fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
         let route = Route::try_from(row)?;
 
-        Ok(RouteModel::new(route, vec![]))
+        Ok(RouteModel::new(route))
     }
 }
 

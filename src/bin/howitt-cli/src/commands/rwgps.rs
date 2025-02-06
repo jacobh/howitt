@@ -70,6 +70,7 @@ pub async fn handle(
     Context {
         ride_points_repo,
         ride_repo,
+        route_points_repo,
         route_repo,
         ..
     }: Context,
@@ -111,6 +112,7 @@ pub async fn handle(
             let service = RwgpsSyncService {
                 route_repo,
                 ride_repo,
+                route_points_repo,
                 ride_points_repo,
                 rwgps_client,
                 rwgps_error: std::marker::PhantomData,

@@ -104,8 +104,11 @@ pub struct RouteModel {
     pub points: Vec<ElevationPoint>,
 }
 impl RouteModel {
-    pub fn new(route: Route, points: Vec<ElevationPoint>) -> RouteModel {
-        RouteModel { route, points }
+    pub fn new(route: Route) -> RouteModel {
+        RouteModel {
+            route,
+            points: vec![],
+        }
     }
 
     pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
@@ -141,6 +144,16 @@ impl crate::models::Model for RouteModel {
 pub struct RoutePoints {
     pub id: RouteId,
     pub points: Vec<ElevationPoint>,
+}
+
+impl RoutePoints {
+    pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
+        self.points.iter()
+    }
+
+    pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
+        self.iter_elevation_points().map(|point| point.point)
+    }
 }
 
 impl IndexModel for RoutePoints {
