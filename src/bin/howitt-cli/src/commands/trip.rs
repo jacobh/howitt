@@ -55,7 +55,7 @@ pub async fn handle(
             struct RideOption(Ride);
 
             // Get all users to select from
-            let users = user_repo.all_indexes().await?;
+            let users = user_repo.all().await?;
 
             // Have user select which account to create the trip for
             let UserOption(user) = Select::new(

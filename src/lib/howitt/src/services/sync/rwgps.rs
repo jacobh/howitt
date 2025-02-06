@@ -79,7 +79,7 @@ where
         &self,
         SyncParams { rwgps_user_id, .. }: &SyncParams,
     ) -> Result<Vec<(RouteSummary, Option<Route>)>, anyhow::Error> {
-        let existing_routes = self.route_repo.all_indexes().await?;
+        let existing_routes = self.route_repo.all().await?;
         let route_summaries = self.rwgps_client.user_routes(*rwgps_user_id).await?;
 
         let existing_routes = ExternalRefItemMap::from_externally_reffed(existing_routes);
@@ -104,7 +104,7 @@ where
         &self,
         SyncParams { rwgps_user_id, .. }: &SyncParams,
     ) -> Result<Vec<(TripSummary, Option<Ride>)>, anyhow::Error> {
-        let existing_rides = self.ride_repo.all_indexes().await?;
+        let existing_rides = self.ride_repo.all().await?;
         let trip_summaries = self.rwgps_client.user_trips(*rwgps_user_id).await?;
 
         let existing_rides = ExternalRefItemMap::from_externally_reffed(existing_rides);

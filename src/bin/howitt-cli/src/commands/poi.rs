@@ -29,7 +29,7 @@ pub async fn handle(
             Ok(())
         }
         POICommands::List => {
-            let pois = poi_repo.all_indexes().await?;
+            let pois = poi_repo.all().await?;
             dbg!(pois);
             Ok(())
         }

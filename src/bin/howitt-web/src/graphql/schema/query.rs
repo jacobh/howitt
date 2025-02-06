@@ -121,7 +121,7 @@ impl Query {
     }
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
         let SchemaData { ride_repo, .. } = ctx.data()?;
-        let rides = ride_repo.all_indexes().await?;
+        let rides = ride_repo.all().await?;
 
         Ok(rides
             .into_iter()
@@ -135,7 +135,7 @@ impl Query {
     ) -> Result<Vec<PointOfInterest>, async_graphql::Error> {
         let SchemaData { poi_repo, .. } = ctx.data()?;
 
-        let pois = poi_repo.all_indexes().await?;
+        let pois = poi_repo.all().await?;
 
         Ok(pois.into_iter().map(PointOfInterest).collect())
     }
@@ -159,7 +159,7 @@ impl Query {
     ) -> Result<Vec<UserProfile>, async_graphql::Error> {
         let SchemaData { user_repo, .. } = ctx.data()?;
 
-        let users = user_repo.all_indexes().await?;
+        let users = user_repo.all().await?;
 
         Ok(users.into_iter().map(UserProfile).collect_vec())
     }

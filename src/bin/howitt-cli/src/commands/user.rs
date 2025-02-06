@@ -49,7 +49,7 @@ pub async fn handle(
             dbg!("done");
         }
         UserCommands::List => {
-            let users = user_repo.all_models().await?;
+            let users = user_repo.all().await?;
             dbg!(users);
         }
         UserCommands::Login => {

@@ -4,7 +4,6 @@ use crate::models::ride::RidePoints;
 use crate::models::route::RoutePoints;
 use crate::models::trip::Trip;
 use crate::models::user::User;
-use crate::models::IndexItem;
 use async_trait::async_trait;
 use std::sync::Arc;
 
@@ -18,9 +17,7 @@ pub trait Repo: Send + Sync {
     type Model: Model;
     type Error: std::error::Error + Send + Sync + 'static;
 
-    async fn all_indexes(
-        &self,
-    ) -> Result<Vec<<<Self as Repo>::Model as Model>::IndexItem>, Self::Error>;
+    async fn all(&self) -> Result<Vec<<Self as Repo>::Model>, Self::Error>;
 
     async fn get(
         &self,
@@ -69,22 +66,13 @@ pub trait Repo: Send + Sync {
 
         Ok(models.into_iter().nth(0))
     }
-
-    async fn all_models(&self) -> Result<Vec<<Self as Repo>::Model>, Self::Error> {
-        let indexes = self.all_indexes().await?;
-
-        self.get_batch(indexes.into_iter().map(|index| index.model_id()).collect())
-            .await
-    }
 }
 
 #[async_trait]
 pub trait AnyhowRepo: Send + Sync + std::fmt::Debug {
     type Model: Model + Sized;
 
-    async fn all_indexes(
-        &self,
-    ) -> Result<Vec<<<Self as AnyhowRepo>::Model as Model>::IndexItem>, anyhow::Error>;
+    async fn all(&self) -> Result<Vec<<Self as AnyhowRepo>::Model>, anyhow::Error>;
 
     async fn get(
         &self,
@@ -118,8 +106,8 @@ where
 {
     type Model = T;
 
-    async fn all_indexes(&self) -> Result<Vec<T::IndexItem>, anyhow::Error> {
-        Ok(Repo::all_indexes(self).await?)
+    async fn all(&self) -> Result<Vec<T>, anyhow::Error> {
+        Ok(Repo::all(self).await?)
     }
     async fn get(&self, id: T::Id) -> Result<T, anyhow::Error> {
         Ok(Repo::get(self, id).await?)

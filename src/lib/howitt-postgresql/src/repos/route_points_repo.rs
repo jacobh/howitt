@@ -62,7 +62,7 @@ impl Repo for PostgresRoutePointsRepo {
             .collect_result_vec()?)
     }
 
-    async fn all_indexes(
+    async fn all(
         &self,
     ) -> Result<Vec<<RoutePoints as Model>::IndexItem>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();

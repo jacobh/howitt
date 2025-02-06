@@ -221,7 +221,7 @@ impl Repo for PostgresMediaRepo {
             .collect_result_vec()?)
     }
 
-    async fn all_indexes(&self) -> Result<Vec<Media>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<Media>, PostgresRepoError> {
         self.filter_models(MediaFilter::All).await
     }
 

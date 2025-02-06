@@ -125,7 +125,7 @@ impl Repo for PostgresTripRepo {
         Ok(trips.into_iter().map(Trip::try_from).collect_result_vec()?)
     }
 
-    async fn all_indexes(&self) -> Result<Vec<Trip>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<Trip>, PostgresRepoError> {
         self.filter_models(TripFilter::All).await
     }
 

@@ -37,12 +37,10 @@ impl Repo for PostgresRidePointsRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, _: ()) -> Result<Vec<RidePoints>, PostgresRepoError> {
-        self.all_indexes().await
+        self.all().await
     }
 
-    async fn all_indexes(
-        &self,
-    ) -> Result<Vec<<RidePoints as Model>::IndexItem>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<<RidePoints as Model>::IndexItem>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(RidePointsRow, r#"select * from ride_points"#);

@@ -58,7 +58,7 @@ pub async fn handle(
             let route_id = RouteId::from(Uuid::parse_str(&args.route_id)?);
             let route_points = route_points_repo.get(route_id).await?;
             let points = route_points.iter_elevation_points().cloned().collect_vec();
-            let pois = poi_repo.all_indexes().await?;
+            let pois = poi_repo.all().await?;
 
             let cuesheet = generate_cuesheet(&points, &pois);
             dbg!(cuesheet);
@@ -83,7 +83,7 @@ pub async fn handle(
             Ok(())
         }
         RouteCommands::List => {
-            let routes = route_repo.all_indexes().await?;
+            let routes = route_repo.all().await?;
             dbg!(routes);
             Ok(())
         }

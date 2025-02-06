@@ -161,7 +161,7 @@ impl Terminus {
         let SchemaData { route_repo, .. } = ctx.data()?;
 
         let route_indexes = route_repo
-            .all_indexes()
+            .all()
             .await?
             .into_iter()
             .filter(|route| route.tags.contains(&Tag::Starred))
@@ -433,7 +433,7 @@ impl Route {
             .ok_or(anyhow!("Points not found"))?;
 
         let points = route_points.iter_elevation_points().cloned().collect_vec();
-        let pois = poi_repo.all_indexes().await?;
+        let pois = poi_repo.all().await?;
 
         let cuesheet = generate_cuesheet(&points, &pois);
 
