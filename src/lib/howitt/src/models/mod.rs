@@ -1,8 +1,4 @@
-use std::{
-    hash::Hash,
-    marker::{ConstParamTy, PhantomData},
-    sync::Arc,
-};
+use std::{hash::Hash, marker::ConstParamTy, sync::Arc};
 
 use futures::FutureExt;
 use serde::{Deserialize, Serialize};
@@ -90,14 +86,6 @@ pub trait IndexItem: 'static + Send + Sync + Clone {
     fn model_id(&self) -> Self::Id;
 }
 
-pub trait OtherItem: 'static + Send + Sync + Clone {
-    type Id: ModelId;
-
-    fn model_id(&self) -> Self::Id;
-    fn item_name(&self) -> String;
-    fn item_id(&self) -> String;
-}
-
 #[derive(Clone)]
 enum ModelRefInitial<M: Model> {
     Model(M),
@@ -167,28 +155,6 @@ where
             .as_ref()
             .map(Clone::clone)
             .map_err(Clone::clone)
-    }
-}
-
-#[derive(Clone)]
-pub struct EmptyOtherItem<ID>(PhantomData<ID>);
-
-impl<ID> OtherItem for EmptyOtherItem<ID>
-where
-    ID: ModelId + 'static,
-{
-    type Id = ID;
-
-    fn model_id(&self) -> Self::Id {
-        todo!()
-    }
-
-    fn item_name(&self) -> String {
-        todo!()
-    }
-
-    fn item_id(&self) -> String {
-        todo!()
     }
 }
 
