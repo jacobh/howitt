@@ -1,6 +1,7 @@
 use clap::Subcommand;
 use howitt::repos::Repo;
 use howitt_fs::{load_huts, load_localities, load_stations};
+use howitt_postgresql::PostgresRepos;
 
 use crate::Context;
 
@@ -15,21 +16,27 @@ pub enum POICommands {
 
 pub async fn handle(
     command: &POICommands,
-    Context { poi_repo, .. }: Context,
+    Context {
+        repos: PostgresRepos {
+            point_of_interest_repo,
+            ..
+        },
+        ..
+    }: Context,
 ) -> Result<(), anyhow::Error> {
     match command {
         POICommands::Sync => {
             let stations = load_stations()?;
             let huts = load_huts()?;
 
-            poi_repo.put_batch(stations).await?;
-            poi_repo.put_batch(huts).await?;
+            point_of_interest_repo.put_batch(stations).await?;
+            point_of_interest_repo.put_batch(huts).await?;
 
             println!("done");
             Ok(())
         }
         POICommands::List => {
-            let pois = poi_repo.all().await?;
+            let pois = point_of_interest_repo.all().await?;
             dbg!(pois);
             Ok(())
         }

@@ -5,6 +5,7 @@ use howitt::{
 };
 use howitt_fs::load_user_config;
 use howitt_fs::{load_routes, persist_user_config};
+use howitt_postgresql::PostgresRepos;
 use itertools::Itertools;
 use rwgps::RwgpsClient;
 use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
@@ -68,10 +69,14 @@ fn get_user_config() -> Result<UserConfig, anyhow::Error> {
 pub async fn handle(
     command: &RwgpsCommands,
     Context {
-        ride_points_repo,
-        ride_repo,
-        route_points_repo,
-        route_repo,
+        repos:
+            PostgresRepos {
+                ride_repo,
+                ride_points_repo,
+                route_repo,
+                route_points_repo,
+                ..
+            },
         ..
     }: Context,
 ) -> Result<(), anyhow::Error> {

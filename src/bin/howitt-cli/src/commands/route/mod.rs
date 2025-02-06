@@ -8,6 +8,7 @@ use howitt::{
         simplify_points::{simplify_points, SimplifyTarget},
     },
 };
+use howitt_postgresql::PostgresRepos;
 use itertools::Itertools;
 use prettytable::{row, Table};
 use uuid::Uuid;
@@ -33,9 +34,13 @@ pub struct RouteDetailArgs {
 pub async fn handle(
     command: &RouteCommands,
     Context {
-        route_repo,
-        route_points_repo,
-        poi_repo,
+        repos:
+            PostgresRepos {
+                route_repo,
+                route_points_repo,
+                point_of_interest_repo,
+                ..
+            },
         ..
     }: Context,
 ) -> Result<(), anyhow::Error> {
@@ -58,7 +63,7 @@ pub async fn handle(
             let route_id = RouteId::from(Uuid::parse_str(&args.route_id)?);
             let route_points = route_points_repo.get(route_id).await?;
             let points = route_points.iter_elevation_points().cloned().collect_vec();
-            let pois = poi_repo.all().await?;
+            let pois = point_of_interest_repo.all().await?;
 
             let cuesheet = generate_cuesheet(&points, &pois);
             dbg!(cuesheet);

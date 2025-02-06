@@ -4,6 +4,7 @@ use howitt::{
     repos::AnyhowRepo,
     services::simplify_points::{simplify_points, SimplifyTarget},
 };
+use howitt_postgresql::PostgresRepos;
 use serde_json::json;
 
 use crate::Context;
@@ -23,7 +24,10 @@ pub struct RideDetailArgs {
 pub async fn handle(
     command: &RideCommands,
     Context {
-        ride_points_repo, ..
+        repos: PostgresRepos {
+            ride_points_repo, ..
+        },
+        ..
     }: Context,
 ) -> Result<(), anyhow::Error> {
     match command {

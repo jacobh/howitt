@@ -5,6 +5,7 @@ use howitt::{
     models::media::MediaFilter,
     repos::Repo,
 };
+use howitt_postgresql::PostgresRepos;
 
 use crate::Context;
 
@@ -16,7 +17,7 @@ pub enum MediaCommands {
 pub async fn handle(
     command: &MediaCommands,
     Context {
-        media_repo,
+        repos: PostgresRepos { media_repo, .. },
         job_storage,
         ..
     }: Context,

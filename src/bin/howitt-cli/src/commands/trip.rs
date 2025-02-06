@@ -10,6 +10,7 @@ use howitt::{
     repos::Repo,
     services::slug::generate_slug,
 };
+use howitt_postgresql::PostgresRepos;
 use inquire::{MultiSelect, Select, Text};
 use itertools::Itertools;
 use prettytable::{row, Table};
@@ -25,9 +26,13 @@ pub enum TripCommands {
 pub async fn handle(
     command: &TripCommands,
     Context {
-        trip_repo,
-        ride_repo,
-        user_repo,
+        repos:
+            PostgresRepos {
+                user_repo,
+                ride_repo,
+                trip_repo,
+                ..
+            },
         ..
     }: Context,
 ) -> Result<(), anyhow::Error> {

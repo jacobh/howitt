@@ -5,6 +5,7 @@ use howitt::{
     repos::Repo,
     services::user::{auth::UserAuthService, password::hash_password},
 };
+use howitt_postgresql::PostgresRepos;
 use std::sync::Arc;
 
 use crate::Context;
@@ -24,7 +25,10 @@ pub struct TokenArgs {
 
 pub async fn handle(
     command: &UserCommands,
-    Context { user_repo, .. }: Context,
+    Context {
+        repos: PostgresRepos { user_repo, .. },
+        ..
+    }: Context,
 ) -> Result<(), anyhow::Error> {
     match command {
         UserCommands::Create => {
