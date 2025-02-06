@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
 use apalis_redis::RedisStorage;
-use howitt::{jobs::Job, services::user::auth::UserAuthService};
+use howitt::{jobs::Job, repos::Repos, services::user::auth::UserAuthService};
 use howitt_clients::S3BucketClient;
-use howitt_postgresql::{PostgresMediaRepo, PostgresUserRepo};
 
 use crate::graphql::schema::Schema;
 
@@ -19,8 +18,7 @@ pub struct AppState {
     pub schema: Schema,
     pub user_auth_service: UserAuthService,
     pub bucket_client: Arc<S3BucketClient>,
-    pub media_repo: Arc<PostgresMediaRepo>,
-    pub user_repo: Arc<PostgresUserRepo>,
+    pub repos: Repos,
     pub job_storage: Arc<tokio::sync::Mutex<RedisStorage<Job>>>,
     pub rwgps: RwgpsConfig,
 }

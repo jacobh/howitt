@@ -60,8 +60,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
-    let postgres_repos = PostgresRepos::new(pg);
-    let repos: Repos = postgres_repos.clone().into();
+    let repos: Repos = Repos::from(PostgresRepos::new(pg));
 
     let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
     let simplified_ride_points_fetcher =
@@ -78,16 +77,15 @@ async fn main() -> Result<(), anyhow::Error> {
         simplified_ride_points_fetcher,
         rwgps_client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
         user_auth_service: user_auth_service.clone(),
-        repos,
+        repos: repos.clone(),
     });
 
     let app_state = app_state::AppState {
         schema,
         user_auth_service,
-        media_repo: Arc::new(postgres_repos.media_repo.clone()),
+        repos,
         bucket_client: Arc::new(bucket_client),
         job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
-        user_repo: Arc::new(postgres_repos.user_repo.clone()),
         rwgps: app_state::RwgpsConfig {
             client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
             client_secret: std::env::var("RWGPS_CLIENT_SECRET")

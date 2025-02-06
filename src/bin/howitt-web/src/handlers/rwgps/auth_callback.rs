@@ -2,7 +2,8 @@ use axum::extract::Query;
 use axum::response::{Redirect, Response};
 use axum::{extract::State, response::IntoResponse, Json};
 use chrono::Utc;
-use howitt::{models::user::UserRwgpsConnection, repos::Repo};
+use howitt::models::user::UserRwgpsConnection;
+use howitt::repos::Repos;
 use http::StatusCode;
 use oauth2::basic::{
     BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse,
@@ -55,10 +56,15 @@ type RwgpsClient<
 >;
 
 pub async fn rwgps_callback_handler(
-    State(app_state): State<AppState>,
+    State(AppState {
+        user_auth_service,
+        repos: Repos { user_repo, .. },
+        rwgps,
+        ..
+    }): State<AppState>,
     Query(params): Query<RwgpsCallbackParams>,
 ) -> Response {
-    let login = match app_state.user_auth_service.verify(&params.state).await {
+    let login = match user_auth_service.verify(&params.state).await {
         Ok(login) => login,
         Err(e) => {
             tracing::error!("Failed to verify auth state: {}", e);
@@ -72,13 +78,13 @@ pub async fn rwgps_callback_handler(
         }
     };
 
-    let client = RwgpsClient::new(ClientId::new(app_state.rwgps.client_id))
-        .set_client_secret(ClientSecret::new(app_state.rwgps.client_secret))
+    let client = RwgpsClient::new(ClientId::new(rwgps.client_id))
+        .set_client_secret(ClientSecret::new(rwgps.client_secret))
         .set_auth_uri(AuthUrl::new("https://ridewithgps.com/oauth/authorize".to_string()).unwrap())
         .set_token_uri(
             TokenUrl::new("https://ridewithgps.com/oauth/token.json".to_string()).unwrap(),
         )
-        .set_redirect_uri(RedirectUrl::new(app_state.rwgps.redirect_uri).unwrap());
+        .set_redirect_uri(RedirectUrl::new(rwgps.redirect_uri).unwrap());
 
     let http_client = oauth2::reqwest::Client::new();
 
@@ -129,7 +135,7 @@ pub async fn rwgps_callback_handler(
     };
 
     // Get existing user record
-    let mut user = match app_state.user_repo.get(login.session.user_id).await {
+    let mut user = match user_repo.get(login.session.user_id).await {
         Ok(user) => user,
         Err(e) => {
             tracing::error!("Failed to fetch user: {}", e);
@@ -147,7 +153,7 @@ pub async fn rwgps_callback_handler(
     user.rwgps_connection = Some(rwgps_connection);
 
     // Save updated user
-    if let Err(e) = app_state.user_repo.put(user).await {
+    if let Err(e) = user_repo.put(user).await {
         tracing::error!("Failed to save user with RWGPS connection: {}", e);
         return (
             StatusCode::INTERNAL_SERVER_ERROR,

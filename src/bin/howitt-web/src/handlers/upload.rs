@@ -5,7 +5,7 @@ use exif::{parse_exif, ParsedExifData};
 use howitt::{
     jobs::{media::MediaJob, Job},
     models::media::{Media, MediaId, MediaRelationId},
-    repos::Repo,
+    repos::Repos,
     services::{
         media::{generate_media_key, GenerateMediaKeyParams},
         user::auth::Login,
@@ -35,7 +35,7 @@ fn parse_relation_ids(
 pub async fn upload_media_handler(
     State(AppState {
         bucket_client,
-        media_repo,
+        repos: Repos { media_repo, .. },
         job_storage,
         ..
     }): State<AppState>,
