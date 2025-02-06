@@ -8,7 +8,7 @@ use howitt::{
 };
 use howitt_clients::RedisClient;
 
-use super::loaders::user_loader::UserLoader;
+use super::loaders::{route_points_loader::RoutePointsLoader, user_loader::UserLoader};
 
 pub struct SchemaData {
     pub poi_repo: PointOfInterestRepo,
@@ -18,6 +18,7 @@ pub struct SchemaData {
     pub user_repo: UserRepo,
     pub simplified_ride_points_fetcher: SimplifiedRidePointsFetcher<RedisClient>,
     pub user_loader: DataLoader<UserLoader>,
+    pub route_points_loader: DataLoader<RoutePointsLoader>,
     pub media_repo: MediaRepo,
     pub rwgps_client_id: String,
     pub user_auth_service: UserAuthService,

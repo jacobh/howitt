@@ -17,7 +17,8 @@ use howitt_client_types::BucketName;
 use howitt_clients::{RedisClient, S3BucketClient};
 use howitt_postgresql::{
     PostgresClient, PostgresMediaRepo, PostgresPointOfInterestRepo, PostgresRidePointsRepo,
-    PostgresRideRepo, PostgresRouteRepo, PostgresTripRepo, PostgresUserRepo,
+    PostgresRideRepo, PostgresRoutePointsRepo, PostgresRouteRepo, PostgresTripRepo,
+    PostgresUserRepo,
 };
 use http::{header, Method};
 use tower_http::{
@@ -31,7 +32,11 @@ mod extractors;
 mod graphql;
 mod handlers;
 
-use graphql::{context::SchemaData, loaders::user_loader::UserLoader, schema::build_schema};
+use graphql::{
+    context::SchemaData,
+    loaders::{route_points_loader::RoutePointsLoader, user_loader::UserLoader},
+    schema::build_schema,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -62,6 +67,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
     let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
     let ride_points_repo = Arc::new(PostgresRidePointsRepo::new(pg.clone()));
+    let route_points_repo = Arc::new(PostgresRoutePointsRepo::new(pg.clone()));
     let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
     let trip_repo = Arc::new(PostgresTripRepo::new(pg.clone()));
     let media_repo = Arc::new(PostgresMediaRepo::new(pg.clone()));
@@ -80,6 +86,10 @@ async fn main() -> Result<(), anyhow::Error> {
         trip_repo,
         media_repo: media_repo.clone(),
         user_loader: DataLoader::new(UserLoader::new(user_repo.clone()), tokio::spawn),
+        route_points_loader: DataLoader::new(
+            RoutePointsLoader::new(route_points_repo.clone()),
+            tokio::spawn,
+        ),
         simplified_ride_points_fetcher,
         rwgps_client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
         user_auth_service: user_auth_service.clone(),

@@ -34,6 +34,7 @@ pub async fn handle(
     command: &RouteCommands,
     Context {
         route_repo,
+        route_points_repo,
         poi_repo,
         ..
     }: Context,
@@ -44,21 +45,19 @@ pub async fn handle(
             Ok(())
         }
         RouteCommands::Detail(args) => {
-            let model = route_repo
-                .get(RouteId::from(Uuid::parse_str(&args.route_id)?))
-                .await?;
+            let route_id = RouteId::from(Uuid::parse_str(&args.route_id)?);
+            let model = route_repo.get(route_id).await?;
             dbg!(&model.route);
 
-            let points = model.iter_elevation_points().cloned().collect_vec();
+            let route_points = route_points_repo.get(route_id).await?;
+            let points = route_points.iter_elevation_points().cloned().collect_vec();
             dbg!(simplify_points(&points, SimplifyTarget::TotalPoints(50)).len());
             Ok(())
         }
         RouteCommands::GenerateCuesheet(args) => {
-            let model = route_repo
-                .get(RouteId::from(Uuid::parse_str(&args.route_id)?))
-                .await?;
-
-            let points = model.iter_elevation_points().cloned().collect_vec();
+            let route_id = RouteId::from(Uuid::parse_str(&args.route_id)?);
+            let route_points = route_points_repo.get(route_id).await?;
+            let points = route_points.iter_elevation_points().cloned().collect_vec();
             let pois = poi_repo.all_indexes().await?;
 
             let cuesheet = generate_cuesheet(&points, &pois);

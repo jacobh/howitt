@@ -1,6 +1,7 @@
 use crate::ext::futures::FuturesIteratorExt;
 use crate::models::media::Media;
 use crate::models::ride::RidePoints;
+use crate::models::route::RoutePoints;
 use crate::models::trip::Trip;
 use crate::models::user::User;
 use crate::models::IndexItem;
@@ -174,5 +175,6 @@ pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<Model = PointOfInterest>>;
 pub type RidePointsRepo = Arc<dyn AnyhowRepo<Model = RidePoints>>;
 pub type RideRepo = Arc<dyn AnyhowRepo<Model = Ride>>;
 pub type RouteModelRepo = Arc<dyn AnyhowRepo<Model = RouteModel>>;
+pub type RoutePointsRepo = Arc<dyn AnyhowRepo<Model = RoutePoints>>;
 pub type TripRepo = Arc<dyn AnyhowRepo<Model = Trip>>;
 pub type UserRepo = Arc<dyn AnyhowRepo<Model = User>>;

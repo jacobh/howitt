@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use async_graphql::{Context, Enum, Object};
 use howitt::{
     models::{
@@ -225,26 +226,39 @@ impl Route {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<f64, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?;
+        let SchemaData {
+            route_points_loader,
+            ..
+        } = ctx.data()?;
+        let route_points = route_points_loader
+            .load_one(self.0.id())
+            .await?
+            .ok_or(anyhow!("Points not found"))?;
 
         // Convert points to progress and get final values for elevation gain
-        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let points = route_points.iter_elevation_points().cloned().collect_vec();
         let progress = DistanceElevationProgress::last_from_points(points)
             .map(|p| p.elevation_gain_m)
             .unwrap_or(0.0);
 
         Ok(progress)
     }
+
     async fn elevation_descent_m<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<f64, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?;
+        let SchemaData {
+            route_points_loader,
+            ..
+        } = ctx.data()?;
+        let route_points = route_points_loader
+            .load_one(self.0.id())
+            .await?
+            .ok_or(anyhow!("Points not found"))?;
 
         // Convert points to progress and get final values for elevation loss
-        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let points = route_points.iter_elevation_points().cloned().collect_vec();
         let progress = DistanceElevationProgress::last_from_points(points)
             .map(|p| p.elevation_loss_m)
             .unwrap_or(0.0);
@@ -324,19 +338,32 @@ impl Route {
             .collect()
     }
     async fn points_count<'ctx>(&self, ctx: &Context<'ctx>) -> Result<usize, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?;
+        let SchemaData {
+            route_points_loader,
+            ..
+        } = ctx.data()?;
+        let route_points = route_points_loader
+            .load_one(self.0.id())
+            .await?
+            .ok_or(anyhow!("Points not found"))?;
 
-        Ok(route_model.iter_geo_points().count())
+        Ok(route_points.iter_geo_points().count())
     }
+
     async fn points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?;
+        let SchemaData {
+            route_points_loader,
+            ..
+        } = ctx.data()?;
+        let route_points = route_points_loader
+            .load_one(self.0.id())
+            .await?
+            .ok_or(anyhow!("Points not found"))?;
 
-        Ok(route_model
+        Ok(route_points
             .iter_geo_points()
             .map(howitt::models::point::Point::into_x_y_vec)
             .collect())
@@ -350,29 +377,43 @@ impl Route {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?;
+        let SchemaData {
+            route_points_loader,
+            ..
+        } = ctx.data()?;
+        let route_points = route_points_loader
+            .load_one(self.0.id())
+            .await?
+            .ok_or(anyhow!("Points not found"))?;
 
         // Get just the elevation values from each point
-        Ok(route_model
+        Ok(route_points
             .iter_elevation_points()
             .map(|p| p.elevation)
             .collect())
     }
+
     pub async fn distance_points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
-        let route_model = self.0.to_model(route_repo).await?;
+        let SchemaData {
+            route_points_loader,
+            ..
+        } = ctx.data()?;
+        let route_points = route_points_loader
+            .load_one(self.0.id())
+            .await?
+            .ok_or(anyhow!("Points not found"))?;
 
         // Get elevation points and convert to distance progress
-        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let points = route_points.iter_elevation_points().cloned().collect_vec();
         let progress = DistanceProgress::from_points(points);
 
         // Extract just the distance values
         Ok(progress.into_iter().map(|p| p.distance_m).collect())
     }
+
     pub async fn elevation_points_json<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -387,13 +428,16 @@ impl Route {
     }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
         let SchemaData {
-            route_repo,
+            route_points_loader,
             poi_repo,
             ..
         } = ctx.data()?;
-        let route_model = route_repo.get(self.0.id()).await?;
+        let route_points = route_points_loader
+            .load_one(self.0.id())
+            .await?
+            .ok_or(anyhow!("Points not found"))?;
 
-        let points = route_model.iter_elevation_points().cloned().collect_vec();
+        let points = route_points.iter_elevation_points().cloned().collect_vec();
         let pois = poi_repo.all_indexes().await?;
 
         let cuesheet = generate_cuesheet(&points, &pois);

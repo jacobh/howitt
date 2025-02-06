@@ -1,7 +1,7 @@
 use howitt::{
     ext::iter::ResultIterExt,
     models::{
-        route::{RouteId, RoutePoints},
+        route::{RouteId, RoutePoints, RoutePointsFilter},
         Model,
     },
     repos::Repo,
@@ -36,8 +36,30 @@ impl Repo for PostgresRoutePointsRepo {
     type Model = RoutePoints;
     type Error = PostgresRepoError;
 
-    async fn filter_models(&self, _: ()) -> Result<Vec<RoutePoints>, PostgresRepoError> {
-        self.all_indexes().await
+    async fn filter_models(
+        &self,
+        filter: RoutePointsFilter,
+    ) -> Result<Vec<RoutePoints>, PostgresRepoError> {
+        let mut conn = self.client.acquire().await.unwrap();
+
+        let route_points = match filter {
+            RoutePointsFilter::Ids(ids) => {
+                let uuids: Vec<_> = ids.into_iter().map(|id| id.as_uuid().clone()).collect();
+
+                sqlx::query_as!(
+                    RoutePointsRow,
+                    r#"select * from route_points where route_id = ANY($1)"#,
+                    &uuids
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
+        };
+
+        Ok(route_points
+            .into_iter()
+            .map(RoutePoints::try_from)
+            .collect_result_vec()?)
     }
 
     async fn all_indexes(

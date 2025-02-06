@@ -3,23 +3,23 @@ use howitt_client_types::RedisClient;
 use crate::{
     models::{
         point::ElevationPoint,
-        route::{RouteId, RouteModel},
+        route::{RouteId, RoutePoints},
     },
-    repos::RouteModelRepo,
+    repos::RoutePointsRepo,
     services::simplify_points::simplify_points,
 };
 
 use super::{cache::CacheFetcher, PointsFetcherParams};
 
 pub struct SimplifiedRoutePointsFetcher<Redis: RedisClient> {
-    pub route_repo: RouteModelRepo,
+    pub route_points_repo: RoutePointsRepo,
     pub cache_fetcher: CacheFetcher<Redis>,
 }
 
 impl<Redis: RedisClient> SimplifiedRoutePointsFetcher<Redis> {
-    pub fn new(route_repo: RouteModelRepo, redis_client: Redis) -> Self {
+    pub fn new(route_points_repo: RoutePointsRepo, redis_client: Redis) -> Self {
         Self {
-            route_repo,
+            route_points_repo,
             cache_fetcher: CacheFetcher::new(redis_client),
         }
     }
@@ -42,7 +42,7 @@ impl<Redis: RedisClient> SimplifiedRoutePointsFetcher<Redis> {
 
         self.cache_fetcher
             .fetch_or_insert_with(&key, || async {
-                let RouteModel { points, .. } = self.route_repo.get(id).await?;
+                let RoutePoints { points, .. } = self.route_points_repo.get(id).await?;
                 Ok(
                     tokio::task::spawn_blocking(move || simplify_points(&points, params.target))
                         .await?,

@@ -101,28 +101,16 @@ pub enum RouteFilter {
 #[derive(Debug, Clone)]
 pub struct RouteModel {
     pub route: Route,
-    pub points: Vec<ElevationPoint>,
 }
 impl RouteModel {
     pub fn new(route: Route) -> RouteModel {
-        RouteModel {
-            route,
-            points: vec![],
-        }
-    }
-
-    pub fn iter_elevation_points(&self) -> impl Iterator<Item = &ElevationPoint> + '_ {
-        self.points.iter()
-    }
-
-    pub fn iter_geo_points(&self) -> impl Iterator<Item = geo::Point> + '_ {
-        self.iter_elevation_points().map(|point| point.point)
+        RouteModel { route }
     }
 }
 
 impl PartialEq for RouteModel {
     fn eq(&self, other: &Self) -> bool {
-        self.route == other.route && self.points == other.points
+        self.route == other.route
     }
 }
 
@@ -156,9 +144,14 @@ impl RoutePoints {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum RoutePointsFilter {
+    Ids(Vec<RouteId>),
+}
+
 impl IndexModel for RoutePoints {
     type Id = RouteId;
-    type Filter = ();
+    type Filter = RoutePointsFilter;
 
     fn id(&self) -> RouteId {
         RouteId::from(self.id)
