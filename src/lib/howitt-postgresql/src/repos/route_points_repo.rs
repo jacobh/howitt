@@ -62,9 +62,7 @@ impl Repo for PostgresRoutePointsRepo {
             .collect_result_vec()?)
     }
 
-    async fn all(
-        &self,
-    ) -> Result<Vec<<RoutePoints as Model>::IndexItem>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<RoutePoints>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(RoutePointsRow, r#"select * from route_points"#);

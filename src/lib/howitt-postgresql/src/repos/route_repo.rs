@@ -192,7 +192,7 @@ impl Repo for PostgresRouteRepo {
         Ok(rows.into_iter().map(Route::try_from).collect_result_vec()?)
     }
 
-    async fn all(&self) -> Result<Vec<<Route as Model>::IndexItem>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<Route>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(

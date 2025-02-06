@@ -143,7 +143,7 @@ impl Repo for PostgresRideRepo {
         Ok(rides.into_iter().map(Ride::try_from).collect_result_vec()?)
     }
 
-    async fn all(&self) -> Result<Vec<<Ride as Model>::IndexItem>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<Ride>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(RideRow, r#"select * from rides"#);

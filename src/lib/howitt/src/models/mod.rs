@@ -25,7 +25,6 @@ pub mod user;
 
 pub trait Model: Send + Sync + Sized + Clone + 'static {
     type Id: ModelId;
-    type IndexItem: IndexItem<Id = Self::Id>;
     type Filter: Send + Sync + Sized + Clone + 'static;
 
     fn id(&self) -> Self::Id;
@@ -57,8 +56,6 @@ where
     F: Send + Sync + Sized + Clone + 'static,
 {
     type Id = ID;
-
-    type IndexItem = T;
 
     type Filter = F;
 

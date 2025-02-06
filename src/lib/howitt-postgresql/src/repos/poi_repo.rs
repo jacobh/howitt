@@ -54,7 +54,7 @@ impl Repo for PostgresPointOfInterestRepo {
             .collect_result_vec()?)
     }
 
-    async fn all(&self) -> Result<Vec<<PointOfInterest as Model>::IndexItem>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<PointOfInterest>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(PointOfInterestRow, r#"select * from points_of_interest"#);

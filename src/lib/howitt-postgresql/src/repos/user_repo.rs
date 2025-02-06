@@ -115,7 +115,7 @@ impl Repo for PostgresUserRepo {
         Ok(users.into_iter().map(User::try_from).collect_result_vec()?)
     }
 
-    async fn all(&self) -> Result<Vec<<User as Model>::IndexItem>, PostgresRepoError> {
+    async fn all(&self) -> Result<Vec<User>, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
         let query = sqlx::query_as!(
