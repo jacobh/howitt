@@ -1,16 +1,17 @@
 use crate::ext::futures::FuturesIteratorExt;
-use crate::models::media::Media;
-use crate::models::ride::RidePoints;
-use crate::models::route::RoutePoints;
-use crate::models::trip::Trip;
-use crate::models::user::User;
+use crate::models::{
+    media::Media,
+    point_of_interest::PointOfInterest,
+    ride::{Ride, RidePoints},
+    route::{Route, RoutePoints},
+    trip::Trip,
+    user::User,
+    Model,
+};
 use async_trait::async_trait;
 use std::sync::Arc;
 
 use crate::ext::iter::ResultIterExt;
-use crate::models::{
-    config::Config, point_of_interest::PointOfInterest, ride::Ride, route::Route, Model,
-};
 
 #[async_trait]
 pub trait Repo: Send + Sync {
@@ -132,7 +133,6 @@ where
     }
 }
 
-pub type ConfigRepo = Arc<dyn AnyhowRepo<Model = Config>>;
 pub type MediaRepo = Arc<dyn AnyhowRepo<Model = Media>>;
 pub type PointOfInterestRepo = Arc<dyn AnyhowRepo<Model = PointOfInterest>>;
 pub type RidePointsRepo = Arc<dyn AnyhowRepo<Model = RidePoints>>;
@@ -141,3 +141,14 @@ pub type RouteRepo = Arc<dyn AnyhowRepo<Model = Route>>;
 pub type RoutePointsRepo = Arc<dyn AnyhowRepo<Model = RoutePoints>>;
 pub type TripRepo = Arc<dyn AnyhowRepo<Model = Trip>>;
 pub type UserRepo = Arc<dyn AnyhowRepo<Model = User>>;
+
+pub struct RepoContext {
+    pub media_repo: MediaRepo,
+    pub point_of_interest_repo: PointOfInterestRepo,
+    pub ride_points_repo: RidePointsRepo,
+    pub ride_repo: RideRepo,
+    pub route_repo: RouteRepo,
+    pub route_points_repo: RoutePointsRepo,
+    pub trip_repo: TripRepo,
+    pub user_repo: UserRepo,
+}

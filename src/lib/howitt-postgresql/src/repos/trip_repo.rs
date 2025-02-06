@@ -55,7 +55,7 @@ impl TryFrom<TripRow> for Trip {
     }
 }
 
-#[derive(Debug, derive_more::Constructor)]
+#[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresTripRepo {
     client: PostgresClient,
 }

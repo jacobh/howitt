@@ -11,15 +11,12 @@ use axum::{
 };
 use howitt::{
     jobs::Job,
+    repos::RepoContext,
     services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAuthService},
 };
 use howitt_client_types::BucketName;
 use howitt_clients::{RedisClient, S3BucketClient};
-use howitt_postgresql::{
-    PostgresClient, PostgresMediaRepo, PostgresPointOfInterestRepo, PostgresRidePointsRepo,
-    PostgresRideRepo, PostgresRoutePointsRepo, PostgresRouteRepo, PostgresTripRepo,
-    PostgresUserRepo,
-};
+use howitt_postgresql::{PostgresClient, PostgresRepoContext};
 use http::{header, Method};
 use tower_http::{
     compression::CompressionLayer,
@@ -63,31 +60,25 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
-    let poi_repo = Arc::new(PostgresPointOfInterestRepo::new(pg.clone()));
-    let route_repo = Arc::new(PostgresRouteRepo::new(pg.clone()));
-    let ride_repo = Arc::new(PostgresRideRepo::new(pg.clone()));
-    let ride_points_repo = Arc::new(PostgresRidePointsRepo::new(pg.clone()));
-    let route_points_repo = Arc::new(PostgresRoutePointsRepo::new(pg.clone()));
-    let user_repo = Arc::new(PostgresUserRepo::new(pg.clone()));
-    let trip_repo = Arc::new(PostgresTripRepo::new(pg.clone()));
-    let media_repo = Arc::new(PostgresMediaRepo::new(pg.clone()));
+    let postgres_repos = PostgresRepoContext::new(pg);
+    let repos: RepoContext = postgres_repos.clone().into();
 
-    let user_auth_service = UserAuthService::new(user_repo.clone(), jwt_secret);
+    let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
     let simplified_ride_points_fetcher =
-        SimplifiedRidePointsFetcher::new(ride_points_repo.clone(), redis);
+        SimplifiedRidePointsFetcher::new(repos.ride_points_repo.clone(), redis);
 
     let bucket_client = S3BucketClient::new_from_env(BucketName::Media);
 
     let schema = build_schema(SchemaData {
-        poi_repo,
-        route_repo,
-        ride_repo,
-        user_repo: user_repo.clone(),
-        trip_repo,
-        media_repo: media_repo.clone(),
-        user_loader: DataLoader::new(UserLoader::new(user_repo.clone()), tokio::spawn),
+        poi_repo: repos.point_of_interest_repo.clone(),
+        route_repo: repos.route_repo.clone(),
+        ride_repo: repos.ride_repo.clone(),
+        user_repo: repos.user_repo.clone(),
+        trip_repo: repos.trip_repo.clone(),
+        media_repo: repos.media_repo.clone(),
+        user_loader: DataLoader::new(UserLoader::new(repos.user_repo.clone()), tokio::spawn),
         route_points_loader: DataLoader::new(
-            RoutePointsLoader::new(route_points_repo.clone()),
+            RoutePointsLoader::new(repos.route_points_repo.clone()),
             tokio::spawn,
         ),
         simplified_ride_points_fetcher,
@@ -98,10 +89,10 @@ async fn main() -> Result<(), anyhow::Error> {
     let app_state = app_state::AppState {
         schema,
         user_auth_service,
-        media_repo,
+        media_repo: Arc::new(postgres_repos.media_repo.clone()),
         bucket_client: Arc::new(bucket_client),
         job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
-        user_repo: user_repo.clone(),
+        user_repo: Arc::new(postgres_repos.user_repo.clone()),
         rwgps: app_state::RwgpsConfig {
             client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
             client_secret: std::env::var("RWGPS_CLIENT_SECRET")
@@ -110,7 +101,6 @@ async fn main() -> Result<(), anyhow::Error> {
                 .expect("RWGPS_REDIRECT_URI must be set"),
         },
     };
-
     let app = Router::new()
         .route(
             "/",

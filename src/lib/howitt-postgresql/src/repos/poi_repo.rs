@@ -31,7 +31,7 @@ impl TryFrom<PointOfInterestRow> for PointOfInterest {
     }
 }
 
-#[derive(Debug, derive_more::Constructor)]
+#[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresPointOfInterestRepo {
     client: PostgresClient,
 }
