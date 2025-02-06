@@ -14,7 +14,7 @@ use super::{
     tag::Tag,
     terminus::{Termini, TerminusEnd},
     user::UserId,
-    IndexItem, ModelName, ModelUuid,
+    IndexItem, IndexModel, ModelName, ModelUuid,
 };
 
 pub type RouteId = ModelUuid<{ ModelName::Route }>;
@@ -134,5 +134,20 @@ impl crate::models::Model for RouteModel {
 
     fn as_index(&self) -> &Self::IndexItem {
         &self.route
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct RoutePoints {
+    pub id: RouteId,
+    pub points: Vec<ElevationPoint>,
+}
+
+impl IndexModel for RoutePoints {
+    type Id = RouteId;
+    type Filter = ();
+
+    fn id(&self) -> RouteId {
+        RouteId::from(self.id)
     }
 }

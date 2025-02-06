@@ -1,7 +1,6 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::serde::json::unwrap_string_value;
-use howitt::models::point::ElevationPoint;
 use howitt::models::route::{Route, RouteFilter, RouteId};
 use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
@@ -95,7 +94,6 @@ struct RouteRow {
     external_ref: Option<serde_json::Value>,
     distance_m: i32,
     sample_points: serde_json::Value,
-    points: serde_json::Value,
     description: Option<String>,
     published_at: Option<DateTime<Utc>>,
     technical_difficulty: Option<String>,
@@ -164,11 +162,9 @@ impl TryFrom<RouteRow> for RouteModel {
     type Error = PostgresRepoError;
 
     fn try_from(row: RouteRow) -> Result<Self, Self::Error> {
-        let points = row.points.clone();
         let route = Route::try_from(row)?;
-        let points: Vec<ElevationPoint> = serde_json::from_value(points)?;
 
-        Ok(RouteModel::new(route, points))
+        Ok(RouteModel::new(route, vec![]))
     }
 }
 
@@ -294,7 +290,7 @@ impl Repo for PostgresRouteRepo {
     async fn put(&self, model: RouteModel) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
-        let RouteModel { route, points, .. } = model;
+        let RouteModel { route, .. } = model;
 
         let query = sqlx::query!(
             r#"insert into routes (
@@ -304,7 +300,6 @@ impl Repo for PostgresRouteRepo {
                 slug,
                 external_ref,
                 sample_points,
-                points,
                 distance_m,
                 description,
                 published_at,
@@ -317,14 +312,13 @@ impl Repo for PostgresRouteRepo {
                 tags,
                 is_starred,
                 user_id
-            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)"#,
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"#,
             route.id.as_uuid(),
             Utc::now(),
             route.name,
             route.slug,
             route.external_ref.map(serde_json::to_value).transpose()?,
             route.sample_points.map(serde_json::to_value).transpose()?,
-            serde_json::to_value(points)?,
             route.distance as i32,
             route
                 .description
