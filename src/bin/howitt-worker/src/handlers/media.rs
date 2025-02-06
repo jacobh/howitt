@@ -1,7 +1,7 @@
 use howitt::models::media::{ImageContentType, ImageSpec, Media, IMAGE_SPECS};
+use howitt::repos::Repos;
 use howitt::services::media::keys::{generate_resized_media_key, GenerateResizedMediaKeyParams};
 use howitt::services::media::MediaGeoInferrer;
-use howitt_postgresql::PostgresRepoError;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImageView, ImageReader};
 use libwebp_sys::WebPPreset;
@@ -10,10 +10,9 @@ use thiserror::Error;
 use tokio::sync::oneshot;
 use webp::WebPConfig;
 
-use apalis::prelude::*;
 use tracing::info;
 
-use howitt::{jobs::media::MediaJob, repos::Repo};
+use howitt::jobs::media::MediaJob;
 use howitt_client_types::{BucketClient, ObjectParams};
 
 use crate::context::Context;
@@ -123,7 +122,7 @@ async fn upload_image(
 #[derive(Error, Debug)]
 pub enum MediaJobError {
     #[error("Database error: {0}")]
-    Database(#[from] PostgresRepoError),
+    Database(anyhow::Error),
     #[error("Failed to get media from repository: {0}")]
     MediaNotFound(#[from] Box<dyn std::error::Error + Send + Sync>),
     #[error("Media object not found in bucket: {0}")]
@@ -144,15 +143,29 @@ pub enum MediaJobError {
     LocationInferFailed(anyhow::Error),
 }
 
-pub async fn handle_media_job(job: MediaJob, ctx: Data<Context>) -> Result<(), MediaJobError> {
+pub async fn handle_media_job(job: MediaJob, ctx: Context) -> Result<(), MediaJobError> {
     info!("Handling job: {:?}", job);
+
+    let Context {
+        bucket_client,
+        repos:
+            Repos {
+                media_repo,
+                ride_repo,
+                ride_points_repo,
+                ..
+            },
+        ..
+    } = ctx.clone();
 
     match job {
         MediaJob::Process(media_id) => {
-            let media = ctx.media_repo.get(media_id).await?;
+            let media = media_repo
+                .get(media_id)
+                .await
+                .map_err(MediaJobError::Database)?;
 
-            let bytes = ctx
-                .bucket_client
+            let bytes = bucket_client
                 .get_object(&media.path)
                 .await
                 .map_err(|e| MediaJobError::MediaNotFound(Box::new(e)))?
@@ -185,12 +198,15 @@ pub async fn handle_media_job(job: MediaJob, ctx: Data<Context>) -> Result<(), M
             Ok(())
         }
         MediaJob::InferLocation(media_id) => {
-            let media = ctx.media_repo.get(media_id).await?;
+            let media = media_repo
+                .get(media_id)
+                .await
+                .map_err(MediaJobError::Database)?;
 
             let inferrer = MediaGeoInferrer::new(
-                ctx.media_repo.clone(),
-                ctx.ride_repo.clone(),
-                ctx.ride_points_repo.clone(),
+                media_repo.clone(),
+                ride_repo.clone(),
+                ride_points_repo.clone(),
             );
 
             inferrer

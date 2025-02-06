@@ -10,6 +10,8 @@ mod media;
 mod rwgps;
 
 pub async fn handle_job(job: Job, ctx: Data<Context>) -> Result<(), Error> {
+    let ctx = (*ctx).clone();
+
     match job {
         Job::Media(media_job) => media::handle_media_job(media_job, ctx)
             .await

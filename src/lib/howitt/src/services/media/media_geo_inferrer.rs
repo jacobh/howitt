@@ -1,16 +1,9 @@
-use std::sync::Arc;
-
 use chrono::Duration;
 use thiserror::Error;
 
 use crate::{
-    models::{
-        filters::TemporalFilter,
-        media::Media,
-        point::Point,
-        ride::{RideFilter, RidePoints},
-    },
-    repos::Repo,
+    models::{filters::TemporalFilter, media::Media, point::Point, ride::RideFilter},
+    repos::{MediaRepo, RidePointsRepo, RideRepo},
 };
 
 #[derive(Error, Debug)]
@@ -19,27 +12,17 @@ pub enum MediaGeoInferrerError {
     NoCapturedAt,
 }
 
-pub struct MediaGeoInferrer<MediaRepo, RideRepo, RidePointsRepo>
-where
-    MediaRepo: Repo<Model = Media>,
-    RideRepo: Repo<Model = crate::models::ride::Ride>,
-    RidePointsRepo: Repo<Model = RidePoints>,
-{
-    media_repo: Arc<MediaRepo>,
-    ride_repo: Arc<RideRepo>,
-    ride_points_repo: Arc<RidePointsRepo>,
+pub struct MediaGeoInferrer {
+    media_repo: MediaRepo,
+    ride_repo: RideRepo,
+    ride_points_repo: RidePointsRepo,
 }
 
-impl<MediaRepo, RideRepo, RidePointsRepo> MediaGeoInferrer<MediaRepo, RideRepo, RidePointsRepo>
-where
-    MediaRepo: Repo<Model = Media>,
-    RideRepo: Repo<Model = crate::models::ride::Ride>,
-    RidePointsRepo: Repo<Model = RidePoints>,
-{
+impl MediaGeoInferrer {
     pub fn new(
-        media_repo: Arc<MediaRepo>,
-        ride_repo: Arc<RideRepo>,
-        ride_points_repo: Arc<RidePointsRepo>,
+        media_repo: MediaRepo,
+        ride_repo: RideRepo,
+        ride_points_repo: RidePointsRepo,
     ) -> Self {
         Self {
             media_repo,
