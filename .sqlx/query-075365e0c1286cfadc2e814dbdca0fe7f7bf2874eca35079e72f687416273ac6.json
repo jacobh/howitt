@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT \n                    u.*,\n                    rc.id as \"rwgps_id?\",\n                    rc.rwgps_user_id as \"rwgps_user_id?\",\n                    rc.access_token as \"rwgps_access_token?\",\n                    rc.created_at as \"rwgps_created_at?\",\n                    rc.updated_at as \"rwgps_updated_at?\"\n                FROM users u\n                INNER JOIN user_rwgps_connections rc ON rc.user_id = u.id\n                WHERE rc.rwgps_user_id = $1\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "username",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "password",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "rwgps_id?",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "rwgps_user_id?",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "rwgps_access_token?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "rwgps_created_at?",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "rwgps_updated_at?",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "075365e0c1286cfadc2e814dbdca0fe7f7bf2874eca35079e72f687416273ac6"
+}
