@@ -189,7 +189,13 @@ impl Repo for PostgresRideRepo {
                 started_at,
                 finished_at,
                 user_id
-            ) values ($1, $2, $3, $4, $5, $6, $7, $8)"#,
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                external_ref = EXCLUDED.external_ref,
+                distance_m = EXCLUDED.distance_m,
+                started_at = EXCLUDED.started_at,
+                finished_at = EXCLUDED.finished_at"#,
             ride.id.as_uuid(),
             ride.name,
             Utc::now(),

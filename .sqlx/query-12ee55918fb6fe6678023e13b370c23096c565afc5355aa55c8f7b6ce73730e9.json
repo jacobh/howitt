@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into route_points (\n                route_id,\n                points\n            ) values ($1, $2)\n            ON CONFLICT (route_id) DO UPDATE \n            SET \n                points = EXCLUDED.points",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "12ee55918fb6fe6678023e13b370c23096c565afc5355aa55c8f7b6ce73730e9"
+}

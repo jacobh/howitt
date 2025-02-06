@@ -68,7 +68,9 @@ impl Repo for PostgresRidePointsRepo {
             r#"insert into ride_points (
                 ride_id,
                 points
-            ) values ($1, $2)"#,
+            ) values ($1, $2)
+            ON CONFLICT (ride_id) DO UPDATE SET
+                points = EXCLUDED.points"#,
             ride_points.id.as_uuid(),
             serde_json::to_value(ride_points.points)?
         );

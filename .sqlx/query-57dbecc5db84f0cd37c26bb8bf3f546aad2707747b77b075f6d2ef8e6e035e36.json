@@ -1,0 +1,31 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into routes (\n                id,\n                created_at,\n                name,\n                slug,\n                external_ref,\n                sample_points,\n                distance_m,\n                description,\n                published_at,\n                technical_difficulty,\n                physical_difficulty,\n                minimum_bike,\n                ideal_bike,\n                scouted,\n                direction,\n                tags,\n                is_starred,\n                user_id\n            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)\n            ON CONFLICT (id) DO UPDATE SET\n                name = EXCLUDED.name,\n                slug = EXCLUDED.slug,\n                external_ref = EXCLUDED.external_ref,\n                sample_points = EXCLUDED.sample_points,\n                distance_m = EXCLUDED.distance_m,\n                description = EXCLUDED.description,\n                published_at = EXCLUDED.published_at,\n                technical_difficulty = EXCLUDED.technical_difficulty,\n                physical_difficulty = EXCLUDED.physical_difficulty,\n                minimum_bike = EXCLUDED.minimum_bike,\n                ideal_bike = EXCLUDED.ideal_bike,\n                scouted = EXCLUDED.scouted,\n                direction = EXCLUDED.direction,\n                tags = EXCLUDED.tags,\n                is_starred = EXCLUDED.is_starred",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Text",
+        "Varchar",
+        "Jsonb",
+        "Jsonb",
+        "Int4",
+        "Text",
+        "Timestamptz",
+        "Varchar",
+        "Varchar",
+        "Jsonb",
+        "Jsonb",
+        "Varchar",
+        "Varchar",
+        "VarcharArray",
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "57dbecc5db84f0cd37c26bb8bf3f546aad2707747b77b075f6d2ef8e6e035e36"
+}
