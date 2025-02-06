@@ -1,11 +1,8 @@
 use derive_more::derive::From;
+use rwgps_types::webhook::RwgpsWebhookNotification;
 use serde::{Deserialize, Serialize};
 
-pub mod media;
-pub mod rwgps;
-
 #[derive(Debug, Deserialize, Serialize, From)]
-pub enum Job {
-    Media(media::MediaJob),
-    Rwgps(rwgps::RwgpsJob),
+pub enum RwgpsJob {
+    Webhook(RwgpsWebhookNotification),
 }

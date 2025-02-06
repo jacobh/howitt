@@ -1,7 +1,9 @@
+use apalis::prelude::*;
 use axum::{
     extract::{FromRequestParts, State},
     http::StatusCode,
 };
+use howitt::jobs::{rwgps::RwgpsJob, Job};
 use http::request::Parts;
 use ring::hmac;
 use rwgps_types::webhook::RwgpsWebhookPayload;
@@ -57,13 +59,15 @@ pub async fn rwgps_webhook_handler(
     signature: RwgpsSignature,
     body: String,
 ) -> StatusCode {
+    let AppState { job_storage, .. } = app_state;
+
     if let Err(e) = signature.verify(&app_state.rwgps.client_secret, &body) {
         tracing::error!("Invalid signature: {}", e);
         return StatusCode::UNAUTHORIZED;
     }
 
     // Parse and log the webhook payload
-    let _payload = match serde_json::from_str::<RwgpsWebhookPayload>(&body) {
+    let payload = match serde_json::from_str::<RwgpsWebhookPayload>(&body) {
         Ok(payload) => {
             tracing::info!("Received RWGPS webhook: {:?}", payload);
             payload
@@ -73,6 +77,19 @@ pub async fn rwgps_webhook_handler(
             return StatusCode::BAD_REQUEST;
         }
     };
+
+    let mut job_storage = job_storage.lock().await;
+
+    for notification in payload.notifications.into_iter() {
+        let res = job_storage
+            .push(Job::Rwgps(RwgpsJob::Webhook(notification)))
+            .await;
+
+        if let Err(e) = res {
+            tracing::error!("Failed to push job: {}", e);
+            return StatusCode::INTERNAL_SERVER_ERROR;
+        }
+    }
 
     StatusCode::OK
 }
