@@ -141,6 +141,8 @@ pub enum MediaJobError {
     Io(#[from] std::io::Error),
     #[error("Location infer failed")]
     LocationInferFailed(anyhow::Error),
+    #[error("Semaphore error: {0}")]
+    Semaphore(#[from] tokio::sync::AcquireError),
 }
 
 pub async fn handle_media_job(job: MediaJob, ctx: Context) -> Result<(), MediaJobError> {
@@ -164,6 +166,8 @@ pub async fn handle_media_job(job: MediaJob, ctx: Context) -> Result<(), MediaJo
                 .get(media_id)
                 .await
                 .map_err(MediaJobError::Database)?;
+
+            let _permit = ctx.image_processing_semaphore.acquire().await?;
 
             let bytes = bucket_client
                 .get_object(&media.path)

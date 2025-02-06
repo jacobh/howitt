@@ -11,6 +11,7 @@ pub struct Context {
     pub repos: Repos,
     pub bucket_client: Arc<S3BucketClient>,
     pub rwgps_client: RwgpsClient,
+    pub image_processing_semaphore: Arc<tokio::sync::Semaphore>,
 }
 
 impl Context {
@@ -27,6 +28,7 @@ impl Context {
             repos: Repos::from(PostgresRepos::new(postgres_client)),
             bucket_client: Arc::new(bucket_client),
             rwgps_client: RwgpsClient::new(),
+            image_processing_semaphore: Arc::new(tokio::sync::Semaphore::new(4)),
         })
     }
 }
