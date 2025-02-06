@@ -22,6 +22,7 @@ howitt = { path = "../../lib/howitt" }
 howitt_clients = { path = "../../lib/howitt-clients" }
 exif = { path = "../../lib/exif" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }
+rwgps_types = { path = "../../lib/rwgps-types" }
 geo = "*"
 chrono = "*"
 chrono-tz = "*"

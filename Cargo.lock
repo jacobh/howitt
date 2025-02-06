@@ -2035,6 +2035,7 @@ dependencies = [
  "nom-exif",
  "oauth2",
  "ring",
+ "rwgps_types",
  "serde",
  "serde_json",
  "test-case",

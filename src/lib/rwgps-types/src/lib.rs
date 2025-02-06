@@ -6,6 +6,7 @@ use serde_json::Value;
 pub mod client;
 pub mod config;
 pub mod credentials;
+pub mod webhook;
 
 #[derive(Deserialize, Debug)]
 pub struct AuthenticatedUserDetailResponse {
