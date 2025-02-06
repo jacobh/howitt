@@ -21,14 +21,12 @@ pub trait Repo: Send + Sync {
     async fn all_indexes(
         &self,
     ) -> Result<Vec<<<Self as Repo>::Model as Model>::IndexItem>, Self::Error>;
+
     async fn get(
         &self,
         id: <<Self as Repo>::Model as Model>::Id,
     ) -> Result<<Self as Repo>::Model, Self::Error>;
-    async fn get_index(
-        &self,
-        id: <<Self as Repo>::Model as Model>::Id,
-    ) -> Result<<<Self as Repo>::Model as Model>::IndexItem, Self::Error>;
+
     async fn put(&self, model: <Self as Repo>::Model) -> Result<(), Self::Error>;
 
     async fn get_batch(
@@ -39,20 +37,6 @@ pub trait Repo: Send + Sync {
             .into_iter()
             .map(|id| (id, self))
             .map(async move |(id, self)| self.get(id).await)
-            .collect_futures_ordered()
-            .await
-            .into_iter()
-            .collect_result_vec()?)
-    }
-
-    async fn get_index_batch(
-        &self,
-        ids: Vec<<<Self as Repo>::Model as Model>::Id>,
-    ) -> Result<Vec<<<Self as Repo>::Model as Model>::IndexItem>, Self::Error> {
-        Ok(ids
-            .into_iter()
-            .map(|id| (id, self))
-            .map(async move |(id, self)| self.get_index(id).await)
             .collect_futures_ordered()
             .await
             .into_iter()
@@ -101,30 +85,27 @@ pub trait AnyhowRepo: Send + Sync + std::fmt::Debug {
     async fn all_indexes(
         &self,
     ) -> Result<Vec<<<Self as AnyhowRepo>::Model as Model>::IndexItem>, anyhow::Error>;
+
     async fn get(
         &self,
         id: <<Self as AnyhowRepo>::Model as Model>::Id,
     ) -> Result<<Self as AnyhowRepo>::Model, anyhow::Error>;
-    async fn get_index(
-        &self,
-        id: <<Self as AnyhowRepo>::Model as Model>::Id,
-    ) -> Result<<<Self as AnyhowRepo>::Model as Model>::IndexItem, anyhow::Error>;
+
     async fn get_batch(
         &self,
         ids: Vec<<<Self as AnyhowRepo>::Model as Model>::Id>,
     ) -> Result<Vec<<Self as AnyhowRepo>::Model>, anyhow::Error>;
-    async fn get_index_batch(
-        &self,
-        ids: Vec<<<Self as AnyhowRepo>::Model as Model>::Id>,
-    ) -> Result<Vec<<<Self as AnyhowRepo>::Model as Model>::IndexItem>, anyhow::Error>;
+
     async fn filter_models(
         &self,
         filter: <Self::Model as Model>::Filter,
     ) -> Result<Vec<Self::Model>, anyhow::Error>;
+
     async fn find_model(
         &self,
         filter: <Self::Model as Model>::Filter,
     ) -> Result<Option<Self::Model>, anyhow::Error>;
+
     async fn put(&self, model: <Self as AnyhowRepo>::Model) -> Result<(), anyhow::Error>;
 }
 
@@ -143,14 +124,8 @@ where
     async fn get(&self, id: T::Id) -> Result<T, anyhow::Error> {
         Ok(Repo::get(self, id).await?)
     }
-    async fn get_index(&self, id: T::Id) -> Result<T::IndexItem, anyhow::Error> {
-        Ok(Repo::get_index(self, id).await?)
-    }
     async fn get_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T>, anyhow::Error> {
         Ok(Repo::get_batch(self, ids).await?)
-    }
-    async fn get_index_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T::IndexItem>, anyhow::Error> {
-        Ok(Repo::get_index_batch(self, ids).await?)
     }
     async fn filter_models(
         &self,

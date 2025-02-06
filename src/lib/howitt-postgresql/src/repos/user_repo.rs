@@ -163,12 +163,7 @@ impl Repo for PostgresUserRepo {
 
         Ok(User::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
-    async fn get_index(
-        &self,
-        id: <User as Model>::Id,
-    ) -> Result<<User as Model>::IndexItem, PostgresRepoError> {
-        self.get(id).await
-    }
+
     async fn put(&self, model: User) -> Result<(), PostgresRepoError> {
         let mut tx = self.client.begin().await?;
 

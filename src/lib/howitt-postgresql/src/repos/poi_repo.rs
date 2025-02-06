@@ -84,12 +84,7 @@ impl Repo for PostgresPointOfInterestRepo {
             query.fetch_one(conn.as_mut()).await?,
         )?)
     }
-    async fn get_index(
-        &self,
-        id: <PointOfInterest as Model>::Id,
-    ) -> Result<<PointOfInterest as Model>::IndexItem, PostgresRepoError> {
-        self.get(id).await
-    }
+
     async fn put(&self, model: PointOfInterest) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 

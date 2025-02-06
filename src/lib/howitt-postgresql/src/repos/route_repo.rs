@@ -236,39 +236,7 @@ impl Repo for PostgresRouteRepo {
 
         Ok(Route::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
-    async fn get_index(
-        &self,
-        id: <Route as Model>::Id,
-    ) -> Result<<Route as Model>::IndexItem, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
 
-        let query = sqlx::query_as!(
-            RouteIndexRow,
-            r#"select
-                id,
-                created_at,
-                name,
-                slug,
-                external_ref,
-                distance_m,
-                sample_points,
-                description,
-                published_at,
-                technical_difficulty,
-                physical_difficulty,
-                minimum_bike,
-                ideal_bike,
-                scouted,
-                direction,
-                tags,
-                is_starred,
-                user_id
-            from routes where id = $1"#,
-            Uuid::from(id)
-        );
-
-        Ok(Route::try_from(query.fetch_one(conn.as_mut()).await?)?)
-    }
     async fn put(&self, route: Route) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 

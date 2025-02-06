@@ -149,10 +149,6 @@ impl Repo for PostgresTripRepo {
         Ok(Trip::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
 
-    async fn get_index(&self, id: TripId) -> Result<<Trip as Model>::IndexItem, PostgresRepoError> {
-        Ok(self.get(id).await?)
-    }
-
     async fn put(&self, trip: Trip) -> Result<(), PostgresRepoError> {
         let mut tx = self.client.begin().await?;
 

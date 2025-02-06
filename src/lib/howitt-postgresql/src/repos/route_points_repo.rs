@@ -91,10 +91,6 @@ impl Repo for PostgresRoutePointsRepo {
         )?)
     }
 
-    async fn get_index(&self, id: RouteId) -> Result<RoutePoints, PostgresRepoError> {
-        self.get(id).await
-    }
-
     async fn put(&self, route_points: RoutePoints) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 

@@ -247,13 +247,6 @@ impl Repo for PostgresMediaRepo {
         Ok(Media::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
 
-    async fn get_index(
-        &self,
-        id: MediaId,
-    ) -> Result<<Media as Model>::IndexItem, PostgresRepoError> {
-        self.get(id).await
-    }
-
     async fn put(&self, media: Media) -> Result<(), PostgresRepoError> {
         let mut tx = self.client.begin().await?;
 

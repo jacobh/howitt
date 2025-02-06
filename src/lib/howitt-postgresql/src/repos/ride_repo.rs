@@ -166,12 +166,7 @@ impl Repo for PostgresRideRepo {
 
         Ok(Ride::try_from(query.fetch_one(conn.as_mut()).await?)?)
     }
-    async fn get_index(
-        &self,
-        id: <Ride as Model>::Id,
-    ) -> Result<<Ride as Model>::IndexItem, PostgresRepoError> {
-        Ok(self.get(id).await?)
-    }
+
     async fn put(&self, ride: Ride) -> Result<(), PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 
