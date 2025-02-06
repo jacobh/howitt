@@ -30,71 +30,66 @@
       },
       {
         "ordinal": 5,
-        "name": "points",
-        "type_info": "Jsonb"
-      },
-      {
-        "ordinal": 6,
         "name": "distance_m",
         "type_info": "Int4"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "description",
         "type_info": "Text"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "published_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "technical_difficulty",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 10,
+        "ordinal": 9,
         "name": "physical_difficulty",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 11,
+        "ordinal": 10,
         "name": "minimum_bike",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 12,
+        "ordinal": 11,
         "name": "ideal_bike",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 13,
+        "ordinal": 12,
         "name": "scouted",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 14,
+        "ordinal": 13,
         "name": "direction",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 15,
+        "ordinal": 14,
         "name": "tags",
         "type_info": "VarcharArray"
       },
       {
-        "ordinal": 16,
+        "ordinal": 15,
         "name": "is_starred",
         "type_info": "Bool"
       },
       {
-        "ordinal": 17,
+        "ordinal": 16,
         "name": "user_id",
         "type_info": "Uuid"
       },
       {
-        "ordinal": 18,
+        "ordinal": 17,
         "name": "slug",
         "type_info": "Varchar"
       }
@@ -109,7 +104,6 @@
       false,
       false,
       true,
-      false,
       false,
       false,
       true,

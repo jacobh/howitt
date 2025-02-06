@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select * from route_points",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "route_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "points",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "e0e62118a4eb312b07d672a8aa9e4b584aa6bc2623a98574bde33f95e26c9a48"
+}

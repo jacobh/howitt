@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into route_points (\n                route_id,\n                points\n            ) values ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "18227ecf56ee2dcfd3c4a7fc0e9f8a7fc0577bfdd874838de94c6dbe43e38ab1"
+}
