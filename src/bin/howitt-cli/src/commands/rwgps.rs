@@ -7,7 +7,7 @@ use howitt_fs::load_user_config;
 use howitt_fs::{load_routes, persist_user_config};
 use howitt_postgresql::PostgresRepos;
 use itertools::Itertools;
-use rwgps::RwgpsClient;
+use rwgps::AuthenticatedRwgpsClient;
 use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
 use serde_json::json;
 
@@ -83,13 +83,13 @@ pub async fn handle(
     match command {
         RwgpsCommands::Info => {
             let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.credentials());
+            let client = rwgps::AuthenticatedRwgpsClient::new(user_config.credentials());
 
             dbg!(client.user_info().await?);
         }
         RwgpsCommands::Auth => {
             let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.credentials());
+            let client = rwgps::AuthenticatedRwgpsClient::new(user_config.credentials());
 
             let auth_resp = client.user_info().await?;
 
@@ -112,7 +112,7 @@ pub async fn handle(
             // force_sync_rwgps_id,
         }) => {
             let config = load_user_config()?.unwrap();
-            let rwgps_client = RwgpsClient::new(config.credentials());
+            let rwgps_client = AuthenticatedRwgpsClient::new(config.credentials());
 
             let service = RwgpsSyncService {
                 route_repo,
@@ -159,7 +159,7 @@ pub async fn handle(
         }
         RwgpsCommands::Routes(Routes::Detail(args)) => {
             let user_config = get_user_config()?;
-            let client = rwgps::RwgpsClient::new(user_config.credentials());
+            let client = rwgps::AuthenticatedRwgpsClient::new(user_config.credentials());
 
             let resp = client.route(args.route_id).await?;
             dbg!(resp);

@@ -2,7 +2,14 @@ use std::error::Error;
 
 use async_trait::async_trait;
 
-use crate::*;
+use crate::{credentials::Credentials, *};
+
+pub trait RwgpsClient: Clone {
+    type Error: Error;
+    type AuthenticatedClient: AuthenticatedRwgpsClient<Error = Self::Error>;
+
+    fn with_credentials(&self, credentials: Credentials) -> Self::AuthenticatedClient;
+}
 
 #[async_trait]
 pub trait AuthenticatedRwgpsClient: Clone {
