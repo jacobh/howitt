@@ -6,7 +6,7 @@ const BASE_URL: &str = "https://api.mapbox.com/search/geocode/v6/";
 
 pub struct MapboxGeocodingClient {
     client: ReqwestClient,
-    access_token: String,
+    _access_token: String,
     base_url: Url,
 }
 
@@ -15,7 +15,7 @@ impl MapboxGeocodingClient {
         let base_url = Url::parse(BASE_URL).expect("Failed to parse base URL");
         Self {
             client: ReqwestClient::new(),
-            access_token,
+            _access_token: access_token,
             base_url,
         }
     }
