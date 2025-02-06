@@ -104,6 +104,8 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
             existing_ride.started_at = started_at;
             existing_ride.finished_at = finished_at;
 
+            ride_repo.put(existing_ride.clone()).await?;
+
             ride_points_repo
                 .put(howitt::models::ride::RidePoints {
                     id: existing_ride.id,

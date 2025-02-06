@@ -97,6 +97,9 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
             });
             existing_route.distance = rwgps_route.distance.unwrap_or(0.0);
             existing_route.sample_points = Some(sample_points);
+
+            route_repo.put(existing_route.clone()).await?;
+
             route_points_repo
                 .put(howitt::models::route::RoutePoints {
                     id: existing_route.id,
