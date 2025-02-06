@@ -151,39 +151,41 @@ impl<'de, const NAME: ModelName> Deserialize<'de> for ModelUuid<NAME> {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use chrono::{DateTime, Utc};
-//     use test_case::test_case;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{TimeZone, Utc};
 
-//     use crate::models::route::RouteId;
+    #[test]
+    fn test_model_uuid_from_datetime_preserves_timestamp() {
+        // Create a fixed datetime for testing
+        let dt = Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap();
+        let uuid = ModelUuid::<{ ModelName::Route }>::from_datetime(dt);
 
-//     fn datetime1() -> DateTime<Utc> {
-//         DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z")
-//             .unwrap()
-//             .into()
-//     }
+        // Convert the UUID to string and check the format
+        let uuid_str = uuid.to_string();
+        assert!(uuid_str.starts_with("ROUTE#"));
 
-//     fn datetime2() -> DateTime<Utc> {
-//         DateTime::parse_from_rfc3339("2023-10-01T00:00:00Z")
-//             .unwrap()
-//             .into()
-//     }
+        // The first 48 bits of the UUID should represent the Unix timestamp
+        let timestamp = dt.timestamp() as u64;
+        let (uuid_timestamp_secs, _subsec_nanos) =
+            uuid.as_uuid().get_timestamp().unwrap().to_unix();
+        assert_eq!(timestamp, uuid_timestamp_secs);
+    }
+    #[test]
+    fn test_model_uuid_from_datetime_ordering() {
+        // Create two datetimes with known ordering
+        let dt1 = Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap();
+        let dt2 = Utc.with_ymd_and_hms(2023, 1, 1, 0, 0, 1).unwrap();
 
-//     const ULID_PREFIX1: &str = "ROUTE#01GNNA1J00";
-//     const ULID_PREFIX2: &str = "ROUTE#01HBM8HS00";
+        let uuid1 = ModelUuid::<{ ModelName::Route }>::from_datetime(dt1);
+        let uuid2 = ModelUuid::<{ ModelName::Route }>::from_datetime(dt2);
 
-//     #[test_case(Some(RouteId::from_datetime(datetime1())), datetime2(), ULID_PREFIX1)]
-//     #[test_case(Some(RouteId::from_datetime(datetime2())), datetime1(), ULID_PREFIX2)]
-//     #[test_case(None, datetime2(), ULID_PREFIX2)]
-//     fn test_get_or_from_datetime(
-//         existing_id: Option<RouteId>,
-//         datetime: DateTime<Utc>,
-//         expected_prefix: &str,
-//     ) {
-//         let id = RouteId::get_or_from_datetime(existing_id, &datetime).to_string();
-//         let (prefix, _) = id.split_at(expected_prefix.len());
+        // UUIDs should maintain chronological ordering
+        assert!(uuid1.as_uuid() < uuid2.as_uuid());
 
-//         assert_eq!(expected_prefix, prefix);
-//     }
-// }
+        // Both should have the correct prefix
+        assert!(uuid1.to_string().starts_with("ROUTE#"));
+        assert!(uuid2.to_string().starts_with("ROUTE#"));
+    }
+}
