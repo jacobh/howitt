@@ -116,6 +116,10 @@ async fn main() -> Result<(), anyhow::Error> {
             post(handlers::upload::upload_media_handler)
                 .layer(DefaultBodyLimit::max(1024 * 1024 * 100)),
         )
+        .route(
+            "/webhooks/rwgps",
+            post(handlers::rwgps::rwgps_webhook_handler),
+        )
         .with_state(app_state)
         .layer(
             tower::ServiceBuilder::new()

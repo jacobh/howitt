@@ -44,6 +44,8 @@ apalis-redis = { version = "0.6" }
 nom-exif = "*"
 futures = "*"
 oauth2 = "*"
+ring = "*"
+hex = "*"
 
 
 [dev-dependencies]
