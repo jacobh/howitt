@@ -93,7 +93,10 @@ impl Repo for PostgresRoutePointsRepo {
             r#"insert into route_points (
                 route_id,
                 points
-            ) values ($1, $2)"#,
+            ) values ($1, $2)
+            ON CONFLICT (route_id) DO UPDATE 
+            SET 
+                points = EXCLUDED.points"#,
             route_points.id.as_uuid(),
             serde_json::to_value(route_points.points)?
         );
