@@ -1,0 +1,12 @@
+[package]
+name = "open-meteo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "*", features = ["derive"] }
+reqwest = { version = "*", features = ["json"] }
+url = "*"
+serde_urlencoded = "*"
+serde_with = "*"
+serde_json = "*"
