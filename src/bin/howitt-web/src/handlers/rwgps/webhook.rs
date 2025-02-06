@@ -1,6 +1,6 @@
 use axum::{
     extract::{FromRequestParts, State},
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
 };
 use http::request::Parts;
 use ring::hmac;
