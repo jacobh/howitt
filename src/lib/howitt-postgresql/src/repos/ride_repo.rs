@@ -133,6 +133,15 @@ impl Repo for PostgresRideRepo {
                 .fetch_all(conn.as_mut())
                 .await
             }
+            RideFilter::RwgpsId(rwgps_id) => {
+                sqlx::query_as!(
+                    RideRow,
+                    r#"select * from rides where (external_ref->'id'->'Rwgps'->'Route')::int = $1"#,
+                    rwgps_id as i32
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
             RideFilter::All => {
                 sqlx::query_as!(RideRow, r#"select * from rides"#)
                     .fetch_all(conn.as_mut())

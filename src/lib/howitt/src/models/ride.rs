@@ -49,6 +49,7 @@ pub enum RideFilter {
         date: chrono::NaiveDate,
     },
     ForTrip(TripId),
+    RwgpsId(usize),
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
