@@ -28,12 +28,7 @@ pub trait Model: Send + Sync + Sized + Clone + 'static {
     type IndexItem: IndexItem<Id = Self::Id>;
     type Filter: Send + Sync + Sized + Clone + 'static;
 
-    fn model_name() -> &'static str {
-        Self::Id::model_name()
-    }
     fn id(&self) -> Self::Id;
-
-    fn as_index(&self) -> &Self::IndexItem;
 }
 
 pub trait IndexModel {
@@ -69,10 +64,6 @@ where
 
     fn id(&self) -> Self::Id {
         self.id()
-    }
-
-    fn as_index(&self) -> &Self::IndexItem {
-        self
     }
 }
 
