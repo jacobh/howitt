@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::{route::RouteId, IndexModel, ModelId};
+use crate::models::{route::RouteId, Model, ModelId};
 
 #[derive(PartialEq, Eq, Copy, Clone, Hash, Debug)]
 pub struct ConfigId;
@@ -24,7 +24,7 @@ pub struct Config {
     pub api_keys: Vec<String>,
 }
 
-impl IndexModel for Config {
+impl Model for Config {
     type Id = ConfigId;
     type Filter = ();
 

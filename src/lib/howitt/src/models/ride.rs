@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
 
 use super::{
-    external_ref::ExternallySourced, filters::TemporalFilter, trip::TripId, user::UserId,
-    IndexModel, ModelName, ModelUuid,
+    external_ref::ExternallySourced, filters::TemporalFilter, trip::TripId, user::UserId, Model,
+    ModelName, ModelUuid,
 };
 
 pub type RideId = ModelUuid<{ ModelName::Ride }>;
@@ -22,7 +22,7 @@ pub struct Ride {
     pub external_ref: Option<ExternalRef>,
 }
 
-impl IndexModel for Ride {
+impl Model for Ride {
     type Id = RideId;
     type Filter = RideFilter;
 
@@ -57,7 +57,7 @@ pub struct RidePoints {
     pub points: Vec<TemporalElevationPoint>,
 }
 
-impl IndexModel for RidePoints {
+impl Model for RidePoints {
     type Id = RideId;
     type Filter = ();
 

@@ -3,7 +3,7 @@ use chrono::{serde::ts_seconds, DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{IndexModel, ModelName, ModelUuid};
+use super::{Model, ModelName, ModelUuid};
 
 pub type UserId = ModelUuid<{ ModelName::User }>;
 
@@ -33,7 +33,7 @@ pub enum UserFilter {
     Ids(Vec<UserId>),
 }
 
-impl IndexModel for User {
+impl Model for User {
     type Id = UserId;
     type Filter = UserFilter;
 

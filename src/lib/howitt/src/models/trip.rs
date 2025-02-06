@@ -1,4 +1,4 @@
-use super::{media::MediaId, ride::RideId, user::UserId, IndexModel, ModelName, ModelUuid};
+use super::{media::MediaId, ride::RideId, user::UserId, Model, ModelName, ModelUuid};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +25,7 @@ pub enum TripFilter {
     WithUserAndSlug { user_id: UserId, slug: String },
 }
 
-impl IndexModel for Trip {
+impl Model for Trip {
     type Id = TripId;
     type Filter = TripFilter;
 

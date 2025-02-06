@@ -14,7 +14,7 @@ use super::{
     tag::Tag,
     terminus::{Termini, TerminusEnd},
     user::UserId,
-    IndexModel, ModelName, ModelUuid,
+    Model, ModelName, ModelUuid,
 };
 
 pub type RouteId = ModelUuid<{ ModelName::Route }>;
@@ -90,7 +90,7 @@ pub enum RouteFilter {
     Slug(String),
 }
 
-impl IndexModel for Route {
+impl Model for Route {
     type Id = RouteId;
     type Filter = RouteFilter;
 
@@ -120,7 +120,7 @@ pub enum RoutePointsFilter {
     Ids(Vec<RouteId>),
 }
 
-impl IndexModel for RoutePoints {
+impl Model for RoutePoints {
     type Id = RouteId;
     type Filter = RoutePointsFilter;
 

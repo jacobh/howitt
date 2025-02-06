@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     point_of_interest::PointOfInterestId, ride::RideId, route::RouteId, trip::TripId, user::UserId,
-    IndexModel, ModelName, ModelUuid,
+    Model, ModelName, ModelUuid,
 };
 
 pub type MediaId = ModelUuid<{ ModelName::Media }>;
@@ -94,7 +94,7 @@ pub enum MediaFilter {
     ForPointOfInterest(PointOfInterestId),
 }
 
-impl IndexModel for Media {
+impl Model for Media {
     type Id = MediaId;
     type Filter = MediaFilter;
 

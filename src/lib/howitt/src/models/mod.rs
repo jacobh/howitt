@@ -30,28 +30,6 @@ pub trait Model: Send + Sync + Sized + Clone + 'static {
     fn id(&self) -> Self::Id;
 }
 
-pub trait IndexModel {
-    type Id: ModelId;
-    type Filter: Send + Sync + Sized + Clone + 'static;
-
-    fn id(&self) -> Self::Id;
-}
-
-impl<T, ID, F> Model for T
-where
-    T: IndexModel<Id = ID, Filter = F> + Send + Sync + Sized + Clone + 'static,
-    ID: ModelId + 'static,
-    F: Send + Sync + Sized + Clone + 'static,
-{
-    type Id = ID;
-
-    type Filter = F;
-
-    fn id(&self) -> Self::Id {
-        self.id()
-    }
-}
-
 pub trait ModelId:
     Send + Sync + std::fmt::Debug + std::fmt::Display + PartialEq + Copy + Clone + Hash + Eq + 'static
 {
