@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use crate::*;
 
 #[async_trait]
-pub trait RwgpsClient: Clone {
+pub trait AuthenticatedRwgpsClient: Clone {
     type Error: Error;
 
     async fn user_info(&self) -> Result<AuthenticatedUserDetailResponse, Self::Error>;

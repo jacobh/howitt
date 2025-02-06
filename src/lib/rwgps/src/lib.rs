@@ -124,7 +124,7 @@ impl RwgpsClient {
 }
 
 #[async_trait::async_trait]
-impl rwgps_types::client::RwgpsClient for RwgpsClient {
+impl rwgps_types::client::AuthenticatedRwgpsClient for RwgpsClient {
     type Error = RwgpsError;
 
     async fn user_info(&self) -> Result<rwgps_types::AuthenticatedUserDetailResponse, RwgpsError> {

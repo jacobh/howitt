@@ -37,7 +37,7 @@ pub struct RwgpsSyncService<
     RideRepo: Repo<Model = Ride>,
     RoutePointsRepo: Repo<Model = RoutePoints>,
     RidePointsRepo: Repo<Model = RidePoints>,
-    RwgpsClient: rwgps_types::client::RwgpsClient<Error = RwgpsClientError>,
+    RwgpsClient: rwgps_types::client::AuthenticatedRwgpsClient<Error = RwgpsClientError>,
     RwgpsClientError: Into<anyhow::Error>,
 > {
     pub route_repo: RouteRepo,
@@ -54,7 +54,7 @@ where
     R2: Repo<Model = Ride>,
     R3: Repo<Model = RoutePoints>,
     R4: Repo<Model = RidePoints>,
-    C: rwgps_types::client::RwgpsClient<Error = E>,
+    C: rwgps_types::client::AuthenticatedRwgpsClient<Error = E>,
     E: Error + Send + Sync + 'static,
 {
     pub fn new(
