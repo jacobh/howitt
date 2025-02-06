@@ -1,6 +1,7 @@
 use async_graphql::{Context, Object};
 use chrono::{Duration, Utc};
 use howitt::models::{ride::RideFilter, user::UserId};
+use howitt::repos::Repos;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
@@ -37,7 +38,10 @@ impl UserProfile {
     }
 
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
-        let SchemaData { ride_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { ride_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let rides = ride_repo
             .filter_models(RideFilter::ForUser {
@@ -55,7 +59,10 @@ impl UserProfile {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Ride>, async_graphql::Error> {
-        let SchemaData { ride_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { ride_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let rides = ride_repo
             .filter_models(RideFilter::ForUser {
@@ -72,7 +79,10 @@ impl UserProfile {
         Ok(rides)
     }
     async fn trips<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Trip>, async_graphql::Error> {
-        let SchemaData { trip_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let trips = trip_repo
             .filter_models(howitt::models::trip::TripFilter::User(self.0.id))
@@ -85,7 +95,10 @@ impl UserProfile {
         ctx: &Context<'ctx>,
         date: IsoDate,
     ) -> Result<Vec<Ride>, async_graphql::Error> {
-        let SchemaData { ride_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { ride_repo, .. },
+            ..
+        } = ctx.data()?;
 
         // Get rides for that user on that date
         let rides = ride_repo
@@ -107,7 +120,10 @@ impl UserProfile {
         ctx: &Context<'ctx>,
         slug: String,
     ) -> Result<Option<Trip>, async_graphql::Error> {
-        let SchemaData { trip_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let trip = trip_repo
             .find_model(howitt::models::trip::TripFilter::WithUserAndSlug {

@@ -4,6 +4,7 @@ use async_graphql::*;
 use chrono::{DateTime, Utc};
 use howitt::models::media::MediaId;
 use howitt::models::trip::{TripId, TripNote};
+use howitt::repos::Repos;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
@@ -57,7 +58,10 @@ impl Mutation {
         input: UpdateTripInput,
     ) -> Result<UpdateTripOutput, Error> {
         // Get required context data
-        let SchemaData { trip_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
         let RequestData { login } = ctx.data()?;
 
         // Ensure user is logged in
@@ -99,7 +103,10 @@ impl Mutation {
         input: AddTripMediaInput,
     ) -> Result<TripMediaOutput, Error> {
         // Get required context data
-        let SchemaData { trip_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
         let RequestData { login } = ctx.data()?;
 
         // Ensure user is logged in
@@ -139,7 +146,10 @@ impl Mutation {
         input: RemoveTripMediaInput,
     ) -> Result<TripMediaOutput, Error> {
         // Get required context data
-        let SchemaData { trip_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
         let RequestData { login } = ctx.data()?;
 
         // Ensure user is logged in
@@ -177,7 +187,10 @@ impl Mutation {
 
     async fn clear_rwgps_connection(&self, ctx: &Context<'_>) -> Result<Viewer, Error> {
         // Get required context data
-        let SchemaData { user_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { user_repo, .. },
+            ..
+        } = ctx.data()?;
         let RequestData { login } = ctx.data()?;
 
         // Ensure user is logged in

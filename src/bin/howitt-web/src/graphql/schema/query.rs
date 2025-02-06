@@ -2,6 +2,7 @@ use async_graphql::*;
 use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
 use howitt::models::user::UserFilter;
+use howitt::repos::Repos;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
@@ -74,7 +75,10 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Route>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { route_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let routes = route_repo.filter_models(RouteFilter::Starred).await?;
 
@@ -102,7 +106,10 @@ impl Query {
         ctx: &Context<'ctx>,
         id: ModelId<RouteId>,
     ) -> Result<Option<Route>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { route_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let route = route_repo.get(id.0).await?;
 
@@ -113,14 +120,20 @@ impl Query {
         ctx: &Context<'ctx>,
         slug: String,
     ) -> Result<Option<Route>, async_graphql::Error> {
-        let SchemaData { route_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { route_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let route = route_repo.find_model(RouteFilter::Slug(slug)).await?;
 
         Ok(route.map(|r| Route(r)))
     }
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
-        let SchemaData { ride_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { ride_repo, .. },
+            ..
+        } = ctx.data()?;
         let rides = ride_repo.all().await?;
 
         Ok(rides
@@ -133,9 +146,15 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<PointOfInterest>, async_graphql::Error> {
-        let SchemaData { poi_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos {
+                point_of_interest_repo,
+                ..
+            },
+            ..
+        } = ctx.data()?;
 
-        let pois = poi_repo.all().await?;
+        let pois = point_of_interest_repo.all().await?;
 
         Ok(pois.into_iter().map(PointOfInterest).collect())
     }
@@ -147,7 +166,10 @@ impl Query {
         ctx: &Context<'ctx>,
         username: String,
     ) -> Result<Option<UserProfile>, async_graphql::Error> {
-        let SchemaData { user_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { user_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let user = user_repo.find_model(UserFilter::Username(username)).await?;
 
@@ -157,7 +179,10 @@ impl Query {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<UserProfile>, async_graphql::Error> {
-        let SchemaData { user_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { user_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let users = user_repo.all().await?;
 

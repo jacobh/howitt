@@ -70,12 +70,6 @@ async fn main() -> Result<(), anyhow::Error> {
     let bucket_client = S3BucketClient::new_from_env(BucketName::Media);
 
     let schema = build_schema(SchemaData {
-        poi_repo: repos.point_of_interest_repo.clone(),
-        route_repo: repos.route_repo.clone(),
-        ride_repo: repos.ride_repo.clone(),
-        user_repo: repos.user_repo.clone(),
-        trip_repo: repos.trip_repo.clone(),
-        media_repo: repos.media_repo.clone(),
         user_loader: DataLoader::new(UserLoader::new(repos.user_repo.clone()), tokio::spawn),
         route_points_loader: DataLoader::new(
             RoutePointsLoader::new(repos.route_points_repo.clone()),
@@ -84,6 +78,7 @@ async fn main() -> Result<(), anyhow::Error> {
         simplified_ride_points_fetcher,
         rwgps_client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
         user_auth_service: user_auth_service.clone(),
+        repos,
     });
 
     let app_state = app_state::AppState {

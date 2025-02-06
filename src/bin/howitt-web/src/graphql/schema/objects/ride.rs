@@ -9,6 +9,7 @@ use howitt::{
         },
         ride::RideId,
     },
+    repos::Repos,
     services::{fetchers::PointsFetcherParams, simplify_points::SimplifyTarget},
 };
 use itertools::Itertools;
@@ -149,7 +150,10 @@ impl Ride {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Media>, async_graphql::Error> {
-        let SchemaData { media_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { media_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let media = media_repo
             .filter_models(MediaFilter::ForRide(self.0.id))

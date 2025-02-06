@@ -11,6 +11,7 @@ use howitt::{
         route::RouteId,
         tag::Tag,
     },
+    repos::Repos,
     services::generate_cuesheet::generate_cuesheet,
 };
 use itertools::Itertools;
@@ -158,7 +159,10 @@ impl Terminus {
     ) -> Result<Vec<NearbyRoute>, async_graphql::Error> {
         let Terminus { terminus, route } = self;
 
-        let SchemaData { route_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { route_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let route_indexes = route_repo
             .all()
@@ -423,8 +427,11 @@ impl Route {
     }
     async fn cues<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Cue>, async_graphql::Error> {
         let SchemaData {
+            repos: Repos {
+                point_of_interest_repo,
+                ..
+            },
             route_points_loader,
-            poi_repo,
             ..
         } = ctx.data()?;
         let route_points = route_points_loader
@@ -433,14 +440,17 @@ impl Route {
             .ok_or(anyhow!("Points not found"))?;
 
         let points = route_points.iter_elevation_points().cloned().collect_vec();
-        let pois = poi_repo.all().await?;
+        let pois = point_of_interest_repo.all().await?;
 
         let cuesheet = generate_cuesheet(&points, &pois);
 
         Ok(cuesheet.cues.into_iter().map(Cue::from).collect_vec())
     }
     async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
-        let SchemaData { user_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { user_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let user = user_repo.get(self.0.user_id).await?;
 
@@ -450,7 +460,10 @@ impl Route {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Media>, async_graphql::Error> {
-        let SchemaData { media_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { media_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let media = media_repo
             .filter_models(MediaFilter::ForRoute(self.0.id()))

@@ -1,5 +1,8 @@
 use async_graphql::{Context, Enum, Object};
-use howitt::models::{media::MediaFilter, point_of_interest::PointOfInterestId, Model};
+use howitt::{
+    models::{media::MediaFilter, point_of_interest::PointOfInterestId, Model},
+    repos::Repos,
+};
 
 use crate::graphql::{context::SchemaData, schema::ModelId};
 
@@ -34,7 +37,10 @@ impl PointOfInterest {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Media>, async_graphql::Error> {
-        let SchemaData { media_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { media_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let media = media_repo
             .filter_models(MediaFilter::ForPointOfInterest(self.0.id))

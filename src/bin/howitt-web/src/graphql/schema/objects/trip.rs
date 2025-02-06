@@ -6,6 +6,7 @@ use howitt::ext::futures::FuturesIteratorExt;
 use howitt::ext::iter::{ResultIterExt, ScanAllExt};
 use howitt::models::media::MediaFilter;
 use howitt::models::{ride::RideFilter, trip::TripId};
+use howitt::repos::Repos;
 use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
@@ -121,7 +122,10 @@ impl Trip {
     }
 
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
-        let SchemaData { ride_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { ride_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let rides = ride_repo
             .filter_models(RideFilter::ForTrip(self.0.id))
@@ -143,7 +147,10 @@ impl Trip {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Media>, async_graphql::Error> {
-        let SchemaData { media_repo, .. } = ctx.data()?;
+        let SchemaData {
+            repos: Repos { media_repo, .. },
+            ..
+        } = ctx.data()?;
 
         let media = media_repo
             .filter_models(MediaFilter::ForTrip(self.0.id))
