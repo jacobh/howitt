@@ -1,14 +1,13 @@
 use clap::{arg, Args, Subcommand};
 use howitt::{
-    models::user::UserId,
-    services::sync::rwgps::{RwgpsSyncService, SyncParams},
+    models::user::UserId, repos::AnyhowRepo, services::sync::rwgps::{RwgpsSyncService, SyncParams}
 };
 use howitt_fs::load_user_config;
 use howitt_fs::{load_routes, persist_user_config};
 use howitt_postgresql::PostgresRepos;
 use itertools::Itertools;
 use rwgps::AuthenticatedRwgpsClient;
-use rwgps_types::{config::UserConfig, credentials::PasswordCredentials};
+use rwgps_types::{config::UserConfig, credentials::{Credentials, PasswordCredentials}, client::RwgpsClient};
 use serde_json::json;
 
 use crate::utils::json::prettyprintln;
@@ -16,13 +15,20 @@ use crate::Context;
 
 #[derive(Subcommand)]
 pub enum RwgpsCommands {
-    Info,
+    Info(InfoArgs),
     Auth,
     #[clap(subcommand)]
     Routes(Routes),
     Trips,
     Sync(SyncRwgps),
 }
+
+#[derive(Args)]
+pub struct InfoArgs {
+    #[arg(long)]
+    user_id: String,
+}
+
 
 #[derive(Args)]
 pub struct SyncRwgps {
@@ -75,17 +81,47 @@ pub async fn handle(
                 ride_points_repo,
                 route_repo,
                 route_points_repo,
+                user_repo,
                 ..
             },
         ..
     }: Context,
 ) -> Result<(), anyhow::Error> {
     match command {
-        RwgpsCommands::Info => {
-            let user_config = get_user_config()?;
-            let client = rwgps::AuthenticatedRwgpsClient::new(user_config.credentials());
+        RwgpsCommands::Info(InfoArgs { user_id }) => {
+            let user_id = UserId::from(uuid::Uuid::parse_str(user_id)?);
+            
+            // Fetch user from repo
+            let user = user_repo.get(user_id).await?;
 
-            dbg!(client.user_info().await?);
+            // Get RWGPS connection details
+            let rwgps_connection = user
+                .rwgps_connection
+                .ok_or_else(|| anyhow::anyhow!("User has no RWGPS connection"))?;
+
+            // Create RWGPS client
+            let rwgps_client = rwgps::RwgpsClient::new();
+            let auth_client = rwgps_client.with_credentials(
+                Credentials::from_token(rwgps_connection.access_token)
+            );
+
+            // Fetch user info
+            let user_info = auth_client.user_info().await?;
+
+            println!("RWGPS User Info for {}", user.username);
+            dbg!(user_info);
+
+            // Fetch routes count
+            let routes = auth_client
+                .user_routes(rwgps_connection.rwgps_user_id as usize)
+                .await?;
+            println!("Found {} routes", routes.len());
+
+            // Fetch trips count
+            let trips = auth_client
+                .user_trips(rwgps_connection.rwgps_user_id as usize)
+                .await?;
+            println!("Found {} trips", trips.len());
         }
         RwgpsCommands::Auth => {
             let user_config = get_user_config()?;

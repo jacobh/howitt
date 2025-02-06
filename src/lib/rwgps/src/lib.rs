@@ -54,12 +54,10 @@ impl RwgpsClient {
         if let Some(creds) = credentials {
             match creds {
                 Credentials::Token(token_creds) => {
-                    request = request
-                        .header(
-                            "Authorization",
-                            format!("Bearer {}", token_creds.auth_token),
-                        )
-                        .query(&creds.to_query());
+                    request = request.header(
+                        "Authorization",
+                        format!("Bearer {}", token_creds.auth_token),
+                    );
                 }
                 _ => {
                     request = request.query(&creds.to_query());
