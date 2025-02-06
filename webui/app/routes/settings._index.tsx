@@ -8,18 +8,26 @@ import { Link } from "@remix-run/react";
 const SettingsQuery = gql(`
   query settings {
     viewer {
+      ...viewerInfo
         profile {
             id
             username
             email
         }
-      ...viewerInfo
+        rwgpsConnection {
+            id
+            rwgpsUserId
+            createdAt
+            updatedAt
+        }
+        rwgpsAuthRequestUrl
     }
   }
 `);
 
 const pageContainerCss = css({
   maxWidth: "600px",
+  width: "100%",
   margin: "0 auto",
   padding: "2rem",
 });
@@ -69,6 +77,7 @@ export default function Settings(): React.ReactElement {
 
   let viewer = data?.viewer;
   let profile = viewer?.profile;
+  let rwgpsConnection = viewer?.rwgpsConnection;
 
   return (
     <Container>
@@ -85,6 +94,50 @@ export default function Settings(): React.ReactElement {
           <label css={labelCss}>Email</label>
           <div css={valueCss}>{profile?.email}</div>
         </div>
+
+        <h3 css={titleCss}>RWGPS Connection</h3>
+        <hr css={dividerCss} />
+
+        {rwgpsConnection ? (
+          <div css={fieldContainerCss}>
+            <label css={labelCss}>RWGPS User ID</label>
+            <div css={valueCss}>{rwgpsConnection.rwgpsUserId}</div>
+            <div
+              css={css({
+                fontSize: "0.9rem",
+                color: tokens.colors.darkGrey,
+                marginTop: "0.5rem",
+              })}
+            >
+              Connected on{" "}
+              {new Date(rwgpsConnection.createdAt).toLocaleDateString()}
+              <br />
+              Last updated{" "}
+              {new Date(rwgpsConnection.updatedAt).toLocaleDateString()}
+            </div>
+          </div>
+        ) : (
+          <div css={fieldContainerCss}>
+            <p css={css({ marginBottom: "1rem" })}>
+              Connect your Ride with GPS account to sync your routes and
+              activities.
+            </p>
+            <a
+              href={viewer?.rwgpsAuthRequestUrl}
+              css={css({
+                display: "inline-block",
+                padding: "0.5rem 1rem",
+                border: `1px solid #888`,
+                borderRadius: "4px",
+                textDecoration: "none !important",
+              })}
+            >
+              Connect RWGPS Account
+            </a>
+          </div>
+        )}
+
+        <hr css={dividerCss} />
 
         {profile?.username && (
           <Link to={`/riders/${profile.username}`} css={linkCss}>

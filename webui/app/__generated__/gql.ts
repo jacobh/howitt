@@ -58,7 +58,7 @@ const documents = {
     types.HomeQueryDocument,
   "\n  query homeQueryPointOnly($input: QueryRoutesInput!) {\n    queryRoutes(input: $input) {\n      id\n      pointsJson\n    }\n  }\n":
     types.HomeQueryPointOnlyDocument,
-  "\n  query settings {\n    viewer {\n        profile {\n            id\n            username\n            email\n        }\n      ...viewerInfo\n    }\n  }\n":
+  "\n  query settings {\n    viewer {\n      ...viewerInfo\n        profile {\n            id\n            username\n            email\n        }\n        rwgpsConnection {\n            id\n            rwgpsUserId\n            createdAt\n            updatedAt\n        }\n        rwgpsAuthRequestUrl\n    }\n  }\n":
     types.SettingsDocument,
 };
 
@@ -212,8 +212,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query settings {\n    viewer {\n        profile {\n            id\n            username\n            email\n        }\n      ...viewerInfo\n    }\n  }\n",
-): (typeof documents)["\n  query settings {\n    viewer {\n        profile {\n            id\n            username\n            email\n        }\n      ...viewerInfo\n    }\n  }\n"];
+  source: "\n  query settings {\n    viewer {\n      ...viewerInfo\n        profile {\n            id\n            username\n            email\n        }\n        rwgpsConnection {\n            id\n            rwgpsUserId\n            createdAt\n            updatedAt\n        }\n        rwgpsAuthRequestUrl\n    }\n  }\n",
+): (typeof documents)["\n  query settings {\n    viewer {\n      ...viewerInfo\n        profile {\n            id\n            username\n            email\n        }\n        rwgpsConnection {\n            id\n            rwgpsUserId\n            createdAt\n            updatedAt\n        }\n        rwgpsAuthRequestUrl\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

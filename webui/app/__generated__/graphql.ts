@@ -39,6 +39,17 @@ export type Scalars = {
   RideId: { input: any; output: any };
   RouteId: { input: any; output: any };
   TripId: { input: any; output: any };
+  /**
+   * A UUID is a unique 128-bit number, stored as 16 octets. UUIDs are parsed as
+   * Strings within GraphQL. UUIDs are used to assign unique identifiers to
+   * entities without requiring a central allocating authority.
+   *
+   * # References
+   *
+   * * [Wikipedia: Universally Unique Identifier](http://en.wikipedia.org/wiki/Universally_unique_identifier)
+   * * [RFC4122: A Universally Unique IDentifier (UUID) URN Namespace](http://tools.ietf.org/html/rfc4122)
+   */
+  UUID: { input: any; output: any };
   /** URL is a String implementing the [URL Standard](http://url.spec.whatwg.org/) */
   Url: { input: any; output: any };
   UserId: { input: any; output: any };
@@ -138,6 +149,7 @@ export type MediaTarget = {
 export type Mutation = {
   __typename?: "Mutation";
   addTripMedia: TripMediaOutput;
+  clearRwgpsConnection: Viewer;
   removeTripMedia: TripMediaOutput;
   updateTrip: UpdateTripOutput;
 };
@@ -403,10 +415,20 @@ export type UserProfileTripWithSlugArgs = {
   slug: Scalars["String"]["input"];
 };
 
+export type UserRwgpsConnection = {
+  __typename?: "UserRwgpsConnection";
+  createdAt: Scalars["DateTime"]["output"];
+  id: Scalars["UUID"]["output"];
+  rwgpsUserId: Scalars["Int"]["output"];
+  updatedAt: Scalars["DateTime"]["output"];
+};
+
 export type Viewer = {
   __typename?: "Viewer";
   id: Scalars["String"]["output"];
   profile: UserProfile;
+  rwgpsAuthRequestUrl: Scalars["String"]["output"];
+  rwgpsConnection?: Maybe<UserRwgpsConnection>;
 };
 
 type ElevationPath_Ride_Fragment = {
@@ -846,12 +868,20 @@ export type SettingsQuery = {
   viewer?:
     | ({
         __typename?: "Viewer";
+        rwgpsAuthRequestUrl: string;
         profile: {
           __typename?: "UserProfile";
           id: any;
           username: string;
           email?: string | null;
         };
+        rwgpsConnection?: {
+          __typename?: "UserRwgpsConnection";
+          id: any;
+          rwgpsUserId: number;
+          createdAt: any;
+          updatedAt: any;
+        } | null;
       } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
     | null;
 };
@@ -3243,6 +3273,10 @@ export const SettingsDocument = {
               kind: "SelectionSet",
               selections: [
                 {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+                {
                   kind: "Field",
                   name: { kind: "Name", value: "profile" },
                   selectionSet: {
@@ -3258,8 +3292,30 @@ export const SettingsDocument = {
                   },
                 },
                 {
-                  kind: "FragmentSpread",
-                  name: { kind: "Name", value: "viewerInfo" },
+                  kind: "Field",
+                  name: { kind: "Name", value: "rwgpsConnection" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rwgpsUserId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "createdAt" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "updatedAt" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rwgpsAuthRequestUrl" },
                 },
               ],
             },
