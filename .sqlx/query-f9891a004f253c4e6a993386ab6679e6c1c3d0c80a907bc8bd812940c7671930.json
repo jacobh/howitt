@@ -1,0 +1,124 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select * from routes where (external_ref->'id'->'Rwgps'->'Route')::int = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "external_ref",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 4,
+        "name": "sample_points",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "distance_m",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "published_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "technical_difficulty",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "physical_difficulty",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "minimum_bike",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 11,
+        "name": "ideal_bike",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 12,
+        "name": "scouted",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 13,
+        "name": "direction",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 14,
+        "name": "tags",
+        "type_info": "VarcharArray"
+      },
+      {
+        "ordinal": 15,
+        "name": "is_starred",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 16,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 17,
+        "name": "slug",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f9891a004f253c4e6a993386ab6679e6c1c3d0c80a907bc8bd812940c7671930"
+}

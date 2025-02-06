@@ -88,6 +88,7 @@ pub enum RouteFilter {
     Starred,
     All,
     Slug(String),
+    RwgpsId(usize),
 }
 
 impl Model for Route {

@@ -187,6 +187,13 @@ impl Repo for PostgresRouteRepo {
                     .fetch_all(conn.as_mut())
                     .await?
             }
+            RouteFilter::RwgpsId(rwgps_id) => sqlx::query_as!(
+                RouteRow,
+                r#"select * from routes where (external_ref->'id'->'Rwgps'->'Route')::int = $1"#,
+                rwgps_id as i32
+            )
+            .fetch_all(conn.as_mut())
+            .await?,
         };
 
         Ok(rows.into_iter().map(Route::try_from).collect_result_vec()?)
