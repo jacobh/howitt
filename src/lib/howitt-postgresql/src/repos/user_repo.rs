@@ -110,6 +110,26 @@ impl Repo for PostgresUserRepo {
                 .fetch_all(conn.as_mut())
                 .await?
             }
+            UserFilter::RwgpsId(rwgps_user_id) => {
+                sqlx::query_as!(
+                    UserRow,
+                    r#"
+                SELECT 
+                    u.*,
+                    rc.id as "rwgps_id?",
+                    rc.rwgps_user_id as "rwgps_user_id?",
+                    rc.access_token as "rwgps_access_token?",
+                    rc.created_at as "rwgps_created_at?",
+                    rc.updated_at as "rwgps_updated_at?"
+                FROM users u
+                INNER JOIN user_rwgps_connections rc ON rc.user_id = u.id
+                WHERE rc.rwgps_user_id = $1
+                "#,
+                    rwgps_user_id as i32
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
         };
 
         Ok(users.into_iter().map(User::try_from).collect_result_vec()?)

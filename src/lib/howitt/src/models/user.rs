@@ -31,6 +31,7 @@ pub struct UserRwgpsConnection {
 pub enum UserFilter {
     Username(String),
     Ids(Vec<UserId>),
+    RwgpsId(usize),
 }
 
 impl Model for User {
