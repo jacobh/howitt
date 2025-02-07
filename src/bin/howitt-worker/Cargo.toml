@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
+apalis-core = { version = "0.6" }
 apalis = { version = "0.6", features = ["limit", "timeout"] }
 apalis-redis = { version = "0.6" }
 howitt = { path = "../../lib/howitt" }

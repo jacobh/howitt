@@ -7,13 +7,15 @@ use howitt_clients::S3BucketClient;
 use howitt_postgresql::{PostgresClient, PostgresRepos};
 use rwgps::RwgpsClient;
 
+use crate::storage::LockFreeStorage;
+
 #[derive(Clone)]
 pub struct Context {
     pub repos: Repos,
     pub bucket_client: Arc<S3BucketClient>,
     pub rwgps_client: RwgpsClient,
     pub image_processing_semaphore: Arc<tokio::sync::Semaphore>,
-    pub job_storage: Arc<tokio::sync::Mutex<RedisStorage<Job>>>,
+    pub job_storage: LockFreeStorage<Job>,
 }
 
 impl Context {
@@ -31,7 +33,7 @@ impl Context {
             bucket_client: Arc::new(bucket_client),
             rwgps_client: RwgpsClient::new(),
             image_processing_semaphore: Arc::new(tokio::sync::Semaphore::new(4)),
-            job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
+            job_storage: LockFreeStorage::new(job_storage),
         })
     }
 }

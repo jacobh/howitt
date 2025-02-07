@@ -2058,6 +2058,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "apalis",
+ "apalis-core",
  "apalis-redis",
  "howitt",
  "howitt-postgresql",

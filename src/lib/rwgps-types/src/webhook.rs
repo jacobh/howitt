@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RwgpsWebhookCollection {
     pub id: i64,
     #[serde(rename = "type")]
@@ -25,7 +25,7 @@ pub enum Action {
     Removed,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RwgpsWebhookNotification {
     pub user_id: i64,
     pub item_type: ItemType,
@@ -36,7 +36,7 @@ pub struct RwgpsWebhookNotification {
     pub collection: Option<RwgpsWebhookCollection>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RwgpsWebhookPayload {
     pub notifications: Vec<RwgpsWebhookNotification>,
 }

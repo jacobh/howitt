@@ -1,4 +1,3 @@
-use apalis::prelude::*;
 use howitt::jobs::rwgps::RwgpsJob;
 use howitt::jobs::Job;
 use howitt::models::user::UserFilter;
@@ -76,8 +75,6 @@ pub async fn handle_rwgps_job(
             match notification.item_type {
                 ItemType::Route => {
                     job_storage
-                        .lock()
-                        .await
                         .push(Job::Rwgps(RwgpsJob::SyncRoute {
                             rwgps_route_id: notification.item_id as usize,
                             connection,
@@ -92,8 +89,6 @@ pub async fn handle_rwgps_job(
                 }
                 ItemType::Trip => {
                     job_storage
-                        .lock()
-                        .await
                         .push(Job::Rwgps(RwgpsJob::SyncTrip {
                             rwgps_trip_id: notification.item_id as usize,
                             connection,
