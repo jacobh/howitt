@@ -2058,12 +2058,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "apalis",
- "apalis-core",
  "apalis-redis",
  "howitt",
  "howitt-postgresql",
  "howitt_client_types",
  "howitt_clients",
+ "howitt_jobs",
  "image",
  "libwebp-sys",
  "rayon",
@@ -2108,6 +2108,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.96",
+]
+
+[[package]]
+name = "howitt_jobs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "apalis",
+ "apalis-core",
+ "apalis-redis",
+ "howitt",
+ "thiserror 1.0.69",
+ "tokio",
 ]
 
 [[package]]

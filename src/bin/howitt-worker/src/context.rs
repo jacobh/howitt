@@ -4,10 +4,9 @@ use apalis_redis::RedisStorage;
 use howitt::{jobs::Job, repos::Repos};
 use howitt_client_types::BucketName;
 use howitt_clients::S3BucketClient;
+use howitt_jobs::storage::LockFreeStorage;
 use howitt_postgresql::{PostgresClient, PostgresRepos};
 use rwgps::RwgpsClient;
-
-use crate::storage::LockFreeStorage;
 
 #[derive(Clone)]
 pub struct Context {

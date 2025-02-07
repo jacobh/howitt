@@ -10,7 +10,6 @@ use howitt::jobs::Job;
 
 pub mod context;
 pub mod handlers;
-pub mod storage;
 
 #[tokio::main]
 async fn main() -> Result<()> {

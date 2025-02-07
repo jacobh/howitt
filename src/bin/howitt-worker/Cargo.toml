@@ -5,11 +5,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-apalis-core = { version = "0.6" }
 apalis = { version = "0.6", features = ["limit", "timeout"] }
 apalis-redis = { version = "0.6" }
 howitt = { path = "../../lib/howitt" }
 howitt_clients = { path = "../../lib/howitt-clients" }
+howitt_jobs = { path = "../../lib/howitt-jobs" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
 tokio = { version = "1", features = ["full"] }
