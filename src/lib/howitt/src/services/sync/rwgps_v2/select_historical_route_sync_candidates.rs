@@ -9,7 +9,7 @@ use crate::{
     repos::RouteRepo,
 };
 
-pub struct SyncRouteParams<RwgpsClient> {
+pub struct SyncRouteHistoryParams<RwgpsClient> {
     pub client: RwgpsClient,
     pub route_repo: RouteRepo,
     pub connection: UserRwgpsConnection,
@@ -22,11 +22,11 @@ pub struct RouteSyncCandidate {
 pub async fn select_historical_route_sync_candidates<
     RwgpsClient: rwgps_types::client::RwgpsClient,
 >(
-    SyncRouteParams {
+    SyncRouteHistoryParams {
         client,
         connection,
         route_repo,
-    }: SyncRouteParams<RwgpsClient>,
+    }: SyncRouteHistoryParams<RwgpsClient>,
 ) -> Result<Vec<RouteSyncCandidate>, anyhow::Error> {
     let existing_routes = route_repo
         .filter_models(RouteFilter::UserId(connection.user_id))

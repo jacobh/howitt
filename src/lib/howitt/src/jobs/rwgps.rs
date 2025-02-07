@@ -14,4 +14,7 @@ pub enum RwgpsJob {
         rwgps_route_id: usize,
         connection: UserRwgpsConnection,
     },
+    SyncHistory {
+        connection: UserRwgpsConnection,
+    },
 }

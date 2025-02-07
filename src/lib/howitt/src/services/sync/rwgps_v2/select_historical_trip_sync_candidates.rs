@@ -9,7 +9,7 @@ use crate::{
     repos::RideRepo,
 };
 
-pub struct SyncTripParams<RwgpsClient> {
+pub struct SyncTripHistoryParams<RwgpsClient> {
     pub client: RwgpsClient,
     pub ride_repo: RideRepo,
     pub connection: UserRwgpsConnection,
@@ -22,11 +22,11 @@ pub struct TripSyncCandidate {
 pub async fn select_historical_trip_sync_candidates<
     RwgpsClient: rwgps_types::client::RwgpsClient,
 >(
-    SyncTripParams {
+    SyncTripHistoryParams {
         client,
         connection,
         ride_repo,
-    }: SyncTripParams<RwgpsClient>,
+    }: SyncTripHistoryParams<RwgpsClient>,
 ) -> Result<Vec<TripSyncCandidate>, anyhow::Error> {
     let existing_rides = ride_repo
         .filter_models(RideFilter::ForUser {

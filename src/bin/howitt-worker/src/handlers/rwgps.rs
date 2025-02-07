@@ -2,6 +2,12 @@ use howitt::jobs::rwgps::RwgpsJob;
 use howitt::jobs::Job;
 use howitt::models::user::UserFilter;
 use howitt::repos::Repos;
+use howitt::services::sync::rwgps_v2::select_historical_route_sync_candidates::{
+    select_historical_route_sync_candidates, SyncRouteHistoryParams,
+};
+use howitt::services::sync::rwgps_v2::select_historical_trip_sync_candidates::{
+    select_historical_trip_sync_candidates, SyncTripHistoryParams,
+};
 use howitt::services::sync::rwgps_v2::sync_route::{sync_route, SyncRouteParams};
 use howitt::services::sync::rwgps_v2::sync_trip::{sync_trip, SyncTripParams};
 use rwgps_types::webhook::ItemType;
@@ -144,6 +150,77 @@ pub async fn handle_rwgps_job(
                 trip_id = rwgps_trip_id,
                 "Successfully processed RWGPS trip sync"
             );
+        }
+        RwgpsJob::SyncHistory { connection } => {
+            tracing::info!(
+                user_id = connection.user_id.to_string(),
+                rwgps_user_id = connection.rwgps_user_id,
+                "Processing RWGPS history sync"
+            );
+
+            let route_task = async {
+                tracing::info!("Finding historical routes to sync");
+                let route_candidates =
+                    select_historical_route_sync_candidates(SyncRouteHistoryParams {
+                        client: rwgps_client.clone(),
+                        route_repo,
+                        connection: connection.clone(),
+                    })
+                    .await?;
+
+                tracing::info!(
+                    count = route_candidates.len(),
+                    "Found historical routes to sync"
+                );
+
+                for route in route_candidates {
+                    tracing::debug!(
+                        route_id = route.rwgps_route_id,
+                        "Queuing historical route sync"
+                    );
+                    job_storage
+                        .push(Job::Rwgps(RwgpsJob::SyncRoute {
+                            rwgps_route_id: route.rwgps_route_id,
+                            connection: connection.clone(),
+                        }))
+                        .await
+                        .map_err(|e| RwgpsJobError::Processing(e.into()))?;
+                }
+
+                Ok::<_, RwgpsJobError>(())
+            };
+
+            let trip_task = async {
+                tracing::info!("Finding historical trips to sync");
+                let trip_candidates =
+                    select_historical_trip_sync_candidates(SyncTripHistoryParams {
+                        client: rwgps_client.clone(),
+                        ride_repo,
+                        connection: connection.clone(),
+                    })
+                    .await?;
+
+                tracing::info!(
+                    count = trip_candidates.len(),
+                    "Found historical trips to sync"
+                );
+
+                for trip in trip_candidates {
+                    tracing::debug!(trip_id = trip.rwgps_trip_id, "Queuing historical trip sync");
+                    job_storage
+                        .push(Job::Rwgps(RwgpsJob::SyncTrip {
+                            rwgps_trip_id: trip.rwgps_trip_id,
+                            connection: connection.clone(),
+                        }))
+                        .await
+                        .map_err(|e| RwgpsJobError::Processing(e.into()))?;
+                }
+
+                Ok::<_, RwgpsJobError>(())
+            };
+
+            let (_, _) = tokio::try_join!(route_task, trip_task)?;
+            tracing::info!("Completed RWGPS history sync");
         }
     }
 
