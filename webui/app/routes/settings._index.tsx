@@ -147,13 +147,20 @@ export default function Settings(): React.ReactElement {
               Last updated{" "}
               {new Date(rwgpsConnection.updatedAt).toLocaleDateString()}
             </div>
+            <p>
+              New rides and routes sync automatically. Your past data has
+              already been synced.
+              <br />
+              <br />
+              Re-import past data (usually not needed).
+            </p>
             <button
               onClick={() => {
                 initiateSync();
                 setHasSynced(true);
               }}
               disabled={syncing || hasSynced}
-              css={buttonCss}
+              css={css(buttonCss, { marginTop: "8px" })}
             >
               {hasSynced ? "Sync initiated" : "Sync RWGPS History"}
             </button>
