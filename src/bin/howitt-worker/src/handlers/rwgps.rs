@@ -1,4 +1,6 @@
+use apalis::prelude::*;
 use howitt::jobs::rwgps::RwgpsJob;
+use howitt::jobs::Job;
 use howitt::models::user::UserFilter;
 use howitt::repos::Repos;
 use howitt::services::sync::rwgps_v2::sync_route::{sync_route, SyncRouteParams};
@@ -28,6 +30,7 @@ pub async fn handle_rwgps_job(
                 ..
             },
         rwgps_client,
+        job_storage,
         ..
     }: Context,
 ) -> Result<(), RwgpsJobError> {
@@ -72,15 +75,15 @@ pub async fn handle_rwgps_job(
 
             match notification.item_type {
                 ItemType::Route => {
-                    // // Sync the route
-                    // sync_route(SyncRouteParams {
-                    //     client: rwgps_client,
-                    //     route_repo: route_repo,
-                    //     route_points_repo: route_points_repo,
-                    //     rwgps_route_id: notification.item_id as usize,
-                    //     connection,
-                    // })
-                    // .await?;
+                    job_storage
+                        .lock()
+                        .await
+                        .push(Job::Rwgps(RwgpsJob::SyncRoute {
+                            rwgps_route_id: notification.item_id as usize,
+                            connection,
+                        }))
+                        .await
+                        .map_err(|e| RwgpsJobError::Processing(e.into()))?;
 
                     tracing::info!(
                         route_id = notification.item_id,
@@ -88,15 +91,15 @@ pub async fn handle_rwgps_job(
                     );
                 }
                 ItemType::Trip => {
-                    // Sync the trip
-                    sync_trip(SyncTripParams {
-                        client: rwgps_client,
-                        ride_repo,
-                        ride_points_repo,
-                        rwgps_trip_id: notification.item_id as usize,
-                        connection,
-                    })
-                    .await?;
+                    job_storage
+                        .lock()
+                        .await
+                        .push(Job::Rwgps(RwgpsJob::SyncTrip {
+                            rwgps_trip_id: notification.item_id as usize,
+                            connection,
+                        }))
+                        .await
+                        .map_err(|e| RwgpsJobError::Processing(e.into()))?;
 
                     tracing::info!(
                         trip_id = notification.item_id,

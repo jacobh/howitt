@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
         .enable_tracing()
         .timeout(Duration::from_millis(300_000))
         .concurrency(10)
-        .data(Context::new().await?)
+        .data(Context::new(storage.clone()).await?)
         .backend(storage)
         .build_fn(handlers::handle_job);
 
