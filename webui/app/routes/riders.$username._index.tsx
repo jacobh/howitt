@@ -15,6 +15,7 @@ import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
+import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const UserProfileQuery = gql(`
   query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
@@ -57,7 +58,7 @@ const sectionHeaderCss = css`
 export default function UserProfile(): React.ReactElement {
   const params = useParams();
 
-  const { data } = useQuery(UserProfileQuery, {
+  const { data, loading } = useQuery(UserProfileQuery, {
     variables: { username: params.username ?? "", pointsPerKm: 1 },
   });
 
@@ -105,6 +106,8 @@ export default function UserProfile(): React.ReactElement {
               </div>
             ))}
           </div>
+        ) : loading ? (
+          <LoadingSpinnerSidebarContent />
         ) : (
           <h3>User not found</h3>
         )}

@@ -20,6 +20,7 @@ import { capitalize } from "lodash";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
 import { useMemo } from "react";
+import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const RouteQuery = gql(`
 query RouteQuery($slug: String!) {
@@ -100,7 +101,7 @@ const tagLinkCss = css`
 export default function Route(): React.ReactElement {
   const params = useParams();
 
-  const { data } = useQuery(RouteQuery, {
+  const { data, loading } = useQuery(RouteQuery, {
     variables: { slug: params.slug ?? "" },
   });
 
@@ -219,6 +220,8 @@ export default function Route(): React.ReactElement {
                 <></>
               )}
             </>
+          ) : loading ? (
+            <LoadingSpinnerSidebarContent />
           ) : (
             <></>
           )}

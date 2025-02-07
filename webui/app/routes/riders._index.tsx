@@ -12,6 +12,7 @@ import { tokens } from "~/styles/tokens";
 import { Link } from "@remix-run/react";
 import { FragmentType, useFragment } from "~/__generated__";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const PublicUsersQuery = gql(`
   query publicUsers {
@@ -61,15 +62,19 @@ function UserItem(props: {
 }
 
 export default function Users(): React.ReactElement {
-  const { data } = useQuery(PublicUsersQuery, {});
+  const { data, loading } = useQuery(PublicUsersQuery, {});
 
   return (
     <Container>
       <Nav viewer={data?.viewer} />
       <SidebarContainer titleSegments={[{ name: "Riders", linkTo: "/riders" }]}>
-        {data?.publicUsers.map((user) => (
-          <UserItem key={user.id} user={user} />
-        ))}
+        {!loading ? (
+          data?.publicUsers.map((user) => (
+            <UserItem key={user.id} user={user} />
+          ))
+        ) : (
+          <LoadingSpinnerSidebarContent />
+        )}
       </SidebarContainer>
       <MapContainer>
         <PrimaryMap initialView={DEFAULT_INITIAL_VIEW} />

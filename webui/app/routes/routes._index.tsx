@@ -16,6 +16,7 @@ import { sortBy } from "lodash";
 import { useSearchParams } from "@remix-run/react";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
+import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const HomeQueryNoPoints = gql(`
   query homeQuery($input: QueryRoutesInput!) {
@@ -77,7 +78,7 @@ export default function Routes(): React.ReactElement {
 
   const filters = isNotNil(tags) ? [{ hasSomeTags: tags }] : [];
 
-  const { data } = useQuery(HomeQueryNoPoints, {
+  const { data, loading } = useQuery(HomeQueryNoPoints, {
     variables: {
       input: { filters },
     },
@@ -161,6 +162,7 @@ export default function Routes(): React.ReactElement {
             : [{ name: "Routes", linkTo: "/routes" }]
         }
       >
+        {loading ? <LoadingSpinnerSidebarContent /> : <></>}
         {clickedRouteId ? (
           <div
             css={clickedRouteItemContainerCss}

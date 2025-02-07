@@ -18,6 +18,7 @@ import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { Map as MapComponent } from "~/components/map";
 import { isNotNil } from "~/services/isNotNil";
 import { buildRideTrack } from "~/components/map/types";
+import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -128,7 +129,7 @@ export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
 
-  const { data, refetch } = useQuery(TripQuery, {
+  const { data, loading, refetch } = useQuery(TripQuery, {
     variables: {
       username: params.username ?? "",
       slug: params.slug ?? "",
@@ -259,6 +260,8 @@ export default function TripDetail(): React.ReactElement {
               refetch={refetch}
             />
           </>
+        ) : loading ? (
+          <LoadingSpinnerSidebarContent />
         ) : (
           <h3>Trip not found</h3>
         )}

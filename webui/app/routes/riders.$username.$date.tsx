@@ -13,6 +13,7 @@ import { ElevationProfile } from "~/components/ElevationProfile";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
 import { useMemo } from "react";
+import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const RidesWithDateQuery = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {
@@ -35,7 +36,7 @@ const RidesWithDateQuery = gql(`
 function UserProfileDate(): React.ReactElement {
   const params = useParams();
 
-  const { data } = useQuery(RidesWithDateQuery, {
+  const { data, loading } = useQuery(RidesWithDateQuery, {
     variables: {
       username: params.username ?? "",
       date: params.date ?? "",
@@ -112,6 +113,8 @@ function UserProfileDate(): React.ReactElement {
               <p>No rides found for this date</p>
             )}
           </>
+        ) : loading ? (
+          <LoadingSpinnerSidebarContent />
         ) : (
           <h3>User not found</h3>
         )}
