@@ -194,6 +194,15 @@ impl Repo for PostgresRouteRepo {
             )
             .fetch_all(conn.as_mut())
             .await?,
+            RouteFilter::UserId(user_id) => {
+                sqlx::query_as!(
+                    RouteRow,
+                    r#"select * from routes where user_id = $1"#,
+                    user_id.as_uuid()
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
         };
 
         Ok(rows.into_iter().map(Route::try_from).collect_result_vec()?)
