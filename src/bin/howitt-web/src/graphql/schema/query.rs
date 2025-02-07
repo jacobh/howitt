@@ -1,6 +1,7 @@
 use async_graphql::*;
 use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
+use howitt::models::trip::TripId;
 use howitt::models::user::UserFilter;
 use howitt::repos::Repos;
 use itertools::Itertools;
@@ -11,6 +12,7 @@ use crate::graphql::schema::ModelId;
 use super::point_of_interest::PointOfInterest;
 use super::ride::Ride;
 use super::route::Route;
+use super::trip::Trip;
 use super::user::UserProfile;
 use super::viewer::Viewer;
 
@@ -114,6 +116,20 @@ impl Query {
         let route = route_repo.get(id.0).await?;
 
         Ok(Some(Route(route)))
+    }
+    async fn trip<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        id: ModelId<TripId>,
+    ) -> Result<Option<Trip>, async_graphql::Error> {
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
+
+        let trip = trip_repo.get(id.0).await?;
+
+        Ok(Some(Trip(trip)))
     }
     async fn route_with_slug<'ctx>(
         &self,
