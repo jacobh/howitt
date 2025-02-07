@@ -17,7 +17,7 @@ pub struct User {
     pub rwgps_connection: Option<UserRwgpsConnection>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserRwgpsConnection {
     pub id: Uuid,
     pub user_id: UserId,

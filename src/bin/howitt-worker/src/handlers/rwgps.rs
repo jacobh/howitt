@@ -33,36 +33,54 @@ pub async fn handle_rwgps_job(
 ) -> Result<(), RwgpsJobError> {
     match job {
         RwgpsJob::Webhook(notification) => {
+            tracing::info!(
+                    item_type = ?notification.item_type,
+                    item_id = notification.item_id,
+            user_id = notification.user_id,
+                    action = ?notification.action,
+                    "Processing RWGPS {:?} webhook", notification.item_type
+                );
+
+            tracing::info!(
+                user_id = notification.user_id,
+                "Looking up user by RWGPS ID"
+            );
+
+            // Get user from repo
+            let user = user_repo
+                .find_model(UserFilter::RwgpsId(notification.user_id as usize))
+                .await?
+                .ok_or(RwgpsJobError::Processing(anyhow::anyhow!(
+                    "No user found with RWGPS ID"
+                )))?;
+            tracing::info!(
+                user_id = notification.user_id,
+                howitt_user_id = user.id.to_string(),
+                "Found user, checking for RWGPS connection"
+            );
+
+            // Get RWGPS connection
+            let connection = user
+                .rwgps_connection
+                .ok_or_else(|| anyhow::anyhow!("User has no RWGPS connection"))?;
+
+            tracing::debug!(
+                user_id = notification.user_id,
+                howitt_user_id = user.id.to_string(),
+                "Found RWGPS connection"
+            );
+
             match notification.item_type {
                 ItemType::Route => {
-                    tracing::info!(
-                        route_id = notification.item_id,
-                        user_id = notification.user_id,
-                        action = ?notification.action,
-                        "Processing RWGPS route webhook"
-                    );
-
-                    // Get user from repo
-                    let user = user_repo
-                        .find_model(UserFilter::RwgpsId(notification.user_id as usize))
-                        .await?
-                        .ok_or(RwgpsJobError::Processing(anyhow::anyhow!(
-                            "No user found with RWGPS ID"
-                        )))?;
-                    // Get RWGPS connection
-                    let connection = user
-                        .rwgps_connection
-                        .ok_or_else(|| anyhow::anyhow!("User has no RWGPS connection"))?;
-
-                    // Sync the route
-                    sync_route(SyncRouteParams {
-                        client: rwgps_client,
-                        route_repo: route_repo,
-                        route_points_repo: route_points_repo,
-                        rwgps_route_id: notification.item_id as usize,
-                        connection,
-                    })
-                    .await?;
+                    // // Sync the route
+                    // sync_route(SyncRouteParams {
+                    //     client: rwgps_client,
+                    //     route_repo: route_repo,
+                    //     route_points_repo: route_points_repo,
+                    //     rwgps_route_id: notification.item_id as usize,
+                    //     connection,
+                    // })
+                    // .await?;
 
                     tracing::info!(
                         route_id = notification.item_id,
@@ -70,25 +88,6 @@ pub async fn handle_rwgps_job(
                     );
                 }
                 ItemType::Trip => {
-                    tracing::info!(
-                        trip_id = notification.item_id,
-                        user_id = notification.user_id,
-                        action = ?notification.action,
-                        "Processing RWGPS trip webhook"
-                    );
-
-                    // Get user from repo
-                    let user = user_repo
-                        .find_model(UserFilter::RwgpsId(notification.user_id as usize))
-                        .await?
-                        .ok_or(RwgpsJobError::Processing(anyhow::anyhow!(
-                            "No user found with RWGPS ID"
-                        )))?;
-                    // Get RWGPS connection
-                    let connection = user
-                        .rwgps_connection
-                        .ok_or_else(|| anyhow::anyhow!("User has no RWGPS connection"))?;
-
                     // Sync the trip
                     sync_trip(SyncTripParams {
                         client: rwgps_client,
@@ -105,6 +104,48 @@ pub async fn handle_rwgps_job(
                     );
                 }
             }
+        }
+        RwgpsJob::SyncRoute {
+            rwgps_route_id,
+            connection,
+        } => {
+            tracing::info!(route_id = rwgps_route_id, "Processing RWGPS route sync");
+
+            // Sync the route
+            sync_route(SyncRouteParams {
+                client: rwgps_client,
+                route_repo,
+                route_points_repo,
+                rwgps_route_id,
+                connection,
+            })
+            .await?;
+
+            tracing::info!(
+                route_id = rwgps_route_id,
+                "Successfully processed RWGPS route sync"
+            );
+        }
+        RwgpsJob::SyncTrip {
+            rwgps_trip_id,
+            connection,
+        } => {
+            tracing::info!(trip_id = rwgps_trip_id, "Processing RWGPS trip sync");
+
+            // Sync the trip
+            sync_trip(SyncTripParams {
+                client: rwgps_client,
+                ride_repo,
+                ride_points_repo,
+                rwgps_trip_id,
+                connection,
+            })
+            .await?;
+
+            tracing::info!(
+                trip_id = rwgps_trip_id,
+                "Successfully processed RWGPS trip sync"
+            );
         }
     }
 
