@@ -5,6 +5,13 @@ export interface Track {
   style?: "default" | "muted" | "highlighted";
 }
 
+export interface Marker {
+  id: string;
+  point: [number, number];
+  label?: string;
+  style?: "default" | "muted" | "highlighted";
+}
+
 type TrackLike = { id: string; pointsJson: string };
 
 export function buildTrack(

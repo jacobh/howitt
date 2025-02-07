@@ -693,6 +693,11 @@ export type TripQueryQuery = {
           id: any;
           name: string;
           user: { __typename?: "UserProfile"; id: any };
+          media: Array<{
+            __typename?: "Media";
+            id: any;
+            point?: Array<number> | null;
+          }>;
           legs: Array<
             {
               __typename?: "TripLeg";
@@ -2247,6 +2252,23 @@ export const TripQueryDocument = {
                             {
                               kind: "Field",
                               name: { kind: "Name", value: "id" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "media" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "point" },
                             },
                           ],
                         },

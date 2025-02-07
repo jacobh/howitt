@@ -17,7 +17,7 @@ import Markdown from "react-markdown";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { Map as MapComponent } from "~/components/map";
 import { isNotNil } from "~/services/isNotNil";
-import { buildRideTrack } from "~/components/map/types";
+import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const TripQuery = gql(`
@@ -35,6 +35,10 @@ const TripQuery = gql(`
         ...editTrip
         user {
           id
+        }
+        media {
+          id
+          point
         }
         legs {
           ...elevationPath
@@ -170,6 +174,23 @@ export default function TripDetail(): React.ReactElement {
     [allRides],
   );
 
+  const markers = useMemo(() => {
+    if (!trip?.media) return [];
+
+    return trip.media
+      .filter(
+        (media): media is typeof media & { point: number[] } =>
+          media.point != null,
+      )
+      .map(
+        (media): Marker => ({
+          id: media.id,
+          point: [media.point[0], media.point[1]],
+          style: "default",
+        }),
+      );
+  }, [trip?.media]);
+
   const isOwnTrip =
     data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;
 
@@ -278,6 +299,7 @@ export default function TripDetail(): React.ReactElement {
               .flatMap((leg) => leg.rides)
               .map((ride) => buildRideTrack(ride)) ?? []
           }
+          markers={markers}
         />
       </MapContainer>
     </Container>

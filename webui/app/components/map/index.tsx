@@ -18,7 +18,8 @@ import { match, P } from "ts-pattern";
 import { useMap } from "./hooks/useMap";
 import { useTrackLayers } from "./hooks/useTrackLayers";
 import { useInitialView } from "./hooks/useInitialView";
-import { Track } from "./types";
+import { Marker, Track } from "./types";
+import { useMarkerLayers } from "./hooks/useMarkerLayers";
 
 export { PrimaryMapContext } from "./context";
 
@@ -26,10 +27,7 @@ export interface MapProps {
   mapInstance?: OlMap | undefined;
   onNewMapInstance?: (map: OlMap) => void;
   tracks?: Track[];
-  checkpoints?: Pick<
-    PointOfInterest,
-    "name" | "point" | "pointOfInterestType"
-  >[];
+  markers?: Marker[];
   initialView?:
     | { type: "tracks"; trackIds: string[] }
     | { type: "view"; view: ViewOptions };
@@ -100,7 +98,7 @@ export const RIDE_STYLES = {
 
 export function Map({
   tracks = [],
-  checkpoints,
+  markers = [],
   initialView,
   onVisibleRoutesChanged,
   onRouteClicked,
@@ -121,40 +119,7 @@ export function Map({
 
   useInitialView({ map, tracks, initialView });
   useTrackLayers({ map, tracks });
-
-  useEffect(() => {
-    if (!map) {
-      console.log("no map yet");
-      return;
-    }
-
-    const layers = map.getLayers().getArray();
-
-    for (const checkpoint of checkpoints ?? []) {
-      console.log(checkpoint.name);
-      const existingLayer = layers.find(
-        (layer) => layer.getProperties().checkpointName === checkpoint.name,
-      );
-
-      if (existingLayer === undefined) {
-        map.addLayer(
-          new VectorLayer({
-            source: new VectorSource({
-              features: [new Feature(new Point(checkpoint.point))],
-            }),
-            properties: { checkpointName: checkpoint.name },
-            style: match(checkpoint.pointOfInterestType)
-              .with(PointOfInterestType.Hut, () => CHECKPOINT_STYLES.hut)
-              .with(
-                PointOfInterestType.RailwayStation,
-                () => CHECKPOINT_STYLES.station,
-              )
-              .otherwise(() => CHECKPOINT_STYLES.station),
-          }),
-        );
-      }
-    }
-  }, [checkpoints, map, initialView]);
+  useMarkerLayers({ map, markers });
 
   return <div css={mapCss} ref={mapElementRef} />;
 }
