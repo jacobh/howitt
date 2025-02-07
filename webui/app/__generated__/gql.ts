@@ -60,6 +60,8 @@ const documents = {
     types.HomeQueryPointOnlyDocument,
   "\n  query settings {\n    viewer {\n      ...viewerInfo\n        profile {\n            id\n            username\n            email\n        }\n        rwgpsConnection {\n            id\n            rwgpsUserId\n            createdAt\n            updatedAt\n        }\n        rwgpsAuthRequestUrl\n    }\n  }\n":
     types.SettingsDocument,
+  "\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n":
+    types.InitiateRwgpsHistorySyncDocument,
 };
 
 /**
@@ -214,6 +216,12 @@ export function gql(
 export function gql(
   source: "\n  query settings {\n    viewer {\n      ...viewerInfo\n        profile {\n            id\n            username\n            email\n        }\n        rwgpsConnection {\n            id\n            rwgpsUserId\n            createdAt\n            updatedAt\n        }\n        rwgpsAuthRequestUrl\n    }\n  }\n",
 ): (typeof documents)["\n  query settings {\n    viewer {\n      ...viewerInfo\n        profile {\n            id\n            username\n            email\n        }\n        rwgpsConnection {\n            id\n            rwgpsUserId\n            createdAt\n            updatedAt\n        }\n        rwgpsAuthRequestUrl\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n",
+): (typeof documents)["\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

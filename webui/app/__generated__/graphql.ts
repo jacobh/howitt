@@ -150,6 +150,7 @@ export type Mutation = {
   __typename?: "Mutation";
   addTripMedia: TripMediaOutput;
   clearRwgpsConnection: Viewer;
+  initiateRwgpsHistorySync: Viewer;
   removeTripMedia: TripMediaOutput;
   updateTrip: UpdateTripOutput;
 };
@@ -884,6 +885,17 @@ export type SettingsQuery = {
         } | null;
       } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
     | null;
+};
+
+export type InitiateRwgpsHistorySyncMutationVariables = Exact<{
+  [key: string]: never;
+}>;
+
+export type InitiateRwgpsHistorySyncMutation = {
+  __typename?: "Mutation";
+  initiateRwgpsHistorySync: { __typename?: "Viewer" } & {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  };
 };
 
 export const ElevationPathFragmentDoc = {
@@ -3349,3 +3361,58 @@ export const SettingsDocument = {
     },
   ],
 } as unknown as DocumentNode<SettingsQuery, SettingsQueryVariables>;
+export const InitiateRwgpsHistorySyncDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "initiateRwgpsHistorySync" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "initiateRwgpsHistorySync" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  InitiateRwgpsHistorySyncMutation,
+  InitiateRwgpsHistorySyncMutationVariables
+>;

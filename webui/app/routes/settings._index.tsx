@@ -1,9 +1,11 @@
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useMutation } from "@apollo/client/react/hooks/useMutation";
 import { gql } from "../__generated__/gql";
 import { Container, Nav } from "~/components/layout";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { Link } from "@remix-run/react";
+import { useState } from "react";
 
 const SettingsQuery = gql(`
   query settings {
@@ -21,6 +23,14 @@ const SettingsQuery = gql(`
             updatedAt
         }
         rwgpsAuthRequestUrl
+    }
+  }
+`);
+
+const InitiateRwgpsHistorySyncMutation = gql(`
+  mutation initiateRwgpsHistorySync {
+    initiateRwgpsHistorySync {
+      ...viewerInfo
     }
   }
 `);
@@ -72,8 +82,29 @@ const linkCss = css({
   },
 });
 
+const buttonCss = css({
+  display: "inline-block",
+  padding: "0.5rem 1rem",
+  border: `1px solid ${tokens.colors.lightGrey}`,
+  borderRadius: "4px",
+  backgroundColor: "white",
+  cursor: "pointer",
+  textDecoration: "none !important",
+  "&:hover": {
+    backgroundColor: tokens.colors.offWhite,
+  },
+  "&:disabled": {
+    cursor: "not-allowed",
+    opacity: 0.7,
+  },
+});
+
 export default function Settings(): React.ReactElement {
   const { data } = useQuery(SettingsQuery, {});
+  const [hasSynced, setHasSynced] = useState(false);
+  const [initiateSync, { loading: syncing }] = useMutation(
+    InitiateRwgpsHistorySyncMutation,
+  );
 
   let viewer = data?.viewer;
   let profile = viewer?.profile;
@@ -107,6 +138,7 @@ export default function Settings(): React.ReactElement {
                 fontSize: "0.9rem",
                 color: tokens.colors.darkGrey,
                 marginTop: "0.5rem",
+                marginBottom: "1rem",
               })}
             >
               Connected on{" "}
@@ -115,6 +147,16 @@ export default function Settings(): React.ReactElement {
               Last updated{" "}
               {new Date(rwgpsConnection.updatedAt).toLocaleDateString()}
             </div>
+            <button
+              onClick={() => {
+                initiateSync();
+                setHasSynced(true);
+              }}
+              disabled={syncing || hasSynced}
+              css={buttonCss}
+            >
+              {hasSynced ? "Sync initiated" : "Sync RWGPS History"}
+            </button>
           </div>
         ) : (
           <div css={fieldContainerCss}>
@@ -122,16 +164,7 @@ export default function Settings(): React.ReactElement {
               Connect your Ride with GPS account to sync your routes and
               activities.
             </p>
-            <a
-              href={viewer?.rwgpsAuthRequestUrl}
-              css={css({
-                display: "inline-block",
-                padding: "0.5rem 1rem",
-                border: `1px solid #888`,
-                borderRadius: "4px",
-                textDecoration: "none !important",
-              })}
-            >
+            <a href={viewer?.rwgpsAuthRequestUrl} css={buttonCss}>
               Connect RWGPS Account
             </a>
           </div>
