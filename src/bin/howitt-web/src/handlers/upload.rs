@@ -1,4 +1,3 @@
-use apalis::prelude::*;
 use axum::{body::Bytes, extract::State, http::StatusCode, Json};
 use axum_typed_multipart::{FieldData, TryFromMultipart, TypedMultipart};
 use exif::{parse_exif, ParsedExifData};
@@ -104,8 +103,6 @@ pub async fn upload_media_handler(
     })?;
 
     job_storage
-        .lock()
-        .await
         .push(Job::from(MediaJob::Process(media_id.clone())))
         .await
         .map_err(|e| {
@@ -117,8 +114,6 @@ pub async fn upload_media_handler(
 
     if point.is_none() {
         job_storage
-            .lock()
-            .await
             .push(Job::from(MediaJob::InferLocation(media_id.clone())))
             .await
             .map_err(|e| {

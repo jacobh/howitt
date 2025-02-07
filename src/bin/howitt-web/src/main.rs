@@ -16,6 +16,7 @@ use howitt::{
 };
 use howitt_client_types::BucketName;
 use howitt_clients::{RedisClient, S3BucketClient};
+use howitt_jobs::storage::LockFreeStorage;
 use howitt_postgresql::{PostgresClient, PostgresRepos};
 use http::{header, Method};
 use tower_http::{
@@ -85,7 +86,7 @@ async fn main() -> Result<(), anyhow::Error> {
         user_auth_service,
         repos,
         bucket_client: Arc::new(bucket_client),
-        job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
+        job_storage: LockFreeStorage::new(job_storage),
         rwgps: app_state::RwgpsConfig {
             client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
             client_secret: std::env::var("RWGPS_CLIENT_SECRET")

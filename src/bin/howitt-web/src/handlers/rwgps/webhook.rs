@@ -1,4 +1,3 @@
-use apalis::prelude::*;
 use axum::{
     extract::{FromRequestParts, State},
     http::StatusCode,
@@ -77,8 +76,6 @@ pub async fn rwgps_webhook_handler(
             return StatusCode::BAD_REQUEST;
         }
     };
-
-    let mut job_storage = job_storage.lock().await;
 
     for notification in payload.notifications.into_iter() {
         let res = job_storage
