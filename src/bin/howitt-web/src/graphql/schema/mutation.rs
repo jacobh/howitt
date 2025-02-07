@@ -2,6 +2,8 @@ use std::collections::HashSet;
 
 use async_graphql::*;
 use chrono::{DateTime, Utc};
+use howitt::jobs::rwgps::RwgpsJob;
+use howitt::jobs::Job;
 use howitt::models::media::MediaId;
 use howitt::models::trip::{TripId, TripNote};
 use howitt::repos::Repos;
@@ -207,6 +209,40 @@ impl Mutation {
 
         // Save changes
         user_repo.put(user).await?;
+
+        Ok(Viewer(login))
+    }
+
+    async fn initiate_rwgps_history_sync(&self, ctx: &Context<'_>) -> Result<Viewer, Error> {
+        // Get required context data
+        let SchemaData {
+            repos: Repos { user_repo, .. },
+            job_storage,
+            ..
+        } = ctx.data()?;
+        let RequestData { login } = ctx.data()?;
+
+        // Ensure user is logged in
+        let login = login
+            .as_ref()
+            .ok_or_else(|| Error::new("Authentication required"))?
+            .clone();
+
+        // Get the user
+        let user = user_repo.get(login.session.user_id).await?;
+
+        // Check if user has RWGPS connection
+        let connection = user
+            .rwgps_connection
+            .ok_or_else(|| Error::new("No RWGPS connection found"))?;
+
+        // Enqueue the sync job
+        job_storage
+            .push(Job::from(RwgpsJob::SyncHistory {
+                connection: connection.clone(),
+            }))
+            .await
+            .map_err(|e| Error::new(format!("Failed to enqueue job: {}", e)))?;
 
         Ok(Viewer(login))
     }

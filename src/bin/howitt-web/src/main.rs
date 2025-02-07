@@ -59,6 +59,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let job_storage: RedisStorage<Job> = RedisStorage::new(conn);
 
+    let job_storage = LockFreeStorage::new(job_storage);
+
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "asdf123".to_string());
 
     let repos: Repos = Repos::from(PostgresRepos::new(pg));
@@ -79,6 +81,7 @@ async fn main() -> Result<(), anyhow::Error> {
         rwgps_client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
         user_auth_service: user_auth_service.clone(),
         repos: repos.clone(),
+        job_storage: job_storage.clone(),
     });
 
     let app_state = app_state::AppState {
@@ -86,7 +89,7 @@ async fn main() -> Result<(), anyhow::Error> {
         user_auth_service,
         repos,
         bucket_client: Arc::new(bucket_client),
-        job_storage: LockFreeStorage::new(job_storage),
+        job_storage,
         rwgps: app_state::RwgpsConfig {
             client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
             client_secret: std::env::var("RWGPS_CLIENT_SECRET")
