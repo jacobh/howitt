@@ -20,7 +20,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { ContentBlock } from "./components/ContentBlock";
-import { useVisibleRoutes } from "./hooks/useVisibleRoutes";
+import { useVisibleContent } from "./hooks/useVisibleContent";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -117,8 +117,8 @@ const temporalBlocksContainerStyles = css({
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
-  const { visibleRouteIds, onContentBlockVisibilityChange } =
-    useVisibleRoutes();
+  const { visibleRouteIds, visibleMediaIds, onContentBlockVisibilityChange } =
+    useVisibleContent();
 
   const { data, loading, refetch } = useQuery(TripQuery, {
     variables: {
@@ -169,6 +169,7 @@ export default function TripDetail(): React.ReactElement {
         (media): media is typeof media & { point: number[] } =>
           media.point != null,
       )
+      .filter((media) => visibleMediaIds.has(media.id))
       .map(
         (media): Marker => ({
           id: media.id,
@@ -176,7 +177,7 @@ export default function TripDetail(): React.ReactElement {
           style: "default",
         }),
       );
-  }, [trip?.media]);
+  }, [trip?.media, visibleMediaIds]);
 
   const isOwnTrip =
     data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;

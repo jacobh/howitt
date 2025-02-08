@@ -3,22 +3,22 @@ import { ContentBlockVisibilityEvent } from "../components/ContentBlock";
 
 type State = {
   routeIdToContentBlocks: Map<string, string[]>;
+  mediaIdToContentBlocks: Map<string, string[]>;
 };
 
 const initialState: State = {
   routeIdToContentBlocks: new Map(),
+  mediaIdToContentBlocks: new Map(),
 };
 
 function reducer(draft: State, event: ContentBlockVisibilityEvent) {
-  console.log(event);
+  const { contentBlockId, rideIds, mediaIds, isVisible } = event;
 
-  const { contentBlockId, rideIds, isVisible } = event;
-
+  // Handle route IDs
   for (const rideId of rideIds) {
     const existingBlocks = draft.routeIdToContentBlocks.get(rideId) ?? [];
 
     if (isVisible) {
-      // Add contentBlockId if not already present
       if (!existingBlocks.includes(contentBlockId)) {
         draft.routeIdToContentBlocks.set(rideId, [
           ...existingBlocks,
@@ -26,7 +26,6 @@ function reducer(draft: State, event: ContentBlockVisibilityEvent) {
         ]);
       }
     } else {
-      // Remove contentBlockId if present
       const filteredBlocks = existingBlocks.filter(
         (id) => id !== contentBlockId,
       );
@@ -37,9 +36,32 @@ function reducer(draft: State, event: ContentBlockVisibilityEvent) {
       }
     }
   }
+
+  // Handle media IDs
+  for (const mediaId of mediaIds) {
+    const existingBlocks = draft.mediaIdToContentBlocks.get(mediaId) ?? [];
+
+    if (isVisible) {
+      if (!existingBlocks.includes(contentBlockId)) {
+        draft.mediaIdToContentBlocks.set(mediaId, [
+          ...existingBlocks,
+          contentBlockId,
+        ]);
+      }
+    } else {
+      const filteredBlocks = existingBlocks.filter(
+        (id) => id !== contentBlockId,
+      );
+      if (filteredBlocks.length === 0) {
+        draft.mediaIdToContentBlocks.delete(mediaId);
+      } else {
+        draft.mediaIdToContentBlocks.set(mediaId, filteredBlocks);
+      }
+    }
+  }
 }
 
-export function useVisibleRoutes() {
+export function useVisibleContent() {
   const [state, dispatch] = useMutativeReducer(reducer, initialState);
 
   const onContentBlockVisibilityChange = (
@@ -48,11 +70,15 @@ export function useVisibleRoutes() {
     dispatch(event);
   };
 
-  // Get all route IDs that have visible content blocks
+  // Get all route IDs and media IDs that have visible content blocks
   const visibleRouteIds = new Set(state.routeIdToContentBlocks.keys());
+  const visibleMediaIds = new Set(state.mediaIdToContentBlocks.keys());
+
+  console.log(visibleMediaIds);
 
   return {
     onContentBlockVisibilityChange,
     visibleRouteIds,
+    visibleMediaIds,
   };
 }
