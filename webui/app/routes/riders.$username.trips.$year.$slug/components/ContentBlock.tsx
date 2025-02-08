@@ -91,7 +91,7 @@ type ContentBlockProps = {
   onVisibilityChange?: (event: ContentBlockVisibilityEvent) => void;
 };
 
-interface ContentBlockVisibilityEvent {
+export interface ContentBlockVisibilityEvent {
   contentBlockId: string;
   rideIds: string[];
   isVisible: boolean;

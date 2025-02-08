@@ -20,6 +20,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { ContentBlock } from "./components/ContentBlock";
+import { useVisibleRoutes } from "./hooks/useVisibleRoutes";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -116,6 +117,8 @@ const temporalBlocksContainerStyles = css({
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const { visibleRouteIds, onContentBlockVisibilityChange } =
+    useVisibleRoutes();
 
   const { data, loading, refetch } = useQuery(TripQuery, {
     variables: {
@@ -222,7 +225,11 @@ export default function TripDetail(): React.ReactElement {
 
             <div css={temporalBlocksContainerStyles}>
               {trip.temporalContentBlocks.map((block) => (
-                <ContentBlock block={block} rideIdRideMap={rideIdRideMap} />
+                <ContentBlock
+                  block={block}
+                  rideIdRideMap={rideIdRideMap}
+                  onVisibilityChange={onContentBlockVisibilityChange}
+                />
               ))}
             </div>
 
@@ -249,7 +256,12 @@ export default function TripDetail(): React.ReactElement {
               data?.userWithUsername?.tripWithSlug
             )?.legs
               .flatMap((leg) => leg.rides)
-              .map((ride) => buildRideTrack(ride)) ?? []
+              .map((ride) =>
+                buildRideTrack(
+                  ride,
+                  visibleRouteIds.has(ride.id) ? "highlighted" : "default",
+                ),
+              ) ?? []
           }
           markers={markers}
         />
