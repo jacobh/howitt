@@ -70,9 +70,15 @@ export const ContentBlockFragment = gql(`
           webpUrl
         }
       }
+      rides {
+        id
+      }
     }
     ... on Note {
       text
+      ride {
+        id
+      }
     }
   }
 `);

@@ -139,6 +139,7 @@ export type Media = TemporalContentBlock & {
   imageSizes: ImageSizes;
   path: Scalars["String"]["output"];
   point?: Maybe<Array<Scalars["Float"]["output"]>>;
+  rides: Array<Ride>;
   user: UserProfile;
 };
 
@@ -177,6 +178,7 @@ export type NearbyRoute = {
 export type Note = TemporalContentBlock & {
   __typename?: "Note";
   contentAt: Scalars["DateTime"]["output"];
+  ride?: Maybe<Ride>;
   text: Scalars["String"]["output"];
 };
 
@@ -214,6 +216,7 @@ export type Query = {
   routeWithSlug?: Maybe<Route>;
   routes: Array<Route>;
   starredRoutes: Array<Route>;
+  trip?: Maybe<Trip>;
   userWithUsername?: Maybe<UserProfile>;
   viewer?: Maybe<Viewer>;
 };
@@ -232,6 +235,10 @@ export type QueryRouteArgs = {
 
 export type QueryRouteWithSlugArgs = {
   slug: Scalars["String"]["input"];
+};
+
+export type QueryTripArgs = {
+  id: Scalars["TripId"]["input"];
 };
 
 export type QueryUserWithUsernameArgs = {
@@ -679,12 +686,14 @@ type ContentBlock_Media_Fragment = {
     __typename?: "ImageSizes";
     fit1600: { __typename?: "ImageSize"; webpUrl: string };
   };
+  rides: Array<{ __typename?: "Ride"; id: any }>;
 } & { " $fragmentName"?: "ContentBlock_Media_Fragment" };
 
 type ContentBlock_Note_Fragment = {
   __typename: "Note";
   text: string;
   contentAt: any;
+  ride?: { __typename?: "Ride"; id: any } | null;
 } & { " $fragmentName"?: "ContentBlock_Note_Fragment" };
 
 type ContentBlock_Ride_Fragment = ({
@@ -1438,6 +1447,16 @@ export const ContentBlockFragmentDoc = {
                     ],
                   },
                 },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rides" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -1451,6 +1470,16 @@ export const ContentBlockFragmentDoc = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "text" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "ride" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -2830,6 +2859,16 @@ export const TripQueryDocument = {
                     ],
                   },
                 },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rides" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -2843,6 +2882,16 @@ export const TripQueryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "text" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "ride" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                    ],
+                  },
+                },
               ],
             },
           },

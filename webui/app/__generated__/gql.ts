@@ -44,7 +44,7 @@ const documents = {
     types.RidesWithDateDocument,
   "\n  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          date\n          pointsJson(pointsPerKm: $pointsPerKm)\n          ...rideItem\n        }\n        trips {\n          id\n          name\n          ...tripItem\n        }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.UserProfileQueryDocument,
-  "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n    }\n    ... on Note {\n      text\n    }\n  }\n":
+  "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n":
     types.ContentBlockFragmentDoc,
   "\n  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        ...editTrip\n        user {\n          id\n        }\n        media {\n          id\n          point\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            ...elevationPath\n            pointsJson(pointsPerKm: $pointsPerKm)\n          }\n        }\n        temporalContentBlocks {\n          ...contentBlock\n        }\n      }\n    }\n  }\n":
     types.TripQueryDocument,
@@ -174,8 +174,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n    }\n    ... on Note {\n      text\n    }\n  }\n",
-): (typeof documents)["\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n    }\n    ... on Note {\n      text\n    }\n  }\n"];
+  source: "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n",
+): (typeof documents)["\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
