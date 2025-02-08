@@ -48,7 +48,13 @@ const mediaStyles = css({
   width: "100%",
   height: "auto",
   borderRadius: "4px",
-  margin: "16px 0",
+  margin: "8px 0",
+});
+
+const mediaCaptionStyles = css({
+  color: "#464646",
+  fontSize: "14px",
+  margin: "8px 4px 24px",
 });
 
 const dividerStyles = css({
@@ -67,6 +73,7 @@ export const ContentBlockFragment = gql(`
     }
     ... on Media {
       mediaId: id
+      capturedAt
       imageSizes {
         fit1600 {
           webpUrl
@@ -176,7 +183,15 @@ export function ContentBlock({
       </section>
     ))
     .with({ __typename: "Media" }, (media) => (
-      <img src={media.imageSizes.fit1600.webpUrl} css={mediaStyles} alt="" />
+      <div>
+        <img src={media.imageSizes.fit1600.webpUrl} css={mediaStyles} alt="" />
+        <div css={mediaCaptionStyles}>
+          {new Date(media.capturedAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+      </div>
     ))
     .exhaustive();
 

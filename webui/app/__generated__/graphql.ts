@@ -680,6 +680,7 @@ export type UserProfileQueryQuery = {
 
 type ContentBlock_Media_Fragment = {
   __typename: "Media";
+  capturedAt?: any | null;
   contentAt: any;
   mediaId: any;
   imageSizes: {
@@ -1425,6 +1426,7 @@ export const ContentBlockFragmentDoc = {
                   alias: { kind: "Name", value: "mediaId" },
                   name: { kind: "Name", value: "id" },
                 },
+                { kind: "Field", name: { kind: "Name", value: "capturedAt" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "imageSizes" },
@@ -2837,6 +2839,7 @@ export const TripQueryDocument = {
                   alias: { kind: "Name", value: "mediaId" },
                   name: { kind: "Name", value: "id" },
                 },
+                { kind: "Field", name: { kind: "Name", value: "capturedAt" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "imageSizes" },
