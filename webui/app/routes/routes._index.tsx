@@ -17,6 +17,7 @@ import { useSearchParams } from "@remix-run/react";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
+import { match, P } from "ts-pattern";
 
 const HomeQueryNoPoints = gql(`
   query homeQuery($input: QueryRoutesInput!) {
@@ -134,9 +135,13 @@ export default function Routes(): React.ReactElement {
         buildRouteTrack(
           {
             id: route.id,
-            pointsJson:
-              (route as any).pointsJson ??
-              JSON.stringify((route as any).samplePoints),
+            pointsJson: match(route)
+              .with({ pointsJson: P.string }, ({ pointsJson }) => pointsJson)
+              .with(
+                { samplePoints: P.array(P.array(P.number)) },
+                ({ samplePoints }) => JSON.stringify(samplePoints),
+              )
+              .exhaustive(),
           },
           hoveredRouteId === route.id || clickedRouteId === route.id
             ? "highlighted"
