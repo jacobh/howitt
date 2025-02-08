@@ -21,6 +21,7 @@ import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { ContentBlock } from "./components/ContentBlock";
 import { useVisibleContent } from "./hooks/useVisibleContent";
+import { create } from "mutative";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -161,6 +162,32 @@ export default function TripDetail(): React.ReactElement {
     [allRides],
   );
 
+  const baseRideTracks = useMemo(
+    () =>
+      (
+        data2?.userWithUsername?.tripWithSlug ??
+        data?.userWithUsername?.tripWithSlug
+      )?.legs
+        .flatMap((leg) => leg.rides)
+        .map((ride) => buildRideTrack(ride, "default")) ?? [],
+    [
+      data2?.userWithUsername?.tripWithSlug,
+      data?.userWithUsername?.tripWithSlug,
+    ],
+  );
+
+  const tracks = useMemo(
+    () =>
+      baseRideTracks.map((track) =>
+        create(track, (draft) => {
+          draft.style = visibleRouteIds.has(track.id)
+            ? "highlighted"
+            : "default";
+        }),
+      ),
+    [baseRideTracks, visibleRouteIds],
+  );
+
   const markers = useMemo(() => {
     if (!trip?.media) return [];
 
@@ -251,19 +278,7 @@ export default function TripDetail(): React.ReactElement {
       <MapContainer>
         <PrimaryMap
           initialView={initialView}
-          tracks={
-            (
-              data2?.userWithUsername?.tripWithSlug ??
-              data?.userWithUsername?.tripWithSlug
-            )?.legs
-              .flatMap((leg) => leg.rides)
-              .map((ride) =>
-                buildRideTrack(
-                  ride,
-                  visibleRouteIds.has(ride.id) ? "highlighted" : "default",
-                ),
-              ) ?? []
-          }
+          tracks={tracks}
           markers={markers}
         />
       </MapContainer>

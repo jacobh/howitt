@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { zipStrict } from "~/services/zipStrict";
@@ -47,6 +47,14 @@ export function ElevationProfile({
     [data],
   );
 
+  const formatDistanceTick = useCallback((tick: number): string => {
+    return `${Math.round((tick / 1000) * 10) / 10}km`;
+  }, []);
+
+  const formatElevationTick = useCallback((tick: number): string => {
+    return `${Math.round(tick / 10) * 10}m`;
+  }, []);
+
   return (
     <div css={elevationProfileWrapperCss}>
       <ResponsiveContainer>
@@ -54,15 +62,13 @@ export function ElevationProfile({
           <XAxis
             dataKey="distance"
             minTickGap={75}
-            tickFormatter={(tick): string =>
-              `${Math.round((tick / 1000) * 10) / 10}km`
-            }
+            tickFormatter={formatDistanceTick}
           />
           <YAxis
             domain={["dataMin", "dataMax"]}
             minTickGap={30}
             scale="linear"
-            tickFormatter={(tick): string => `${Math.round(tick / 10) * 10}m`}
+            tickFormatter={formatElevationTick}
           />
           <Area
             dataKey="elevation"
