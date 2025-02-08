@@ -4,10 +4,11 @@ use howitt::{
     models::media::{ImageContentType, ImageSpec, MediaId, IMAGE_SPECS},
     services::media::{generate_resized_media_key, GenerateResizedMediaKeyParams},
 };
+use itertools::Itertools;
 
 use crate::graphql::{context::SchemaData, schema::ModelId};
 
-use super::user::UserProfile;
+use super::{ride::Ride, user::UserProfile};
 
 pub struct Media(pub howitt::models::media::Media);
 
@@ -60,6 +61,16 @@ impl Media {
             fit_2000: self.create_image_size(&IMAGE_SPECS[5], BASE_URL),
             fit_2400: self.create_image_size(&IMAGE_SPECS[6], BASE_URL),
         }
+    }
+
+    async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
+        let SchemaData { ride_loader, .. } = ctx.data()?;
+
+        let rides = ride_loader
+            .load_many(self.0.iter_ride_ids().collect_vec())
+            .await?;
+
+        Ok(rides.into_values().map(Ride).collect_vec())
     }
 }
 
