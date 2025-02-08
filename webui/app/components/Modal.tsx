@@ -1,5 +1,5 @@
+import * as Dialog from "@radix-ui/react-dialog";
 import { css } from "@emotion/react";
-import { useRef } from "react";
 import { makeMqs } from "~/styles/mediaQueries";
 
 const modalStyles = makeMqs([
@@ -8,12 +8,13 @@ const modalStyles = makeMqs([
     border: 0;
     border-radius: 0.5rem;
     box-shadow: 0 0 0.5rem 0.25rem hsl(0 0% 0% / 10%);
-
     width: 90vw;
-
-    &::backdrop {
-      background: hsl(0 0% 0% / 50%);
-    }
+    background: white;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
   `,
   css`
     padding: 4vw;
@@ -28,6 +29,13 @@ const modalStyles = makeMqs([
   `,
 ]);
 
+const overlayStyles = css`
+  background: hsl(0 0% 0% / 50%);
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+`;
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,18 +47,12 @@ export function Modal({
   onClose,
   children,
 }: ModalProps): React.ReactElement {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  // Show/hide modal
-  if (isOpen) {
-    dialogRef.current?.showModal();
-  } else {
-    dialogRef.current?.close();
-  }
-
   return (
-    <dialog ref={dialogRef} css={modalStyles} onClose={onClose}>
-      {children}
-    </dialog>
+    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+      <Dialog.Portal>
+        <Dialog.Overlay css={overlayStyles} />
+        <Dialog.Content css={modalStyles}>{children}</Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
