@@ -94,9 +94,15 @@ export function ContentBlock({
 }: ContentBlockProps) {
   const block = useFragment(ContentBlockFragment, blockFragment);
 
+  const contentBlockId = match(block)
+    .with({ __typename: "Ride" }, (ride) => `ride-${ride.rideId}`)
+    .with({ __typename: "Note" }, (note) => `note-${note.contentAt}`)
+    .with({ __typename: "Media" }, (media) => `media-${media.mediaId}`)
+    .exhaustive();
+
   return match(block)
     .with({ __typename: "Ride" }, (ride) => (
-      <div key={`ride-${ride.rideId}`} css={rideItemStyles}>
+      <div key={contentBlockId} css={rideItemStyles}>
         <hr css={dividerStyles} />
         <div css={rideMapStyles}>
           <MapComponent
@@ -112,13 +118,13 @@ export function ContentBlock({
       </div>
     ))
     .with({ __typename: "Note" }, (note) => (
-      <section key={`note-${note.contentAt}`} css={noteStyles}>
+      <section key={contentBlockId} css={noteStyles}>
         <Markdown>{note.text}</Markdown>
       </section>
     ))
     .with({ __typename: "Media" }, (media) => (
       <img
-        key={`media-${media.mediaId}`}
+        key={contentBlockId}
         src={media.imageSizes.fit1600.webpUrl}
         css={mediaStyles}
         alt=""
