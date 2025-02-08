@@ -94,6 +94,7 @@ type ContentBlockProps = {
 export interface ContentBlockVisibilityEvent {
   contentBlockId: string;
   rideIds: string[];
+  mediaIds: string[];
   isVisible: boolean;
 }
 
@@ -128,6 +129,16 @@ export function ContentBlock({
     [block],
   );
 
+  const mediaIds = useMemo(
+    () =>
+      match(block)
+        .with({ __typename: "Ride" }, () => [])
+        .with({ __typename: "Note" }, () => [])
+        .with({ __typename: "Media" }, (media) => [media.mediaId])
+        .exhaustive(),
+    [block],
+  );
+
   const { ref } = useIntersectionObserver({
     threshold: 0.2,
     onChange: (isIntersecting) => {
@@ -135,6 +146,7 @@ export function ContentBlock({
         onVisibilityChange({
           contentBlockId,
           rideIds,
+          mediaIds,
           isVisible: isIntersecting,
         });
       }
