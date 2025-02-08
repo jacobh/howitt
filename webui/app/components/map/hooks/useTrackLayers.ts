@@ -15,7 +15,7 @@ interface UseTrackLayersProps {
   tracks: Track[];
 }
 
-export function useTrackLayers({ map, tracks }: UseTrackLayersProps) {
+export function useTrackLayers({ map, tracks }: UseTrackLayersProps): void {
   useEffect(() => {
     if (!map) {
       return;
@@ -26,7 +26,7 @@ export function useTrackLayers({ map, tracks }: UseTrackLayersProps) {
     // cleanup any tracks that have been dropped
     for (const layer of layers) {
       if (layer instanceof VectorLayer) {
-        const vectorLayer = layer as VectorLayer<any>;
+        const vectorLayer = layer as VectorLayer;
         const layerTrackId = vectorLayer.getProperties().trackId;
 
         if (isNotNil(layerTrackId)) {
@@ -47,10 +47,10 @@ export function useTrackLayers({ map, tracks }: UseTrackLayersProps) {
     // Add or update track layers
     for (const track of tracks) {
       const existingLayer = layers
-        .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
+        .filter((x): x is VectorLayer => x instanceof VectorLayer)
         .find((layer) => layer.getProperties().trackId === track.id);
 
-      let layer: VectorLayer<any>;
+      let layer: VectorLayer;
 
       if (existingLayer === undefined) {
         const lineString = new LineString(track.points);

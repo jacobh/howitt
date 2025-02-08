@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { defaults as defaultInteractions } from "ol/interaction/defaults";
 import OlMap from "ol/Map";
 import { getDistance } from "ol/sphere";
 import View, { ViewOptions } from "ol/View";
@@ -50,6 +51,7 @@ export function useMap({
       return;
     }
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useGeographic();
 
     const newMap = new OlMap({
@@ -64,17 +66,32 @@ export function useMap({
           }),
         }),
       ],
-      ...(interactive ? {} : { interactions: [], controls: [] }),
+      controls: [],
+      interactions: [],
     });
 
     setMap(newMap);
     onNewMapInstance?.(newMap);
-  }, [existingMapInstance, mapElementRef, map]);
+  }, [existingMapInstance, mapElementRef, map, onNewMapInstance]);
 
   useEffect(() => {
     if (!map) return;
 
-    const clickListener = (event: MapBrowserEvent<any>): void => {
+    if (interactive) {
+      for (const interaction of defaultInteractions().getArray()) {
+        map.addInteraction(interaction);
+      }
+    } else {
+      for (const interaction of map.getInteractions().getArray()) {
+        map.removeInteraction(interaction);
+      }
+    }
+  }, [map, interactive]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const clickListener = (event: MapBrowserEvent<UIEvent>): void => {
       const feature = map.getFeaturesAtPixel(event.pixel, {
         hitTolerance: 20.0,
       })[0];
@@ -96,7 +113,7 @@ export function useMap({
 
       const visibleRoutes = map
         .getAllLayers()
-        .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
+        .filter((x): x is VectorLayer => x instanceof VectorLayer)
         .flatMap((layer) => {
           const source = layer.getSource() as VectorSource;
           const features = source.getFeaturesInExtent(extent);

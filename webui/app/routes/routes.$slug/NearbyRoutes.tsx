@@ -1,4 +1,3 @@
-import { NearbyRoute, Route, Terminus } from "~/__generated__/graphql";
 import { formatDistance } from "~/services/format";
 import { CardinalSubset, cardinalFromDegree } from "cardinal-direction";
 import { sortBy } from "lodash";

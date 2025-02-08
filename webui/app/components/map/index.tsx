@@ -1,20 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { ViewOptions } from "ol/View";
-import {
-  Route,
-  Ride,
-  PointOfInterest,
-  PointOfInterestType,
-} from "../../__generated__/graphql";
-import { Feature } from "ol";
-import VectorLayer from "ol/layer/Vector";
-import VectorSource from "ol/source/Vector";
 import { Style, Stroke, Circle } from "ol/style";
-import { Point } from "ol/geom";
 import Fill from "ol/style/Fill";
 import OlMap from "ol/Map";
 import { css } from "@emotion/react";
-import { match, P } from "ts-pattern";
 import { useMap } from "./hooks/useMap";
 import { useTrackLayers } from "./hooks/useTrackLayers";
 import { useInitialView } from "./hooks/useInitialView";

@@ -4,7 +4,7 @@ import { tokens } from "~/styles/tokens";
 
 interface TableItem {
   name: string;
-  value: any;
+  value: React.ReactNode;
 }
 
 interface Props {

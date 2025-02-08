@@ -1,4 +1,4 @@
-import { DEFAULT_INITIAL_VIEW, DEFAULT_VIEW } from "../components/map";
+import { DEFAULT_INITIAL_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "../__generated__/gql";
 import { useMemo, useState } from "react";

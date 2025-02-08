@@ -35,6 +35,7 @@ function Client(): React.ReactNode {
   const client = createApolloClient({
     graphqlUrl: getApiBaseUrl(),
     getToken: () => Cookies.get("token"),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initialState: (window as any).__APOLLO_STATE__,
   });
 

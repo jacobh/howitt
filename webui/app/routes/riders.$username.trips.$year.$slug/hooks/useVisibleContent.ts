@@ -11,7 +11,7 @@ const initialState: State = {
   mediaIdToContentBlocks: new Map(),
 };
 
-function reducer(draft: State, event: ContentBlockVisibilityEvent) {
+function reducer(draft: State, event: ContentBlockVisibilityEvent): void {
   const { contentBlockId, rideIds, mediaIds, isVisible } = event;
 
   // Handle route IDs
@@ -61,12 +61,16 @@ function reducer(draft: State, event: ContentBlockVisibilityEvent) {
   }
 }
 
-export function useVisibleContent() {
+export function useVisibleContent(): {
+  onContentBlockVisibilityChange: (event: ContentBlockVisibilityEvent) => void;
+  visibleRouteIds: Set<string>;
+  visibleMediaIds: Set<string>;
+} {
   const [state, dispatch] = useMutativeReducer(reducer, initialState);
 
   const onContentBlockVisibilityChange = (
     event: ContentBlockVisibilityEvent,
-  ) => {
+  ): void => {
     dispatch(event);
   };
 

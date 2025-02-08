@@ -8,15 +8,10 @@ import {
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
-import { RideItem } from "~/components/rides/RideItem";
 import { useMemo, useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
-import { match } from "ts-pattern";
 import { css } from "@emotion/react";
-import Markdown from "react-markdown";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
-import { Map as MapComponent } from "~/components/map";
-import { isNotNil } from "~/services/isNotNil";
 import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { ContentBlock } from "./components/ContentBlock";
@@ -58,54 +53,6 @@ const TripQuery = gql(`
     }
   }
 `);
-
-const rideItemStyles = css({
-  margin: "24px 0",
-});
-
-const rideMapStyles = css({
-  height: "450px",
-  marginBottom: "24px",
-});
-
-const noteStyles = css({
-  margin: "24px 0",
-
-  "ul, ol": {
-    marginLeft: "24px",
-    marginTop: "12px",
-    marginBottom: "12px",
-  },
-
-  ul: {
-    listStyleType: "disc",
-  },
-
-  ol: {
-    listStyleType: "decimal",
-  },
-
-  li: {
-    marginBottom: "8px",
-
-    "&:last-child": {
-      marginBottom: 0,
-    },
-  },
-});
-
-const mediaStyles = css({
-  width: "100%",
-  height: "auto",
-  borderRadius: "4px",
-  margin: "16px 0",
-});
-
-const dividerStyles = css({
-  margin: "32px 0",
-  border: 0,
-  borderTop: "1px solid #e5e7eb",
-});
 
 const elevationContainerStyles = css({
   marginTop: "12px",
@@ -252,8 +199,9 @@ export default function TripDetail(): React.ReactElement {
             ))}
 
             <div css={temporalBlocksContainerStyles}>
-              {trip.temporalContentBlocks.map((block) => (
+              {trip.temporalContentBlocks.map((block, i) => (
                 <ContentBlock
+                  key={i}
                   block={block}
                   rideIdRideMap={rideIdRideMap}
                   onVisibilityChange={onContentBlockVisibilityChange}
@@ -261,12 +209,16 @@ export default function TripDetail(): React.ReactElement {
               ))}
             </div>
 
-            <EditTripModal
-              trip={trip}
-              isOpen={isEditModalOpen}
-              onClose={(): void => setEditModalOpen(false)}
-              refetch={refetch}
-            />
+            {isEditModalOpen ? (
+              <EditTripModal
+                trip={trip}
+                isOpen={true}
+                onClose={(): void => setEditModalOpen(false)}
+                refetch={refetch}
+              />
+            ) : (
+              <></>
+            )}
           </>
         ) : loading ? (
           <LoadingSpinnerSidebarContent />

@@ -5,5 +5,6 @@ export interface ClientStyleContextData {
 }
 
 export const ClientStyleContext = createContext<ClientStyleContextData>({
-  reset: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  reset: (): void => {},
 });

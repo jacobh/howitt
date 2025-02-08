@@ -1,6 +1,6 @@
-import { redirect } from "@remix-run/node";
+import { redirect, TypedResponse } from "@remix-run/node";
 
-export async function loader(): Promise<any> {
+export async function loader(): Promise<TypedResponse<never>> {
   return redirect("/routes");
 }
 

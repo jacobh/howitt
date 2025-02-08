@@ -38,7 +38,7 @@ const MARKER_STYLES = {
   }),
 };
 
-export function useMarkerLayers({ map, markers }: UseMarkerLayersProps) {
+export function useMarkerLayers({ map, markers }: UseMarkerLayersProps): void {
   useEffect(() => {
     if (!map) {
       return;
@@ -49,7 +49,7 @@ export function useMarkerLayers({ map, markers }: UseMarkerLayersProps) {
     // cleanup any markers that have been dropped
     for (const layer of layers) {
       if (layer instanceof VectorLayer) {
-        const vectorLayer = layer as VectorLayer<any>;
+        const vectorLayer = layer as VectorLayer;
         const layerMarkerId = vectorLayer.getProperties().markerId;
 
         if (isNotNil(layerMarkerId)) {
@@ -70,10 +70,10 @@ export function useMarkerLayers({ map, markers }: UseMarkerLayersProps) {
     // Add or update marker layers
     for (const marker of markers) {
       const existingLayer = layers
-        .filter((x): x is VectorLayer<any> => x instanceof VectorLayer)
+        .filter((x): x is VectorLayer => x instanceof VectorLayer)
         .find((layer) => layer.getProperties().markerId === marker.id);
 
-      let layer: VectorLayer<any>;
+      let layer: VectorLayer;
 
       if (existingLayer === undefined) {
         const point = new Point(marker.point);

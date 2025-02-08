@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { ViewOptions } from "ol/View";
+import View, { ViewOptions } from "ol/View";
 import OlMap from "ol/Map";
-import View from "ol/View";
 import { Track } from "../types";
 import { LineString } from "ol/geom";
 import { Extent } from "ol/extent";
@@ -24,7 +23,7 @@ export function useInitialView({
   map,
   tracks,
   initialView,
-}: UseInitialViewProps) {
+}: UseInitialViewProps): { isInitialViewSet: boolean } {
   const [isInitialViewSet, setIsInitialViewSet] = useState(false);
 
   useEffect(() => {
@@ -74,7 +73,7 @@ export function useInitialView({
     }
 
     setIsInitialViewSet(true);
-  }, [map, initialView, isInitialViewSet]);
+  }, [map, initialView, isInitialViewSet, tracks]);
 
   return { isInitialViewSet };
 }

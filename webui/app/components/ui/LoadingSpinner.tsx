@@ -29,7 +29,7 @@ export function LoadingSpinner(): React.ReactElement {
 }
 
 export function LoadingSpinnerSidebarContent(): React.ReactElement {
-  let [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {

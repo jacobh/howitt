@@ -18,6 +18,7 @@ export default async function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   loadContext: AppLoadContext,
 ): Promise<Response> {
   const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");

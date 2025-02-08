@@ -106,9 +106,9 @@ export default function Settings(): React.ReactElement {
     InitiateRwgpsHistorySyncMutation,
   );
 
-  let viewer = data?.viewer;
-  let profile = viewer?.profile;
-  let rwgpsConnection = viewer?.rwgpsConnection;
+  const viewer = data?.viewer;
+  const profile = viewer?.profile;
+  const rwgpsConnection = viewer?.rwgpsConnection;
 
   return (
     <Container>
@@ -117,12 +117,12 @@ export default function Settings(): React.ReactElement {
         <h2 css={titleCss}>Settings</h2>
         <hr css={dividerCss} />
         <div css={fieldContainerCss}>
-          <label css={labelCss}>Username</label>
+          <span css={labelCss}>Username</span>
           <div css={valueCss}>{profile?.username}</div>
         </div>
 
         <div css={fieldContainerCss}>
-          <label css={labelCss}>Email</label>
+          <span css={labelCss}>Email</span>
           <div css={valueCss}>{profile?.email}</div>
         </div>
 
@@ -131,7 +131,7 @@ export default function Settings(): React.ReactElement {
 
         {rwgpsConnection ? (
           <div css={fieldContainerCss}>
-            <label css={labelCss}>RWGPS User ID</label>
+            <span css={labelCss}>RWGPS User ID</span>
             <div css={valueCss}>{rwgpsConnection.rwgpsUserId}</div>
             <div
               css={css({
@@ -155,7 +155,7 @@ export default function Settings(): React.ReactElement {
               Re-import past data (usually not needed).
             </p>
             <button
-              onClick={() => {
+              onClick={(): void => {
                 initiateSync();
                 setHasSynced(true);
               }}

@@ -9,7 +9,8 @@
     "typecheck": "tsc",
     "gql-codegen": "graphql-codegen && npm run format",
     "gql-watch": "graphql-codegen -w",
-    "format": "prettier --write app lambdaExpressServer.ts"
+    "format": "prettier --write app lambdaExpressServer.ts",
+    "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint --ext .js,.jsx,.ts,.tsx app"
   },
   "dependencies": {
     "@apollo/client": "^3.12.6",

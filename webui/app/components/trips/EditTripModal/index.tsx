@@ -334,12 +334,12 @@ export function EditTripModal({
             <div css={contentTabStyles}>
               <div css={contentBlockContainerStyles}>
                 {localContentBlocks.at(0)?.__typename !== "Note" && (
-                  <div
+                  <button
                     css={addNoteButtonStyles}
                     onClick={(): void => onCreateNote("start")}
                   >
                     Add note at start
-                  </div>
+                  </button>
                 )}
                 {blocksWithPositionInfo(localContentBlocks).map(
                   ({ block, nextBlock, position, idx }) => (
@@ -399,12 +399,12 @@ export function EditTripModal({
                             ),
                           },
                           () => (
-                            <div
+                            <button
                               css={addNoteButtonStyles}
                               onClick={(): void => onCreateNote(idx)}
                             >
                               +
-                            </div>
+                            </button>
                           ),
                         )
                         .otherwise(() => (

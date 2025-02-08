@@ -102,7 +102,7 @@ export function ContentBlock({
   block: blockFragment,
   rideIdRideMap,
   onVisibilityChange,
-}: ContentBlockProps) {
+}: ContentBlockProps): React.ReactElement {
   const block = useFragment(ContentBlockFragment, blockFragment);
 
   const contentBlockId = useMemo(

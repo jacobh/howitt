@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone } from "react-dropzone-esm";
 import Cookies from "js-cookie";
 import { getApiBaseUrl } from "~/env.client";
 
@@ -100,7 +100,7 @@ export function MediaDropzone({
       ) : isDragActive ? (
         <p>Drop the files here ...</p>
       ) : (
-        <p>Drag 'n' drop some files here, or click to select files</p>
+        <p>Drag &amp; drop some files here, or click to select files</p>
       )}
     </div>
   );

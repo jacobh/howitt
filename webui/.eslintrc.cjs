@@ -45,9 +45,7 @@ module.exports = {
         },
       },
       rules: {
-        "@typescript-eslint/explicit-function-return-type": "error",
-        "@typescript-eslint/consistent-type-imports": "off",
-        "no-useless-constructor": "off",
+        "react/no-unknown-property": ["error", { ignore: ["css"] }],
       },
     },
     // Typescript
@@ -71,6 +69,12 @@ module.exports = {
         "plugin:import/recommended",
         "plugin:import/typescript",
       ],
+      rules: {
+        "@typescript-eslint/explicit-function-return-type": "error",
+        "@typescript-eslint/consistent-type-imports": "off",
+        "no-useless-constructor": "off",
+        "import/no-unresolved": "off",
+      },
     },
     // Node
     {
