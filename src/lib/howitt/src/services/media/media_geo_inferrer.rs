@@ -1,8 +1,13 @@
-use chrono::Duration;
+use chrono::{DateTime, Duration, Utc};
 use thiserror::Error;
 
 use crate::{
-    models::{filters::TemporalFilter, media::Media, point::Point, ride::RideFilter},
+    models::{
+        filters::TemporalFilter,
+        media::Media,
+        point::Point,
+        ride::{Ride, RideFilter},
+    },
     repos::{MediaRepo, RidePointsRepo, RideRepo},
 };
 
@@ -31,6 +36,30 @@ impl MediaGeoInferrer {
         }
     }
 
+    /// Find a matching ride for a given timestamp by looking for:
+    /// 1. An exact match where the timestamp falls within a ride's duration
+    /// 2. If no exact match, find the most recently finished ride before the timestamp
+    pub fn find_matching_ride(
+        captured_at: DateTime<Utc>,
+        candidate_rides: Vec<Ride>,
+    ) -> Option<Ride> {
+        // First try to find a ride where the timestamp falls between start and finish
+        let exact_matching_ride = candidate_rides
+            .iter()
+            .find(|ride| captured_at >= ride.started_at && captured_at <= ride.finished_at)
+            .cloned();
+
+        if let Some(ride) = exact_matching_ride {
+            Some(ride)
+        } else {
+            // If no exact match, find the ride that finished most recently before the timestamp
+            candidate_rides
+                .into_iter()
+                .filter(|ride| ride.finished_at <= captured_at)
+                .max_by_key(|ride| ride.finished_at)
+        }
+    }
+
     pub async fn infer_point(&self, media: &Media) -> Result<Option<geo::Point>, anyhow::Error> {
         let captured_at = match media.captured_at {
             Some(captured_at) => captured_at,
@@ -52,10 +81,7 @@ impl MediaGeoInferrer {
             })
             .await?;
 
-        // Find the ride that was ongoing when the media was captured
-        let matching_ride = candidate_rides
-            .into_iter()
-            .find(|ride| captured_at >= ride.started_at && captured_at <= ride.finished_at);
+        let matching_ride = Self::find_matching_ride(captured_at, candidate_rides);
 
         let matching_ride = match matching_ride {
             Some(ride) => ride,
@@ -90,5 +116,95 @@ impl MediaGeoInferrer {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::models::{ride::RideId, user::UserId};
+
+    use super::*;
+    use chrono::{TimeZone, Utc};
+
+    fn create_test_ride(id: u32, started_at: DateTime<Utc>, finished_at: DateTime<Utc>) -> Ride {
+        Ride {
+            id: RideId::new(),
+            name: format!("Test Ride {}", id),
+            user_id: UserId::new(),
+            distance: 0.0,
+            started_at,
+            finished_at,
+            external_ref: None,
+        }
+    }
+
+    #[test]
+    fn test_find_matching_ride_exact_match() {
+        let captured_at = Utc.with_ymd_and_hms(2023, 1, 1, 12, 0, 0).unwrap();
+
+        let rides = vec![
+            create_test_ride(
+                1,
+                Utc.with_ymd_and_hms(2023, 1, 1, 11, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 13, 0, 0).unwrap(),
+            ),
+            create_test_ride(
+                2,
+                Utc.with_ymd_and_hms(2023, 1, 1, 14, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 15, 0, 0).unwrap(),
+            ),
+        ];
+
+        let result = MediaGeoInferrer::find_matching_ride(captured_at, rides);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().name, "Test Ride 1");
+    }
+
+    #[test]
+    fn test_find_matching_ride_most_recent_before() {
+        let captured_at = Utc.with_ymd_and_hms(2023, 1, 1, 16, 0, 0).unwrap();
+
+        let rides = vec![
+            create_test_ride(
+                1,
+                Utc.with_ymd_and_hms(2023, 1, 1, 11, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 12, 0, 0).unwrap(),
+            ),
+            create_test_ride(
+                2,
+                Utc.with_ymd_and_hms(2023, 1, 1, 14, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 15, 0, 0).unwrap(),
+            ),
+        ];
+
+        let result = MediaGeoInferrer::find_matching_ride(captured_at, rides);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().name, "Test Ride 2");
+    }
+
+    #[test]
+    fn test_find_matching_ride_matches_preceding_ride() {
+        let captured_at = Utc.with_ymd_and_hms(2023, 1, 1, 10, 0, 0).unwrap();
+
+        let rides = vec![
+            create_test_ride(
+                1,
+                Utc.with_ymd_and_hms(2023, 1, 1, 8, 0, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 9, 0, 0).unwrap(),
+            ),
+            create_test_ride(
+                2,
+                Utc.with_ymd_and_hms(2023, 1, 1, 10, 15, 0).unwrap(),
+                Utc.with_ymd_and_hms(2023, 1, 1, 10, 30, 0).unwrap(),
+            ),
+        ];
+
+        let result = MediaGeoInferrer::find_matching_ride(captured_at, rides);
+        assert!(result.is_some());
+        assert_eq!(
+            result.unwrap().name,
+            "Test Ride 1",
+            "Should match the ride that finished before the photo, not the subsequent ride"
+        );
     }
 }
