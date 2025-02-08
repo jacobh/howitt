@@ -3,6 +3,7 @@ import { Link } from "@remix-run/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { formatDistance, formatDuration } from "~/services/format";
 import { Temporal } from "@js-temporal/polyfill";
+import { useMemo } from "react";
 
 export const RideItemFragment = gql(`
     fragment rideItem on Ride {
@@ -40,16 +41,25 @@ const rideVitalsCss = css`
 export function RideItem({ ride: rideFragment }: Props): React.ReactNode {
   const ride = useFragment(RideItemFragment, rideFragment);
 
-  const startTime = Temporal.Instant.from(ride.startedAt);
-  const endTime = Temporal.Instant.from(ride.finishedAt);
-  const duration = startTime.until(endTime);
+  const { formattedDate, formattedDistance, formattedDuration } =
+    useMemo(() => {
+      const startTime = Temporal.Instant.from(ride.startedAt);
+      const endTime = Temporal.Instant.from(ride.finishedAt);
+      const duration = startTime.until(endTime);
 
-  const date = Temporal.PlainDate.from(ride.date);
-  const formattedDate = date.toLocaleString("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+      const date = Temporal.PlainDate.from(ride.date);
+      const formattedDate = date.toLocaleString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+
+      return {
+        formattedDate,
+        formattedDistance: formatDistance(ride.distance),
+        formattedDuration: formatDuration(duration),
+      };
+    }, [ride]);
 
   return (
     <div className="ride-item" css={rideItemCss}>
@@ -60,7 +70,7 @@ export function RideItem({ ride: rideFragment }: Props): React.ReactNode {
       </p>
       <div css={subtitleContainerCss}>
         <div css={rideVitalsCss}>
-          {formatDistance(ride.distance)} • {formatDuration(duration)}
+          {formattedDistance} • {formattedDuration}
         </div>
       </div>
     </div>
