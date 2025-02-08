@@ -19,6 +19,7 @@ import { Map as MapComponent } from "~/components/map";
 import { isNotNil } from "~/services/isNotNil";
 import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
+import { ContentBlock } from "./components/ContentBlock";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -49,24 +50,7 @@ const TripQuery = gql(`
           }
         }
         temporalContentBlocks {
-          __typename
-          contentAt
-          ... on Ride {
-            rideId: id
-            date
-            ...rideItem
-          }
-          ... on Media {
-            mediaId: id
-            imageSizes {
-              fit1600 {
-                webpUrl
-              }
-            }
-          }
-          ... on Note {
-            text
-          }
+          ...contentBlock
         }
       }
     }
@@ -237,41 +221,9 @@ export default function TripDetail(): React.ReactElement {
             ))}
 
             <div css={temporalBlocksContainerStyles}>
-              {trip.temporalContentBlocks.map((block) =>
-                match(block)
-                  .with({ __typename: "Ride" }, (ride) => (
-                    <div key={`ride-${ride.rideId}`} css={rideItemStyles}>
-                      <hr css={dividerStyles} />
-                      <div css={rideMapStyles}>
-                        <MapComponent
-                          interactive={false}
-                          tracks={[rideIdRideMap.get(ride.rideId)].filter(
-                            isNotNil,
-                          )}
-                          initialView={{
-                            type: "tracks",
-                            trackIds: [ride.rideId],
-                          }}
-                        />
-                      </div>
-                      <RideItem ride={ride} />
-                    </div>
-                  ))
-                  .with({ __typename: "Note" }, (note) => (
-                    <section key={`note-${note.contentAt}`} css={noteStyles}>
-                      <Markdown>{note.text}</Markdown>
-                    </section>
-                  ))
-                  .with({ __typename: "Media" }, (media) => (
-                    <img
-                      key={`media-${media.mediaId}`}
-                      src={media.imageSizes.fit1600.webpUrl}
-                      css={mediaStyles}
-                      alt=""
-                    />
-                  ))
-                  .exhaustive(),
-              )}
+              {trip.temporalContentBlocks.map((block) => (
+                <ContentBlock block={block} rideIdRideMap={rideIdRideMap} />
+              ))}
             </div>
 
             <EditTripModal

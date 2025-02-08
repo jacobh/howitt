@@ -671,6 +671,35 @@ export type UserProfileQueryQuery = {
     | null;
 };
 
+type ContentBlock_Media_Fragment = {
+  __typename: "Media";
+  contentAt: any;
+  mediaId: any;
+  imageSizes: {
+    __typename?: "ImageSizes";
+    fit1600: { __typename?: "ImageSize"; webpUrl: string };
+  };
+} & { " $fragmentName"?: "ContentBlock_Media_Fragment" };
+
+type ContentBlock_Note_Fragment = {
+  __typename: "Note";
+  text: string;
+  contentAt: any;
+} & { " $fragmentName"?: "ContentBlock_Note_Fragment" };
+
+type ContentBlock_Ride_Fragment = ({
+  __typename: "Ride";
+  contentAt: any;
+  rideId: any;
+} & { " $fragmentRefs"?: { RideItemFragment: RideItemFragment } }) & {
+  " $fragmentName"?: "ContentBlock_Ride_Fragment";
+};
+
+export type ContentBlockFragment =
+  | ContentBlock_Media_Fragment
+  | ContentBlock_Note_Fragment
+  | ContentBlock_Ride_Fragment;
+
 export type TripQueryQueryVariables = Exact<{
   username: Scalars["String"]["input"];
   slug: Scalars["String"]["input"];
@@ -715,22 +744,21 @@ export type TripQueryQuery = {
             }
           >;
           temporalContentBlocks: Array<
-            | {
-                __typename: "Media";
-                contentAt: any;
-                mediaId: any;
-                imageSizes: {
-                  __typename?: "ImageSizes";
-                  fit1600: { __typename?: "ImageSize"; webpUrl: string };
+            | ({ __typename?: "Media" } & {
+                " $fragmentRefs"?: {
+                  ContentBlock_Media_Fragment: ContentBlock_Media_Fragment;
                 };
-              }
-            | { __typename: "Note"; text: string; contentAt: any }
-            | ({
-                __typename: "Ride";
-                date: any;
-                contentAt: any;
-                rideId: any;
-              } & { " $fragmentRefs"?: { RideItemFragment: RideItemFragment } })
+              })
+            | ({ __typename?: "Note" } & {
+                " $fragmentRefs"?: {
+                  ContentBlock_Note_Fragment: ContentBlock_Note_Fragment;
+                };
+              })
+            | ({ __typename?: "Ride" } & {
+                " $fragmentRefs"?: {
+                  ContentBlock_Ride_Fragment: ContentBlock_Ride_Fragment;
+                };
+              })
           >;
         } & { " $fragmentRefs"?: { EditTripFragment: EditTripFragment } })
       | null;
@@ -958,39 +986,6 @@ export const ViewerInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<ViewerInfoFragment, unknown>;
-export const RideItemFragmentDoc = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "rideItem" },
-      typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "Ride" },
-      },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "date" } },
-          { kind: "Field", name: { kind: "Name", value: "distance" } },
-          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
-          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "user" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "username" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<RideItemFragment, unknown>;
 export const RideSummaryFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -1338,6 +1333,160 @@ export const TripItemFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<TripItemFragment, unknown>;
+export const RideItemFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RideItemFragment, unknown>;
+export const ContentBlockFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "contentBlock" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "TemporalContentBlock" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "__typename" } },
+          { kind: "Field", name: { kind: "Name", value: "contentAt" } },
+          {
+            kind: "InlineFragment",
+            typeCondition: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Ride" },
+            },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "rideId" },
+                  name: { kind: "Name", value: "id" },
+                },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "rideItem" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "InlineFragment",
+            typeCondition: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Media" },
+            },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "mediaId" },
+                  name: { kind: "Name", value: "id" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "imageSizes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "fit1600" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "webpUrl" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: "InlineFragment",
+            typeCondition: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Note" },
+            },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "text" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ContentBlockFragment, unknown>;
 export const UserItemFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -2333,98 +2482,8 @@ export const TripQueryDocument = {
                           kind: "SelectionSet",
                           selections: [
                             {
-                              kind: "Field",
-                              name: { kind: "Name", value: "__typename" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "contentAt" },
-                            },
-                            {
-                              kind: "InlineFragment",
-                              typeCondition: {
-                                kind: "NamedType",
-                                name: { kind: "Name", value: "Ride" },
-                              },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    alias: { kind: "Name", value: "rideId" },
-                                    name: { kind: "Name", value: "id" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "date" },
-                                  },
-                                  {
-                                    kind: "FragmentSpread",
-                                    name: { kind: "Name", value: "rideItem" },
-                                  },
-                                ],
-                              },
-                            },
-                            {
-                              kind: "InlineFragment",
-                              typeCondition: {
-                                kind: "NamedType",
-                                name: { kind: "Name", value: "Media" },
-                              },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    alias: { kind: "Name", value: "mediaId" },
-                                    name: { kind: "Name", value: "id" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "imageSizes" },
-                                    selectionSet: {
-                                      kind: "SelectionSet",
-                                      selections: [
-                                        {
-                                          kind: "Field",
-                                          name: {
-                                            kind: "Name",
-                                            value: "fit1600",
-                                          },
-                                          selectionSet: {
-                                            kind: "SelectionSet",
-                                            selections: [
-                                              {
-                                                kind: "Field",
-                                                name: {
-                                                  kind: "Name",
-                                                  value: "webpUrl",
-                                                },
-                                              },
-                                            ],
-                                          },
-                                        },
-                                      ],
-                                    },
-                                  },
-                                ],
-                              },
-                            },
-                            {
-                              kind: "InlineFragment",
-                              typeCondition: {
-                                kind: "NamedType",
-                                name: { kind: "Name", value: "Note" },
-                              },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "text" },
-                                  },
-                                ],
-                              },
+                              kind: "FragmentSpread",
+                              name: { kind: "Name", value: "contentBlock" },
                             },
                           ],
                         },
@@ -2518,6 +2577,34 @@ export const TripQueryDocument = {
                     ],
                   },
                 },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "rideItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Ride" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
               ],
             },
           },
@@ -2676,26 +2763,86 @@ export const TripQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
-      name: { kind: "Name", value: "rideItem" },
+      name: { kind: "Name", value: "contentBlock" },
       typeCondition: {
         kind: "NamedType",
-        name: { kind: "Name", value: "Ride" },
+        name: { kind: "Name", value: "TemporalContentBlock" },
       },
       selectionSet: {
         kind: "SelectionSet",
         selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "date" } },
-          { kind: "Field", name: { kind: "Name", value: "distance" } },
-          { kind: "Field", name: { kind: "Name", value: "startedAt" } },
-          { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "__typename" } },
+          { kind: "Field", name: { kind: "Name", value: "contentAt" } },
           {
-            kind: "Field",
-            name: { kind: "Name", value: "user" },
+            kind: "InlineFragment",
+            typeCondition: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Ride" },
+            },
             selectionSet: {
               kind: "SelectionSet",
               selections: [
-                { kind: "Field", name: { kind: "Name", value: "username" } },
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "rideId" },
+                  name: { kind: "Name", value: "id" },
+                },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "rideItem" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "InlineFragment",
+            typeCondition: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Media" },
+            },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "mediaId" },
+                  name: { kind: "Name", value: "id" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "imageSizes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "fit1600" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "webpUrl" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: "InlineFragment",
+            typeCondition: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Note" },
+            },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "text" } },
               ],
             },
           },
