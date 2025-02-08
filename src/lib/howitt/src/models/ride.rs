@@ -40,6 +40,7 @@ impl ExternallySourced for Ride {
 #[derive(Debug, Clone)]
 pub enum RideFilter {
     All,
+    Ids(Vec<RideId>),
     ForUser {
         user_id: UserId,
         started_at: Option<TemporalFilter>,

@@ -52,6 +52,17 @@ impl Repo for PostgresRideRepo {
         let mut conn = self.client.acquire().await.unwrap();
 
         let rides = match filter {
+            RideFilter::Ids(ids) => {
+                let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
+                
+                sqlx::query_as!(
+                    RideRow,
+                    r#"select * from rides where id = ANY($1)"#,
+                    &uuids
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
             RideFilter::ForUser {
                 user_id,
                 started_at: Some(TemporalFilter::Before {before, last}),
