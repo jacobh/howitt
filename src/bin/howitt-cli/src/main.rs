@@ -1,10 +1,9 @@
 #![feature(async_closure)]
 
-use std::sync::Arc;
-
 use apalis_redis::RedisStorage;
 use clap::{Parser, Subcommand};
 use howitt::jobs::Job;
+use howitt_jobs::storage::LockFreeStorage;
 use howitt_postgresql::{PostgresClient, PostgresRepos};
 
 mod commands;
@@ -44,7 +43,7 @@ enum Commands {
 pub struct Context {
     pub postgres_client: PostgresClient,
     pub repos: PostgresRepos,
-    pub job_storage: Arc<tokio::sync::Mutex<RedisStorage<Job>>>,
+    pub job_storage: LockFreeStorage<Job>,
 }
 
 impl Context {
@@ -65,7 +64,7 @@ impl Context {
         Ok(Self {
             repos: PostgresRepos::new(postgres_client.clone()),
             postgres_client,
-            job_storage: Arc::new(tokio::sync::Mutex::new(job_storage)),
+            job_storage: LockFreeStorage::new(job_storage),
         })
     }
 }

@@ -1,4 +1,3 @@
-use apalis::prelude::Storage;
 use clap::Subcommand;
 use howitt::{
     jobs::{media::MediaJob, Job},
@@ -28,8 +27,6 @@ pub async fn handle(
 
             for media_item in media.clone() {
                 job_storage
-                    .lock()
-                    .await
                     .push(Job::from(MediaJob::Process(media_item.id)))
                     .await?;
 

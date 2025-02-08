@@ -1953,6 +1953,7 @@ dependencies = [
  "howitt-postgresql",
  "howitt_client_types",
  "howitt_clients",
+ "howitt_jobs",
  "inquire",
  "itertools 0.14.0",
  "mapbox-geocoding",
