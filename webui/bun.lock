@@ -35,6 +35,7 @@
         "recharts": "^2.15.0",
         "ts-pattern": "^5.6.2",
         "use-mutative": "^1.2.0",
+        "usehooks-ts": "^3.1.1",
       },
       "devDependencies": {
         "@graphql-codegen/fragment-matcher": "^5.0.2",
@@ -2308,6 +2309,8 @@
     "use-mutative": ["use-mutative@1.2.0", "", { "peerDependencies": { "@types/react": "^16.8 || 18.0 || ^17.0 || ^19.0", "mutative": "^1.0", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0" } }, "sha512-pckbyvPjiL8+5zSx+YRzQjdJ+LAkX1k0zjStR5HRLJr1sWN29Iich2+fHa5TmlYjycE7sYU87TqqoMkiosr/2g=="],
 
     "use-sidecar": ["use-sidecar@1.1.3", "", { "dependencies": { "detect-node-es": "^1.1.0", "tslib": "^2.0.0" }, "peerDependencies": { "@types/react": "*", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-Fedw0aZvkhynoPYlA5WXrMCAMm+nSWdZt6lzJQ7Ok8S6Q+VsHmHpRWndVRJ8Be0ZbkfPc5LRYH+5XrzXcEeLRQ=="],
+
+    "usehooks-ts": ["usehooks-ts@3.1.1", "", { "dependencies": { "lodash.debounce": "^4.0.8" }, "peerDependencies": { "react": "^16.8.0  || ^17 || ^18 || ^19 || ^19.0.0-rc" } }, "sha512-I4diPp9Cq6ieSUH2wu+fDAVQO43xwtulo+fKEidHUwZPnYImbtkTjzIJYcDcJqxgmX31GVqNFURodvcgHcW0pA=="],
 
     "util": ["util@0.12.5", "", { "dependencies": { "inherits": "^2.0.3", "is-arguments": "^1.0.4", "is-generator-function": "^1.0.7", "is-typed-array": "^1.1.3", "which-typed-array": "^1.1.2" } }, "sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA=="],
 

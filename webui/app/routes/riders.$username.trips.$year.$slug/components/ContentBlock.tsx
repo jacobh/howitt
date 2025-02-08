@@ -6,6 +6,8 @@ import { Map as MapComponent } from "~/components/map";
 import { isNotNil } from "~/services/isNotNil";
 import { Track } from "~/components/map/types";
 import { FragmentType, gql, useFragment } from "~/__generated__";
+import { useIntersectionObserver } from "usehooks-ts";
+import { useMemo } from "react";
 
 const rideItemStyles = css({
   margin: "24px 0",
@@ -86,23 +88,62 @@ export const ContentBlockFragment = gql(`
 type ContentBlockProps = {
   block: FragmentType<typeof ContentBlockFragment>;
   rideIdRideMap: Map<string, Track>;
+  onVisibilityChange?: (event: ContentBlockVisibilityEvent) => void;
 };
+
+interface ContentBlockVisibilityEvent {
+  contentBlockId: string;
+  rideIds: string[];
+  isVisible: boolean;
+}
 
 export function ContentBlock({
   block: blockFragment,
   rideIdRideMap,
+  onVisibilityChange,
 }: ContentBlockProps) {
   const block = useFragment(ContentBlockFragment, blockFragment);
 
-  const contentBlockId = match(block)
-    .with({ __typename: "Ride" }, (ride) => `ride-${ride.rideId}`)
-    .with({ __typename: "Note" }, (note) => `note-${note.contentAt}`)
-    .with({ __typename: "Media" }, (media) => `media-${media.mediaId}`)
-    .exhaustive();
+  const contentBlockId = useMemo(
+    () =>
+      match(block)
+        .with({ __typename: "Ride" }, (ride) => `ride-${ride.rideId}`)
+        .with({ __typename: "Note" }, (note) => `note-${note.contentAt}`)
+        .with({ __typename: "Media" }, (media) => `media-${media.mediaId}`)
+        .exhaustive(),
+    [block],
+  );
 
-  return match(block)
+  const rideIds = useMemo(
+    () =>
+      match(block)
+        .with({ __typename: "Ride" }, (ride) => [ride.rideId])
+        .with({ __typename: "Note" }, (note) =>
+          note.ride ? [note.ride.id] : [],
+        )
+        .with({ __typename: "Media" }, (media) =>
+          media.rides.map((ride) => ride.id),
+        )
+        .exhaustive(),
+    [block],
+  );
+
+  const { ref } = useIntersectionObserver({
+    threshold: 0.2,
+    onChange: (isIntersecting) => {
+      if (onVisibilityChange) {
+        onVisibilityChange({
+          contentBlockId,
+          rideIds,
+          isVisible: isIntersecting,
+        });
+      }
+    },
+  });
+
+  const content = match(block)
     .with({ __typename: "Ride" }, (ride) => (
-      <div key={contentBlockId} css={rideItemStyles}>
+      <div css={rideItemStyles}>
         <hr css={dividerStyles} />
         <div css={rideMapStyles}>
           <MapComponent
@@ -118,17 +159,18 @@ export function ContentBlock({
       </div>
     ))
     .with({ __typename: "Note" }, (note) => (
-      <section key={contentBlockId} css={noteStyles}>
+      <section css={noteStyles}>
         <Markdown>{note.text}</Markdown>
       </section>
     ))
     .with({ __typename: "Media" }, (media) => (
-      <img
-        key={contentBlockId}
-        src={media.imageSizes.fit1600.webpUrl}
-        css={mediaStyles}
-        alt=""
-      />
+      <img src={media.imageSizes.fit1600.webpUrl} css={mediaStyles} alt="" />
     ))
     .exhaustive();
+
+  return (
+    <div ref={ref} key={contentBlockId}>
+      {content}
+    </div>
+  );
 }
