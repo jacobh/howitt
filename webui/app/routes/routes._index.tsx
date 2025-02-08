@@ -18,6 +18,7 @@ import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { match, P } from "ts-pattern";
+import { create } from "mutative";
 
 const HomeQueryNoPoints = gql(`
   query homeQuery($input: QueryRoutesInput!) {
@@ -129,7 +130,7 @@ export default function Routes(): React.ReactElement {
     [clickedRouteId, routeIdMap, visibleRouteIds],
   );
 
-  const mapRoutes = useMemo(
+  const baseRouteTracks = useMemo(
     () =>
       (data2?.queryRoutes ?? data?.queryRoutes ?? []).map((route) =>
         buildRouteTrack(
@@ -143,12 +144,23 @@ export default function Routes(): React.ReactElement {
               )
               .exhaustive(),
           },
-          hoveredRouteId === route.id || clickedRouteId === route.id
-            ? "highlighted"
-            : undefined,
+          "default",
         ),
       ),
-    [clickedRouteId, data?.queryRoutes, data2?.queryRoutes, hoveredRouteId],
+    [data?.queryRoutes, data2?.queryRoutes],
+  );
+
+  const tracks = useMemo(
+    () =>
+      baseRouteTracks.map((track) =>
+        create(track, (draft) => {
+          draft.style =
+            hoveredRouteId === track.id || clickedRouteId === track.id
+              ? "highlighted"
+              : "default";
+        }),
+      ),
+    [baseRouteTracks, hoveredRouteId, clickedRouteId],
   );
 
   return (
@@ -193,7 +205,7 @@ export default function Routes(): React.ReactElement {
       </SidebarContainer>
       <MapContainer>
         <PrimaryMap
-          tracks={mapRoutes}
+          tracks={tracks}
           initialView={DEFAULT_INITIAL_VIEW}
           onVisibleRoutesChanged={setVisibleRouteIds}
           onRouteClicked={setClickedRouteId}
