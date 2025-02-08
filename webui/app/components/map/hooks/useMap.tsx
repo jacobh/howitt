@@ -77,13 +77,15 @@ export function useMap({
   useEffect(() => {
     if (!map) return;
 
+    // always reset the map to zero
+    for (const interaction of map.getInteractions().getArray()) {
+      map.removeInteraction(interaction);
+    }
+
+    // then if interactive re-add controls
     if (interactive) {
       for (const interaction of defaultInteractions().getArray()) {
         map.addInteraction(interaction);
-      }
-    } else {
-      for (const interaction of map.getInteractions().getArray()) {
-        map.removeInteraction(interaction);
       }
     }
   }, [map, interactive]);
