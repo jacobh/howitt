@@ -32,7 +32,9 @@ mod handlers;
 
 use graphql::{
     context::SchemaData,
-    loaders::{route_points_loader::RoutePointsLoader, user_loader::UserLoader},
+    loaders::{
+        ride_loader::RideLoader, route_points_loader::RoutePointsLoader, user_loader::UserLoader,
+    },
     schema::build_schema,
 };
 
@@ -72,6 +74,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let bucket_client = S3BucketClient::new_from_env(BucketName::Media);
 
     let schema = build_schema(SchemaData {
+        ride_loader: DataLoader::new(RideLoader::new(repos.ride_repo.clone()), tokio::spawn),
         user_loader: DataLoader::new(UserLoader::new(repos.user_repo.clone()), tokio::spawn),
         route_points_loader: DataLoader::new(
             RoutePointsLoader::new(repos.route_points_repo.clone()),
