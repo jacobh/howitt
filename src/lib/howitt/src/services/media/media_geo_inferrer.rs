@@ -23,6 +23,12 @@ pub struct MediaGeoInferrer {
     ride_points_repo: RidePointsRepo,
 }
 
+#[derive(Debug)]
+pub struct InferredLocation {
+    pub ride: Ride,
+    pub point: geo::Point,
+}
+
 impl MediaGeoInferrer {
     pub fn new(
         media_repo: MediaRepo,
@@ -60,7 +66,10 @@ impl MediaGeoInferrer {
         }
     }
 
-    pub async fn infer_point(&self, media: &Media) -> Result<Option<geo::Point>, anyhow::Error> {
+    pub async fn infer_ride_and_point(
+        &self,
+        media: &Media,
+    ) -> Result<Option<InferredLocation>, anyhow::Error> {
         let captured_at = match media.captured_at {
             Some(captured_at) => captured_at,
             None => return Err(MediaGeoInferrerError::NoCapturedAt.into()),
@@ -105,13 +114,19 @@ impl MediaGeoInferrer {
             })
             .map(|point| *point.as_geo_point());
 
-        Ok(closest_point)
+        match closest_point {
+            Some(point) => Ok(Some(InferredLocation {
+                ride: matching_ride,
+                point,
+            })),
+            None => Ok(None),
+        }
     }
 
-    pub async fn infer_point_and_save(&self, media: &Media) -> Result<(), anyhow::Error> {
-        if let Some(point) = self.infer_point(media).await? {
+    pub async fn infer_ride_and_point_and_save(&self, media: &Media) -> Result<(), anyhow::Error> {
+        if let Some(inferred) = self.infer_ride_and_point(media).await? {
             let mut updated_media = media.clone();
-            updated_media.point = Some(point);
+            updated_media.point = Some(inferred.point);
             self.media_repo.put(updated_media).await?;
         }
 

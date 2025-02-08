@@ -214,7 +214,7 @@ pub async fn handle_media_job(job: MediaJob, ctx: Context) -> Result<(), MediaJo
             );
 
             inferrer
-                .infer_point_and_save(&media)
+                .infer_ride_and_point_and_save(&media)
                 .await
                 .map_err(MediaJobError::LocationInferFailed)?;
 
