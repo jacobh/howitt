@@ -20,6 +20,7 @@ use crate::graphql::schema::{user::UserProfile, IsoDate, ModelId};
 
 use super::media::Media;
 
+#[derive(Clone)]
 pub struct Ride(pub howitt::models::ride::Ride);
 
 #[Object]

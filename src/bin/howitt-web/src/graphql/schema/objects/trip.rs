@@ -159,15 +159,31 @@ impl Trip {
         Ok(media.into_iter().map(Media).collect())
     }
 
-    async fn notes(&self) -> Vec<Note> {
-        self.0
+    async fn notes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Note>, async_graphql::Error> {
+        let rides = {
+            let mut rides = self.rides(ctx).await?;
+            rides.sort_by_key(|ride| ride.0.started_at);
+            rides
+        };
+
+        Ok(self
+            .0
             .notes
             .iter()
-            .map(|note| Note {
-                content_at: note.timestamp,
-                text: note.text.clone(),
+            .map(|note| {
+                let matching_ride = rides
+                    .iter()
+                    .rev()
+                    .find(|ride| ride.0.started_at <= note.timestamp)
+                    .cloned();
+
+                Note {
+                    content_at: note.timestamp,
+                    text: note.text.clone(),
+                    ride: matching_ride,
+                }
             })
-            .collect()
+            .collect())
     }
 
     pub async fn temporal_content_blocks<'ctx>(
