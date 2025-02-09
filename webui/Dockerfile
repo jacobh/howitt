@@ -1,8 +1,6 @@
-FROM oven/bun:1.1
+FROM oven/bun:1.2
 
 RUN apt install tar gzip bash -y
-
-RUN bun install -g npm@10
 
 WORKDIR /app
 COPY package.json bun.lock ./
