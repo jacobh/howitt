@@ -12,7 +12,10 @@ use axum::{
 use howitt::{
     jobs::Job,
     repos::Repos,
-    services::{fetchers::SimplifiedRidePointsFetcher, user::auth::UserAuthService},
+    services::{
+        fetchers::{SimplifiedRidePointsFetcher, SimplifiedTripElevationPointsFetcher},
+        user::auth::UserAuthService,
+    },
 };
 use howitt_client_types::BucketName;
 use howitt_clients::{RedisClient, S3BucketClient};
@@ -68,8 +71,15 @@ async fn main() -> Result<(), anyhow::Error> {
     let repos: Repos = Repos::from(PostgresRepos::new(pg));
 
     let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
+
     let simplified_ride_points_fetcher =
-        SimplifiedRidePointsFetcher::new(repos.ride_points_repo.clone(), redis);
+        SimplifiedRidePointsFetcher::new(repos.ride_points_repo.clone(), redis.clone());
+
+    let simplified_trip_elevation_points_fetcher = SimplifiedTripElevationPointsFetcher::new(
+        repos.ride_repo.clone(),
+        repos.ride_points_repo.clone(),
+        redis,
+    );
 
     let bucket_client = S3BucketClient::new_from_env(BucketName::Media);
 
@@ -81,6 +91,7 @@ async fn main() -> Result<(), anyhow::Error> {
             tokio::spawn,
         ),
         simplified_ride_points_fetcher,
+        simplified_trip_elevation_points_fetcher,
         rwgps_client_id: std::env::var("RWGPS_CLIENT_ID").expect("RWGPS_CLIENT_ID must be set"),
         user_auth_service: user_auth_service.clone(),
         repos: repos.clone(),

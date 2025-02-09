@@ -2,11 +2,10 @@ use std::iter;
 
 use async_graphql::{Context, Object};
 use futures::future::try_join3;
-use howitt::ext::futures::FuturesIteratorExt;
-use howitt::ext::iter::{ResultIterExt, ScanAllExt};
 use howitt::models::media::MediaFilter;
 use howitt::models::{ride::RideFilter, trip::TripId};
 use howitt::repos::Repos;
+use howitt::services::fetchers::ElevationPointsParams;
 use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
@@ -18,61 +17,49 @@ use super::note::Note;
 use super::user::UserProfile;
 
 pub struct Trip(pub howitt::models::trip::Trip);
-pub struct TripLeg(pub Vec<howitt::models::ride::Ride>);
+pub struct TripLeg(
+    pub howitt::models::trip::Trip,
+    pub Vec<howitt::models::ride::Ride>,
+);
 
 #[Object]
 impl TripLeg {
     async fn rides(&self) -> Vec<Ride> {
-        self.0.clone().into_iter().map(Ride).collect()
+        self.1.clone().into_iter().map(Ride).collect()
     }
     pub async fn elevation_points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {
-        let elevations = self
-            .0
-            .iter()
-            .map(|ride| async move { Ride(ride.clone()).elevation_points(ctx).await })
-            .collect_futures_ordered()
-            .await
-            .into_iter()
-            .collect_result_vec()?;
+        let SchemaData {
+            simplified_trip_elevation_points_fetcher,
+            ..
+        } = ctx.data()?;
 
-        Ok(elevations.into_iter().flatten().collect_vec())
+        let trip_id = self.0.id;
+
+        let points = simplified_trip_elevation_points_fetcher
+            .fetch(trip_id, ElevationPointsParams::default())
+            .await?;
+
+        Ok(points.into_iter().map(|p| p.1).collect())
     }
-
     pub async fn distance_points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<Vec<f64>, async_graphql::Error> {
-        // First get all ride distances in parallel
-        let distances = self
-            .0
-            .iter()
-            .map(|ride| async move { Ride(ride.clone()).distance_points(ctx).await })
-            .collect_futures_ordered()
-            .await
-            .into_iter()
-            .collect_result_vec()?;
+        let SchemaData {
+            simplified_trip_elevation_points_fetcher,
+            ..
+        } = ctx.data()?;
 
-        // Then combine them with cumulative offsets
-        Ok(distances
-            .into_iter()
-            .scan_all(0.0, |cumulative_distance, ride_distances| {
-                let adjusted_distances = ride_distances
-                    .into_iter()
-                    .map(|d| d + *cumulative_distance)
-                    .collect_vec();
+        let trip_id = self.0.id;
 
-                // Update cumulative distance for next ride
-                if let Some(&last) = adjusted_distances.last() {
-                    *cumulative_distance = last;
-                }
+        let points = simplified_trip_elevation_points_fetcher
+            .fetch(trip_id, ElevationPointsParams::default())
+            .await?;
 
-                adjusted_distances
-            })
-            .flatten()
-            .collect())
+        Ok(points.into_iter().map(|p| p.0).collect())
     }
     pub async fn elevation_points_json<'ctx>(
         &self,
@@ -139,6 +126,7 @@ impl Trip {
 
         // For this first cut, put all rides in a single leg
         Ok(vec![TripLeg(
+            self.0.clone(),
             rides.into_iter().map(|ride| ride.0).collect(),
         )])
     }

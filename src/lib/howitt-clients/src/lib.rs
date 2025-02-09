@@ -98,7 +98,7 @@ impl HttpClient for ReqwestHttpClient {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RedisClient {
     pub client: redis::Client,
     pub conn: redis::aio::MultiplexedConnection,
