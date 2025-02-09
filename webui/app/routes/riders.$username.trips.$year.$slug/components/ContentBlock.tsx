@@ -7,7 +7,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { Track } from "~/components/map/types";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useIntersectionObserver } from "usehooks-ts";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 const rideItemStyles = css({
   margin: "24px 0",
@@ -102,7 +102,7 @@ export interface ContentBlockEvent {
   contentBlockId: string;
   rideIds: string[];
   mediaIds: string[];
-  eventType: "visibleStart" | "visibleEnd";
+  eventType: "visibleStart" | "visibleEnd" | "hoverStart" | "hoverEnd";
 }
 
 export function ContentBlock({
@@ -193,8 +193,31 @@ export function ContentBlock({
     ))
     .exhaustive();
 
+  const handleMouseEnter = useCallback((): void => {
+    onEvent?.({
+      contentBlockId,
+      rideIds,
+      mediaIds,
+      eventType: "hoverStart",
+    });
+  }, [contentBlockId, rideIds, mediaIds, onEvent]);
+
+  const handleMouseLeave = useCallback((): void => {
+    onEvent?.({
+      contentBlockId,
+      rideIds,
+      mediaIds,
+      eventType: "hoverEnd",
+    });
+  }, [contentBlockId, rideIds, mediaIds, onEvent]);
+
   return (
-    <div ref={ref} key={contentBlockId}>
+    <div
+      ref={ref}
+      key={contentBlockId}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {content}
     </div>
   );

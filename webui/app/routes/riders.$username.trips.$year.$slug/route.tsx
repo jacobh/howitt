@@ -65,8 +65,12 @@ const temporalBlocksContainerStyles = css({
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
-  const { visibleRouteIds, visibleMediaIds, onContentBlockEvent } =
-    useVisibleContent();
+  const {
+    visibleRouteIds,
+    visibleMediaIds,
+    hoveredMediaIds,
+    onContentBlockEvent,
+  } = useVisibleContent();
 
   const { data, loading, refetch } = useQuery(TripQuery, {
     variables: {
@@ -148,10 +152,10 @@ export default function TripDetail(): React.ReactElement {
         (media): Marker => ({
           id: media.id,
           point: [media.point[0], media.point[1]],
-          style: "default",
+          style: hoveredMediaIds.has(media.id) ? "highlighted" : "default",
         }),
       );
-  }, [trip?.media, visibleMediaIds]);
+  }, [trip?.media, visibleMediaIds, hoveredMediaIds]);
 
   const isOwnTrip =
     data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;
