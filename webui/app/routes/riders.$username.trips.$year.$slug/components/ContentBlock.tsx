@@ -9,7 +9,7 @@ import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useIntersectionObserver } from "usehooks-ts";
 import { useCallback, useMemo, useState } from "react";
 import { map as mapIcon } from "ionicons/icons";
-import { SvgIcon } from "~/components/ui/svgIcon";
+import { SvgIcon } from "~/components/ui/SvgIcon";
 
 const contentBlockStyles = css({
   position: "relative", // This ensures the overlay positions relative to this container
