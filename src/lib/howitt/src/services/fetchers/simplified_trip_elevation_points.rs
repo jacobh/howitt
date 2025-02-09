@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use derive_more::derive::Display;
 use geo::{CoordsIter, LineString, SimplifyVw};
 use howitt_client_types::RedisClient;
@@ -30,7 +31,7 @@ impl ElevationPointsParams {
 
 impl Default for ElevationPointsParams {
     fn default() -> Self {
-        Self { epsilon: 2000.0 }
+        Self { epsilon: 50.0 }
     }
 }
 
@@ -98,9 +99,20 @@ impl<Redis: RedisClient> SimplifiedTripElevationPointsFetcher<Redis> {
                     progress.len()
                 );
 
+                // Find the total distance for normalization
+                let total_distance = progress
+                    .last()
+                    .map(|p| p.distance_m)
+                    .ok_or(anyhow!("No points found"))?;
+
                 let distance_elevation_coords: LineString<f64> = progress
                     .into_iter()
-                    .map(|p| geo::coord! { x: p.distance_m, y: p.point.elevation})
+                    .map(|p| {
+                        geo::coord! {
+                            x: (p.distance_m / total_distance) * 100_000.0,
+                            y: p.point.elevation
+                        }
+                    })
                     .collect();
 
                 let simplified =
@@ -110,7 +122,11 @@ impl<Redis: RedisClient> SimplifiedTripElevationPointsFetcher<Redis> {
 
                 let elevation_distances = simplified
                     .into_iter()
-                    .map(|coord| DistanceElevation(coord.x, coord.y))
+                    .map(|coord| {
+                        // Denormalize the distance back to meters
+                        let real_distance = (coord.x / 100_000.0) * total_distance;
+                        DistanceElevation(real_distance, coord.y)
+                    })
                     .collect_vec();
 
                 Ok(elevation_distances)
