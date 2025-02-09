@@ -8,15 +8,18 @@ import {
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
 import { css } from "@emotion/react";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
-import { ContentBlock } from "./components/ContentBlock";
+import { ContentBlock, ContentBlockEvent } from "./components/ContentBlock";
 import { useVisibleContent } from "./hooks/useVisibleContent";
 import { create } from "mutative";
+import { useUpdatePrimaryMapView } from "~/components/map/hooks/useUpdatePrimaryMapView";
+import { match } from "ts-pattern";
+import LineString from "ol/geom/LineString";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
@@ -69,8 +72,10 @@ export default function TripDetail(): React.ReactElement {
     visibleRouteIds,
     visibleMediaIds,
     hoveredMediaIds,
-    onContentBlockEvent,
+    onContentBlockEvent: handleVisibilityEvent,
   } = useVisibleContent();
+
+  const { updateView } = useUpdatePrimaryMapView();
 
   const { data, loading, refetch } = useQuery(TripQuery, {
     variables: {
@@ -159,6 +164,50 @@ export default function TripDetail(): React.ReactElement {
 
   const isOwnTrip =
     data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;
+
+  const onContentBlockEvent = useCallback(
+    (event: ContentBlockEvent) => {
+      handleVisibilityEvent(event);
+
+      match(event)
+        .with({ contentType: "Media", eventType: "click" }, (event) => {
+          const media = trip?.media.find(
+            (media) => media.id === event.contentBlockId,
+          );
+
+          if (!media || !media.point) return;
+
+          const point = [media.point[0], media.point[1]];
+
+          updateView((view) => {
+            view.setCenter(point);
+            view.setZoom(12);
+          });
+        })
+        .with({ contentType: "Ride", eventType: "click" }, (event) => {
+          const ride = trip?.legs[0].rides.find(
+            (ride) => ride.id === event.contentBlockId,
+          );
+
+          if (!ride) return;
+
+          const lineString = new LineString(JSON.parse(ride.pointsJson));
+
+          const bounds = lineString.getExtent();
+
+          updateView((view) => {
+            view.fit(bounds, {
+              padding: [100, 100, 100, 100],
+              duration: 0,
+            });
+          });
+        })
+        .otherwise(() => {
+          // no-op
+        });
+    },
+    [handleVisibilityEvent, updateView, trip?.media, trip?.legs],
+  );
 
   return (
     <Container>

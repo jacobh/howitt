@@ -110,6 +110,10 @@ function reducer(
         );
       }
     })
+    .with("click", () => {
+      // Handle click events
+      // This is a no-op for now, but we can add logic here if needed
+    })
     .exhaustive();
 }
 

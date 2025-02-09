@@ -102,7 +102,12 @@ export interface ContentBlockEvent {
   contentBlockId: string;
   rideIds: string[];
   mediaIds: string[];
-  eventType: "visibleStart" | "visibleEnd" | "hoverStart" | "hoverEnd";
+  eventType:
+    | "visibleStart"
+    | "visibleEnd"
+    | "hoverStart"
+    | "hoverEnd"
+    | "click";
   contentType: "Ride" | "Media" | "Note";
 }
 
@@ -117,19 +122,19 @@ export function ContentBlock({
     () =>
       match(block)
         .with({ __typename: "Ride" }, (ride) => ({
-          contentBlockId: `ride-${ride.rideId}`,
+          contentBlockId: ride.rideId,
           rideIds: [ride.rideId],
           mediaIds: [],
           contentType: "Ride" as const,
         }))
         .with({ __typename: "Note" }, (note) => ({
-          contentBlockId: `note-${note.contentAt}`,
+          contentBlockId: note.contentAt,
           rideIds: note.ride ? [note.ride.id] : [],
           mediaIds: [],
           contentType: "Note" as const,
         }))
         .with({ __typename: "Media" }, (media) => ({
-          contentBlockId: `media-${media.mediaId}`,
+          contentBlockId: media.mediaId,
           rideIds: media.rides.map((ride) => ride.id),
           mediaIds: [media.mediaId],
           contentType: "Media" as const,
@@ -206,12 +211,42 @@ export function ContentBlock({
     });
   }, [contentBlockId, rideIds, mediaIds, contentType, onEvent]);
 
+  const handleClick = useCallback((): void => {
+    onEvent?.({
+      contentBlockId,
+      rideIds,
+      mediaIds,
+      contentType,
+      eventType: "click",
+    });
+  }, [contentBlockId, rideIds, mediaIds, contentType, onEvent]);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent): void => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onEvent?.({
+          contentBlockId,
+          rideIds,
+          mediaIds,
+          contentType,
+          eventType: "click",
+        });
+      }
+    },
+    [contentBlockId, rideIds, mediaIds, contentType, onEvent],
+  );
+
   return (
     <div
       ref={ref}
       key={contentBlockId}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
     >
       {content}
     </div>
