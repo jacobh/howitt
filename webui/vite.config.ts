@@ -32,4 +32,7 @@ export default defineConfig({
       "react-dropzone": "react-dropzone-esm",
     },
   },
+  optimizeDeps: {
+    exclude: ["ionicons"],
+  },
 });

@@ -34,6 +34,7 @@
     "express": "^4.21.2",
     "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",
+    "ionicons": "^7.4.0",
     "isbot": "^5.1.21",
     "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.21",

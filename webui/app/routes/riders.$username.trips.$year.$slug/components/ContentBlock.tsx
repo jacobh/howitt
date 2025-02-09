@@ -8,6 +8,8 @@ import { Track } from "~/components/map/types";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useIntersectionObserver } from "usehooks-ts";
 import { useCallback, useMemo, useState } from "react";
+import { map as mapIcon } from "ionicons/icons";
+import { SvgIcon } from "~/components/ui/svgIcon";
 
 const contentBlockStyles = css({
   position: "relative", // This ensures the overlay positions relative to this container
@@ -25,6 +27,14 @@ const overlayStyles = css({
   pointerEvents: "none",
   opacity: 0,
   transition: "opacity 0.05s ease-in-out",
+});
+
+const mapIconStyles = css({
+  svg: {
+    fill: "white",
+    width: "20px",
+    opacity: 0.9,
+  },
 });
 
 const rideItemStyles = css({
@@ -75,11 +85,11 @@ const mediaCaptionStyles = css({
   margin: "8px 4px 24px",
 });
 
-const dividerStyles = css({
-  margin: "32px 0",
-  border: 0,
-  borderTop: "1px solid #e5e7eb",
-});
+// const dividerStyles = css({
+//   margin: "32px 0",
+//   border: 0,
+//   borderTop: "1px solid #e5e7eb",
+// });
 
 export const ContentBlockFragment = gql(`
   fragment contentBlock on TemporalContentBlock {
@@ -272,7 +282,9 @@ export function ContentBlock({
     >
       {content}
       <div css={overlayStyles} style={{ opacity: isHovered ? 1 : 0 }}>
-        Click to see on map
+        <div css={mapIconStyles}>
+          <SvgIcon svgData={mapIcon} />
+        </div>
       </div>
     </div>
   );
