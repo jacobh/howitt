@@ -32,3 +32,4 @@ apalis-redis = { version = "0.6" }
 mapbox-geocoding = { path = "../../lib/mapbox-geocoding" }
 open-meteo = { path = "../../lib/open-meteo" }
 serde_yaml = "0.9.34"
+geo = "*"
