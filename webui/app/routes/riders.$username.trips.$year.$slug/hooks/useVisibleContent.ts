@@ -47,9 +47,10 @@ function removeContentBlockIdFromMap(
   }
 }
 
-function reducer(draft: State, event: ContentBlockEvent): void {
-  const { contentBlockId, rideIds, mediaIds, eventType } = event;
-
+function reducer(
+  draft: State,
+  { contentBlockId, rideIds, mediaIds, eventType }: ContentBlockEvent,
+): void {
   match(eventType)
     .with("visibleStart", () => {
       // Handle route IDs

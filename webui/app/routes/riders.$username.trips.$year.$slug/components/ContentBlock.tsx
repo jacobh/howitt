@@ -103,6 +103,7 @@ export interface ContentBlockEvent {
   rideIds: string[];
   mediaIds: string[];
   eventType: "visibleStart" | "visibleEnd" | "hoverStart" | "hoverEnd";
+  contentType: "Ride" | "Media" | "Note";
 }
 
 export function ContentBlock({
@@ -112,23 +113,26 @@ export function ContentBlock({
 }: ContentBlockProps): React.ReactElement {
   const block = useFragment(ContentBlockFragment, blockFragment);
 
-  const { contentBlockId, rideIds, mediaIds } = useMemo(
+  const { contentBlockId, rideIds, mediaIds, contentType } = useMemo(
     () =>
       match(block)
         .with({ __typename: "Ride" }, (ride) => ({
           contentBlockId: `ride-${ride.rideId}`,
           rideIds: [ride.rideId],
           mediaIds: [],
+          contentType: "Ride" as const,
         }))
         .with({ __typename: "Note" }, (note) => ({
           contentBlockId: `note-${note.contentAt}`,
           rideIds: note.ride ? [note.ride.id] : [],
           mediaIds: [],
+          contentType: "Note" as const,
         }))
         .with({ __typename: "Media" }, (media) => ({
           contentBlockId: `media-${media.mediaId}`,
           rideIds: media.rides.map((ride) => ride.id),
           mediaIds: [media.mediaId],
+          contentType: "Media" as const,
         }))
         .exhaustive(),
     [block],
@@ -141,6 +145,7 @@ export function ContentBlock({
         contentBlockId,
         rideIds,
         mediaIds,
+        contentType,
         eventType: isIntersecting ? "visibleStart" : "visibleEnd",
       });
     },
@@ -186,18 +191,20 @@ export function ContentBlock({
       contentBlockId,
       rideIds,
       mediaIds,
+      contentType,
       eventType: "hoverStart",
     });
-  }, [contentBlockId, rideIds, mediaIds, onEvent]);
+  }, [contentBlockId, rideIds, mediaIds, contentType, onEvent]);
 
   const handleMouseLeave = useCallback((): void => {
     onEvent?.({
       contentBlockId,
       rideIds,
       mediaIds,
+      contentType,
       eventType: "hoverEnd",
     });
-  }, [contentBlockId, rideIds, mediaIds, onEvent]);
+  }, [contentBlockId, rideIds, mediaIds, contentType, onEvent]);
 
   return (
     <div
