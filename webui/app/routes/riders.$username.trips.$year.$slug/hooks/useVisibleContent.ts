@@ -4,9 +4,9 @@ import { match } from "ts-pattern";
 import { useCallback } from "react";
 
 type State = {
-  routeIdVisibleContentBlocks: Map<string, string[]>;
-  mediaIdVisibleContentBlocks: Map<string, string[]>;
-  mediaIdHoveredContentBlocks: Map<string, string[]>;
+  routeIdVisibleContentBlocks: Map<string, Set<string>>;
+  mediaIdVisibleContentBlocks: Map<string, Set<string>>;
+  mediaIdHoveredContentBlocks: Map<string, Set<string>>;
 };
 
 const initialState: State = {
@@ -15,6 +15,38 @@ const initialState: State = {
   mediaIdHoveredContentBlocks: new Map(),
 };
 
+/**
+ * Helper function to add a contentBlockId to a map of string sets.
+ * Using Set ensures unique contentBlockIds per key.
+ */
+function addContentBlockIdToMap(
+  map: Map<string, Set<string>>,
+  key: string,
+  contentBlockId: string,
+): void {
+  const existingSet = map.get(key) ?? new Set();
+  existingSet.add(contentBlockId);
+  map.set(key, existingSet);
+}
+
+/**
+ * Helper function to remove a contentBlockId from a map of string sets.
+ * If the set becomes empty after removal, the key is removed from the map.
+ */
+function removeContentBlockIdFromMap(
+  map: Map<string, Set<string>>,
+  key: string,
+  contentBlockId: string,
+): void {
+  const existingSet = map.get(key);
+  if (existingSet) {
+    existingSet.delete(contentBlockId);
+    if (existingSet.size === 0) {
+      map.delete(key);
+    }
+  }
+}
+
 function reducer(draft: State, event: ContentBlockEvent): void {
   const { contentBlockId, rideIds, mediaIds, eventType } = event;
 
@@ -22,83 +54,59 @@ function reducer(draft: State, event: ContentBlockEvent): void {
     .with("visibleStart", () => {
       // Handle route IDs
       for (const rideId of rideIds) {
-        const existingBlocks =
-          draft.routeIdVisibleContentBlocks.get(rideId) ?? [];
-        if (!existingBlocks.includes(contentBlockId)) {
-          draft.routeIdVisibleContentBlocks.set(rideId, [
-            ...existingBlocks,
-            contentBlockId,
-          ]);
-        }
+        addContentBlockIdToMap(
+          draft.routeIdVisibleContentBlocks,
+          rideId,
+          contentBlockId,
+        );
       }
 
       // Handle media IDs
       for (const mediaId of mediaIds) {
-        const existingBlocks =
-          draft.mediaIdVisibleContentBlocks.get(mediaId) ?? [];
-        if (!existingBlocks.includes(contentBlockId)) {
-          draft.mediaIdVisibleContentBlocks.set(mediaId, [
-            ...existingBlocks,
-            contentBlockId,
-          ]);
-        }
+        addContentBlockIdToMap(
+          draft.mediaIdVisibleContentBlocks,
+          mediaId,
+          contentBlockId,
+        );
       }
     })
     .with("visibleEnd", () => {
       // Handle route IDs
       for (const rideId of rideIds) {
-        const existingBlocks =
-          draft.routeIdVisibleContentBlocks.get(rideId) ?? [];
-        const filteredBlocks = existingBlocks.filter(
-          (id) => id !== contentBlockId,
+        removeContentBlockIdFromMap(
+          draft.routeIdVisibleContentBlocks,
+          rideId,
+          contentBlockId,
         );
-        if (filteredBlocks.length === 0) {
-          draft.routeIdVisibleContentBlocks.delete(rideId);
-        } else {
-          draft.routeIdVisibleContentBlocks.set(rideId, filteredBlocks);
-        }
       }
 
       // Handle media IDs
       for (const mediaId of mediaIds) {
-        const existingBlocks =
-          draft.mediaIdVisibleContentBlocks.get(mediaId) ?? [];
-        const filteredBlocks = existingBlocks.filter(
-          (id) => id !== contentBlockId,
+        removeContentBlockIdFromMap(
+          draft.mediaIdVisibleContentBlocks,
+          mediaId,
+          contentBlockId,
         );
-        if (filteredBlocks.length === 0) {
-          draft.mediaIdVisibleContentBlocks.delete(mediaId);
-        } else {
-          draft.mediaIdVisibleContentBlocks.set(mediaId, filteredBlocks);
-        }
       }
     })
     .with("hoverStart", () => {
       // Handle media IDs for hover start
       for (const mediaId of mediaIds) {
-        const existingBlocks =
-          draft.mediaIdHoveredContentBlocks.get(mediaId) ?? [];
-        if (!existingBlocks.includes(contentBlockId)) {
-          draft.mediaIdHoveredContentBlocks.set(mediaId, [
-            ...existingBlocks,
-            contentBlockId,
-          ]);
-        }
+        addContentBlockIdToMap(
+          draft.mediaIdHoveredContentBlocks,
+          mediaId,
+          contentBlockId,
+        );
       }
     })
     .with("hoverEnd", () => {
       // Handle media IDs for hover end
       for (const mediaId of mediaIds) {
-        const existingBlocks =
-          draft.mediaIdHoveredContentBlocks.get(mediaId) ?? [];
-        const filteredBlocks = existingBlocks.filter(
-          (id) => id !== contentBlockId,
+        removeContentBlockIdFromMap(
+          draft.mediaIdHoveredContentBlocks,
+          mediaId,
+          contentBlockId,
         );
-        if (filteredBlocks.length === 0) {
-          draft.mediaIdHoveredContentBlocks.delete(mediaId);
-        } else {
-          draft.mediaIdHoveredContentBlocks.set(mediaId, filteredBlocks);
-        }
       }
     })
     .exhaustive();
