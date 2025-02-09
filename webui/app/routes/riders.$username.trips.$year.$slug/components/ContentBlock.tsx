@@ -102,7 +102,7 @@ export interface ContentBlockVisibilityEvent {
   contentBlockId: string;
   rideIds: string[];
   mediaIds: string[];
-  isVisible: boolean;
+  eventType: "visibleStart" | "visibleEnd";
 }
 
 export function ContentBlock({
@@ -154,7 +154,7 @@ export function ContentBlock({
           contentBlockId,
           rideIds,
           mediaIds,
-          isVisible: isIntersecting,
+          eventType: isIntersecting ? "visibleStart" : "visibleEnd",
         });
       }
     },

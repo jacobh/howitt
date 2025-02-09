@@ -1,5 +1,6 @@
 import { useMutativeReducer } from "use-mutative";
 import { ContentBlockVisibilityEvent } from "../components/ContentBlock";
+import { match } from "ts-pattern";
 
 type State = {
   routeIdToContentBlocks: Map<string, string[]>;
@@ -12,53 +13,61 @@ const initialState: State = {
 };
 
 function reducer(draft: State, event: ContentBlockVisibilityEvent): void {
-  const { contentBlockId, rideIds, mediaIds, isVisible } = event;
+  const { contentBlockId, rideIds, mediaIds, eventType } = event;
 
-  // Handle route IDs
-  for (const rideId of rideIds) {
-    const existingBlocks = draft.routeIdToContentBlocks.get(rideId) ?? [];
+  // Handle both route and media IDs based on eventType
+  match(eventType)
+    .with("visibleStart", () => {
+      // Handle route IDs
+      for (const rideId of rideIds) {
+        const existingBlocks = draft.routeIdToContentBlocks.get(rideId) ?? [];
+        if (!existingBlocks.includes(contentBlockId)) {
+          draft.routeIdToContentBlocks.set(rideId, [
+            ...existingBlocks,
+            contentBlockId,
+          ]);
+        }
+      }
 
-    if (isVisible) {
-      if (!existingBlocks.includes(contentBlockId)) {
-        draft.routeIdToContentBlocks.set(rideId, [
-          ...existingBlocks,
-          contentBlockId,
-        ]);
+      // Handle media IDs
+      for (const mediaId of mediaIds) {
+        const existingBlocks = draft.mediaIdToContentBlocks.get(mediaId) ?? [];
+        if (!existingBlocks.includes(contentBlockId)) {
+          draft.mediaIdToContentBlocks.set(mediaId, [
+            ...existingBlocks,
+            contentBlockId,
+          ]);
+        }
       }
-    } else {
-      const filteredBlocks = existingBlocks.filter(
-        (id) => id !== contentBlockId,
-      );
-      if (filteredBlocks.length === 0) {
-        draft.routeIdToContentBlocks.delete(rideId);
-      } else {
-        draft.routeIdToContentBlocks.set(rideId, filteredBlocks);
+    })
+    .with("visibleEnd", () => {
+      // Handle route IDs
+      for (const rideId of rideIds) {
+        const existingBlocks = draft.routeIdToContentBlocks.get(rideId) ?? [];
+        const filteredBlocks = existingBlocks.filter(
+          (id) => id !== contentBlockId,
+        );
+        if (filteredBlocks.length === 0) {
+          draft.routeIdToContentBlocks.delete(rideId);
+        } else {
+          draft.routeIdToContentBlocks.set(rideId, filteredBlocks);
+        }
       }
-    }
-  }
 
-  // Handle media IDs
-  for (const mediaId of mediaIds) {
-    const existingBlocks = draft.mediaIdToContentBlocks.get(mediaId) ?? [];
-
-    if (isVisible) {
-      if (!existingBlocks.includes(contentBlockId)) {
-        draft.mediaIdToContentBlocks.set(mediaId, [
-          ...existingBlocks,
-          contentBlockId,
-        ]);
+      // Handle media IDs
+      for (const mediaId of mediaIds) {
+        const existingBlocks = draft.mediaIdToContentBlocks.get(mediaId) ?? [];
+        const filteredBlocks = existingBlocks.filter(
+          (id) => id !== contentBlockId,
+        );
+        if (filteredBlocks.length === 0) {
+          draft.mediaIdToContentBlocks.delete(mediaId);
+        } else {
+          draft.mediaIdToContentBlocks.set(mediaId, filteredBlocks);
+        }
       }
-    } else {
-      const filteredBlocks = existingBlocks.filter(
-        (id) => id !== contentBlockId,
-      );
-      if (filteredBlocks.length === 0) {
-        draft.mediaIdToContentBlocks.delete(mediaId);
-      } else {
-        draft.mediaIdToContentBlocks.set(mediaId, filteredBlocks);
-      }
-    }
-  }
+    })
+    .exhaustive();
 }
 
 export function useVisibleContent(): {
