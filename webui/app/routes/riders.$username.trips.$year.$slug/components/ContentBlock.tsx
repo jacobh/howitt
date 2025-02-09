@@ -112,36 +112,24 @@ export function ContentBlock({
 }: ContentBlockProps): React.ReactElement {
   const block = useFragment(ContentBlockFragment, blockFragment);
 
-  const contentBlockId = useMemo(
+  const { contentBlockId, rideIds, mediaIds } = useMemo(
     () =>
       match(block)
-        .with({ __typename: "Ride" }, (ride) => `ride-${ride.rideId}`)
-        .with({ __typename: "Note" }, (note) => `note-${note.contentAt}`)
-        .with({ __typename: "Media" }, (media) => `media-${media.mediaId}`)
-        .exhaustive(),
-    [block],
-  );
-
-  const rideIds = useMemo(
-    () =>
-      match(block)
-        .with({ __typename: "Ride" }, (ride) => [ride.rideId])
-        .with({ __typename: "Note" }, (note) =>
-          note.ride ? [note.ride.id] : [],
-        )
-        .with({ __typename: "Media" }, (media) =>
-          media.rides.map((ride) => ride.id),
-        )
-        .exhaustive(),
-    [block],
-  );
-
-  const mediaIds = useMemo(
-    () =>
-      match(block)
-        .with({ __typename: "Ride" }, () => [])
-        .with({ __typename: "Note" }, () => [])
-        .with({ __typename: "Media" }, (media) => [media.mediaId])
+        .with({ __typename: "Ride" }, (ride) => ({
+          contentBlockId: `ride-${ride.rideId}`,
+          rideIds: [ride.rideId],
+          mediaIds: [],
+        }))
+        .with({ __typename: "Note" }, (note) => ({
+          contentBlockId: `note-${note.contentAt}`,
+          rideIds: note.ride ? [note.ride.id] : [],
+          mediaIds: [],
+        }))
+        .with({ __typename: "Media" }, (media) => ({
+          contentBlockId: `media-${media.mediaId}`,
+          rideIds: media.rides.map((ride) => ride.id),
+          mediaIds: [media.mediaId],
+        }))
         .exhaustive(),
     [block],
   );
