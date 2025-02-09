@@ -1,6 +1,7 @@
 import { useMutativeReducer } from "use-mutative";
-import { ContentBlockVisibilityEvent } from "../components/ContentBlock";
+import { ContentBlockEvent } from "../components/ContentBlock";
 import { match } from "ts-pattern";
+import { useCallback } from "react";
 
 type State = {
   routeIdToContentBlocks: Map<string, string[]>;
@@ -12,7 +13,7 @@ const initialState: State = {
   mediaIdToContentBlocks: new Map(),
 };
 
-function reducer(draft: State, event: ContentBlockVisibilityEvent): void {
+function reducer(draft: State, event: ContentBlockEvent): void {
   const { contentBlockId, rideIds, mediaIds, eventType } = event;
 
   // Handle both route and media IDs based on eventType
@@ -71,17 +72,18 @@ function reducer(draft: State, event: ContentBlockVisibilityEvent): void {
 }
 
 export function useVisibleContent(): {
-  onContentBlockVisibilityChange: (event: ContentBlockVisibilityEvent) => void;
+  onContentBlockEvent: (event: ContentBlockEvent) => void;
   visibleRouteIds: Set<string>;
   visibleMediaIds: Set<string>;
 } {
   const [state, dispatch] = useMutativeReducer(reducer, initialState);
 
-  const onContentBlockVisibilityChange = (
-    event: ContentBlockVisibilityEvent,
-  ): void => {
-    dispatch(event);
-  };
+  const onContentBlockEvent = useCallback(
+    (event: ContentBlockEvent): void => {
+      dispatch(event);
+    },
+    [dispatch],
+  );
 
   // Get all route IDs and media IDs that have visible content blocks
   const visibleRouteIds = new Set(state.routeIdToContentBlocks.keys());
@@ -90,7 +92,7 @@ export function useVisibleContent(): {
   console.log(visibleMediaIds);
 
   return {
-    onContentBlockVisibilityChange,
+    onContentBlockEvent,
     visibleRouteIds,
     visibleMediaIds,
   };

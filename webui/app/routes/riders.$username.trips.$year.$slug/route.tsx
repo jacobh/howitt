@@ -65,7 +65,7 @@ const temporalBlocksContainerStyles = css({
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
-  const { visibleRouteIds, visibleMediaIds, onContentBlockVisibilityChange } =
+  const { visibleRouteIds, visibleMediaIds, onContentBlockEvent } =
     useVisibleContent();
 
   const { data, loading, refetch } = useQuery(TripQuery, {
@@ -204,7 +204,7 @@ export default function TripDetail(): React.ReactElement {
                   key={i}
                   block={block}
                   rideIdRideMap={rideIdRideMap}
-                  onVisibilityChange={onContentBlockVisibilityChange}
+                  onEvent={onContentBlockEvent}
                 />
               ))}
             </div>

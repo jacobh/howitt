@@ -95,10 +95,10 @@ export const ContentBlockFragment = gql(`
 type ContentBlockProps = {
   block: FragmentType<typeof ContentBlockFragment>;
   rideIdRideMap: Map<string, Track>;
-  onVisibilityChange?: (event: ContentBlockVisibilityEvent) => void;
+  onEvent?: (event: ContentBlockEvent) => void;
 };
 
-export interface ContentBlockVisibilityEvent {
+export interface ContentBlockEvent {
   contentBlockId: string;
   rideIds: string[];
   mediaIds: string[];
@@ -108,7 +108,7 @@ export interface ContentBlockVisibilityEvent {
 export function ContentBlock({
   block: blockFragment,
   rideIdRideMap,
-  onVisibilityChange,
+  onEvent,
 }: ContentBlockProps): React.ReactElement {
   const block = useFragment(ContentBlockFragment, blockFragment);
 
@@ -149,14 +149,12 @@ export function ContentBlock({
   const { ref } = useIntersectionObserver({
     threshold: 0.2,
     onChange: (isIntersecting) => {
-      if (onVisibilityChange) {
-        onVisibilityChange({
-          contentBlockId,
-          rideIds,
-          mediaIds,
-          eventType: isIntersecting ? "visibleStart" : "visibleEnd",
-        });
-      }
+      onEvent?.({
+        contentBlockId,
+        rideIds,
+        mediaIds,
+        eventType: isIntersecting ? "visibleStart" : "visibleEnd",
+      });
     },
   });
 
