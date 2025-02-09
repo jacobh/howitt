@@ -7,7 +7,25 @@ import { isNotNil } from "~/services/isNotNil";
 import { Track } from "~/components/map/types";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useIntersectionObserver } from "usehooks-ts";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+
+const contentBlockStyles = css({
+  position: "relative", // This ensures the overlay positions relative to this container
+});
+
+const overlayStyles = css({
+  position: "absolute",
+  top: "8px",
+  right: "8px",
+  backgroundColor: "rgba(0, 0, 0, 0.7)",
+  color: "white",
+  padding: "8px 12px",
+  borderRadius: "4px",
+  fontSize: "14px",
+  pointerEvents: "none",
+  opacity: 0,
+  transition: "opacity 0.05s ease-in-out",
+});
 
 const rideItemStyles = css({
   margin: "24px 0",
@@ -117,6 +135,7 @@ export function ContentBlock({
   onEvent,
 }: ContentBlockProps): React.ReactElement {
   const block = useFragment(ContentBlockFragment, blockFragment);
+  const [isHovered, setIsHovered] = useState(false);
 
   const { contentBlockId, rideIds, mediaIds, contentType } = useMemo(
     () =>
@@ -159,7 +178,7 @@ export function ContentBlock({
   const content = match(block)
     .with({ __typename: "Ride" }, (ride) => (
       <div css={rideItemStyles}>
-        <hr css={dividerStyles} />
+        {/* <hr css={dividerStyles} /> */}
         <div css={rideMapStyles}>
           <MapComponent
             interactive={false}
@@ -192,6 +211,7 @@ export function ContentBlock({
     .exhaustive();
 
   const handleMouseEnter = useCallback((): void => {
+    setIsHovered(true);
     onEvent?.({
       contentBlockId,
       rideIds,
@@ -202,6 +222,7 @@ export function ContentBlock({
   }, [contentBlockId, rideIds, mediaIds, contentType, onEvent]);
 
   const handleMouseLeave = useCallback((): void => {
+    setIsHovered(false);
     onEvent?.({
       contentBlockId,
       rideIds,
@@ -247,8 +268,12 @@ export function ContentBlock({
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
+      css={contentBlockStyles}
     >
       {content}
+      <div css={overlayStyles} style={{ opacity: isHovered ? 1 : 0 }}>
+        Click to see on map
+      </div>
     </div>
   );
 }
