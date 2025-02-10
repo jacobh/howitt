@@ -160,6 +160,7 @@ export type Mutation = {
   initiateRwgpsHistorySync: Viewer;
   updateTrip: UpdateTripOutput;
   updateTripMedia: TripMediaOutput;
+  updateTripRides: TripRidesOutput;
 };
 
 export type MutationCreateTripArgs = {
@@ -172,6 +173,10 @@ export type MutationUpdateTripArgs = {
 
 export type MutationUpdateTripMediaArgs = {
   input: UpdateTripMediaInput;
+};
+
+export type MutationUpdateTripRidesArgs = {
+  input: UpdateTripRidesInput;
 };
 
 export type NearbyRoute = {
@@ -223,6 +228,7 @@ export type Query = {
   routes: Array<Route>;
   starredRoutes: Array<Route>;
   trip?: Maybe<Trip>;
+  trips: Array<Trip>;
   userWithUsername?: Maybe<UserProfile>;
   viewer?: Maybe<Viewer>;
 };
@@ -392,6 +398,11 @@ export type TripNoteInput = {
   timestamp: Scalars["DateTime"]["input"];
 };
 
+export type TripRidesOutput = {
+  __typename?: "TripRidesOutput";
+  trip?: Maybe<Trip>;
+};
+
 export type UpdateTripInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   name: Scalars["String"]["input"];
@@ -407,6 +418,11 @@ export type UpdateTripMediaInput = {
 export type UpdateTripOutput = {
   __typename?: "UpdateTripOutput";
   trip?: Maybe<Trip>;
+};
+
+export type UpdateTripRidesInput = {
+  rideIds: Array<Scalars["RideId"]["input"]>;
+  tripId: Scalars["TripId"]["input"];
 };
 
 export type UserProfile = {
@@ -946,6 +962,22 @@ export type InitiateRwgpsHistorySyncMutation = {
   initiateRwgpsHistorySync: { __typename?: "Viewer" } & {
     " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
   };
+};
+
+export type TripsQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type TripsQueryQuery = {
+  __typename?: "Query";
+  trips: Array<
+    { __typename?: "Trip"; id: any } & {
+      " $fragmentRefs"?: { TripItemFragment: TripItemFragment };
+    }
+  >;
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
 };
 
 export const ElevationPathFragmentDoc = {
@@ -3664,3 +3696,96 @@ export const InitiateRwgpsHistorySyncDocument = {
   InitiateRwgpsHistorySyncMutation,
   InitiateRwgpsHistorySyncMutationVariables
 >;
+export const TripsQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "TripsQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "trips" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "tripItem" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "year" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TripsQueryQuery, TripsQueryQueryVariables>;

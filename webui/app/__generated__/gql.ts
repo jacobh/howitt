@@ -64,6 +64,8 @@ const documents = {
     types.SettingsDocument,
   "\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n":
     types.InitiateRwgpsHistorySyncDocument,
+  "\n  query TripsQuery {\n    trips {\n      id\n      ...tripItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
+    types.TripsQueryDocument,
 };
 
 /**
@@ -230,6 +232,12 @@ export function gql(
 export function gql(
   source: "\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n",
 ): (typeof documents)["\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query TripsQuery {\n    trips {\n      id\n      ...tripItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n",
+): (typeof documents)["\n  query TripsQuery {\n    trips {\n      id\n      ...tripItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};
