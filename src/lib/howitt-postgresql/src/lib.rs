@@ -14,10 +14,7 @@ pub struct PostgresClient {
 impl PostgresClient {
     pub async fn connect(url: &str) -> Result<PostgresClient, PostgresRepoError> {
         Ok(PostgresClient {
-            pool: PgPoolOptions::new()
-                .max_connections(10)
-                .connect(url)
-                .await?,
+            pool: PgPoolOptions::new().max_connections(5).connect(url).await?,
         })
     }
 
