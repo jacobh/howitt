@@ -55,16 +55,22 @@ export type Scalars = {
   UserId: { input: any; output: any };
 };
 
-export type AddTripMediaInput = {
-  mediaIds: Array<Scalars["MediaId"]["input"]>;
-  tripId: Scalars["TripId"]["input"];
-};
-
 export type BikeSpec = {
   __typename?: "BikeSpec";
   frontSuspension: Array<Scalars["Float"]["output"]>;
   rearSuspension: Array<Scalars["Float"]["output"]>;
   tyreWidth: Array<Scalars["Float"]["output"]>;
+};
+
+export type CreateTripInput = {
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  name: Scalars["String"]["input"];
+  rideIds: Array<Scalars["RideId"]["input"]>;
+};
+
+export type CreateTripOutput = {
+  __typename?: "CreateTripOutput";
+  trip: Trip;
 };
 
 export type Cue = {
@@ -149,23 +155,23 @@ export type MediaTarget = {
 
 export type Mutation = {
   __typename?: "Mutation";
-  addTripMedia: TripMediaOutput;
   clearRwgpsConnection: Viewer;
+  createTrip: CreateTripOutput;
   initiateRwgpsHistorySync: Viewer;
-  removeTripMedia: TripMediaOutput;
   updateTrip: UpdateTripOutput;
+  updateTripMedia: TripMediaOutput;
 };
 
-export type MutationAddTripMediaArgs = {
-  input: AddTripMediaInput;
-};
-
-export type MutationRemoveTripMediaArgs = {
-  input: RemoveTripMediaInput;
+export type MutationCreateTripArgs = {
+  input: CreateTripInput;
 };
 
 export type MutationUpdateTripArgs = {
   input: UpdateTripInput;
+};
+
+export type MutationUpdateTripMediaArgs = {
+  input: UpdateTripMediaInput;
 };
 
 export type NearbyRoute = {
@@ -253,11 +259,6 @@ export type QueryRouteFilters = {
 
 export type QueryRoutesInput = {
   filters: Array<QueryRouteFilters>;
-};
-
-export type RemoveTripMediaInput = {
-  mediaIds: Array<Scalars["MediaId"]["input"]>;
-  tripId: Scalars["TripId"]["input"];
 };
 
 export type Ride = ElevationPath &
@@ -395,6 +396,11 @@ export type UpdateTripInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   name: Scalars["String"]["input"];
   notes: Array<TripNoteInput>;
+  tripId: Scalars["TripId"]["input"];
+};
+
+export type UpdateTripMediaInput = {
+  mediaIds: Array<Scalars["MediaId"]["input"]>;
   tripId: Scalars["TripId"]["input"];
 };
 
@@ -551,6 +557,7 @@ export type EditTripFragment = ({
   id: any;
   name: string;
   description?: string | null;
+  media: Array<{ __typename?: "Media"; id: any }>;
   temporalContentBlocks: Array<
     | {
         __typename: "Media";
@@ -588,13 +595,13 @@ export type UpdateTripMutation = {
   };
 };
 
-export type RemoveTripMediaMutationVariables = Exact<{
-  input: RemoveTripMediaInput;
+export type UpdateTripMediaMutationVariables = Exact<{
+  input: UpdateTripMediaInput;
 }>;
 
-export type RemoveTripMediaMutation = {
+export type UpdateTripMediaMutation = {
   __typename?: "Mutation";
-  removeTripMedia: {
+  updateTripMedia: {
     __typename?: "TripMediaOutput";
     trip?: { __typename?: "Trip"; id: any } | null;
   };
@@ -1138,6 +1145,16 @@ export const EditTripFragmentDoc = {
           {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripMedia" },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "media" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
           },
           {
             kind: "Field",
@@ -1796,13 +1813,13 @@ export const UpdateTripDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdateTripMutation, UpdateTripMutationVariables>;
-export const RemoveTripMediaDocument = {
+export const UpdateTripMediaDocument = {
   kind: "Document",
   definitions: [
     {
       kind: "OperationDefinition",
       operation: "mutation",
-      name: { kind: "Name", value: "RemoveTripMedia" },
+      name: { kind: "Name", value: "UpdateTripMedia" },
       variableDefinitions: [
         {
           kind: "VariableDefinition",
@@ -1814,7 +1831,7 @@ export const RemoveTripMediaDocument = {
             kind: "NonNullType",
             type: {
               kind: "NamedType",
-              name: { kind: "Name", value: "RemoveTripMediaInput" },
+              name: { kind: "Name", value: "UpdateTripMediaInput" },
             },
           },
         },
@@ -1824,7 +1841,7 @@ export const RemoveTripMediaDocument = {
         selections: [
           {
             kind: "Field",
-            name: { kind: "Name", value: "removeTripMedia" },
+            name: { kind: "Name", value: "updateTripMedia" },
             arguments: [
               {
                 kind: "Argument",
@@ -1856,8 +1873,8 @@ export const RemoveTripMediaDocument = {
     },
   ],
 } as unknown as DocumentNode<
-  RemoveTripMediaMutation,
-  RemoveTripMediaMutationVariables
+  UpdateTripMediaMutation,
+  UpdateTripMediaMutationVariables
 >;
 export const LoginViewerInfoDocument = {
   kind: "Document",
@@ -2686,6 +2703,16 @@ export const TripQueryDocument = {
           {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripMedia" },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "media" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
           },
           {
             kind: "Field",

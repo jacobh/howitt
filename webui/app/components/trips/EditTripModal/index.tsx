@@ -21,6 +21,9 @@ export const EditTripFragment = gql(`
     description
     ...tripRides
     ...tripMedia
+    media {
+      id
+    }
     temporalContentBlocks {
       __typename
       contentAt
@@ -59,9 +62,9 @@ const UpdateTripMutation = gql(`
   }
 `);
 
-const RemoveTripMediaMutation = gql(`
-  mutation RemoveTripMedia($input: RemoveTripMediaInput!) {
-    removeTripMedia(input: $input) {
+const UpdateTripMediaMutation = gql(`
+  mutation UpdateTripMedia($input: UpdateTripMediaInput!) {
+    updateTripMedia(input: $input) {
       trip {
         id
       }
@@ -228,8 +231,8 @@ export function EditTripModal({
     },
   });
 
-  const [removeMedia, { loading: removingMedia }] = useMutation(
-    RemoveTripMediaMutation,
+  const [updateMedia, { loading: updatingMedia }] = useMutation(
+    UpdateTripMediaMutation,
     {
       onCompleted: () => {
         refetch();
@@ -239,16 +242,19 @@ export function EditTripModal({
 
   const handleRemoveMedia = useCallback(
     (mediaId: string): void => {
-      removeMedia({
+      const currentMediaIds = trip.media.map((m) => m.id);
+      const updatedMediaIds = currentMediaIds.filter((id) => id !== mediaId);
+
+      updateMedia({
         variables: {
           input: {
             tripId: trip.id,
-            mediaIds: [mediaId],
+            mediaIds: updatedMediaIds,
           },
         },
       });
     },
-    [removeMedia, trip.id],
+    [updateMedia, trip.id, trip.media],
   );
 
   const handleSubmit = useCallback(
@@ -421,7 +427,7 @@ export function EditTripModal({
             <MediaTable
               trip={trip}
               onRemoveMedia={handleRemoveMedia}
-              removingMedia={removingMedia}
+              removingMedia={updatingMedia}
             />
             <MediaDropzone
               tripId={trip.id}

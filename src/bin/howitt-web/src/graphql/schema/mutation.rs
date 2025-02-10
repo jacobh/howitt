@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use async_graphql::*;
 use chrono::{DateTime, Datelike, Utc};
 use howitt::jobs::rwgps::RwgpsJob;
@@ -9,7 +7,6 @@ use howitt::models::ride::{RideFilter, RideId};
 use howitt::models::trip::{Trip as TripModel, TripId, TripNote};
 use howitt::repos::Repos;
 use howitt::services::slug::generate_slug;
-use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
 use crate::graphql::schema::{trip::Trip, ModelId};
@@ -48,13 +45,7 @@ pub struct UpdateTripOutput {
 }
 
 #[derive(InputObject)]
-pub struct AddTripMediaInput {
-    pub trip_id: ModelId<TripId>,
-    pub media_ids: Vec<ModelId<MediaId>>,
-}
-
-#[derive(InputObject)]
-pub struct RemoveTripMediaInput {
+pub struct UpdateTripMediaInput {
     pub trip_id: ModelId<TripId>,
     pub media_ids: Vec<ModelId<MediaId>>,
 }
@@ -128,6 +119,7 @@ impl Mutation {
 
         Ok(CreateTripOutput { trip: Trip(trip) })
     }
+
     async fn update_trip(
         &self,
         ctx: &Context<'_>,
@@ -173,10 +165,10 @@ impl Mutation {
         })
     }
 
-    async fn add_trip_media(
+    async fn update_trip_media(
         &self,
         ctx: &Context<'_>,
-        input: AddTripMediaInput,
+        input: UpdateTripMediaInput,
     ) -> Result<TripMediaOutput, Error> {
         // Get required context data
         let SchemaData {
@@ -198,61 +190,8 @@ impl Mutation {
             return Err(Error::new("Not authorized to update this trip"));
         }
 
-        let media_ids = trip
-            .media_ids
-            .clone()
-            .into_iter()
-            .chain(input.media_ids.into_iter().map(|id| id.0))
-            .unique()
-            .collect_vec();
-
-        trip.media_ids = media_ids;
-
-        // Save changes
-        trip_repo.put(trip.clone()).await?;
-
-        Ok(TripMediaOutput {
-            trip: Some(Trip(trip)),
-        })
-    }
-
-    async fn remove_trip_media(
-        &self,
-        ctx: &Context<'_>,
-        input: RemoveTripMediaInput,
-    ) -> Result<TripMediaOutput, Error> {
-        // Get required context data
-        let SchemaData {
-            repos: Repos { trip_repo, .. },
-            ..
-        } = ctx.data()?;
-        let RequestData { login } = ctx.data()?;
-
-        // Ensure user is logged in
-        let login = login
-            .as_ref()
-            .ok_or_else(|| Error::new("Authentication required"))?;
-
-        // Get the trip
-        let mut trip = trip_repo.get(input.trip_id.0).await?;
-
-        // Verify ownership
-        if trip.user_id != login.session.user_id {
-            return Err(Error::new("Not authorized to update this trip"));
-        }
-
-        let media_ids_to_remove: HashSet<MediaId> =
-            HashSet::from_iter(input.media_ids.into_iter().map(|id| id.0));
-
-        let media_ids = trip
-            .media_ids
-            .clone()
-            .into_iter()
-            .filter(|id| !media_ids_to_remove.contains(id))
-            .collect_vec();
-
-        trip.media_ids = media_ids;
-
+        // Update media IDs
+        trip.media_ids = input.media_ids.into_iter().map(|id| id.0).collect();
         // Save changes
         trip_repo.put(trip.clone()).await?;
 
