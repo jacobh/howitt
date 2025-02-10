@@ -1,4 +1,4 @@
-use crate::services::euclidean::geo_to_euclidean;
+use crate::services::euclidean::iter_geo_to_euclidean;
 use derive_more::derive::Display;
 use geo::prelude::*;
 use geo::LineString;
@@ -118,7 +118,7 @@ pub fn simplify_points_v2<P: Point>(points: Vec<P>) -> Vec<P> {
 
     // Convert points to geo points
     let geo_points = points.iter().map(|p| *p.as_geo_point());
-    let euclidean_points = geo_to_euclidean(geo_points).collect_vec();
+    let euclidean_points = iter_geo_to_euclidean(geo_points).collect_vec();
 
     // Create a HashMap mapping ordered (x,y) tuples to original points
     let mut point_map: HashMap<_, _> = points
