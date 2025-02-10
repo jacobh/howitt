@@ -39,6 +39,17 @@ pub struct UpdateTripInput {
     pub notes: Vec<TripNoteInput>,
 }
 
+#[derive(InputObject)]
+pub struct UpdateTripRidesInput {
+    pub trip_id: ModelId<TripId>,
+    pub ride_ids: Vec<ModelId<RideId>>,
+}
+
+#[derive(SimpleObject)]
+pub struct TripRidesOutput {
+    pub trip: Option<Trip>,
+}
+
 #[derive(SimpleObject)]
 pub struct UpdateTripOutput {
     pub trip: Option<Trip>,
@@ -161,6 +172,61 @@ impl Mutation {
         trip_repo.put(trip.clone()).await?;
 
         Ok(UpdateTripOutput {
+            trip: Some(Trip(trip)),
+        })
+    }
+
+    async fn update_trip_rides(
+        &self,
+        ctx: &Context<'_>,
+        input: UpdateTripRidesInput,
+    ) -> Result<TripRidesOutput, Error> {
+        // Get required context data
+        let SchemaData {
+            repos:
+                Repos {
+                    trip_repo,
+                    ride_repo,
+                    ..
+                },
+            ..
+        } = ctx.data()?;
+        let RequestData { login } = ctx.data()?;
+
+        // Ensure user is logged in
+        let login = login
+            .as_ref()
+            .ok_or_else(|| Error::new("Authentication required"))?;
+
+        // Get the trip
+        let mut trip = trip_repo.get(input.trip_id.0).await?;
+
+        // Verify ownership
+        if trip.user_id != login.session.user_id {
+            return Err(Error::new("Not authorized to update this trip"));
+        }
+
+        // Get all rides to validate ownership
+        let rides = ride_repo
+            .filter_models(RideFilter::Ids(
+                input.ride_ids.iter().map(|id| id.0).collect(),
+            ))
+            .await?;
+
+        // Verify all rides belong to user
+        for ride in &rides {
+            if ride.user_id != login.session.user_id {
+                return Err(Error::new("Not authorized to use this ride"));
+            }
+        }
+
+        // Update ride IDs
+        trip.ride_ids = input.ride_ids.into_iter().map(|id| id.0).collect();
+
+        // Save changes
+        trip_repo.put(trip.clone()).await?;
+
+        Ok(TripRidesOutput {
             trip: Some(Trip(trip)),
         })
     }
