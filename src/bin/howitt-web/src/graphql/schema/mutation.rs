@@ -1,18 +1,32 @@
 use std::collections::HashSet;
 
 use async_graphql::*;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Datelike, Utc};
 use howitt::jobs::rwgps::RwgpsJob;
 use howitt::jobs::Job;
 use howitt::models::media::MediaId;
-use howitt::models::trip::{TripId, TripNote};
+use howitt::models::ride::{RideFilter, RideId};
+use howitt::models::trip::{Trip as TripModel, TripId, TripNote};
 use howitt::repos::Repos;
+use howitt::services::slug::generate_slug;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
 use crate::graphql::schema::{trip::Trip, ModelId};
 
 use super::viewer::Viewer;
+
+#[derive(InputObject)]
+pub struct CreateTripInput {
+    pub name: String,
+    pub ride_ids: Vec<ModelId<RideId>>,
+    pub description: Option<String>,
+}
+
+#[derive(SimpleObject)]
+pub struct CreateTripOutput {
+    pub trip: Trip,
+}
 
 #[derive(InputObject)]
 pub struct TripNoteInput {
@@ -54,6 +68,66 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    async fn create_trip(
+        &self,
+        ctx: &Context<'_>,
+        input: CreateTripInput,
+    ) -> Result<CreateTripOutput, Error> {
+        // Get required context data
+        let SchemaData {
+            repos:
+                Repos {
+                    trip_repo,
+                    ride_repo,
+                    ..
+                },
+            ..
+        } = ctx.data()?;
+        let RequestData { login } = ctx.data()?;
+
+        // Ensure user is logged in
+        let login = login
+            .as_ref()
+            .ok_or_else(|| Error::new("Authentication required"))?;
+
+        // Get all rides to validate ownership and determine year
+        let rides = ride_repo
+            .filter_models(RideFilter::Ids(
+                input.ride_ids.iter().map(|id| id.0).collect(),
+            ))
+            .await?;
+
+        // Verify all rides belong to user
+        for ride in &rides {
+            if ride.user_id != login.session.user_id {
+                return Err(Error::new("Not authorized to use this ride"));
+            }
+        }
+
+        // Get earliest ride to determine year
+        let first_ride = rides
+            .iter()
+            .min_by_key(|ride| ride.started_at)
+            .ok_or_else(|| Error::new("At least one ride is required"))?;
+
+        let trip = TripModel {
+            id: TripId::new(),
+            created_at: Utc::now(),
+            user_id: login.session.user_id,
+            name: input.name.clone(),
+            slug: generate_slug(&input.name),
+            year: first_ride.started_at.year(),
+            description: input.description,
+            notes: Vec::new(),
+            ride_ids: input.ride_ids.into_iter().map(|id| id.0).collect(),
+            media_ids: Vec::new(),
+        };
+
+        // Save the new trip
+        trip_repo.put(trip.clone()).await?;
+
+        Ok(CreateTripOutput { trip: Trip(trip) })
+    }
     async fn update_trip(
         &self,
         ctx: &Context<'_>,
