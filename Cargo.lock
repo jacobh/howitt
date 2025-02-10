@@ -1922,6 +1922,7 @@ dependencies = [
  "once_cell",
  "ordered-float",
  "regex",
+ "rustc-hash",
  "rwgps_types",
  "sanitize-filename",
  "serde",

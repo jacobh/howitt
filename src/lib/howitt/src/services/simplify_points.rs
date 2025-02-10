@@ -3,7 +3,7 @@ use derive_more::derive::Display;
 use geo::prelude::*;
 use geo::LineString;
 use itertools::Itertools;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::models::point::Point;
 
@@ -121,7 +121,7 @@ pub fn simplify_points_v2<P: Point>(points: Vec<P>) -> Vec<P> {
     let euclidean_points = iter_geo_to_euclidean(geo_points).collect_vec();
 
     // Create a HashMap mapping ordered (x,y) tuples to original points
-    let mut point_map: HashMap<_, _> = points
+    let mut point_map: FxHashMap<_, _> = points
         .into_iter()
         .zip(euclidean_points.iter())
         .map(|(p, e)| (e.ordered_x_y(), p))
