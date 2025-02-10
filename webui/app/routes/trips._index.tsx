@@ -12,15 +12,38 @@ import { TripItem } from "~/components/trips/TripItem";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { DEFAULT_INITIAL_VIEW } from "~/components/map";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
+import { useMemo } from "react";
+import { buildRideTrack } from "~/components/map/types";
 
-const TripsQuery = gql(`
+const TripsQueryNoPoints = gql(`
   query TripsQuery {
     trips {
       id
+      name
+      legs {
+        rides {
+          id
+          pointsJson(pointsPerKm: 1)
+        }
+      }
       ...tripItem
     }
     viewer {
       ...viewerInfo
+    }
+  }
+`);
+
+const TripsQueryWithPoints = gql(`
+  query TripsQueryPoints {
+    trips {
+      id
+      legs {
+        rides {
+          id
+          pointsJson(pointsPerKm: 8)
+        }
+      }
     }
   }
 `);
@@ -35,7 +58,18 @@ const tripItemContainerCss = css`
 `;
 
 export default function Trips(): React.ReactElement {
-  const { data, loading } = useQuery(TripsQuery);
+  const { data, loading } = useQuery(TripsQueryNoPoints);
+  const { data: data2 } = useQuery(TripsQueryWithPoints, {
+    ssr: false,
+  });
+
+  const tracks = useMemo(() => {
+    const trips = data2?.trips ?? data?.trips ?? [];
+    return trips
+      .flatMap((trip) => trip.legs)
+      .flatMap((leg) => leg.rides)
+      .map((ride) => buildRideTrack(ride, "default"));
+  }, [data?.trips, data2?.trips]);
 
   return (
     <Container>
@@ -54,7 +88,7 @@ export default function Trips(): React.ReactElement {
         )}
       </SidebarContainer>
       <MapContainer>
-        <PrimaryMap initialView={DEFAULT_INITIAL_VIEW} />
+        <PrimaryMap tracks={tracks} initialView={DEFAULT_INITIAL_VIEW} />
       </MapContainer>
     </Container>
   );

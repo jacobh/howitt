@@ -969,15 +969,35 @@ export type TripsQueryQueryVariables = Exact<{ [key: string]: never }>;
 export type TripsQueryQuery = {
   __typename?: "Query";
   trips: Array<
-    { __typename?: "Trip"; id: any } & {
-      " $fragmentRefs"?: { TripItemFragment: TripItemFragment };
-    }
+    {
+      __typename?: "Trip";
+      id: any;
+      name: string;
+      legs: Array<{
+        __typename?: "TripLeg";
+        rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
+      }>;
+    } & { " $fragmentRefs"?: { TripItemFragment: TripItemFragment } }
   >;
   viewer?:
     | ({ __typename?: "Viewer" } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
       })
     | null;
+};
+
+export type TripsQueryPointsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type TripsQueryPointsQuery = {
+  __typename?: "Query";
+  trips: Array<{
+    __typename?: "Trip";
+    id: any;
+    legs: Array<{
+      __typename?: "TripLeg";
+      rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
+    }>;
+  }>;
 };
 
 export const ElevationPathFragmentDoc = {
@@ -3713,6 +3733,40 @@ export const TripsQueryDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "legs" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rides" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "pointsJson" },
+                              arguments: [
+                                {
+                                  kind: "Argument",
+                                  name: { kind: "Name", value: "pointsPerKm" },
+                                  value: { kind: "IntValue", value: "1" },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
                 {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "tripItem" },
@@ -3789,3 +3843,64 @@ export const TripsQueryDocument = {
     },
   ],
 } as unknown as DocumentNode<TripsQueryQuery, TripsQueryQueryVariables>;
+export const TripsQueryPointsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "TripsQueryPoints" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "trips" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "legs" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rides" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "pointsJson" },
+                              arguments: [
+                                {
+                                  kind: "Argument",
+                                  name: { kind: "Name", value: "pointsPerKm" },
+                                  value: { kind: "IntValue", value: "8" },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  TripsQueryPointsQuery,
+  TripsQueryPointsQueryVariables
+>;
