@@ -73,6 +73,7 @@ impl Query {
         Ok(vec![])
         // Ok(routes.into_iter().map(|route| Route(route)).collect())
     }
+
     async fn starred_routes<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -86,6 +87,7 @@ impl Query {
 
         Ok(routes.into_iter().map(Route).collect())
     }
+
     async fn query_routes<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -103,6 +105,7 @@ impl Query {
             })
             .collect_vec())
     }
+
     async fn route<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -117,6 +120,7 @@ impl Query {
 
         Ok(Some(Route(route)))
     }
+
     async fn trip<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -131,6 +135,22 @@ impl Query {
 
         Ok(Some(Trip(trip)))
     }
+
+    async fn trips<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Trip>, async_graphql::Error> {
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
+
+        let trips = trip_repo.all().await?;
+
+        Ok(trips
+            .into_iter()
+            .sorted_by_key(|trip| trip.created_at)
+            .map(Trip)
+            .collect())
+    }
+
     async fn route_with_slug<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -145,6 +165,7 @@ impl Query {
 
         Ok(route.map(|r| Route(r)))
     }
+
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
         let SchemaData {
             repos: Repos { ride_repo, .. },
@@ -158,6 +179,7 @@ impl Query {
             .map(Ride)
             .collect())
     }
+
     async fn points_of_interest<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -174,9 +196,11 @@ impl Query {
 
         Ok(pois.into_iter().map(PointOfInterest).collect())
     }
+
     async fn point_of_interest(&self, _ctx: &Context<'_>, _id: usize) -> Option<PointOfInterest> {
         None
     }
+
     async fn user_with_username<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -191,6 +215,7 @@ impl Query {
 
         Ok(user.map(UserProfile))
     }
+
     async fn public_users<'ctx>(
         &self,
         ctx: &Context<'ctx>,
