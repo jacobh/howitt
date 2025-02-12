@@ -9,7 +9,13 @@ where
 
     rayon::spawn(move || {
         let result = f();
-        let _ = tx.send(result);
+
+        match tx.send(result) {
+            Ok(()) => {}
+            Err(_) => {
+                panic!("Failed to send result from rayon task");
+            }
+        };
     });
 
     rx.await.expect("Rayon task panicked")
