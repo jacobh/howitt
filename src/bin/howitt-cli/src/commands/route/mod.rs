@@ -5,7 +5,7 @@ use howitt::{
     repos::Repo,
     services::{
         generate_cuesheet::generate_cuesheet,
-        simplify_points::{simplify_points, SimplifyTarget},
+        simplify_points::{simplify_points_v2, DetailLevel},
     },
 };
 use howitt_postgresql::PostgresRepos;
@@ -56,7 +56,7 @@ pub async fn handle(
 
             let route_points = route_points_repo.get(route_id).await?;
             let points = route_points.iter_elevation_points().cloned().collect_vec();
-            dbg!(simplify_points(&points, SimplifyTarget::TotalPoints(50)).len());
+            dbg!(simplify_points_v2(points, DetailLevel::ExtremelyLow).len());
             Ok(())
         }
         RouteCommands::GenerateCuesheet(args) => {

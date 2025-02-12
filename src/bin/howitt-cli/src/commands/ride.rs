@@ -2,7 +2,7 @@ use chrono_tz::Australia::Melbourne;
 use clap::{Args, Subcommand};
 use howitt::{
     repos::AnyhowRepo,
-    services::simplify_points::{simplify_points, SimplifyTarget},
+    services::simplify_points::{simplify_points_v2, DetailLevel},
 };
 use howitt_postgresql::PostgresRepos;
 use serde_json::json;
@@ -35,7 +35,7 @@ pub async fn handle(
             let ride_id = howitt::models::ride::RideId::from(uuid::Uuid::parse_str(ride_id)?);
             let ride_points = ride_points_repo.get(ride_id).await?;
 
-            let simplified = simplify_points(&ride_points.points, SimplifyTarget::TotalPoints(25));
+            let simplified = simplify_points_v2(ride_points.points, DetailLevel::ExtremelyLow);
 
             // Convert to [[lng, lat, elevation_m, timestamp], ...] format
             let preview_points: Vec<Vec<serde_json::Value>> = simplified

@@ -7,7 +7,7 @@ use howitt::{
     },
     repos::{RoutePointsRepo, RouteRepo},
     services::{
-        simplify_points::{simplify_points, SimplifyTarget},
+        simplify_points::{simplify_points_v2, DetailLevel},
         slug::generate_slug,
     },
 };
@@ -76,7 +76,7 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
         "Converted track points to elevation points"
     );
 
-    let sample_points = simplify_points(&points, SimplifyTarget::TotalPoints(50));
+    let sample_points = simplify_points_v2(points.clone(), DetailLevel::ExtremelyLow);
     tracing::info!(
         sample_points = sample_points.len(),
         "Generated sample points"

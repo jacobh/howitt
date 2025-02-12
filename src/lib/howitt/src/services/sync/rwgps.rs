@@ -18,7 +18,7 @@ use crate::{
     },
     repos::Repo,
     services::{
-        simplify_points::{simplify_points, SimplifyTarget},
+        simplify_points::{simplify_points_v2, DetailLevel},
         slug::generate_slug,
         smoothing::smooth_elevation_points,
     },
@@ -199,7 +199,10 @@ where
             user_id: user_id.clone(),
             distance: route.distance.unwrap_or(0.0),
             description,
-            sample_points: Some(simplify_points(&points, SimplifyTarget::TotalPoints(50))),
+            sample_points: Some(simplify_points_v2(
+                points.clone(),
+                DetailLevel::ExtremelyLow,
+            )),
             external_ref: Some(ExternalRef {
                 id: ExternalId::Rwgps(RwgpsId::Route(route.id)),
                 sync_version: Some(SYNC_VERSION),
