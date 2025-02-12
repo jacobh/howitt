@@ -25,16 +25,16 @@ impl<Redis: RedisClient> SimplifiedRidePointsFetcher<Redis> {
         }
     }
 
-    fn key(id: RideId, params: &DetailLevel) -> String {
-        [id.to_string(), "POINTS".to_string(), params.to_string()].join("#")
+    fn key(id: RideId, detail_level: &DetailLevel) -> String {
+        [id.to_string(), "POINTS".to_string(), detail_level.to_string()].join("#")
     }
 
     pub async fn fetch(
         &self,
         id: RideId,
-        params: DetailLevel,
+        detail_level: DetailLevel,
     ) -> Result<Vec<TemporalElevationPoint>, anyhow::Error> {
-        let key = Self::key(id, &params);
+        let key = Self::key(id, &detail_level);
 
         self.cache_fetcher
             .fetch_or_insert_with(&key, || async {
@@ -43,7 +43,7 @@ impl<Redis: RedisClient> SimplifiedRidePointsFetcher<Redis> {
                 tracing::info!(ride_id = ?id, points_count = points.len(), "starting points simplification");
         
                 let points =
-                    rayon_spawn_blocking(move || simplify_points_v2(points, DetailLevel::High)).await;
+                    rayon_spawn_blocking(move || simplify_points_v2(points, detail_level)).await;
                 
                 tracing::info!(ride_id = ?id, points_count = points.len(), "completed points simplification");
 
