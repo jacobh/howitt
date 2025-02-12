@@ -14,9 +14,10 @@ import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
 import { useMemo } from "react";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
+import { PointsDetail } from "~/__generated__/graphql";
 
 const RidesWithDateQuery = gql(`
-  query ridesWithDate($username: String!, $date: IsoDate!, $pointsPerKm: Int!) {
+  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {
     viewer {
       ...viewerInfo
     }
@@ -25,7 +26,7 @@ const RidesWithDateQuery = gql(`
       ridesWithDate(date: $date) {
         id
         date
-        pointsJson(pointsPerKm: $pointsPerKm)
+        pointsJson(detailLevel: $detailLevel)
         ...rideSummary
         ...elevationPath
       }
@@ -40,7 +41,7 @@ function UserProfileDate(): React.ReactElement {
     variables: {
       username: params.username ?? "",
       date: params.date ?? "",
-      pointsPerKm: 1,
+      detailLevel: PointsDetail.Low,
     },
   });
 
@@ -48,7 +49,7 @@ function UserProfileDate(): React.ReactElement {
     variables: {
       username: params.username ?? "",
       date: params.date ?? "",
-      pointsPerKm: 50,
+      detailLevel: PointsDetail.High,
     },
     ssr: false,
   });

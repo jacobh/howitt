@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object};
+use async_graphql::{Context, Enum, Object};
 use chrono::{DateTime, Utc};
 use howitt::{
     models::{
@@ -19,6 +19,23 @@ use crate::graphql::context::SchemaData;
 use crate::graphql::schema::{user::UserProfile, IsoDate, ModelId};
 
 use super::media::Media;
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+pub enum PointsDetail {
+    Low,
+    Medium,
+    High,
+}
+
+impl From<PointsDetail> for DetailLevel {
+    fn from(detail: PointsDetail) -> Self {
+        match detail {
+            PointsDetail::Low => DetailLevel::Low,
+            PointsDetail::Medium => DetailLevel::Medium,
+            PointsDetail::High => DetailLevel::High,
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct Ride(pub howitt::models::ride::Ride);
@@ -51,14 +68,14 @@ impl Ride {
     async fn points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
-        points_per_km: usize,
+        detail_level: PointsDetail,
     ) -> Result<Vec<Vec<f64>>, async_graphql::Error> {
         let SchemaData {
             simplified_ride_points_fetcher,
             ..
         } = ctx.data()?;
         let ride_points = simplified_ride_points_fetcher
-            .fetch(self.0.id, DetailLevel::Medium)
+            .fetch(self.0.id, DetailLevel::from(detail_level))
             .await?;
 
         Ok(ride_points
@@ -69,9 +86,9 @@ impl Ride {
     async fn points_json<'ctx>(
         &self,
         ctx: &Context<'ctx>,
-        points_per_km: usize,
+        detail_level: PointsDetail,
     ) -> Result<String, async_graphql::Error> {
-        let points = self.points(ctx, points_per_km).await?;
+        let points = self.points(ctx, detail_level).await?;
 
         Ok(serde_json::to_string(&points)?)
     }

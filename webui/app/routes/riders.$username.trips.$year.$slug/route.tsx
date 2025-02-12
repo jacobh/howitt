@@ -20,9 +20,10 @@ import { create } from "mutative";
 import { useUpdatePrimaryMapView } from "~/components/map/hooks/useUpdatePrimaryMapView";
 import { match } from "ts-pattern";
 import LineString from "ol/geom/LineString";
+import { PointsDetail } from "~/__generated__/graphql";
 
 const TripQuery = gql(`
-  query TripQuery($username: String!, $slug: String!, $pointsPerKm: Int!) {
+  query TripQuery($username: String!, $slug: String!, $detailLevel: PointsDetail!) {
     viewer {
       id
       ...viewerInfo
@@ -46,7 +47,7 @@ const TripQuery = gql(`
           rides {
             id
             ...elevationPath
-            pointsJson(pointsPerKm: $pointsPerKm)
+            pointsJson(detailLevel: $detailLevel)
           }
         }
         temporalContentBlocks {
@@ -81,7 +82,7 @@ export default function TripDetail(): React.ReactElement {
     variables: {
       username: params.username ?? "",
       slug: params.slug ?? "",
-      pointsPerKm: 1,
+      detailLevel: PointsDetail.Low,
     },
   });
 
@@ -89,9 +90,8 @@ export default function TripDetail(): React.ReactElement {
     variables: {
       username: params.username ?? "",
       slug: params.slug ?? "",
-      pointsPerKm: 20,
+      detailLevel: PointsDetail.High,
     },
-
     ssr: false,
   });
 

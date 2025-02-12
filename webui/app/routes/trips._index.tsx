@@ -23,7 +23,7 @@ const TripsQueryNoPoints = gql(`
       legs {
         rides {
           id
-          pointsJson(pointsPerKm: 1)
+          pointsJson(detailLevel: LOW)
         }
       }
       ...tripItem
@@ -41,7 +41,7 @@ const TripsQueryWithPoints = gql(`
       legs {
         rides {
           id
-          pointsJson(pointsPerKm: 8)
+          pointsJson(detailLevel: MEDIUM) 
         }
       }
     }

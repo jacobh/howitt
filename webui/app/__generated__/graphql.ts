@@ -216,6 +216,12 @@ export enum PointOfInterestType {
   RailwayStation = "RAILWAY_STATION",
 }
 
+export enum PointsDetail {
+  High = "HIGH",
+  Low = "LOW",
+  Medium = "MEDIUM",
+}
+
 export type Query = {
   __typename?: "Query";
   pointOfInterest?: Maybe<PointOfInterest>;
@@ -289,11 +295,11 @@ export type Ride = ElevationPath &
   };
 
 export type RidePointsArgs = {
-  pointsPerKm: Scalars["Int"]["input"];
+  detailLevel: PointsDetail;
 };
 
 export type RidePointsJsonArgs = {
-  pointsPerKm: Scalars["Int"]["input"];
+  detailLevel: PointsDetail;
 };
 
 export type Route = ElevationPath &
@@ -648,7 +654,7 @@ export type LoginViewerInfoQuery = {
 export type RidesWithDateQueryVariables = Exact<{
   username: Scalars["String"]["input"];
   date: Scalars["IsoDate"]["input"];
-  pointsPerKm: Scalars["Int"]["input"];
+  detailLevel: PointsDetail;
 }>;
 
 export type RidesWithDateQuery = {
@@ -674,7 +680,7 @@ export type RidesWithDateQuery = {
 
 export type UserProfileQueryQueryVariables = Exact<{
   username: Scalars["String"]["input"];
-  pointsPerKm: Scalars["Int"]["input"];
+  detailLevel: PointsDetail;
 }>;
 
 export type UserProfileQueryQuery = {
@@ -736,7 +742,7 @@ export type ContentBlockFragment =
 export type TripQueryQueryVariables = Exact<{
   username: Scalars["String"]["input"];
   slug: Scalars["String"]["input"];
-  pointsPerKm: Scalars["Int"]["input"];
+  detailLevel: PointsDetail;
 }>;
 
 export type TripQueryQuery = {
@@ -2034,11 +2040,14 @@ export const RidesWithDateDocument = {
           kind: "VariableDefinition",
           variable: {
             kind: "Variable",
-            name: { kind: "Name", value: "pointsPerKm" },
+            name: { kind: "Name", value: "detailLevel" },
           },
           type: {
             kind: "NonNullType",
-            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "PointsDetail" },
+            },
           },
         },
       ],
@@ -2099,10 +2108,10 @@ export const RidesWithDateDocument = {
                         arguments: [
                           {
                             kind: "Argument",
-                            name: { kind: "Name", value: "pointsPerKm" },
+                            name: { kind: "Name", value: "detailLevel" },
                             value: {
                               kind: "Variable",
-                              name: { kind: "Name", value: "pointsPerKm" },
+                              name: { kind: "Name", value: "detailLevel" },
                             },
                           },
                         ],
@@ -2215,11 +2224,14 @@ export const UserProfileQueryDocument = {
           kind: "VariableDefinition",
           variable: {
             kind: "Variable",
-            name: { kind: "Name", value: "pointsPerKm" },
+            name: { kind: "Name", value: "detailLevel" },
           },
           type: {
             kind: "NonNullType",
-            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "PointsDetail" },
+            },
           },
         },
       ],
@@ -2258,10 +2270,10 @@ export const UserProfileQueryDocument = {
                         arguments: [
                           {
                             kind: "Argument",
-                            name: { kind: "Name", value: "pointsPerKm" },
+                            name: { kind: "Name", value: "detailLevel" },
                             value: {
                               kind: "Variable",
-                              name: { kind: "Name", value: "pointsPerKm" },
+                              name: { kind: "Name", value: "detailLevel" },
                             },
                           },
                         ],
@@ -2428,11 +2440,14 @@ export const TripQueryDocument = {
           kind: "VariableDefinition",
           variable: {
             kind: "Variable",
-            name: { kind: "Name", value: "pointsPerKm" },
+            name: { kind: "Name", value: "detailLevel" },
           },
           type: {
             kind: "NonNullType",
-            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "PointsDetail" },
+            },
           },
         },
       ],
@@ -2557,13 +2572,13 @@ export const TripQueryDocument = {
                                         kind: "Argument",
                                         name: {
                                           kind: "Name",
-                                          value: "pointsPerKm",
+                                          value: "detailLevel",
                                         },
                                         value: {
                                           kind: "Variable",
                                           name: {
                                             kind: "Name",
-                                            value: "pointsPerKm",
+                                            value: "detailLevel",
                                           },
                                         },
                                       },
@@ -3756,8 +3771,8 @@ export const TripsQueryDocument = {
                               arguments: [
                                 {
                                   kind: "Argument",
-                                  name: { kind: "Name", value: "pointsPerKm" },
-                                  value: { kind: "IntValue", value: "1" },
+                                  name: { kind: "Name", value: "detailLevel" },
+                                  value: { kind: "EnumValue", value: "LOW" },
                                 },
                               ],
                             },
@@ -3882,8 +3897,8 @@ export const TripsQueryPointsDocument = {
                               arguments: [
                                 {
                                   kind: "Argument",
-                                  name: { kind: "Name", value: "pointsPerKm" },
-                                  value: { kind: "IntValue", value: "8" },
+                                  name: { kind: "Name", value: "detailLevel" },
+                                  value: { kind: "EnumValue", value: "MEDIUM" },
                                 },
                               ],
                             },

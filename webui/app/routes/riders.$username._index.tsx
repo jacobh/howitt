@@ -16,16 +16,17 @@ import { TripItem } from "~/components/trips/TripItem";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
+import { PointsDetail } from "~/__generated__/graphql";
 
 const UserProfileQuery = gql(`
-  query UserProfileQuery($username: String!, $pointsPerKm: Int!) {
+  query UserProfileQuery($username: String!, $detailLevel: PointsDetail!) {
     userWithUsername(username: $username) {
         id
         username
         recentRides {
           id
           date
-          pointsJson(pointsPerKm: $pointsPerKm)
+          pointsJson(detailLevel: $detailLevel)
           ...rideItem
         }
         trips {
@@ -59,11 +60,17 @@ export default function UserProfile(): React.ReactElement {
   const params = useParams();
 
   const { data, loading } = useQuery(UserProfileQuery, {
-    variables: { username: params.username ?? "", pointsPerKm: 1 },
+    variables: {
+      username: params.username ?? "",
+      detailLevel: PointsDetail.Low,
+    },
   });
 
   const { data: data2 } = useQuery(UserProfileQuery, {
-    variables: { username: params.username ?? "", pointsPerKm: 8 },
+    variables: {
+      username: params.username ?? "",
+      detailLevel: PointsDetail.High,
+    },
     ssr: false,
   });
 
