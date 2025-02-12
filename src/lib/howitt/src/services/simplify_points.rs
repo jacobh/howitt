@@ -111,10 +111,15 @@ pub fn simplify_points<P: Point>(points: &[P], target: SimplifyTarget) -> Vec<P>
         .collect()
 }
 
+#[derive(Debug, Display, Clone)]
 pub enum DetailLevel {
+    #[display("LOW")]
     Low,
+    #[display("MED")]
     Medium,
+    #[display("HIGH")]
     High,
+    #[display("CUSTOM#{}", _0)]
     Custom(f64),
 }
 

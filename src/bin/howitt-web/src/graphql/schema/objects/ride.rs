@@ -10,7 +10,7 @@ use howitt::{
         ride::RideId,
     },
     repos::Repos,
-    services::{fetchers::PointsFetcherParams, simplify_points::SimplifyTarget},
+    services::simplify_points::DetailLevel,
 };
 use itertools::Itertools;
 
@@ -58,12 +58,7 @@ impl Ride {
             ..
         } = ctx.data()?;
         let ride_points = simplified_ride_points_fetcher
-            .fetch(
-                self.0.id,
-                PointsFetcherParams {
-                    target: SimplifyTarget::PointPerKm(points_per_km),
-                },
-            )
+            .fetch(self.0.id, DetailLevel::Medium)
             .await?;
 
         Ok(ride_points
@@ -90,12 +85,7 @@ impl Ride {
         } = ctx.data()?;
 
         let ride_points = simplified_ride_points_fetcher
-            .fetch(
-                self.0.id,
-                PointsFetcherParams {
-                    target: SimplifyTarget::PointPerKm(50),
-                },
-            )
+            .fetch(self.0.id, DetailLevel::High)
             .await?;
 
         Ok(ride_points
@@ -113,12 +103,7 @@ impl Ride {
         } = ctx.data()?;
 
         let ride_points = simplified_ride_points_fetcher
-            .fetch(
-                self.0.id,
-                PointsFetcherParams {
-                    target: SimplifyTarget::PointPerKm(50),
-                },
-            )
+            .fetch(self.0.id, DetailLevel::High)
             .await?;
 
         let progress = DistanceProgress::from_points(ride_points);

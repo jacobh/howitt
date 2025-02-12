@@ -1,15 +1,16 @@
 use howitt_client_types::RedisClient;
 
 use crate::{
+    ext::rayon::rayon_spawn_blocking,
     models::{
         point::TemporalElevationPoint,
         ride::{RideId, RidePoints},
     },
     repos::RidePointsRepo,
-    services::simplify_points::simplify_points,
+    services::simplify_points::{simplify_points_v2, DetailLevel},
 };
 
-use super::{cache::CacheFetcher, PointsFetcherParams};
+use super::cache::CacheFetcher;
 
 pub struct SimplifiedRidePointsFetcher<Redis: RedisClient> {
     pub ride_points_repo: RidePointsRepo,
@@ -24,29 +25,29 @@ impl<Redis: RedisClient> SimplifiedRidePointsFetcher<Redis> {
         }
     }
 
-    fn key(id: RideId, params: &PointsFetcherParams) -> String {
-        [
-            id.to_string(),
-            "POINTS".to_string(),
-            params.target.to_string(),
-        ]
-        .join("#")
+    fn key(id: RideId, params: &DetailLevel) -> String {
+        [id.to_string(), "POINTS".to_string(), params.to_string()].join("#")
     }
 
     pub async fn fetch(
         &self,
         id: RideId,
-        params: PointsFetcherParams,
+        params: DetailLevel,
     ) -> Result<Vec<TemporalElevationPoint>, anyhow::Error> {
         let key = Self::key(id, &params);
 
         self.cache_fetcher
             .fetch_or_insert_with(&key, || async {
                 let RidePoints { points, .. } = self.ride_points_repo.get(id).await?;
-                Ok(
-                    tokio::task::spawn_blocking(move || simplify_points(&points, params.target))
-                        .await?,
-                )
+                
+                tracing::info!(ride_id = ?id, points_count = points.len(), "starting points simplification");
+        
+                let points =
+                    rayon_spawn_blocking(move || simplify_points_v2(points, DetailLevel::High)).await;
+                
+                tracing::info!(ride_id = ?id, points_count = points.len(), "completed points simplification");
+
+                Ok(points)
             })
             .await
     }
