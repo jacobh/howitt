@@ -23,6 +23,5 @@ image = { version = "*", default-features = false, features = [
 webp = "*"
 libwebp-sys = "*"
 thiserror = "*"
-rayon = "*"
 rwgps = { path = "../../lib/rwgps" }
 rwgps_types = { path = "../../lib/rwgps-types" }

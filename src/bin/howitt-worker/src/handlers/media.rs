@@ -1,3 +1,4 @@
+use howitt::ext::rayon::rayon_spawn_blocking;
 use howitt::models::media::{ImageContentType, ImageSpec, Media, IMAGE_SPECS};
 use howitt::repos::Repos;
 use howitt::services::media::keys::{generate_resized_media_key, GenerateResizedMediaKeyParams};
@@ -7,7 +8,6 @@ use image::{DynamicImage, GenericImageView, ImageReader};
 use libwebp_sys::WebPPreset;
 use std::io::Cursor;
 use thiserror::Error;
-use tokio::sync::oneshot;
 use webp::WebPConfig;
 
 use tracing::info;
@@ -16,21 +16,6 @@ use howitt::jobs::media::MediaJob;
 use howitt_client_types::{BucketClient, ObjectParams};
 
 use crate::context::Context;
-
-async fn rayon_spawn_blocking<F, T>(f: F) -> T
-where
-    F: FnOnce() -> T + Send + 'static,
-    T: Send + 'static,
-{
-    let (tx, rx) = oneshot::channel();
-
-    rayon::spawn(move || {
-        let result = f();
-        let _ = tx.send(result);
-    });
-
-    rx.await.expect("Rayon task panicked")
-}
 
 fn resize(img: &DynamicImage, spec: &ImageSpec) -> DynamicImage {
     match spec {

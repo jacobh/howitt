@@ -40,7 +40,7 @@ regex = "*"
 sanitize-filename = "0.6.0"
 tracing = "*"
 rustc-hash = "*"
-
+rayon = "*"
 
 [dev-dependencies]
 insta = { version = "*", features = ["toml"] }
