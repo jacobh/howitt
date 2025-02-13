@@ -61,12 +61,47 @@ const mapContainerCss = makeMqs([
     grid-area: map;
     width: 100vw;
     height: 100%;
+
+    &.overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70vh;
+      z-index: 2;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
   `,
   css``,
   css``,
   css``,
   css`
     width: 100%;
+    &.overlay {
+      position: static;
+      height: 100%;
+      box-shadow: none;
+    }
+  `,
+]);
+
+const mapOverlayMaskCss = makeMqs([
+  css`
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: black;
+    opacity: 0.2;
+    z-index: 1;
+    cursor: pointer;
+  `,
+  css``,
+  css``,
+  css``,
+  css`
+    display: none;
   `,
 ]);
 
@@ -137,6 +172,25 @@ export function SidebarContainer({
   );
 }
 
-export function MapContainer({ children }: PropsWithChildren): React.ReactNode {
-  return <div css={mapContainerCss}>{children}</div>;
+interface MapContainerProps extends PropsWithChildren {
+  isOverlayActive?: boolean;
+  onDismissOverlay?: () => void;
+}
+
+export function MapContainer({
+  children,
+  onDismissOverlay,
+  isOverlayActive = false,
+}: MapContainerProps): React.ReactNode {
+  return (
+    <>
+      {isOverlayActive && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+        <div css={mapOverlayMaskCss} onClick={onDismissOverlay} />
+      )}
+      <div css={mapContainerCss} className={isOverlayActive ? "overlay" : ""}>
+        {children}
+      </div>
+    </>
+  );
 }

@@ -66,8 +66,19 @@ const temporalBlocksContainerStyles = css({
   margin: "20px 0",
 });
 
+const infoBoxStyles = css({
+  backgroundColor: "#f5f5f5",
+  padding: "12px 16px",
+  borderRadius: "8px",
+  fontSize: "14px",
+  color: "#666",
+  marginTop: "12px",
+  marginBottom: "20px",
+});
+
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
+  const [isOverlayActive, setOverlayActive] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const {
     visibleRouteIds,
@@ -179,6 +190,7 @@ export default function TripDetail(): React.ReactElement {
 
           const point = [media.point[0], media.point[1]];
 
+          setOverlayActive(true);
           updateView((view) => {
             view.setCenter(point);
             view.setZoom(12);
@@ -195,6 +207,7 @@ export default function TripDetail(): React.ReactElement {
 
           const bounds = lineString.getExtent();
 
+          setOverlayActive(true);
           updateView((view) => {
             view.fit(bounds, {
               padding: [100, 100, 100, 100],
@@ -208,6 +221,10 @@ export default function TripDetail(): React.ReactElement {
     },
     [handleVisibilityEvent, updateView, trip?.media, trip?.legs],
   );
+
+  const onDismissOverlay = useCallback(() => {
+    setOverlayActive(false);
+  }, []);
 
   return (
     <Container>
@@ -251,6 +268,10 @@ export default function TripDetail(): React.ReactElement {
               </div>
             ))}
 
+            <div css={infoBoxStyles}>
+              Tap on minimaps or photos to see them on the interactive map
+            </div>
+
             <div css={temporalBlocksContainerStyles}>
               {trip.temporalContentBlocks.map((block, i) => (
                 <ContentBlock
@@ -280,7 +301,10 @@ export default function TripDetail(): React.ReactElement {
         )}
       </SidebarContainer>
 
-      <MapContainer>
+      <MapContainer
+        isOverlayActive={isOverlayActive}
+        onDismissOverlay={onDismissOverlay}
+      >
         <PrimaryMap
           initialView={initialView}
           tracks={tracks}
