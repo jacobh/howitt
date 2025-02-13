@@ -36,6 +36,7 @@ const UserProfileQuery = gql(`
         }
     }
     viewer {
+      id
       ...viewerInfo
     }
   }
@@ -51,9 +52,13 @@ const rideItemContainerCss = css`
 `;
 
 const sectionHeaderCss = css`
-  padding: 20px 1.5%;
+  padding: 20px 1.5% 0;
   font-size: 1.2em;
   font-weight: bold;
+`;
+
+const sectionTextCss = css`
+  padding: 12px 1.5%;
 `;
 
 export default function UserProfile(): React.ReactElement {
@@ -81,6 +86,8 @@ export default function UserProfile(): React.ReactElement {
     .reverse()
     .slice(0, 30);
 
+  const isViewingOwnProfile = data?.viewer?.id === data?.userWithUsername?.id;
+
   return (
     <Container>
       <Nav viewer={data?.viewer} />
@@ -106,12 +113,20 @@ export default function UserProfile(): React.ReactElement {
               </div>
             ))}
 
-            <div css={sectionHeaderCss}>Recent Rides</div>
-            {sidebarRides.map((ride) => (
-              <div key={ride.id} css={rideItemContainerCss}>
-                <RideItem ride={ride} />
-              </div>
-            ))}
+            {isViewingOwnProfile && (
+              <>
+                <div css={sectionHeaderCss}>Recent Rides</div>
+                <p css={sectionTextCss}>
+                  Your ride map is visible to all profile visitors. Individual
+                  ride details below are only visible to you
+                </p>
+                {sidebarRides.map((ride) => (
+                  <div key={ride.id} css={rideItemContainerCss}>
+                    <RideItem ride={ride} />
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         ) : loading ? (
           <LoadingSpinnerSidebarContent />

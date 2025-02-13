@@ -705,7 +705,7 @@ export type UserProfileQueryQuery = {
     >;
   } | null;
   viewer?:
-    | ({ __typename?: "Viewer" } & {
+    | ({ __typename?: "Viewer"; id: string } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
       })
     | null;
@@ -2335,6 +2335,7 @@ export const UserProfileQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
                 {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "viewerInfo" },
