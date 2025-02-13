@@ -86,10 +86,10 @@ export function Nav(props: NavProps): React.ReactNode {
         <Link to="/">Howitt Plains</Link>
       </h2>
       <h3 css={navLinkCss}>
-        <Link to="/routes">Routes</Link>
+        <Link to="/trips">Trips</Link>
       </h3>
       <h3 css={navLinkCss}>
-        <Link to="/riders">Riders</Link>
+        <Link to="/routes">Routes</Link>
       </h3>
       <div css={userInfoCss}>
         {viewer ? (
