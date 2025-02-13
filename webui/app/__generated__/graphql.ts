@@ -635,6 +635,10 @@ export type TripItemFragment = {
   name: string;
   year: number;
   slug: string;
+  legs: Array<{
+    __typename?: "TripLeg";
+    rides: Array<{ __typename?: "Ride"; startedAt: any }>;
+  }>;
   user: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "TripItemFragment" };
 
@@ -1403,6 +1407,28 @@ export const TripItemFragmentDoc = {
           { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "year" } },
           { kind: "Field", name: { kind: "Name", value: "slug" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "legs" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rides" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "startedAt" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
           {
             kind: "Field",
             name: { kind: "Name", value: "user" },
@@ -2361,6 +2387,28 @@ export const UserProfileQueryDocument = {
           { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "year" } },
           { kind: "Field", name: { kind: "Name", value: "slug" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "legs" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rides" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "startedAt" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
           {
             kind: "Field",
             name: { kind: "Name", value: "user" },
@@ -3819,6 +3867,28 @@ export const TripsQueryDocument = {
           { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "year" } },
           { kind: "Field", name: { kind: "Name", value: "slug" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "legs" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rides" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "startedAt" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
           {
             kind: "Field",
             name: { kind: "Name", value: "user" },
