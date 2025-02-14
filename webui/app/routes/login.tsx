@@ -10,6 +10,7 @@ import { getApiBaseUrl } from "~/env.client";
 import * as Tabs from "@radix-ui/react-tabs";
 import { tokens } from "~/styles/tokens";
 import { tabsListStyles, tabTriggerStyles } from "~/components/ui/Tabs";
+import { buttonStyles } from "~/components/ui/Button";
 
 const containerCss = css`
   display: grid;
@@ -38,23 +39,12 @@ const fieldLabelCss = css`
   color: ${tokens.colors.darkGrey};
 `;
 
-const submitCss = css`
-  background-color: white;
-  border: 1px solid ${tokens.colors.lightGrey};
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
-
-  &:hover {
-    background-color: ${tokens.colors.offWhite};
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-`;
+const submitCss = css(
+  buttonStyles,
+  css`
+    width: 100%;
+  `,
+);
 
 const errorCss = css`
   color: #ff4444;
