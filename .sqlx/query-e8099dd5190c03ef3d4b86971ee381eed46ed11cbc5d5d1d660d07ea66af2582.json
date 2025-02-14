@@ -45,11 +45,16 @@
       },
       {
         "ordinal": 8,
+        "name": "is_published",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 9,
         "name": "ride_ids",
         "type_info": "UuidArray"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "media_ids",
         "type_info": "UuidArray"
       }
@@ -68,6 +73,7 @@
       false,
       true,
       true,
+      false,
       true,
       true
     ]

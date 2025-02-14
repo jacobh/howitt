@@ -114,6 +114,7 @@ pub async fn handle(
                 ride_ids: selected_rides.into_iter().map(|r| r.id).collect(),
                 media_ids: vec![],
                 notes: vec![],
+                is_published: false,
             };
 
             trip_repo.put(trip).await?;
