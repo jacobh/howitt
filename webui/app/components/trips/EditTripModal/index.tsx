@@ -13,6 +13,11 @@ import { Temporal } from "@js-temporal/polyfill";
 import { ResultOf } from "@graphql-typed-document-node/core";
 import { blocksWithPositionInfo } from "./utils/blocksWithPositionInfo";
 import { useLocalContentBlocks } from "./hooks/useLocalContentBlocks";
+import {
+  tabsListStyles,
+  tabsRootStyles,
+  tabTriggerStyles,
+} from "~/components/ui/Tabs";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -174,33 +179,6 @@ const deleteNoteButtonStyles = css`
 
   &:hover {
     color: #ff4444;
-  }
-`;
-
-const tabsRootStyles = css`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-`;
-
-const tabsListStyles = css`
-  display: flex;
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 1rem;
-`;
-
-const tabTriggerStyles = css`
-  padding: 0.5rem 1rem;
-  border: none;
-  background: none;
-  cursor: pointer;
-
-  &[data-state="active"] {
-    border-bottom: 2px solid #000;
-  }
-
-  &:hover {
-    background-color: #f5f5f5;
   }
 `;
 

@@ -9,6 +9,7 @@ import { gql } from "~/__generated__";
 import { getApiBaseUrl } from "~/env.client";
 import * as Tabs from "@radix-ui/react-tabs";
 import { tokens } from "~/styles/tokens";
+import { tabsListStyles, tabTriggerStyles } from "~/components/ui/Tabs";
 
 const containerCss = css`
   display: grid;
@@ -59,35 +60,6 @@ const errorCss = css`
   color: #ff4444;
   margin-bottom: 14px;
   font-size: 0.9em;
-`;
-
-const tabListCss = css`
-  display: flex;
-  margin-bottom: 20px;
-  border-bottom: 1px solid ${tokens.colors.lightGrey};
-`;
-
-const tabTriggerCss = css`
-  padding: 8px 16px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: ${tokens.colors.darkGrey};
-
-  &[data-state="active"] {
-    color: ${tokens.colors.black};
-    border-bottom: 2px solid ${tokens.colors.black};
-  }
-
-  &:hover {
-    background-color: ${tokens.colors.offWhite};
-  }
-`;
-
-const tabContentCss = css`
-  &[data-state="inactive"] {
-    display: none;
-  }
 `;
 
 const LoginQuery = gql(`
@@ -197,16 +169,16 @@ export default function Login(): React.ReactElement {
   return (
     <div css={containerCss}>
       <Tabs.Root defaultValue="login">
-        <Tabs.List css={tabListCss}>
-          <Tabs.Trigger value="login" css={tabTriggerCss}>
+        <Tabs.List css={tabsListStyles}>
+          <Tabs.Trigger value="login" css={tabTriggerStyles}>
             Login
           </Tabs.Trigger>
-          <Tabs.Trigger value="signup" css={tabTriggerCss}>
+          <Tabs.Trigger value="signup" css={tabTriggerStyles}>
             Sign up
           </Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content value="login" css={tabContentCss}>
+        <Tabs.Content value="login">
           <form css={formCss} onSubmit={handleLoginSubmit(onLoginSubmit)}>
             <div>
               <label css={fieldLabelCss} htmlFor="username">
@@ -248,7 +220,7 @@ export default function Login(): React.ReactElement {
           </form>
         </Tabs.Content>
 
-        <Tabs.Content value="signup" css={tabContentCss}>
+        <Tabs.Content value="signup">
           <form css={formCss} onSubmit={handleSignupSubmit(onSignupSubmit)}>
             <div>
               <label css={fieldLabelCss} htmlFor="signupUsername">
