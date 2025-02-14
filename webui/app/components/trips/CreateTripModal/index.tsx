@@ -1,10 +1,11 @@
 import { useMutation } from "@apollo/client/react/hooks/useMutation";
 import { css } from "@emotion/react";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { gql } from "~/__generated__";
 import { Modal } from "../../Modal";
 import { useNavigate } from "@remix-run/react";
 import { RideTable } from "./components/RideTable";
+import { Controller, useForm } from "react-hook-form";
 
 const CreateTripMutation = gql(`
   mutation CreateTrip($input: CreateTripInput!) {
@@ -58,17 +59,37 @@ const buttonGroupStyles = css`
   margin-top: 1rem;
 `;
 
+const errorMessageStyles = css`
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  text-align: center;
+`;
+
+interface FormInputs {
+  name: string;
+  description: string;
+  rideIds: string[];
+}
+
 export function CreateTripModal({
   isOpen,
   onClose,
   username,
 }: Props): React.ReactElement {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [selectedRideIds, setSelectedRideIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormInputs>({
+    defaultValues: {
+      name: "",
+      description: "",
+      rideIds: [],
+    },
+  });
 
   const [createTrip, { loading }] = useMutation(CreateTripMutation, {
     onCompleted: (data) => {
@@ -77,68 +98,80 @@ export function CreateTripModal({
     },
   });
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent): void => {
-      e.preventDefault();
-
+  const onSubmit = useCallback(
+    (data: FormInputs): void => {
       createTrip({
         variables: {
           input: {
-            name,
-            description: description || null,
-            rideIds: Array.from(selectedRideIds),
+            name: data.name,
+            description: data.description || null,
+            rideIds: data.rideIds,
           },
         },
       });
     },
-    [createTrip, name, description, selectedRideIds],
+    [createTrip],
   );
 
-  const handleRideSelectionChange = useCallback((rideIds: Set<string>) => {
-    setSelectedRideIds(rideIds);
-  }, []);
+  // const handleRideSelectionChange = useCallback((rideIds: Set<string>) => {
+  //   setSelectedRideIds(rideIds);
+  // }, []);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <form onSubmit={handleSubmit} css={formStyles}>
+      <form onSubmit={handleSubmit(onSubmit)} css={formStyles}>
         <div css={formFieldStyles}>
           <label htmlFor="name">Name</label>
           <input
             css={inputStyles}
             id="name"
             type="text"
-            value={name}
-            onChange={(e): void => setName(e.target.value)}
+            {...register("name", {
+              required: "Trip name is required",
+            })}
             autoComplete="off"
-            required
           />
         </div>
+        {errors.name && (
+          <div css={errorMessageStyles}>{errors.name.message}</div>
+        )}
 
         <div css={formFieldStyles}>
           <label htmlFor="description">Description</label>
           <textarea
             css={inputStyles}
             id="description"
-            value={description}
-            onChange={(e): void => setDescription(e.target.value)}
+            {...register("description")}
             rows={4}
           />
         </div>
 
-        <RideTable
-          username={username}
-          selectedRideIds={selectedRideIds}
-          onSelectionChange={handleRideSelectionChange}
+        <Controller
+          name="rideIds"
+          control={control}
+          rules={{
+            validate: (value) =>
+              value.length > 0 || "Please select at least one ride",
+          }}
+          render={({ field: { onChange, value } }): React.ReactElement => (
+            <RideTable
+              username={username}
+              selectedRideIds={new Set(value)}
+              onSelectionChange={(rideIds): void => {
+                onChange(Array.from(rideIds));
+              }}
+            />
+          )}
         />
+        {errors.rideIds && (
+          <div css={errorMessageStyles}>{errors.rideIds.message}</div>
+        )}
 
         <div css={buttonGroupStyles}>
           <button type="button" onClick={onClose}>
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={loading || selectedRideIds.size === 0}
-          >
+          <button type="submit" disabled={loading}>
             {loading ? "Creating..." : "Create Trip"}
           </button>
         </div>
