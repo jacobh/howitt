@@ -30,6 +30,7 @@ pub struct UserRwgpsConnection {
 #[derive(Debug, Clone)]
 pub enum UserFilter {
     Username(String),
+    Email(String),
     Ids(Vec<UserId>),
     RwgpsId(usize),
 }

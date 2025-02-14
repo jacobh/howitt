@@ -3,7 +3,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::{
-    models::user::{User, UserId},
+    models::user::{User, UserFilter, UserId},
     repos::UserRepo,
     services::user::password::hash_password,
 };
@@ -39,11 +39,21 @@ impl UserSignupService {
         // Check if username already exists
         if let Some(_) = self
             .user_repo
-            .find_model(crate::models::user::UserFilter::Username(username.clone()))
+            .find_model(UserFilter::Username(username.clone()))
             .await
             .map_err(UserSignupError::Repo)?
         {
             return Err(UserSignupError::UsernameExists);
+        }
+
+        // Check if email already exists
+        if let Some(_) = self
+            .user_repo
+            .find_model(UserFilter::Email(email.clone()))
+            .await
+            .map_err(UserSignupError::Repo)?
+        {
+            return Err(UserSignupError::EmailExists);
         }
 
         // Hash the password
