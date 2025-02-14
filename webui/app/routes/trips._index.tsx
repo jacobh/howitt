@@ -15,6 +15,7 @@ import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { useMemo, useState } from "react";
 import { buildRideTrack } from "~/components/map/types";
 import { CreateTripModal } from "~/components/trips/CreateTripModal";
+import { buttonStyles } from "~/components/ui/Button";
 
 const TripsQueryNoPoints = gql(`
   query TripsQuery {
@@ -62,24 +63,6 @@ const tripItemContainerCss = css`
   }
 `;
 
-const createTripButtonCss = css`
-  background-color: white;
-  border: 1px solid ${tokens.colors.lightGrey};
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-
-  &:hover {
-    background-color: ${tokens.colors.offWhite};
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-`;
-
 export default function Trips(): React.ReactElement {
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
@@ -104,7 +87,7 @@ export default function Trips(): React.ReactElement {
         {data?.viewer && (
           <button
             onClick={(): void => setCreateModalOpen(true)}
-            css={createTripButtonCss}
+            css={buttonStyles}
           >
             Create Trip
           </button>

@@ -1,5 +1,6 @@
 import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
+import { buttonStyles } from "~/components/ui/Button";
 
 export const TripMediaFragment = gql(`
   fragment tripMedia on Trip {
@@ -84,28 +85,25 @@ const mediaTableCss = css`
   }
 `;
 
-const deleteButtonCss = css`
-  padding: 4px 8px;
-  background-color: transparent;
-  color: #666;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
+const deleteButtonCss = css(
+  buttonStyles,
+  css`
+    padding: 4px 8px;
+    color: #666;
+    font-size: 0.875rem;
 
-  &:hover {
-    background-color: #f5f5f5;
-    color: #ff4444;
-    border-color: #ff4444;
-  }
+    &:hover {
+      color: #ff4444;
+      border-color: #ff4444;
+    }
 
-  &:disabled {
-    background-color: #f5f5f5;
-    color: #999;
-    border-color: #ddd;
-    cursor: not-allowed;
-  }
-`;
+    &:disabled {
+      background-color: #f5f5f5;
+      color: #999;
+      border-color: #ddd;
+    }
+  `,
+);
 
 const thumbnailCellCss = css({
   width: "120px",

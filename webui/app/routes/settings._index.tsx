@@ -7,6 +7,7 @@ import { tokens } from "~/styles/tokens";
 import { Link } from "@remix-run/react";
 import { useState } from "react";
 import { InfoBox } from "~/components/ui/InfoBox";
+import { buttonStyles } from "~/components/ui/Button";
 
 const SettingsQuery = gql(`
   query settings {
@@ -83,23 +84,6 @@ const linkCss = css({
   },
 });
 
-const buttonCss = css({
-  display: "inline-block",
-  padding: "0.5rem 1rem",
-  border: `1px solid ${tokens.colors.lightGrey}`,
-  borderRadius: "4px",
-  backgroundColor: "white",
-  cursor: "pointer",
-  textDecoration: "none !important",
-  "&:hover": {
-    backgroundColor: tokens.colors.offWhite,
-  },
-  "&:disabled": {
-    cursor: "not-allowed",
-    opacity: 0.7,
-  },
-});
-
 const welcomeHeadingCss = css({
   margin: "0 0 8px 0",
   color: "#333",
@@ -130,7 +114,7 @@ const connectionDatesCss = css({
 });
 
 const syncButtonCss = css([
-  buttonCss,
+  buttonStyles,
   {
     marginTop: "8px",
   },
@@ -215,7 +199,7 @@ export default function Settings(): React.ReactElement {
               Connect your Ride with GPS account to sync your routes and
               activities.
             </p>
-            <a href={viewer?.rwgpsAuthRequestUrl} css={buttonCss}>
+            <a href={viewer?.rwgpsAuthRequestUrl} css={buttonStyles}>
               Connect RWGPS Account
             </a>
           </div>
