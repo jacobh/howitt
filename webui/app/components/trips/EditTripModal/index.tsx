@@ -21,6 +21,7 @@ export const EditTripFragment = gql(`
     description
     ...tripRides
     ...tripMedia
+    isPublished
     media {
       id
     }
@@ -223,6 +224,7 @@ export function EditTripModal({
   const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(trip.name);
   const [description, setDescription] = useState(trip.description ?? "");
+  const [isPublished, setIsPublished] = useState(trip.isPublished);
 
   const [updateTrip, { loading }] = useMutation(UpdateTripMutation, {
     onCompleted: () => {
@@ -279,12 +281,13 @@ export function EditTripModal({
             tripId: trip.id,
             name,
             description: description || null,
+            isPublished,
             notes,
           },
         },
       });
     },
-    [trip.id, name, description, localContentBlocks, updateTrip],
+    [trip.id, name, description, localContentBlocks, updateTrip, isPublished],
   );
 
   return (
@@ -328,6 +331,16 @@ export function EditTripModal({
                 value={description}
                 onChange={(e): void => setDescription(e.target.value)}
                 rows={4}
+              />
+            </div>
+            <div css={formFieldStyles}>
+              <label htmlFor="isPublished">Published?</label>
+              <input
+                css={inputStyles}
+                id="isPublished"
+                type="checkbox"
+                checked={isPublished}
+                onChange={(e): void => setIsPublished(e.target.checked)}
               />
             </div>
           </Tabs.Content>

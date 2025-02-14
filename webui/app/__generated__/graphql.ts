@@ -227,6 +227,7 @@ export type Query = {
   pointOfInterest?: Maybe<PointOfInterest>;
   pointsOfInterest: Array<PointOfInterest>;
   publicUsers: Array<UserProfile>;
+  publishedTrips: Array<Trip>;
   queryRoutes: Array<Route>;
   rides: Array<Ride>;
   route?: Maybe<Route>;
@@ -374,6 +375,7 @@ export type Trip = MediaTarget & {
   __typename?: "Trip";
   description?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["TripId"]["output"];
+  isPublished: Scalars["Boolean"]["output"];
   legs: Array<TripLeg>;
   media: Array<Media>;
   name: Scalars["String"]["output"];
@@ -411,6 +413,7 @@ export type TripRidesOutput = {
 
 export type UpdateTripInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
+  isPublished: Scalars["Boolean"]["input"];
   name: Scalars["String"]["input"];
   notes: Array<TripNoteInput>;
   tripId: Scalars["TripId"]["input"];
@@ -598,6 +601,7 @@ export type EditTripFragment = ({
   id: any;
   name: string;
   description?: string | null;
+  isPublished: boolean;
   media: Array<{ __typename?: "Media"; id: any }>;
   temporalContentBlocks: Array<
     | {
@@ -997,7 +1001,7 @@ export type TripsQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type TripsQueryQuery = {
   __typename?: "Query";
-  trips: Array<
+  publishedTrips: Array<
     {
       __typename?: "Trip";
       id: any;
@@ -1020,7 +1024,7 @@ export type TripsQueryPointsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type TripsQueryPointsQuery = {
   __typename?: "Query";
-  trips: Array<{
+  publishedTrips: Array<{
     __typename?: "Trip";
     id: any;
     legs: Array<{
@@ -1228,6 +1232,7 @@ export const EditTripFragmentDoc = {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripMedia" },
           },
+          { kind: "Field", name: { kind: "Name", value: "isPublished" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "media" },
@@ -2916,6 +2921,7 @@ export const TripQueryDocument = {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripMedia" },
           },
+          { kind: "Field", name: { kind: "Name", value: "isPublished" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "media" },
@@ -3888,7 +3894,7 @@ export const TripsQueryDocument = {
         selections: [
           {
             kind: "Field",
-            name: { kind: "Name", value: "trips" },
+            name: { kind: "Name", value: "publishedTrips" },
             selectionSet: {
               kind: "SelectionSet",
               selections: [
@@ -4051,7 +4057,7 @@ export const TripsQueryPointsDocument = {
         selections: [
           {
             kind: "Field",
-            name: { kind: "Name", value: "trips" },
+            name: { kind: "Name", value: "publishedTrips" },
             selectionSet: {
               kind: "SelectionSet",
               selections: [

@@ -16,11 +16,13 @@ pub struct Trip {
     pub notes: Vec<TripNote>,
     pub ride_ids: Vec<RideId>,
     pub media_ids: Vec<MediaId>,
+    pub is_published: bool,
 }
 
 #[derive(Debug, Clone)]
 pub enum TripFilter {
     All,
+    Published,
     User(UserId),
     WithUserAndSlug { user_id: UserId, slug: String },
 }

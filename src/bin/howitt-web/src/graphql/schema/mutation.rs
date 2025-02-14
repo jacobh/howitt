@@ -37,6 +37,7 @@ pub struct UpdateTripInput {
     pub name: String,
     pub description: Option<String>,
     pub notes: Vec<TripNoteInput>,
+    pub is_published: bool,
 }
 
 #[derive(InputObject)]
@@ -120,6 +121,7 @@ impl Mutation {
             slug: generate_slug(&input.name),
             year: first_ride.started_at.year(),
             description: input.description,
+            is_published: false,
             notes: Vec::new(),
             ride_ids: input.ride_ids.into_iter().map(|id| id.0).collect(),
             media_ids: Vec::new(),
@@ -158,6 +160,7 @@ impl Mutation {
 
         // Update the fields
         trip.name = input.name;
+        trip.is_published = input.is_published;
         trip.description = input.description;
         trip.notes = input
             .notes

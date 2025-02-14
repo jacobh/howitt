@@ -1,7 +1,7 @@
 use async_graphql::*;
 use howitt::models::route::{RouteFilter, RouteId};
 use howitt::models::tag::Tag;
-use howitt::models::trip::TripId;
+use howitt::models::trip::{TripFilter, TripId};
 use howitt::models::user::UserFilter;
 use howitt::repos::Repos;
 use itertools::Itertools;
@@ -143,6 +143,24 @@ impl Query {
         } = ctx.data()?;
 
         let trips = trip_repo.all().await?;
+
+        Ok(trips
+            .into_iter()
+            .sorted_by_key(|trip| trip.created_at)
+            .map(Trip)
+            .collect())
+    }
+
+    async fn published_trips<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<Trip>, async_graphql::Error> {
+        let SchemaData {
+            repos: Repos { trip_repo, .. },
+            ..
+        } = ctx.data()?;
+
+        let trips = trip_repo.filter_models(TripFilter::Published).await?;
 
         Ok(trips
             .into_iter()

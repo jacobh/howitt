@@ -34,7 +34,7 @@ const documents = {
     types.TripRidesFragmentDoc,
   "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ":
     types.AllRidesDocument,
-  "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n":
+  "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    isPublished\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n":
     types.EditTripFragmentDoc,
   "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n":
     types.UpdateTripDocument,
@@ -68,9 +68,9 @@ const documents = {
     types.SettingsDocument,
   "\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n":
     types.InitiateRwgpsHistorySyncDocument,
-  "\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n":
+  "\n  query TripsQuery {\n    publishedTrips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n":
     types.TripsQueryDocument,
-  "\n  query TripsQueryPoints {\n    trips {\n      id\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: MEDIUM) \n        }\n      }\n    }\n  }\n":
+  "\n  query TripsQueryPoints {\n    publishedTrips {\n      id\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: MEDIUM) \n        }\n      }\n    }\n  }\n":
     types.TripsQueryPointsDocument,
 };
 
@@ -152,8 +152,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n",
-): (typeof documents)["\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n"];
+  source: "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    isPublished\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n",
+): (typeof documents)["\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    isPublished\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -254,14 +254,14 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n",
-): (typeof documents)["\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n"];
+  source: "\n  query TripsQuery {\n    publishedTrips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n",
+): (typeof documents)["\n  query TripsQuery {\n    publishedTrips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query TripsQueryPoints {\n    trips {\n      id\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: MEDIUM) \n        }\n      }\n    }\n  }\n",
-): (typeof documents)["\n  query TripsQueryPoints {\n    trips {\n      id\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: MEDIUM) \n        }\n      }\n    }\n  }\n"];
+  source: "\n  query TripsQueryPoints {\n    publishedTrips {\n      id\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: MEDIUM) \n        }\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query TripsQueryPoints {\n    publishedTrips {\n      id\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: MEDIUM) \n        }\n      }\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

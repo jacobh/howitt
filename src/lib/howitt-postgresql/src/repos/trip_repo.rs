@@ -20,6 +20,7 @@ struct TripRow {
     notes: Option<serde_json::Value>,
     ride_ids: Option<Vec<Uuid>>,
     media_ids: Option<Vec<Uuid>>,
+    is_published: bool,
 }
 
 impl TryFrom<TripRow> for Trip {
@@ -51,6 +52,7 @@ impl TryFrom<TripRow> for Trip {
                 .into_iter()
                 .map(MediaId::from)
                 .collect(),
+            is_published: row.is_published,
         })
     }
 }
@@ -119,6 +121,22 @@ impl Repo for PostgresTripRepo {
                 .fetch_all(conn.as_mut())
                 .await
             }
+            TripFilter::Published => {
+                sqlx::query_as!(
+                    TripRow,
+                    r#"
+                        SELECT 
+                            t.*,
+                            tr.ride_ids,
+                            tr.media_ids
+                        FROM trips t
+                        INNER JOIN trip_relations tr ON tr.id = t.id
+                        WHERE t.is_published = TRUE
+                    "#
+                )
+                .fetch_all(conn.as_mut())
+                .await
+            }
         }?;
 
         Ok(trips.into_iter().map(Trip::try_from).collect_result_vec()?)
@@ -161,15 +179,17 @@ impl Repo for PostgresTripRepo {
                     description,
                     created_at,
                     user_id,
-                    notes
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    notes,
+                    is_published
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (id) DO UPDATE 
                 SET 
                     name = EXCLUDED.name,
                     slug = EXCLUDED.slug,
                     year = EXCLUDED.year,
                     description = EXCLUDED.description,
-                    notes = EXCLUDED.notes
+                    notes = EXCLUDED.notes,
+                    is_published = EXCLUDED.is_published
             "#,
             trip.id.as_uuid(),
             trip.name,
@@ -179,6 +199,7 @@ impl Repo for PostgresTripRepo {
             trip.created_at,
             trip.user_id.as_uuid(),
             serde_json::to_value(&trip.notes)?,
+            trip.is_published,
         );
 
         query.execute(tx.as_mut()).await?;

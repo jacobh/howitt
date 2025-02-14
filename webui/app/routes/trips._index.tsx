@@ -18,7 +18,7 @@ import { CreateTripModal } from "~/components/trips/CreateTripModal";
 
 const TripsQueryNoPoints = gql(`
   query TripsQuery {
-    trips {
+    publishedTrips {
       id
       name
       legs {
@@ -41,7 +41,7 @@ const TripsQueryNoPoints = gql(`
 
 const TripsQueryWithPoints = gql(`
   query TripsQueryPoints {
-    trips {
+    publishedTrips {
       id
       legs {
         rides {
@@ -89,12 +89,13 @@ export default function Trips(): React.ReactElement {
   });
 
   const tracks = useMemo(() => {
-    const trips = data2?.trips ?? data?.trips ?? [];
+    const trips = data2?.publishedTrips ?? data?.publishedTrips ?? [];
+
     return trips
       .flatMap((trip) => trip.legs)
       .flatMap((leg) => leg.rides)
       .map((ride) => buildRideTrack(ride, "default"));
-  }, [data?.trips, data2?.trips]);
+  }, [data?.publishedTrips, data2?.publishedTrips]);
 
   return (
     <Container>
@@ -112,7 +113,7 @@ export default function Trips(): React.ReactElement {
           <LoadingSpinnerSidebarContent />
         ) : (
           <div>
-            {data?.trips.map((trip) => (
+            {data?.publishedTrips.map((trip) => (
               <div key={trip.id} css={tripItemContainerCss}>
                 <TripItem trip={trip} />
               </div>

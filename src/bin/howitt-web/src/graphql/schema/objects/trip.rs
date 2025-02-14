@@ -93,6 +93,10 @@ impl Trip {
         &self.0.slug
     }
 
+    async fn is_published(&self) -> bool {
+        self.0.is_published
+    }
+
     async fn description(&self) -> Option<&str> {
         self.0.description.as_deref()
     }
