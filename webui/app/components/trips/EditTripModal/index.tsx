@@ -204,12 +204,6 @@ const tabTriggerStyles = css`
   }
 `;
 
-const tabContentStyles = css`
-  &[data-state="inactive"] {
-    display: none;
-  }
-`;
-
 export function EditTripModal({
   trip: tripFragment,
   isOpen,
@@ -309,7 +303,7 @@ export function EditTripModal({
             </Tabs.Trigger>
           </Tabs.List>
 
-          <Tabs.Content value="trip" css={tabContentStyles}>
+          <Tabs.Content value="trip">
             <div css={formFieldStyles}>
               <label htmlFor="name">Name</label>
               <input
@@ -345,11 +339,11 @@ export function EditTripModal({
             </div>
           </Tabs.Content>
 
-          <Tabs.Content value="rides" css={tabContentStyles}>
+          <Tabs.Content value="rides">
             <RideTable trip={trip} />
           </Tabs.Content>
 
-          <Tabs.Content value="content" css={tabContentStyles}>
+          <Tabs.Content value="content">
             <div css={contentTabStyles}>
               <div css={contentBlockContainerStyles}>
                 {localContentBlocks.at(0)?.__typename !== "Note" && (
@@ -436,7 +430,7 @@ export function EditTripModal({
             </div>
           </Tabs.Content>
 
-          <Tabs.Content value="media" css={tabContentStyles}>
+          <Tabs.Content value="media">
             <MediaTable
               trip={trip}
               onRemoveMedia={handleRemoveMedia}
