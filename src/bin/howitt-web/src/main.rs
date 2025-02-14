@@ -14,7 +14,7 @@ use howitt::{
     repos::Repos,
     services::{
         fetchers::{SimplifiedRidePointsFetcher, SimplifiedTripElevationPointsFetcher},
-        user::auth::UserAuthService,
+        user::{auth::UserAuthService, signup::UserSignupService},
     },
 };
 use howitt_client_types::BucketName;
@@ -72,6 +72,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
 
+    let user_signup_service = UserSignupService::new(repos.user_repo.clone());
+
     let simplified_ride_points_fetcher =
         SimplifiedRidePointsFetcher::new(repos.ride_points_repo.clone(), redis.clone());
 
@@ -101,6 +103,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let app_state = app_state::AppState {
         schema,
         user_auth_service,
+        user_signup_service,
         repos,
         bucket_client: Arc::new(bucket_client),
         job_storage,
@@ -118,6 +121,7 @@ async fn main() -> Result<(), anyhow::Error> {
             get(handlers::graphql::graphiql_handler).post(handlers::graphql::graphql_handler),
         )
         .route("/auth/login", post(handlers::auth::login_handler))
+        .route("/auth/signup", post(handlers::auth::signup_handler))
         .route(
             "/auth/rwgps/callback",
             get(handlers::rwgps::rwgps_callback_handler),

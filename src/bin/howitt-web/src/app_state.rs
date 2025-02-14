@@ -1,6 +1,10 @@
 use std::sync::Arc;
 
-use howitt::{jobs::Job, repos::Repos, services::user::auth::UserAuthService};
+use howitt::{
+    jobs::Job,
+    repos::Repos,
+    services::user::{auth::UserAuthService, signup::UserSignupService},
+};
 use howitt_clients::S3BucketClient;
 use howitt_jobs::storage::LockFreeStorage;
 
@@ -17,6 +21,7 @@ pub struct RwgpsConfig {
 pub struct AppState {
     pub schema: Schema,
     pub user_auth_service: UserAuthService,
+    pub user_signup_service: UserSignupService,
     pub bucket_client: Arc<S3BucketClient>,
     pub repos: Repos,
     pub job_storage: LockFreeStorage<Job>,
