@@ -6,6 +6,7 @@ import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { Link } from "@remix-run/react";
 import { useState } from "react";
+import { InfoBox } from "~/components/ui/InfoBox";
 
 const SettingsQuery = gql(`
   query settings {
@@ -99,6 +100,46 @@ const buttonCss = css({
   },
 });
 
+const welcomeHeadingCss = css({
+  margin: "0 0 8px 0",
+  color: "#333",
+});
+
+const welcomeTextCss = css({
+  margin: 0,
+  lineHeight: "1.5",
+});
+
+const welcomeListCss = css({
+  margin: "8px 0",
+  paddingLeft: "20px",
+  listStyleType: "disc",
+  "& li": {
+    marginBottom: "4px",
+    "&:last-child": {
+      marginBottom: 0,
+    },
+  },
+});
+
+const connectionDatesCss = css({
+  fontSize: "0.9rem",
+  color: tokens.colors.darkGrey,
+  marginTop: "0.5rem",
+  marginBottom: "1rem",
+});
+
+const syncButtonCss = css([
+  buttonCss,
+  {
+    marginTop: "8px",
+  },
+]);
+
+const connectionTextCss = css({
+  marginBottom: "1rem",
+});
+
 export default function Settings(): React.ReactElement {
   const { data } = useQuery(SettingsQuery, {});
   const [hasSynced, setHasSynced] = useState(false);
@@ -114,8 +155,18 @@ export default function Settings(): React.ReactElement {
     <Container>
       <Nav viewer={data?.viewer} />
       <div css={pageContainerCss}>
+        <InfoBox>
+          <h3 css={welcomeHeadingCss}>Welcome to Howitt Plains!</h3>
+          <p css={welcomeTextCss}>To get started:</p>
+          <ul css={welcomeListCss}>
+            <li>Connect your Ride with GPS account using the button below</li>
+            <li>Allow a few moments for your ride history to sync</li>
+            <li>Once complete, visit your profile to create your first trip</li>
+          </ul>
+        </InfoBox>
         <h2 css={titleCss}>Settings</h2>
         <hr css={dividerCss} />
+
         <div css={fieldContainerCss}>
           <span css={labelCss}>Username</span>
           <div css={valueCss}>{profile?.username}</div>
@@ -133,14 +184,7 @@ export default function Settings(): React.ReactElement {
           <div css={fieldContainerCss}>
             <span css={labelCss}>RWGPS User ID</span>
             <div css={valueCss}>{rwgpsConnection.rwgpsUserId}</div>
-            <div
-              css={css({
-                fontSize: "0.9rem",
-                color: tokens.colors.darkGrey,
-                marginTop: "0.5rem",
-                marginBottom: "1rem",
-              })}
-            >
+            <div css={connectionDatesCss}>
               Connected on{" "}
               {new Date(rwgpsConnection.createdAt).toLocaleDateString()}
               <br />
@@ -160,14 +204,14 @@ export default function Settings(): React.ReactElement {
                 setHasSynced(true);
               }}
               disabled={syncing || hasSynced}
-              css={css(buttonCss, { marginTop: "8px" })}
+              css={syncButtonCss}
             >
               {hasSynced ? "Sync initiated" : "Sync RWGPS History"}
             </button>
           </div>
         ) : (
           <div css={fieldContainerCss}>
-            <p css={css({ marginBottom: "1rem" })}>
+            <p css={connectionTextCss}>
               Connect your Ride with GPS account to sync your routes and
               activities.
             </p>

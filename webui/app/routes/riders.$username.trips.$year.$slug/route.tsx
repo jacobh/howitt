@@ -22,6 +22,7 @@ import { match } from "ts-pattern";
 import LineString from "ol/geom/LineString";
 import { PointsDetail } from "~/__generated__/graphql";
 import { tokens } from "~/styles/tokens";
+import { InfoBox } from "~/components/ui/InfoBox";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $detailLevel: PointsDetail!) {
@@ -65,16 +66,6 @@ const elevationContainerStyles = css({
 
 const temporalBlocksContainerStyles = css({
   margin: "20px 0",
-});
-
-const infoBoxStyles = css({
-  backgroundColor: "#f5f5f5",
-  padding: "12px 16px",
-  borderRadius: "8px",
-  fontSize: "14px",
-  color: "#666",
-  marginTop: "12px",
-  marginBottom: "20px",
 });
 
 const editTripButtonCss = css`
@@ -291,9 +282,9 @@ export default function TripDetail(): React.ReactElement {
               </div>
             ))}
 
-            <div css={infoBoxStyles}>
+            <InfoBox>
               Tap on minimaps or photos to see them on the interactive map
-            </div>
+            </InfoBox>
 
             <div css={temporalBlocksContainerStyles}>
               {trip.temporalContentBlocks.map((block, i) => (
