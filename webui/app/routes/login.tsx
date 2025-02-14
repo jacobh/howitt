@@ -3,7 +3,8 @@ import { css } from "@emotion/react";
 import { useNavigate } from "@remix-run/react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { FormEvent, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
 import { gql } from "~/__generated__";
 import { getApiBaseUrl } from "~/env.client";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -101,37 +102,48 @@ const LoginQuery = gql(`
   }  
 `);
 
+interface LoginFormInputs {
+  username: string;
+  password: string;
+}
+
+interface SignupFormInputs {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export default function Login(): React.ReactElement {
   const navigate = useNavigate();
   const { refetch } = useQuery(LoginQuery);
-
-  // Login state
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string>();
-
-  // Signup state
-  const [signupUsername, setSignupUsername] = useState<string>("");
-  const [signupEmail, setSignupEmail] = useState<string>("");
-  const [signupPassword, setSignupPassword] = useState<string>("");
-  const [signupConfirmPassword, setSignupConfirmPassword] =
-    useState<string>("");
-
   const [signupError, setSignupError] = useState<string>();
 
-  // Loading states
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    register: loginRegister,
+    handleSubmit: handleLoginSubmit,
+    formState: { errors: loginErrors },
+    reset: resetLoginForm,
+  } = useForm<LoginFormInputs>();
+
+  const {
+    register: signupRegister,
+    handleSubmit: handleSignupSubmit,
+    formState: { errors: signupErrors },
+    watch,
+  } = useForm<SignupFormInputs>();
 
   const onLoginSubmit = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
+    async (data: LoginFormInputs) => {
       setLoginError(undefined);
       setIsLoading(true);
 
       try {
         const res = await axios.post(`${getApiBaseUrl()}/auth/login`, {
-          username,
-          password,
+          username: data.username,
+          password: data.password,
         });
 
         if (typeof res.data?.token === "string") {
@@ -140,35 +152,28 @@ export default function Login(): React.ReactElement {
           navigate("/");
         } else {
           setLoginError("Something went wrong, try again");
-          setPassword("");
+          resetLoginForm({ password: "" });
         }
       } catch {
         setLoginError("Invalid username or password");
-        setPassword("");
+        resetLoginForm({ password: "" });
       } finally {
         setIsLoading(false);
       }
     },
-    [username, password, navigate, refetch],
+    [navigate, refetch, resetLoginForm],
   );
 
   const onSignupSubmit = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
+    async (data: SignupFormInputs) => {
       setSignupError(undefined);
       setIsLoading(true);
 
-      if (signupPassword !== signupConfirmPassword) {
-        setSignupError("Passwords do not match");
-        setIsLoading(false);
-        return;
-      }
-
       try {
         const res = await axios.post(`${getApiBaseUrl()}/auth/signup`, {
-          username: signupUsername,
-          email: signupEmail,
-          password: signupPassword,
+          username: data.username,
+          email: data.email,
+          password: data.password,
         });
 
         if (res.data?.token) {
@@ -186,14 +191,7 @@ export default function Login(): React.ReactElement {
         setIsLoading(false);
       }
     },
-    [
-      signupUsername,
-      signupEmail,
-      signupPassword,
-      signupConfirmPassword,
-      navigate,
-      refetch,
-    ],
+    [navigate, refetch],
   );
 
   return (
@@ -209,19 +207,21 @@ export default function Login(): React.ReactElement {
         </Tabs.List>
 
         <Tabs.Content value="login" css={tabContentCss}>
-          <form css={formCss} onSubmit={onLoginSubmit}>
+          <form css={formCss} onSubmit={handleLoginSubmit(onLoginSubmit)}>
             <div>
               <label css={fieldLabelCss} htmlFor="username">
                 Username
               </label>
               <input
                 type="text"
-                name="username"
-                value={username}
-                onChange={(e): void => setUsername(e.target.value)}
+                {...loginRegister("username", {
+                  required: "Username is required",
+                })}
                 autoComplete="username"
-                required
               />
+              {loginErrors.username && (
+                <div css={errorCss}>{loginErrors.username.message}</div>
+              )}
             </div>
             <div>
               <label css={fieldLabelCss} htmlFor="password">
@@ -229,12 +229,14 @@ export default function Login(): React.ReactElement {
               </label>
               <input
                 type="password"
-                name="password"
-                value={password}
-                onChange={(e): void => setPassword(e.target.value)}
+                {...loginRegister("password", {
+                  required: "Password is required",
+                })}
                 autoComplete="current-password"
-                required
               />
+              {loginErrors.password && (
+                <div css={errorCss}>{loginErrors.password.message}</div>
+              )}
             </div>
             {loginError && <div css={errorCss}>{loginError}</div>}
             <input
@@ -247,18 +249,20 @@ export default function Login(): React.ReactElement {
         </Tabs.Content>
 
         <Tabs.Content value="signup" css={tabContentCss}>
-          <form css={formCss} onSubmit={onSignupSubmit}>
+          <form css={formCss} onSubmit={handleSignupSubmit(onSignupSubmit)}>
             <div>
               <label css={fieldLabelCss} htmlFor="signupUsername">
                 Username
               </label>
               <input
                 type="text"
-                name="signupUsername"
-                value={signupUsername}
-                onChange={(e): void => setSignupUsername(e.target.value)}
-                required
+                {...signupRegister("username", {
+                  required: "Username is required",
+                })}
               />
+              {signupErrors.username && (
+                <div css={errorCss}>{signupErrors.username.message}</div>
+              )}
             </div>
             <div>
               <label css={fieldLabelCss} htmlFor="signupEmail">
@@ -266,12 +270,18 @@ export default function Login(): React.ReactElement {
               </label>
               <input
                 type="email"
-                name="signupEmail"
-                value={signupEmail}
-                onChange={(e): void => setSignupEmail(e.target.value)}
+                {...signupRegister("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Invalid email address",
+                  },
+                })}
                 autoComplete="email"
-                required
               />
+              {signupErrors.email && (
+                <div css={errorCss}>{signupErrors.email.message}</div>
+              )}
             </div>
             <div>
               <label css={fieldLabelCss} htmlFor="signupPassword">
@@ -279,12 +289,14 @@ export default function Login(): React.ReactElement {
               </label>
               <input
                 type="password"
-                name="signupPassword"
-                value={signupPassword}
-                onChange={(e): void => setSignupPassword(e.target.value)}
+                {...signupRegister("password", {
+                  required: "Password is required",
+                })}
                 autoComplete="new-password"
-                required
               />
+              {signupErrors.password && (
+                <div css={errorCss}>{signupErrors.password.message}</div>
+              )}
             </div>
             <div>
               <label css={fieldLabelCss} htmlFor="signupConfirmPassword">
@@ -292,12 +304,16 @@ export default function Login(): React.ReactElement {
               </label>
               <input
                 type="password"
-                name="signupConfirmPassword"
-                value={signupConfirmPassword}
-                onChange={(e): void => setSignupConfirmPassword(e.target.value)}
+                {...signupRegister("confirmPassword", {
+                  required: "Please confirm your password",
+                  validate: (value) =>
+                    value === watch("password") || "Passwords do not match",
+                })}
                 autoComplete="new-password"
-                required
               />
+              {signupErrors.confirmPassword && (
+                <div css={errorCss}>{signupErrors.confirmPassword.message}</div>
+              )}
             </div>
             {signupError && <div css={errorCss}>{signupError}</div>}
             <input
