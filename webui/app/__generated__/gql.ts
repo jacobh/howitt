@@ -68,7 +68,7 @@ const documents = {
     types.SettingsDocument,
   "\n  mutation initiateRwgpsHistorySync {\n    initiateRwgpsHistorySync {\n      ...viewerInfo\n    }\n  }\n":
     types.InitiateRwgpsHistorySyncDocument,
-  "\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
+  "\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n":
     types.TripsQueryDocument,
   "\n  query TripsQueryPoints {\n    trips {\n      id\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: MEDIUM) \n        }\n      }\n    }\n  }\n":
     types.TripsQueryPointsDocument,
@@ -254,8 +254,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n",
-): (typeof documents)["\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
+  source: "\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n",
+): (typeof documents)["\n  query TripsQuery {\n    trips {\n      id\n      name\n      legs {\n        rides {\n          id\n          pointsJson(detailLevel: LOW)\n        }\n      }\n      ...tripItem\n    }\n    viewer {\n      profile {\n        id\n        username\n      }\n      ...viewerInfo\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

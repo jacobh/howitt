@@ -1009,9 +1009,10 @@ export type TripsQueryQuery = {
     } & { " $fragmentRefs"?: { TripItemFragment: TripItemFragment } }
   >;
   viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
+    | ({
+        __typename?: "Viewer";
+        profile: { __typename?: "UserProfile"; id: any; username: string };
+      } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
     | null;
 };
 
@@ -3939,6 +3940,20 @@ export const TripsQueryDocument = {
             selectionSet: {
               kind: "SelectionSet",
               selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "profile" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "username" },
+                      },
+                    ],
+                  },
+                },
                 {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "viewerInfo" },
