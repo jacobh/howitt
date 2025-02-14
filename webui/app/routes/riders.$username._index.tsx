@@ -19,6 +19,7 @@ import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { PointsDetail } from "~/__generated__/graphql";
 import { CreateTripModal } from "~/components/trips/CreateTripModal";
 import { useState } from "react";
+import { buttonStyles } from "~/components/ui/Button";
 
 const UserProfileQuery = gql(`
   query UserProfileQuery($username: String!, $detailLevel: PointsDetail!) {
@@ -114,24 +115,7 @@ export default function UserProfile(): React.ReactElement {
               <>
                 <button
                   onClick={(): void => setCreateModalOpen(true)}
-                  css={css`
-                    background-color: white;
-                    border: 1px solid ${tokens.colors.lightGrey};
-                    padding: 8px 16px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    margin-left: 1.5%;
-                    font-size: 0.9em;
-
-                    &:hover {
-                      background-color: ${tokens.colors.offWhite};
-                    }
-
-                    &:disabled {
-                      opacity: 0.7;
-                      cursor: not-allowed;
-                    }
-                  `}
+                  css={buttonStyles}
                 >
                   Create Trip
                 </button>
