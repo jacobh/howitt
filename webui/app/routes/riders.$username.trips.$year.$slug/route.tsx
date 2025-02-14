@@ -21,6 +21,7 @@ import { useUpdatePrimaryMapView } from "~/components/map/hooks/useUpdatePrimary
 import { match } from "ts-pattern";
 import LineString from "ol/geom/LineString";
 import { PointsDetail } from "~/__generated__/graphql";
+import { tokens } from "~/styles/tokens";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $detailLevel: PointsDetail!) {
@@ -75,6 +76,25 @@ const infoBoxStyles = css({
   marginTop: "12px",
   marginBottom: "20px",
 });
+
+const editTripButtonCss = css`
+  background-color: white;
+  border: 1px solid ${tokens.colors.lightGrey};
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 1.5%;
+  font-size: 0.9em;
+
+  &:hover {
+    background-color: ${tokens.colors.offWhite};
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
 
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
@@ -255,7 +275,10 @@ export default function TripDetail(): React.ReactElement {
         {trip ? (
           <>
             {isOwnTrip && (
-              <button onClick={(): void => setEditModalOpen(true)}>
+              <button
+                onClick={(): void => setEditModalOpen(true)}
+                css={editTripButtonCss}
+              >
                 Edit Trip
               </button>
             )}

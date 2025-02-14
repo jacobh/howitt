@@ -526,6 +526,44 @@ export type RouteItemFragment = {
   isMetaComplete: boolean;
 } & { " $fragmentName"?: "RouteItemFragment" };
 
+export type AllRidesQueryVariables = Exact<{
+  username: Scalars["String"]["input"];
+}>;
+
+export type AllRidesQuery = {
+  __typename?: "Query";
+  userWithUsername?: {
+    __typename?: "UserProfile";
+    rides: Array<{
+      __typename?: "Ride";
+      id: any;
+      name: string;
+      startedAt: any;
+      finishedAt: any;
+      distance: number;
+    }>;
+  } | null;
+};
+
+export type CreateTripMutationVariables = Exact<{
+  input: CreateTripInput;
+}>;
+
+export type CreateTripMutation = {
+  __typename?: "Mutation";
+  createTrip: {
+    __typename?: "CreateTripOutput";
+    trip: {
+      __typename?: "Trip";
+      id: any;
+      name: string;
+      slug: string;
+      year: number;
+      user: { __typename?: "UserProfile"; username: string };
+    };
+  };
+};
+
 export type TripMediaFragment = {
   __typename?: "Trip";
   id: any;
@@ -554,25 +592,6 @@ export type TripRidesFragment = {
     distance: number;
   }>;
 } & { " $fragmentName"?: "TripRidesFragment" };
-
-export type AllRidesQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
-}>;
-
-export type AllRidesQuery = {
-  __typename?: "Query";
-  userWithUsername?: {
-    __typename?: "UserProfile";
-    rides: Array<{
-      __typename?: "Ride";
-      id: any;
-      name: string;
-      startedAt: any;
-      finishedAt: any;
-      distance: number;
-    }>;
-  } | null;
-};
 
 export type EditTripFragment = ({
   __typename?: "Trip";
@@ -1832,6 +1851,82 @@ export const AllRidesDocument = {
     },
   ],
 } as unknown as DocumentNode<AllRidesQuery, AllRidesQueryVariables>;
+export const CreateTripDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateTrip" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreateTripInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createTrip" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "trip" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "slug" } },
+                      { kind: "Field", name: { kind: "Name", value: "year" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "user" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "username" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateTripMutation, CreateTripMutationVariables>;
 export const UpdateTripDocument = {
   kind: "Document",
   definitions: [

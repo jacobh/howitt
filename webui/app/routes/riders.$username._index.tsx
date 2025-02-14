@@ -17,6 +17,8 @@ import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { PointsDetail } from "~/__generated__/graphql";
+import { CreateTripModal } from "~/components/trips/CreateTripModal";
+import { useState } from "react";
 
 const UserProfileQuery = gql(`
   query UserProfileQuery($username: String!, $detailLevel: PointsDetail!) {
@@ -63,6 +65,7 @@ const sectionTextCss = css`
 
 export default function UserProfile(): React.ReactElement {
   const params = useParams();
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
   const { data, loading } = useQuery(UserProfileQuery, {
     variables: {
@@ -107,6 +110,38 @@ export default function UserProfile(): React.ReactElement {
         {data?.userWithUsername?.username ? (
           <div>
             <div css={sectionHeaderCss}>Trips</div>
+            {isViewingOwnProfile && (
+              <>
+                <button
+                  onClick={(): void => setCreateModalOpen(true)}
+                  css={css`
+                    background-color: white;
+                    border: 1px solid ${tokens.colors.lightGrey};
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    margin-left: 1.5%;
+                    font-size: 0.9em;
+
+                    &:hover {
+                      background-color: ${tokens.colors.offWhite};
+                    }
+
+                    &:disabled {
+                      opacity: 0.7;
+                      cursor: not-allowed;
+                    }
+                  `}
+                >
+                  Create Trip
+                </button>
+                <CreateTripModal
+                  isOpen={isCreateModalOpen}
+                  onClose={(): void => setCreateModalOpen(false)}
+                  username={data.userWithUsername.username}
+                />
+              </>
+            )}
             {data.userWithUsername.trips.map((trip) => (
               <div key={trip.id} css={rideItemContainerCss}>
                 <TripItem trip={trip} />
