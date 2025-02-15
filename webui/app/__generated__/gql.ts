@@ -40,6 +40,8 @@ const documents = {
     types.TripRidesFragmentDoc,
   "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ":
     types.AllRidesDocument,
+  "\n  mutation UpdateTripRides($input: UpdateTripRidesInput!) {\n    updateTripRides(input: $input) {\n      trip {\n        id\n        rides {\n          id\n        }\n      }\n    }\n  }\n":
+    types.UpdateTripRidesDocument,
   "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    isPublished\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n":
     types.EditTripFragmentDoc,
   "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n":
@@ -172,6 +174,12 @@ export function gql(
 export function gql(
   source: "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ",
 ): (typeof documents)["\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  "];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation UpdateTripRides($input: UpdateTripRidesInput!) {\n    updateTripRides(input: $input) {\n      trip {\n        id\n        rides {\n          id\n        }\n      }\n    }\n  }\n",
+): (typeof documents)["\n  mutation UpdateTripRides($input: UpdateTripRidesInput!) {\n    updateTripRides(input: $input) {\n      trip {\n        id\n        rides {\n          id\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

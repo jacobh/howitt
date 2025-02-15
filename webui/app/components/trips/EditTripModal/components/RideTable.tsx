@@ -2,6 +2,7 @@ import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useMutation } from "@apollo/client/react/hooks/useMutation";
 import { sortBy } from "lodash";
 
 export const TripRidesFragment = gql(`
@@ -34,8 +35,22 @@ const AllRidesQuery = gql(`
     }
   `);
 
+const UpdateTripRidesMutation = gql(`
+  mutation UpdateTripRides($input: UpdateTripRidesInput!) {
+    updateTripRides(input: $input) {
+      trip {
+        id
+        rides {
+          id
+        }
+      }
+    }
+  }
+`);
+
 interface Props {
   trip: FragmentType<typeof TripRidesFragment>;
+  refetch: () => void;
 }
 const rideTableContainerCss = css`
   max-height: 67vh;
@@ -99,7 +114,10 @@ const loadingStyles = css`
   font-style: italic;
 `;
 
-export function RideTable({ trip: tripFragment }: Props): React.ReactElement {
+export function RideTable({
+  trip: tripFragment,
+  refetch,
+}: Props): React.ReactElement {
   const trip = useFragment(TripRidesFragment, tripFragment);
 
   const [includedRideIds, setIncludedRideIds] = useState<Set<string>>(
@@ -112,6 +130,15 @@ export function RideTable({ trip: tripFragment }: Props): React.ReactElement {
     },
   });
 
+  const [updateRides, { loading: updatingRides }] = useMutation(
+    UpdateTripRidesMutation,
+    {
+      onCompleted: () => {
+        refetch();
+      },
+    },
+  );
+
   const handleToggleRide = (rideId: string): void => {
     setIncludedRideIds((prev) => {
       const next = new Set(prev);
@@ -120,6 +147,17 @@ export function RideTable({ trip: tripFragment }: Props): React.ReactElement {
       } else {
         next.add(rideId);
       }
+
+      // Call mutation with updated IDs
+      updateRides({
+        variables: {
+          input: {
+            tripId: trip.id,
+            rideIds: Array.from(next),
+          },
+        },
+      });
+
       return next;
     });
   };
@@ -129,7 +167,7 @@ export function RideTable({ trip: tripFragment }: Props): React.ReactElement {
     return sortBy(unsortedRides, (ride) => ride.startedAt).reverse();
   }, [allRidesData]);
 
-  if (loading) {
+  if (loading || updatingRides) {
     return <div css={loadingStyles}>Loading rides...</div>;
   }
 

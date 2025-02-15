@@ -656,6 +656,22 @@ export type TripRidesFragment = {
   }>;
 } & { " $fragmentName"?: "TripRidesFragment" };
 
+export type UpdateTripRidesMutationVariables = Exact<{
+  input: UpdateTripRidesInput;
+}>;
+
+export type UpdateTripRidesMutation = {
+  __typename?: "Mutation";
+  updateTripRides: {
+    __typename?: "TripRidesOutput";
+    trip?: {
+      __typename?: "Trip";
+      id: any;
+      rides: Array<{ __typename?: "Ride"; id: any }>;
+    } | null;
+  };
+};
+
 export type EditTripFragment = ({
   __typename?: "Trip";
   id: any;
@@ -2217,6 +2233,82 @@ export const CreateTripDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateTripMutation, CreateTripMutationVariables>;
+export const UpdateTripRidesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateTripRides" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdateTripRidesInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updateTripRides" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "trip" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rides" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateTripRidesMutation,
+  UpdateTripRidesMutationVariables
+>;
 export const UpdateTripDocument = {
   kind: "Document",
   definitions: [

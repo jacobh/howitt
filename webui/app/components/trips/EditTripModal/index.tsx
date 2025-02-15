@@ -270,11 +270,11 @@ export function EditTripModal({
             <Tabs.Trigger value="trip" css={tabTriggerStyles}>
               Trip
             </Tabs.Trigger>
-            <Tabs.Trigger value="rides" css={tabTriggerStyles}>
-              Rides
-            </Tabs.Trigger>
             <Tabs.Trigger value="content" css={tabTriggerStyles}>
               Content
+            </Tabs.Trigger>
+            <Tabs.Trigger value="rides" css={tabTriggerStyles}>
+              Rides
             </Tabs.Trigger>
             <Tabs.Trigger value="media" css={tabTriggerStyles}>
               Media
@@ -315,10 +315,19 @@ export function EditTripModal({
                 onChange={(e): void => setIsPublished(e.target.checked)}
               />
             </div>
+            <div css={buttonGroupStyles}>
+              <button type="button" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" disabled={loading}>
+                {loading ? "Saving..." : "Save"}
+              </button>
+            </div>
           </Tabs.Content>
 
           <Tabs.Content value="rides">
-            <RideTable trip={trip} />
+            <RideTable trip={trip} refetch={refetch} />
+            <p>Toggling rides will automatically save</p>
           </Tabs.Content>
 
           <Tabs.Content value="content">
@@ -406,6 +415,14 @@ export function EditTripModal({
                 )}
               </div>
             </div>
+            <div css={buttonGroupStyles}>
+              <button type="button" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" disabled={loading}>
+                {loading ? "Saving..." : "Save"}
+              </button>
+            </div>
           </Tabs.Content>
 
           <Tabs.Content value="media">
@@ -422,15 +439,6 @@ export function EditTripModal({
             />
           </Tabs.Content>
         </Tabs.Root>
-
-        <div css={buttonGroupStyles}>
-          <button type="button" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" disabled={loading}>
-            {loading ? "Saving..." : "Save"}
-          </button>
-        </div>
       </form>
     </Modal>
   );
