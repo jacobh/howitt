@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from rides where (external_ref->'id'->'Rwgps'->'Route')::int = $1",
+  "query": "select * from rides where (external_ref->'id'->'Rwgps'->'Trip')::int = $1",
   "describe": {
     "columns": [
       {
@@ -60,5 +60,5 @@
       false
     ]
   },
-  "hash": "77002ede0d0ea7d2f547e423b7cddb57c38310e57d66f9cc70b9a14976d1613b"
+  "hash": "163122177925d5bbb057f1fe3dbf3538820d6b69b15361361adfe0397f53b4b9"
 }
