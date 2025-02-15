@@ -14,6 +14,7 @@ import {
   tabsRootStyles,
   tabTriggerStyles,
 } from "~/components/ui/Tabs";
+import { RideList } from "../components/settings/RideList";
 
 const SettingsQuery = gql(`
   query settings {
@@ -235,11 +236,13 @@ export default function Settings(): React.ReactElement {
           </Tabs.Content>
 
           <Tabs.Content value="rides">
-            <div css={fieldContainerCss}>
-              <p>
-                Your rides will be displayed here. This feature is coming soon.
-              </p>
-            </div>
+            {profile?.username ? (
+              <RideList username={profile.username} />
+            ) : (
+              <div css={fieldContainerCss}>
+                <p>No rides available.</p>
+              </div>
+            )}
           </Tabs.Content>
 
           <Tabs.Content value="routes">
