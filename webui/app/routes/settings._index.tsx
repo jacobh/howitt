@@ -17,6 +17,7 @@ import {
 import { RideList } from "../components/settings/RideList";
 import { RouteList } from "../components/settings/RouteList";
 import { TripList } from "../components/settings/TripList";
+import { CreateTripModal } from "~/components/trips/CreateTripModal";
 
 const SettingsQuery = gql(`
   query settings {
@@ -136,6 +137,7 @@ const connectionTextCss = css({
 export default function Settings(): React.ReactElement {
   const { data } = useQuery(SettingsQuery, {});
   const [hasSynced, setHasSynced] = useState(false);
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [initiateSync, { loading: syncing }] = useMutation(
     InitiateRwgpsHistorySyncMutation,
   );
@@ -259,7 +261,22 @@ export default function Settings(): React.ReactElement {
 
           <Tabs.Content value="trips">
             {profile?.username ? (
-              <TripList username={profile.username} />
+              <>
+                <button
+                  onClick={(): void => setCreateModalOpen(true)}
+                  css={[buttonStyles, { marginBottom: "1rem" }]}
+                >
+                  Create Trip
+                </button>
+                <TripList username={profile.username} />
+                {isCreateModalOpen && (
+                  <CreateTripModal
+                    isOpen={isCreateModalOpen}
+                    onClose={(): void => setCreateModalOpen(false)}
+                    username={profile.username}
+                  />
+                )}
+              </>
             ) : (
               <div css={fieldContainerCss}>
                 <p>No trips available.</p>
