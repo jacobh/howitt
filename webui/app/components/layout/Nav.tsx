@@ -93,7 +93,7 @@ export function Nav(props: NavProps): React.ReactNode {
       </h3>
       <div css={userInfoCss}>
         {viewer ? (
-          <Link to={`/settings`}>{viewer.profile.username}</Link>
+          <Link to={`/workshop`}>{viewer.profile.username}</Link>
         ) : (
           <Link to="/login">Login</Link>
         )}

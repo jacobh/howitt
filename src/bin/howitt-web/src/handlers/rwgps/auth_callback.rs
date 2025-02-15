@@ -194,6 +194,6 @@ pub async fn rwgps_callback_handler(
         // Continue with the redirect even if sync job creation fails
     }
 
-    tracing::info!(user_id = %user.id, "RWGPS connection complete, redirecting to settings page");
-    Redirect::to("https://howittplains.net/settings?rwgps=connected").into_response()
+    tracing::info!(user_id = %user.id, "RWGPS connection complete, redirecting to workshop page");
+    Redirect::to("https://howittplains.net/workshop?rwgps=connected").into_response()
 }

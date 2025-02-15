@@ -111,7 +111,7 @@ export default function Login(): React.ReactElement {
         if (typeof res.data?.token === "string") {
           Cookies.set("token", res.data.token);
           await refetch();
-          navigate("/");
+          navigate("/workshop");
         } else {
           setLoginError("Something went wrong, try again");
           resetLoginForm({ password: "" });
@@ -141,7 +141,7 @@ export default function Login(): React.ReactElement {
         if (res.data?.token) {
           Cookies.set("token", res.data.token);
           await refetch();
-          navigate("/settings");
+          navigate("/workshop");
         } else if (res.data?.error) {
           setSignupError(res.data.error);
         } else {

@@ -150,6 +150,7 @@ export default function Settings(): React.ReactElement {
     <Container>
       <Nav viewer={data?.viewer} />
       <div css={pageContainerCss}>
+        <h2>Workshop</h2>
         <InfoBox>
           <h3 css={welcomeHeadingCss}>Welcome to Howitt Plains!</h3>
           <p css={welcomeTextCss}>To get started:</p>
