@@ -41,8 +41,11 @@ dotenv = "0.15.0"
 axum_typed_multipart = { version = "*" }
 uuid = "*"
 infer = "0.16.0"
-apalis = { version = "0.6", features = ["limit", "timeout"] }
-apalis-redis = { version = "0.6" }
+apalis = { git = "https://github.com/geofmureithi/apalis.git", features = [
+    "limit",
+    "timeout",
+] }
+apalis-redis = { git = "https://github.com/geofmureithi/apalis.git" }
 nom-exif = "*"
 futures = "*"
 oauth2 = "*"

@@ -188,8 +188,7 @@ checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 [[package]]
 name = "apalis"
 version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "703ea57243268f2f84c09ad0c06fac49448b341b906a2f5ee01546600c329960"
+source = "git+https://github.com/geofmureithi/apalis.git#060a7d260cc66714afe9ddc20012a569b00103a2"
 dependencies = [
  "apalis-core",
  "futures",
@@ -204,8 +203,7 @@ dependencies = [
 [[package]]
 name = "apalis-core"
 version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ade84ea7d39131db019fb646ebff22a11ab3445c9e9deac026413980d2a9b924"
+source = "git+https://github.com/geofmureithi/apalis.git#060a7d260cc66714afe9ddc20012a569b00103a2"
 dependencies = [
  "futures",
  "futures-timer",
@@ -220,14 +218,13 @@ dependencies = [
 [[package]]
 name = "apalis-redis"
 version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d085ac6b5cf00445d45b2e1b2cfee7e1cdc3ddcb5a79db8066528a02fd85cfda"
+source = "git+https://github.com/geofmureithi/apalis.git#060a7d260cc66714afe9ddc20012a569b00103a2"
 dependencies = [
  "apalis-core",
  "chrono",
  "futures",
  "log",
- "redis 0.27.6",
+ "redis",
  "serde",
  "thiserror 2.0.11",
  "tokio",
@@ -2098,7 +2095,7 @@ dependencies = [
  "derive_more",
  "howitt_client_types",
  "object_store",
- "redis 0.28.1",
+ "redis",
  "reqwest",
  "thiserror 2.0.11",
  "url",
@@ -3852,38 +3849,15 @@ dependencies = [
 
 [[package]]
 name = "redis"
-version = "0.27.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09d8f99a4090c89cc489a94833c901ead69bfbf3877b4867d5482e321ee875bc"
-dependencies = [
- "arc-swap",
- "async-trait",
- "backon",
- "bytes",
- "combine",
- "futures",
- "futures-util",
- "itertools 0.13.0",
- "itoa",
- "num-bigint",
- "percent-encoding",
- "pin-project-lite",
- "ryu",
- "sha1_smol",
- "tokio",
- "tokio-util",
- "url",
-]
-
-[[package]]
-name = "redis"
 version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f89727cba9cec05cc579942321ff6dd09fe57a8b3217f52f952301efa010da5"
 dependencies = [
  "arc-swap",
+ "backon",
  "bytes",
  "combine",
+ "futures-channel",
  "futures-util",
  "itoa",
  "num-bigint",

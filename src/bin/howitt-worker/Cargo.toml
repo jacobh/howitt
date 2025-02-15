@@ -5,8 +5,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-apalis = { version = "0.6", features = ["limit", "timeout"] }
-apalis-redis = { version = "0.6" }
+apalis = { git = "https://github.com/geofmureithi/apalis.git", features = [
+    "limit",
+    "timeout",
+] }
+apalis-redis = { git = "https://github.com/geofmureithi/apalis.git" }
 howitt = { path = "../../lib/howitt" }
 howitt_clients = { path = "../../lib/howitt-clients" }
 howitt_jobs = { path = "../../lib/howitt-jobs" }

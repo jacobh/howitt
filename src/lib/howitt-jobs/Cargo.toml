@@ -5,9 +5,12 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-apalis-core = { version = "0.6" }
-apalis = { version = "0.6", features = ["limit", "timeout"] }
-apalis-redis = { version = "0.6" }
+apalis-core = { git = "https://github.com/geofmureithi/apalis.git" }
+apalis = { git = "https://github.com/geofmureithi/apalis.git", features = [
+    "limit",
+    "timeout",
+] }
+apalis-redis = { git = "https://github.com/geofmureithi/apalis.git" }
 tokio = { version = "1", features = ["full"] }
 thiserror = "*"
 howitt = { path = "../howitt" }

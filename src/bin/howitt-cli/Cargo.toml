@@ -27,8 +27,11 @@ chrono = "*"
 uuid = { version = "*", features = ["v7"] }
 chrono-tz = "*"
 derive_more = { version = "*", features = ["full"] }
-apalis = { version = "0.6", features = ["limit", "timeout"] }
-apalis-redis = { version = "0.6" }
+apalis = { git = "https://github.com/geofmureithi/apalis.git", features = [
+    "limit",
+    "timeout",
+] }
+apalis-redis = { git = "https://github.com/geofmureithi/apalis.git" }
 mapbox-geocoding = { path = "../../lib/mapbox-geocoding" }
 open-meteo = { path = "../../lib/open-meteo" }
 serde_yaml = "0.9.34"
