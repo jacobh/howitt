@@ -2,6 +2,8 @@ import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { css } from "@emotion/react";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__/gql";
+import { Link } from "@remix-run/react";
+import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
 
 const AllTripsQuery = gql(`
     query AllTrips($username: String!) {
@@ -11,6 +13,7 @@ const AllTripsQuery = gql(`
           name
           year
           isPublished
+          slug
         }
       }
     }
@@ -64,19 +67,6 @@ const tripTableCss = css`
   }
 `;
 
-const loadingStyles = css`
-  padding: 16px;
-  color: #666;
-  font-style: italic;
-`;
-
-interface Trip {
-  id: string;
-  name: string;
-  year: number;
-  isPublished: boolean;
-}
-
 interface TripListProps {
   username: string;
 }
@@ -86,13 +76,13 @@ export function TripList({ username }: TripListProps): React.ReactElement {
     variables: { username },
   });
 
-  const trips: Trip[] = sortBy(data?.userWithUsername?.trips ?? [], [
+  const trips = sortBy(data?.userWithUsername?.trips ?? [], [
     (trip): number => -trip.year,
     (trip): string => trip.name,
   ]);
 
   if (loading) {
-    return <div css={loadingStyles}>Loading trips...</div>;
+    return <LoadingSpinnerSidebarContent />;
   }
 
   return (
@@ -109,7 +99,13 @@ export function TripList({ username }: TripListProps): React.ReactElement {
           {trips.map((trip) => (
             <tr key={trip.id}>
               <td>{trip.year}</td>
-              <td>{trip.name}</td>
+              <td>
+                <Link
+                  to={`/riders/${username}/trips/${trip.year}/${trip.slug}`}
+                >
+                  {trip.name}
+                </Link>
+              </td>
               <td>{trip.isPublished ? "Published" : "Draft"}</td>
             </tr>
           ))}

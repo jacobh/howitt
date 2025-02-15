@@ -1,21 +1,24 @@
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { css } from "@emotion/react";
+import { Link } from "@remix-run/react";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__";
+import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
 
 const AllRidesQuery = gql(`
-    query AllRides($username: String!) {
-      userWithUsername(username: $username) {
-        rides {
-          id
-          name
-          startedAt
-          finishedAt
-          distance
-        }
+  query SettingsRideList($username: String!) {
+    userWithUsername(username: $username) {
+      rides {
+        id
+        name
+        startedAt
+        finishedAt
+        distance
+        date
       }
     }
-  `);
+  }
+`);
 
 const rideTableContainerCss = css`
   max-height: 67vh;
@@ -65,20 +68,6 @@ const rideTableCss = css`
   }
 `;
 
-const loadingStyles = css`
-  padding: 16px;
-  color: #666;
-  font-style: italic;
-`;
-
-interface Ride {
-  id: string;
-  name: string;
-  startedAt: string;
-  finishedAt: string;
-  distance: number;
-}
-
 interface RideListProps {
   username: string;
 }
@@ -88,13 +77,13 @@ export function RideList({ username }: RideListProps): React.ReactElement {
     variables: { username },
   });
 
-  const rides: Ride[] = sortBy(
+  const rides = sortBy(
     data?.userWithUsername?.rides ?? [],
     (ride) => ride.startedAt,
   ).reverse();
 
   if (loading) {
-    return <div css={loadingStyles}>Loading rides...</div>;
+    return <LoadingSpinnerSidebarContent />;
   }
 
   return (
@@ -110,8 +99,16 @@ export function RideList({ username }: RideListProps): React.ReactElement {
         <tbody>
           {rides.map((ride) => (
             <tr key={ride.id}>
-              <td>{new Date(ride.startedAt).toLocaleString()}</td>
-              <td>{ride.name}</td>
+              <td>
+                <Link to={`/riders/${username}/${ride.date}/`}>
+                  {new Date(ride.startedAt).toLocaleString()}
+                </Link>
+              </td>
+              <td>
+                <Link to={`/riders/${username}/${ride.date}/`}>
+                  {ride.name}
+                </Link>
+              </td>
               <td>{(ride.distance / 1000).toFixed(1)}km</td>
             </tr>
           ))}

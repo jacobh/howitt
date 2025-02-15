@@ -24,11 +24,11 @@ const documents = {
     types.RideSummaryFragmentDoc,
   "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n":
     types.RouteItemFragmentDoc,
-  "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ":
-    types.AllRidesDocument,
-  "\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  ":
+  "\n  query SettingsRideList($username: String!) {\n    userWithUsername(username: $username) {\n      rides {\n        id\n        name\n        startedAt\n        finishedAt\n        distance\n        date\n      }\n    }\n  }\n":
+    types.SettingsRideListDocument,
+  "\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          slug\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  ":
     types.AllRoutesDocument,
-  "\n    query AllTrips($username: String!) {\n      userWithUsername(username: $username) {\n        trips {\n          id\n          name\n          year\n          isPublished\n        }\n      }\n    }\n  ":
+  "\n    query AllTrips($username: String!) {\n      userWithUsername(username: $username) {\n        trips {\n          id\n          name\n          year\n          isPublished\n          slug\n        }\n      }\n    }\n  ":
     types.AllTripsDocument,
   "\n  query AllRides($username: String!) {\n    userWithUsername(username: $username) {\n      rides {\n        id\n        name\n        startedAt\n        finishedAt\n        distance\n      }\n    }\n  }\n":
     types.AllRidesDocument,
@@ -38,6 +38,8 @@ const documents = {
     types.TripMediaFragmentDoc,
   "\n  fragment tripRides on Trip {\n    id\n    user {\n        username\n    }\n    rides {\n      id\n      name\n      startedAt\n      finishedAt\n      distance\n    }\n  }\n":
     types.TripRidesFragmentDoc,
+  "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ":
+    types.AllRidesDocument,
   "\n    fragment editTrip on Trip {\n    id\n    name \n    description\n    ...tripRides\n    ...tripMedia\n    isPublished\n    media {\n      id\n    }\n    temporalContentBlocks {\n      __typename\n      contentAt\n      ... on Note {\n        text\n      }\n      ... on Media {\n        mediaId: id\n        imageSizes {\n          fit1200 {\n            webpUrl\n          }\n        }\n      }\n      ... on Ride {\n        rideId: id\n        name\n      }\n    }\n  }\n":
     types.EditTripFragmentDoc,
   "\n  mutation UpdateTrip($input: UpdateTripInput!) {\n    updateTrip(input: $input) {\n      trip {\n        id\n        name\n        description\n      }\n    }\n  }\n":
@@ -126,20 +128,20 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ",
-): (typeof documents)["\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  "];
+  source: "\n  query SettingsRideList($username: String!) {\n    userWithUsername(username: $username) {\n      rides {\n        id\n        name\n        startedAt\n        finishedAt\n        distance\n        date\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query SettingsRideList($username: String!) {\n    userWithUsername(username: $username) {\n      rides {\n        id\n        name\n        startedAt\n        finishedAt\n        distance\n        date\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  ",
-): (typeof documents)["\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  "];
+  source: "\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          slug\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  ",
+): (typeof documents)["\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          slug\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    query AllTrips($username: String!) {\n      userWithUsername(username: $username) {\n        trips {\n          id\n          name\n          year\n          isPublished\n        }\n      }\n    }\n  ",
-): (typeof documents)["\n    query AllTrips($username: String!) {\n      userWithUsername(username: $username) {\n        trips {\n          id\n          name\n          year\n          isPublished\n        }\n      }\n    }\n  "];
+  source: "\n    query AllTrips($username: String!) {\n      userWithUsername(username: $username) {\n        trips {\n          id\n          name\n          year\n          isPublished\n          slug\n        }\n      }\n    }\n  ",
+): (typeof documents)["\n    query AllTrips($username: String!) {\n      userWithUsername(username: $username) {\n        trips {\n          id\n          name\n          year\n          isPublished\n          slug\n        }\n      }\n    }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -164,6 +166,12 @@ export function gql(
 export function gql(
   source: "\n  fragment tripRides on Trip {\n    id\n    user {\n        username\n    }\n    rides {\n      id\n      name\n      startedAt\n      finishedAt\n      distance\n    }\n  }\n",
 ): (typeof documents)["\n  fragment tripRides on Trip {\n    id\n    user {\n        username\n    }\n    rides {\n      id\n      name\n      startedAt\n      finishedAt\n      distance\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ",
+): (typeof documents)["\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

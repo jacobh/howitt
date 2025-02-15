@@ -1,7 +1,9 @@
+import { Link } from "@remix-run/react";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { css } from "@emotion/react";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__/gql";
+import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
 
 const AllRoutesQuery = gql(`
     query AllRoutes($username: String!) {
@@ -9,6 +11,7 @@ const AllRoutesQuery = gql(`
         routes {
           id
           name
+          slug
           distance
           elevationAscentM
           elevationDescentM
@@ -65,20 +68,6 @@ const routeTableCss = css`
   }
 `;
 
-const loadingStyles = css`
-  padding: 16px;
-  color: #666;
-  font-style: italic;
-`;
-
-interface Route {
-  id: string;
-  name: string;
-  distance: number;
-  elevationAscentM: number;
-  elevationDescentM: number;
-}
-
 interface RouteListProps {
   username: string;
 }
@@ -88,13 +77,13 @@ export function RouteList({ username }: RouteListProps): React.ReactElement {
     variables: { username },
   });
 
-  const routes: Route[] = sortBy(
+  const routes = sortBy(
     data?.userWithUsername?.routes ?? [],
     (route) => route.name,
   );
 
   if (loading) {
-    return <div css={loadingStyles}>Loading routes...</div>;
+    return <LoadingSpinnerSidebarContent />;
   }
 
   return (
@@ -111,7 +100,9 @@ export function RouteList({ username }: RouteListProps): React.ReactElement {
         <tbody>
           {routes.map((route) => (
             <tr key={route.id}>
-              <td>{route.name}</td>
+              <td>
+                <Link to={`/routes/${route.slug}`}>{route.name}</Link>
+              </td>
               <td>{(route.distance / 1000).toFixed(1)}km</td>
               <td>{route.elevationAscentM.toFixed(0)}m</td>
               <td>{route.elevationDescentM.toFixed(0)}m</td>
