@@ -12,10 +12,8 @@ import { TripItem } from "~/components/trips/TripItem";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { DEFAULT_INITIAL_VIEW } from "~/components/map";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { buildRideTrack } from "~/components/map/types";
-import { CreateTripModal } from "~/components/trips/CreateTripModal";
-import { buttonStyles } from "~/components/ui/Button";
 
 const TripsQueryNoPoints = gql(`
   query TripsQuery {
@@ -64,8 +62,6 @@ const tripItemContainerCss = css`
 `;
 
 export default function Trips(): React.ReactElement {
-  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
-
   const { data, loading } = useQuery(TripsQueryNoPoints);
   const { data: data2 } = useQuery(TripsQueryWithPoints, {
     ssr: false,
@@ -84,14 +80,6 @@ export default function Trips(): React.ReactElement {
     <Container>
       <Nav viewer={data?.viewer} />
       <SidebarContainer titleSegments={[{ name: "Trips", linkTo: "/trips" }]}>
-        {data?.viewer && (
-          <button
-            onClick={(): void => setCreateModalOpen(true)}
-            css={buttonStyles}
-          >
-            Create Trip
-          </button>
-        )}
         {loading ? (
           <LoadingSpinnerSidebarContent />
         ) : (
@@ -107,13 +95,6 @@ export default function Trips(): React.ReactElement {
       <MapContainer>
         <PrimaryMap tracks={tracks} initialView={DEFAULT_INITIAL_VIEW} />
       </MapContainer>
-      {data?.viewer && (
-        <CreateTripModal
-          isOpen={isCreateModalOpen}
-          onClose={(): void => setCreateModalOpen(false)}
-          username={data.viewer.profile.username}
-        />
-      )}
     </Container>
   );
 }
