@@ -5,7 +5,7 @@ use howitt::repos::Repos;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
-use crate::graphql::schema::{ride::Ride, trip::Trip, IsoDate, ModelId};
+use crate::graphql::schema::{ride::Ride, route::Route, trip::Trip, IsoDate, ModelId};
 
 pub struct UserProfile(pub howitt::models::user::User);
 
@@ -133,5 +133,22 @@ impl UserProfile {
             .await?;
 
         Ok(trip.map(Trip))
+    }
+
+    async fn routes<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Route>, async_graphql::Error> {
+        let SchemaData {
+            repos: Repos { route_repo, .. },
+            ..
+        } = ctx.data()?;
+
+        let routes = route_repo
+            .filter_models(howitt::models::route::RouteFilter::UserId(self.0.id))
+            .await?;
+
+        let routes = routes
+            .into_iter()
+            .map(crate::graphql::schema::route::Route)
+            .collect_vec();
+        Ok(routes)
     }
 }
