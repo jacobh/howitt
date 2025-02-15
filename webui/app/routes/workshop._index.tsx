@@ -157,7 +157,10 @@ export default function Settings(): React.ReactElement {
           <ul css={welcomeListCss}>
             <li>Connect your Ride with GPS account using the button below</li>
             <li>Allow a few moments for your ride history to sync</li>
-            <li>Once complete, visit your profile to create your first trip</li>
+            <li>
+              Once complete, head to the &quot;Trips&quot; tab to create your
+              first trip
+            </li>
           </ul>
         </InfoBox>
         <Tabs.Root defaultValue="settings" css={tabsRootStyles}>
