@@ -1,6 +1,7 @@
 import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { buttonStyles } from "~/components/ui/Button";
+import { ThumbnailImage } from "./ThumbnailImage";
 
 export const TripMediaFragment = gql(`
   fragment tripMedia on Trip {
@@ -109,13 +110,6 @@ const thumbnailCellCss = css({
   width: "120px",
 });
 
-const thumbnailImageCss = css({
-  width: "100px",
-  height: "100px",
-  objectFit: "cover",
-  borderRadius: "4px",
-});
-
 const getFileName = (path: string): string => {
   return path.split("/").pop() || path;
 };
@@ -142,11 +136,7 @@ export function MediaTable({
           {trip.media.map((media) => (
             <tr key={media.id}>
               <td css={thumbnailCellCss}>
-                <img
-                  src={media.imageSizes.fill600.webpUrl}
-                  css={thumbnailImageCss}
-                  alt=""
-                />
+                <ThumbnailImage url={media.imageSizes.fill600.webpUrl} />
               </td>
               <td>{getFileName(media.path)}</td>
               <td>{new Date(media.createdAt).toLocaleDateString("en-US")}</td>
