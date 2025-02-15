@@ -68,6 +68,8 @@ const temporalBlocksContainerStyles = css({
   margin: "20px 0",
 });
 
+const editTripStyles = css(buttonStyles, css({ margin: "12px 0" }));
+
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const [isOverlayActive, setOverlayActive] = useState(false);
@@ -249,7 +251,7 @@ export default function TripDetail(): React.ReactElement {
             {isOwnTrip && (
               <button
                 onClick={(): void => setEditModalOpen(true)}
-                css={buttonStyles}
+                css={editTripStyles}
               >
                 Edit Trip
               </button>
