@@ -1,0 +1,124 @@
+import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { css } from "@emotion/react";
+import { sortBy } from "lodash";
+import { gql } from "~/__generated__/gql";
+
+const AllRoutesQuery = gql(`
+    query AllRoutes($username: String!) {
+      userWithUsername(username: $username) {
+        routes {
+          id
+          name
+          distance
+          elevationAscentM
+          elevationDescentM
+        }
+      }
+    }
+  `);
+
+const routeTableContainerCss = css`
+  max-height: 67vh;
+  overflow: hidden;
+  border: 1px solid #ddd;
+`;
+
+const routeTableCss = css`
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  th,
+  td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  tbody {
+    display: block;
+    overflow-y: auto;
+    max-height: calc(67vh - 41px);
+  }
+
+  thead,
+  tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  tbody tr {
+    transition: background-color 0.2s;
+  }
+
+  tbody tr:hover {
+    background-color: #f8f8f8;
+  }
+`;
+
+const loadingStyles = css`
+  padding: 16px;
+  color: #666;
+  font-style: italic;
+`;
+
+interface Route {
+  id: string;
+  name: string;
+  distance: number;
+  elevationAscentM: number;
+  elevationDescentM: number;
+}
+
+interface RouteListProps {
+  username: string;
+}
+
+export function RouteList({ username }: RouteListProps): React.ReactElement {
+  const { data, loading } = useQuery(AllRoutesQuery, {
+    variables: { username },
+  });
+
+  const routes: Route[] = sortBy(
+    data?.userWithUsername?.routes ?? [],
+    (route) => route.name,
+  );
+
+  if (loading) {
+    return <div css={loadingStyles}>Loading routes...</div>;
+  }
+
+  return (
+    <div css={routeTableContainerCss}>
+      <table css={routeTableCss}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Distance</th>
+            <th>Elevation Gain</th>
+            <th>Elevation Loss</th>
+          </tr>
+        </thead>
+        <tbody>
+          {routes.map((route) => (
+            <tr key={route.id}>
+              <td>{route.name}</td>
+              <td>{(route.distance / 1000).toFixed(1)}km</td>
+              <td>{route.elevationAscentM.toFixed(0)}m</td>
+              <td>{route.elevationDescentM.toFixed(0)}m</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

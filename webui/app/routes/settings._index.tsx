@@ -15,6 +15,8 @@ import {
   tabTriggerStyles,
 } from "~/components/ui/Tabs";
 import { RideList } from "../components/settings/RideList";
+import { RouteList } from "../components/settings/RouteList";
+import { TripList } from "../components/settings/TripList";
 
 const SettingsQuery = gql(`
   query settings {
@@ -246,11 +248,23 @@ export default function Settings(): React.ReactElement {
           </Tabs.Content>
 
           <Tabs.Content value="routes">
-            <div css={fieldContainerCss}>
-              <p>
-                Your routes will be displayed here. This feature is coming soon.
-              </p>
-            </div>
+            {profile?.username ? (
+              <RouteList username={profile.username} />
+            ) : (
+              <div css={fieldContainerCss}>
+                <p>No routes available.</p>
+              </div>
+            )}
+          </Tabs.Content>
+
+          <Tabs.Content value="trips">
+            {profile?.username ? (
+              <TripList username={profile.username} />
+            ) : (
+              <div css={fieldContainerCss}>
+                <p>No trips available.</p>
+              </div>
+            )}
           </Tabs.Content>
         </Tabs.Root>
       </div>

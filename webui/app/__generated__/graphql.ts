@@ -441,6 +441,7 @@ export type UserProfile = {
   recentRides: Array<Ride>;
   rides: Array<Ride>;
   ridesWithDate: Array<Ride>;
+  routes: Array<Route>;
   tripWithSlug?: Maybe<Trip>;
   trips: Array<Trip>;
   username: Scalars["String"]["output"];
@@ -544,6 +545,43 @@ export type AllRidesQuery = {
       startedAt: any;
       finishedAt: any;
       distance: number;
+    }>;
+  } | null;
+};
+
+export type AllRoutesQueryVariables = Exact<{
+  username: Scalars["String"]["input"];
+}>;
+
+export type AllRoutesQuery = {
+  __typename?: "Query";
+  userWithUsername?: {
+    __typename?: "UserProfile";
+    routes: Array<{
+      __typename?: "Route";
+      id: any;
+      name: string;
+      distance: number;
+      elevationAscentM: number;
+      elevationDescentM: number;
+    }>;
+  } | null;
+};
+
+export type AllTripsQueryVariables = Exact<{
+  username: Scalars["String"]["input"];
+}>;
+
+export type AllTripsQuery = {
+  __typename?: "Query";
+  userWithUsername?: {
+    __typename?: "UserProfile";
+    trips: Array<{
+      __typename?: "Trip";
+      id: any;
+      name: string;
+      year: number;
+      isPublished: boolean;
     }>;
   } | null;
 };
@@ -1857,6 +1895,145 @@ export const AllRidesDocument = {
     },
   ],
 } as unknown as DocumentNode<AllRidesQuery, AllRidesQueryVariables>;
+export const AllRoutesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "AllRoutes" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "username" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "userWithUsername" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "username" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "username" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "routes" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "distance" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "elevationAscentM" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "elevationDescentM" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AllRoutesQuery, AllRoutesQueryVariables>;
+export const AllTripsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "AllTrips" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "username" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "userWithUsername" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "username" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "username" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "trips" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "year" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "isPublished" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AllTripsQuery, AllTripsQueryVariables>;
 export const CreateTripDocument = {
   kind: "Document",
   definitions: [
