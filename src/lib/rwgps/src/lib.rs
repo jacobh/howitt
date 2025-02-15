@@ -12,7 +12,7 @@ use reqwest_ext::{ResponseExt, SerdeDebugError};
 use tokio::sync::{Semaphore, SemaphorePermit};
 
 #[derive(Error, Debug)]
-#[error("RWGPS API Error")]
+#[error("RWGPS API Error {:?}", _0)]
 pub enum RwgpsError {
     Reqwest(#[from] reqwest::Error),
     Url(#[from] url::ParseError),

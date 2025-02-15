@@ -319,7 +319,7 @@ pub struct User {
     pub total_trip_elevation_gain: Option<f64>,
     pub name: String,
     pub highlighted_photo_id: usize,
-    pub highlighted_photo_checksum: String,
+    pub highlighted_photo_checksum: Value,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
