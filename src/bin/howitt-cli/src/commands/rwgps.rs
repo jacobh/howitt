@@ -1,26 +1,25 @@
+use crate::Context;
 use clap::{arg, Args, Subcommand};
-use howitt::{
-    models::user::UserId, repos::AnyhowRepo, services::sync::rwgps::{RwgpsSyncService, SyncParams}
-};
+use howitt::jobs::rwgps::RwgpsJob;
+use howitt::jobs::Job;
+use howitt::{models::user::UserId, repos::AnyhowRepo};
+use howitt_fs::load_routes;
 use howitt_fs::load_user_config;
-use howitt_fs::{load_routes, persist_user_config};
 use howitt_postgresql::PostgresRepos;
 use itertools::Itertools;
-use rwgps::AuthenticatedRwgpsClient;
-use rwgps_types::{config::UserConfig, credentials::{Credentials, PasswordCredentials}, client::RwgpsClient};
-use serde_json::json;
-
-use crate::utils::json::prettyprintln;
-use crate::Context;
+use rwgps_types::{
+    client::RwgpsClient,
+    config::UserConfig,
+    credentials::{Credentials, PasswordCredentials},
+};
 
 #[derive(Subcommand)]
 pub enum RwgpsCommands {
     Info(InfoArgs),
-    Auth,
     #[clap(subcommand)]
     Routes(Routes),
     Trips,
-    Sync(SyncRwgps),
+    EnqHistorySync(EnqHistorySync),
 }
 
 #[derive(Args)]
@@ -29,13 +28,10 @@ pub struct InfoArgs {
     user_id: String,
 }
 
-
 #[derive(Args)]
-pub struct SyncRwgps {
+pub struct EnqHistorySync {
     #[arg(long)]
-    force_sync_bcs: bool,
-    #[arg(long)]
-    force_sync_rwgps_id: Option<usize>,
+    user_id: String,
 }
 
 #[derive(Subcommand)]
@@ -75,22 +71,15 @@ fn get_user_config() -> Result<UserConfig, anyhow::Error> {
 pub async fn handle(
     command: &RwgpsCommands,
     Context {
-        repos:
-            PostgresRepos {
-                ride_repo,
-                ride_points_repo,
-                route_repo,
-                route_points_repo,
-                user_repo,
-                ..
-            },
+        repos: PostgresRepos { user_repo, .. },
+        job_storage,
         ..
     }: Context,
 ) -> Result<(), anyhow::Error> {
     match command {
         RwgpsCommands::Info(InfoArgs { user_id }) => {
             let user_id = UserId::from(uuid::Uuid::parse_str(user_id)?);
-            
+
             // Fetch user from repo
             let user = user_repo.get(user_id).await?;
 
@@ -101,9 +90,8 @@ pub async fn handle(
 
             // Create RWGPS client
             let rwgps_client = rwgps::RwgpsClient::new();
-            let auth_client = rwgps_client.with_credentials(
-                Credentials::from_token(rwgps_connection.access_token)
-            );
+            let auth_client = rwgps_client
+                .with_credentials(Credentials::from_token(rwgps_connection.access_token));
 
             // Fetch user info
             let user_info = auth_client.user_info().await?;
@@ -123,50 +111,28 @@ pub async fn handle(
                 .await?;
             println!("Found {} trips", trips.len());
         }
-        RwgpsCommands::Auth => {
-            let user_config = get_user_config()?;
-            let client = rwgps::AuthenticatedRwgpsClient::new(user_config.credentials());
+        RwgpsCommands::EnqHistorySync(EnqHistorySync { user_id }) => {
+            let user_id = UserId::from(uuid::Uuid::parse_str(user_id)?);
 
-            let auth_resp = client.user_info().await?;
+            // Fetch user from repo
+            let user = user_repo.get(user_id).await?;
 
-            let updated_user_config = UserConfig {
-                user_info: Some(auth_resp.user),
-                ..user_config
-            };
+            // Get RWGPS connection
+            let rwgps_connection = user
+                .rwgps_connection
+                .ok_or_else(|| anyhow::anyhow!("User has no RWGPS connection"))?;
 
-            persist_user_config(&updated_user_config)?;
-
-            prettyprintln(json!({
-                "email": updated_user_config.password_info.email,
-                "password": "********",
-                "user_info": updated_user_config.user_info,
-            }));
-        }
-        RwgpsCommands::Sync(SyncRwgps {
-            ..
-            // force_sync_bcs,
-            // force_sync_rwgps_id,
-        }) => {
-            let config = load_user_config()?.unwrap();
-            let rwgps_client = AuthenticatedRwgpsClient::new(config.credentials());
-
-            let service = RwgpsSyncService {
-                route_repo,
-                ride_repo,
-                route_points_repo,
-                ride_points_repo,
-                rwgps_client,
-                rwgps_error: std::marker::PhantomData,
-            };
-
-            service
-                .sync(SyncParams {
-                    rwgps_user_id: config.user_info.unwrap().id,
-                    user_id: UserId::from(uuid::Uuid::parse_str(
-                        "01941a60-9cfd-c166-94bb-126a6d8de5fd",
-                    )?),
-                })
+            // Enqueue the sync job
+            job_storage
+                .push(Job::from(RwgpsJob::SyncHistory {
+                    connection: rwgps_connection,
+                }))
                 .await?;
+
+            println!(
+                "Successfully enqueued RWGPS history sync job for user {}",
+                user.username
+            );
         }
         RwgpsCommands::Routes(Routes::List) => {
             let routes: Vec<rwgps_types::Route> = load_routes()?
