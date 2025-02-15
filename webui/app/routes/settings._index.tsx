@@ -8,6 +8,12 @@ import { Link } from "@remix-run/react";
 import { useState } from "react";
 import { InfoBox } from "~/components/ui/InfoBox";
 import { buttonStyles } from "~/components/ui/Button";
+import * as Tabs from "@radix-ui/react-tabs";
+import {
+  tabsListStyles,
+  tabsRootStyles,
+  tabTriggerStyles,
+} from "~/components/ui/Tabs";
 
 const SettingsQuery = gql(`
   query settings {
@@ -38,7 +44,7 @@ const InitiateRwgpsHistorySyncMutation = gql(`
 `);
 
 const pageContainerCss = css({
-  maxWidth: "600px",
+  maxWidth: "900px",
   width: "100%",
   margin: "0 auto",
   padding: "2rem",
@@ -148,70 +154,102 @@ export default function Settings(): React.ReactElement {
             <li>Once complete, visit your profile to create your first trip</li>
           </ul>
         </InfoBox>
-        <h2 css={titleCss}>Settings</h2>
-        <hr css={dividerCss} />
+        <Tabs.Root defaultValue="settings" css={tabsRootStyles}>
+          <Tabs.List css={tabsListStyles}>
+            <Tabs.Trigger value="settings" css={tabTriggerStyles}>
+              Settings
+            </Tabs.Trigger>
+            <Tabs.Trigger value="rides" css={tabTriggerStyles}>
+              Rides
+            </Tabs.Trigger>
+            <Tabs.Trigger value="routes" css={tabTriggerStyles}>
+              Routes
+            </Tabs.Trigger>
+            <Tabs.Trigger value="trips" css={tabTriggerStyles}>
+              Trips
+            </Tabs.Trigger>
+          </Tabs.List>
 
-        <div css={fieldContainerCss}>
-          <span css={labelCss}>Username</span>
-          <div css={valueCss}>{profile?.username}</div>
-        </div>
-
-        <div css={fieldContainerCss}>
-          <span css={labelCss}>Email</span>
-          <div css={valueCss}>{profile?.email}</div>
-        </div>
-
-        <h3 css={titleCss}>RWGPS Connection</h3>
-        <hr css={dividerCss} />
-
-        {rwgpsConnection ? (
-          <div css={fieldContainerCss}>
-            <span css={labelCss}>RWGPS User ID</span>
-            <div css={valueCss}>{rwgpsConnection.rwgpsUserId}</div>
-            <div css={connectionDatesCss}>
-              Connected on{" "}
-              {new Date(rwgpsConnection.createdAt).toLocaleDateString()}
-              <br />
-              Last updated{" "}
-              {new Date(rwgpsConnection.updatedAt).toLocaleDateString()}
+          <Tabs.Content value="settings">
+            <div css={fieldContainerCss}>
+              <span css={labelCss}>Username</span>
+              <div css={valueCss}>{profile?.username}</div>
             </div>
-            <p>
-              New rides and routes sync automatically. Your past data has
-              already been synced.
-              <br />
-              <br />
-              Re-import past data (usually not needed).
-            </p>
-            <button
-              onClick={(): void => {
-                initiateSync();
-                setHasSynced(true);
-              }}
-              disabled={syncing || hasSynced}
-              css={syncButtonCss}
-            >
-              {hasSynced ? "Sync initiated" : "Sync RWGPS History"}
-            </button>
-          </div>
-        ) : (
-          <div css={fieldContainerCss}>
-            <p css={connectionTextCss}>
-              Connect your Ride with GPS account to sync your routes and
-              activities.
-            </p>
-            <a href={viewer?.rwgpsAuthRequestUrl} css={buttonStyles}>
-              Connect RWGPS Account
-            </a>
-          </div>
-        )}
 
-        <hr css={dividerCss} />
+            <div css={fieldContainerCss}>
+              <span css={labelCss}>Email</span>
+              <div css={valueCss}>{profile?.email}</div>
+            </div>
 
-        {profile?.username && (
-          <Link to={`/riders/${profile.username}`} css={linkCss}>
-            View public profile →
-          </Link>
-        )}
+            <h3 css={titleCss}>RWGPS Connection</h3>
+            <hr css={dividerCss} />
+
+            {rwgpsConnection ? (
+              <div css={fieldContainerCss}>
+                <span css={labelCss}>RWGPS User ID</span>
+                <div css={valueCss}>{rwgpsConnection.rwgpsUserId}</div>
+                <div css={connectionDatesCss}>
+                  Connected on{" "}
+                  {new Date(rwgpsConnection.createdAt).toLocaleDateString()}
+                  <br />
+                  Last updated{" "}
+                  {new Date(rwgpsConnection.updatedAt).toLocaleDateString()}
+                </div>
+                <p>
+                  New rides and routes sync automatically. Your past data has
+                  already been synced.
+                  <br />
+                  <br />
+                  Re-import past data (usually not needed).
+                </p>
+                <button
+                  onClick={(): void => {
+                    initiateSync();
+                    setHasSynced(true);
+                  }}
+                  disabled={syncing || hasSynced}
+                  css={syncButtonCss}
+                >
+                  {hasSynced ? "Sync initiated" : "Sync RWGPS History"}
+                </button>
+              </div>
+            ) : (
+              <div css={fieldContainerCss}>
+                <p css={connectionTextCss}>
+                  Connect your Ride with GPS account to sync your routes and
+                  activities.
+                </p>
+                <a href={viewer?.rwgpsAuthRequestUrl} css={buttonStyles}>
+                  Connect RWGPS Account
+                </a>
+              </div>
+            )}
+
+            <hr css={dividerCss} />
+
+            {profile?.username && (
+              <Link to={`/riders/${profile.username}`} css={linkCss}>
+                View public profile →
+              </Link>
+            )}
+          </Tabs.Content>
+
+          <Tabs.Content value="rides">
+            <div css={fieldContainerCss}>
+              <p>
+                Your rides will be displayed here. This feature is coming soon.
+              </p>
+            </div>
+          </Tabs.Content>
+
+          <Tabs.Content value="routes">
+            <div css={fieldContainerCss}>
+              <p>
+                Your routes will be displayed here. This feature is coming soon.
+              </p>
+            </div>
+          </Tabs.Content>
+        </Tabs.Root>
       </div>
     </Container>
   );
