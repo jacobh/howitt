@@ -2,6 +2,7 @@ import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { buttonStyles } from "~/components/ui/Button";
 import { ThumbnailImage } from "./ThumbnailImage";
+import { useMemo } from "react";
 
 export const TripMediaFragment = gql(`
   fragment tripMedia on Trip {
@@ -10,6 +11,7 @@ export const TripMediaFragment = gql(`
       id
       path
       createdAt
+      capturedAt
       imageSizes {
         fill600 {
           webpUrl
@@ -121,6 +123,14 @@ export function MediaTable({
 }: Props): React.ReactElement {
   const trip = useFragment(TripMediaFragment, tripFragment);
 
+  const sortedMedia = useMemo(() => {
+    return [...trip.media].sort((a, b) => {
+      return (
+        new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime()
+      );
+    });
+  }, [trip.media]);
+
   return (
     <div css={mediaTableContainerCss}>
       <table css={mediaTableCss}>
@@ -133,7 +143,7 @@ export function MediaTable({
           </tr>
         </thead>
         <tbody>
-          {trip.media.map((media) => (
+          {sortedMedia.map((media) => (
             <tr key={media.id}>
               <td css={thumbnailCellCss}>
                 <ThumbnailImage url={media.imageSizes.fill600.webpUrl} />

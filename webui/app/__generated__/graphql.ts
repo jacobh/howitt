@@ -635,6 +635,7 @@ export type TripMediaFragment = {
     id: any;
     path: string;
     createdAt: any;
+    capturedAt?: any | null;
     imageSizes: {
       __typename?: "ImageSizes";
       fill600: { __typename?: "ImageSize"; webpUrl: string };
@@ -1260,6 +1261,7 @@ export const TripMediaFragmentDoc = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "path" } },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "capturedAt" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "imageSizes" },
@@ -1467,6 +1469,7 @@ export const EditTripFragmentDoc = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "path" } },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "capturedAt" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "imageSizes" },
@@ -3238,6 +3241,7 @@ export const TripQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "path" } },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
+                { kind: "Field", name: { kind: "Name", value: "capturedAt" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "imageSizes" },

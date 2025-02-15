@@ -34,7 +34,7 @@ const documents = {
     types.AllRidesDocument,
   "\n  mutation CreateTrip($input: CreateTripInput!) {\n    createTrip(input: $input) {\n      trip {\n        id\n        name\n        slug\n        year\n        user {\n          username\n        }\n      }\n    }\n  }\n":
     types.CreateTripDocument,
-  "\n  fragment tripMedia on Trip {\n    id\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n":
+  "\n  fragment tripMedia on Trip {\n    id\n    media {\n      id\n      path\n      createdAt\n      capturedAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n":
     types.TripMediaFragmentDoc,
   "\n  fragment tripRides on Trip {\n    id\n    user {\n        username\n    }\n    rides {\n      id\n      name\n      startedAt\n      finishedAt\n      distance\n    }\n  }\n":
     types.TripRidesFragmentDoc,
@@ -160,8 +160,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment tripMedia on Trip {\n    id\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n",
-): (typeof documents)["\n  fragment tripMedia on Trip {\n    id\n    media {\n      id\n      path\n      createdAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n"];
+  source: "\n  fragment tripMedia on Trip {\n    id\n    media {\n      id\n      path\n      createdAt\n      capturedAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n",
+): (typeof documents)["\n  fragment tripMedia on Trip {\n    id\n    media {\n      id\n      path\n      createdAt\n      capturedAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
