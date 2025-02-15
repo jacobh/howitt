@@ -782,9 +782,15 @@ export type UserProfileQueryQuery = {
       }
     >;
     trips: Array<
-      { __typename?: "Trip"; id: any; name: string } & {
-        " $fragmentRefs"?: { TripItemFragment: TripItemFragment };
-      }
+      {
+        __typename?: "Trip";
+        id: any;
+        name: string;
+        legs: Array<{
+          __typename?: "TripLeg";
+          rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
+        }>;
+      } & { " $fragmentRefs"?: { TripItemFragment: TripItemFragment } }
     >;
   } | null;
   viewer?:
@@ -1021,42 +1027,6 @@ export type HomeQueryPointOnlyQuery = {
   queryRoutes: Array<{ __typename?: "Route"; id: any; pointsJson: string }>;
 };
 
-export type SettingsQueryVariables = Exact<{ [key: string]: never }>;
-
-export type SettingsQuery = {
-  __typename?: "Query";
-  viewer?:
-    | ({
-        __typename?: "Viewer";
-        rwgpsAuthRequestUrl: string;
-        profile: {
-          __typename?: "UserProfile";
-          id: any;
-          username: string;
-          email?: string | null;
-        };
-        rwgpsConnection?: {
-          __typename?: "UserRwgpsConnection";
-          id: any;
-          rwgpsUserId: number;
-          createdAt: any;
-          updatedAt: any;
-        } | null;
-      } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
-    | null;
-};
-
-export type InitiateRwgpsHistorySyncMutationVariables = Exact<{
-  [key: string]: never;
-}>;
-
-export type InitiateRwgpsHistorySyncMutation = {
-  __typename?: "Mutation";
-  initiateRwgpsHistorySync: { __typename?: "Viewer" } & {
-    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-  };
-};
-
 export type TripsQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type TripsQueryQuery = {
@@ -1092,6 +1062,42 @@ export type TripsQueryPointsQuery = {
       rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
     }>;
   }>;
+};
+
+export type SettingsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type SettingsQuery = {
+  __typename?: "Query";
+  viewer?:
+    | ({
+        __typename?: "Viewer";
+        rwgpsAuthRequestUrl: string;
+        profile: {
+          __typename?: "UserProfile";
+          id: any;
+          username: string;
+          email?: string | null;
+        };
+        rwgpsConnection?: {
+          __typename?: "UserRwgpsConnection";
+          id: any;
+          rwgpsUserId: number;
+          createdAt: any;
+          updatedAt: any;
+        } | null;
+      } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
+    | null;
+};
+
+export type InitiateRwgpsHistorySyncMutationVariables = Exact<{
+  [key: string]: never;
+}>;
+
+export type InitiateRwgpsHistorySyncMutation = {
+  __typename?: "Mutation";
+  initiateRwgpsHistorySync: { __typename?: "Viewer" } & {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  };
 };
 
 export const ElevationPathFragmentDoc = {
@@ -2699,6 +2705,48 @@ export const UserProfileQueryDocument = {
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "name" } },
                       {
+                        kind: "Field",
+                        name: { kind: "Name", value: "legs" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "rides" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "id" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "pointsJson" },
+                                    arguments: [
+                                      {
+                                        kind: "Argument",
+                                        name: {
+                                          kind: "Name",
+                                          value: "detailLevel",
+                                        },
+                                        value: {
+                                          kind: "Variable",
+                                          name: {
+                                            kind: "Name",
+                                            value: "detailLevel",
+                                          },
+                                        },
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      {
                         kind: "FragmentSpread",
                         name: { kind: "Name", value: "tripItem" },
                       },
@@ -4012,154 +4060,6 @@ export const HomeQueryPointOnlyDocument = {
   HomeQueryPointOnlyQuery,
   HomeQueryPointOnlyQueryVariables
 >;
-export const SettingsDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "query",
-      name: { kind: "Name", value: "settings" },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "viewer" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                {
-                  kind: "FragmentSpread",
-                  name: { kind: "Name", value: "viewerInfo" },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "profile" },
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
-                      { kind: "Field", name: { kind: "Name", value: "id" } },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "username" },
-                      },
-                      { kind: "Field", name: { kind: "Name", value: "email" } },
-                    ],
-                  },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "rwgpsConnection" },
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
-                      { kind: "Field", name: { kind: "Name", value: "id" } },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "rwgpsUserId" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "createdAt" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "updatedAt" },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "rwgpsAuthRequestUrl" },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "viewerInfo" },
-      typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "Viewer" },
-      },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "profile" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "username" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<SettingsQuery, SettingsQueryVariables>;
-export const InitiateRwgpsHistorySyncDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "mutation",
-      name: { kind: "Name", value: "initiateRwgpsHistorySync" },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "initiateRwgpsHistorySync" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                {
-                  kind: "FragmentSpread",
-                  name: { kind: "Name", value: "viewerInfo" },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "viewerInfo" },
-      typeCondition: {
-        kind: "NamedType",
-        name: { kind: "Name", value: "Viewer" },
-      },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "profile" },
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [
-                { kind: "Field", name: { kind: "Name", value: "username" } },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<
-  InitiateRwgpsHistorySyncMutation,
-  InitiateRwgpsHistorySyncMutationVariables
->;
 export const TripsQueryDocument = {
   kind: "Document",
   definitions: [
@@ -4383,4 +4283,152 @@ export const TripsQueryPointsDocument = {
 } as unknown as DocumentNode<
   TripsQueryPointsQuery,
   TripsQueryPointsQueryVariables
+>;
+export const SettingsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "settings" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "profile" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "username" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "email" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rwgpsConnection" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rwgpsUserId" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "createdAt" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "updatedAt" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rwgpsAuthRequestUrl" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SettingsQuery, SettingsQueryVariables>;
+export const InitiateRwgpsHistorySyncDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "initiateRwgpsHistorySync" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "initiateRwgpsHistorySync" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  InitiateRwgpsHistorySyncMutation,
+  InitiateRwgpsHistorySyncMutationVariables
 >;

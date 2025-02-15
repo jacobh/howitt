@@ -15,6 +15,7 @@ import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { PointsDetail } from "~/__generated__/graphql";
+import { useMemo } from "react";
 
 const UserProfileQuery = gql(`
   query UserProfileQuery($username: String!, $detailLevel: PointsDetail!) {
@@ -30,6 +31,12 @@ const UserProfileQuery = gql(`
         trips {
           id
           name
+          legs {
+            rides {
+              id
+              pointsJson(detailLevel: $detailLevel)
+            }
+          }
           ...tripItem
         }
     }
@@ -73,6 +80,16 @@ export default function UserProfile(): React.ReactElement {
     ssr: false,
   });
 
+  const tracks = useMemo(() => {
+    const trips =
+      data2?.userWithUsername?.trips ?? data?.userWithUsername?.trips ?? [];
+
+    return trips
+      .flatMap((trip) => trip.legs)
+      .flatMap((leg) => leg.rides)
+      .map((ride) => buildRideTrack(ride, "default"));
+  }, [data2?.userWithUsername?.trips, data?.userWithUsername?.trips]);
+
   return (
     <Container>
       <Nav viewer={data?.viewer} />
@@ -105,13 +122,7 @@ export default function UserProfile(): React.ReactElement {
         )}
       </SidebarContainer>
       <MapContainer>
-        <PrimaryMap
-          initialView={DEFAULT_INITIAL_VIEW}
-          tracks={(
-            data2?.userWithUsername?.recentRides ??
-            data?.userWithUsername?.recentRides
-          )?.map((ride) => buildRideTrack(ride))}
-        />
+        <PrimaryMap initialView={DEFAULT_INITIAL_VIEW} tracks={tracks} />
       </MapContainer>
     </Container>
   );
