@@ -7,9 +7,6 @@ jobs:
         runs-on: ubuntu-latest
         environment: Production
 
-        env:
-          PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
-
         steps:
             - name: Checkout
               uses: actions/checkout@v3
@@ -24,9 +21,17 @@ jobs:
                   **/target
                 key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+            # Add the custom PPA for libheif (provided by strukturag) 
+            - name: Add custom libheif PPA and install libheif-dev
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y software-properties-common
+                sudo add-apt-repository -y ppa:strukturag/libheif
+                sudo apt-get update
+
             - uses: awalsh128/cache-apt-pkgs-action@latest
               with:
-                packages: zstd libzstd-dev libheif-dev pkg-config zlib1g-dev libnuma-dev
+                packages: zstd libzstd-dev libheif libheif-dev
                 version: 1.0
 
             - name: Install Rust toolchain
