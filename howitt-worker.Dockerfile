@@ -5,6 +5,8 @@ ENV RUSTFLAGS='-C target-cpu=znver2'
 
 RUN RUSTFLAGS='' cargo install cargo-chef
 
+RUN apt update && apt install -y cmake
+
 WORKDIR /app
 
 # planner
