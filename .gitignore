@@ -1,5 +1,5 @@
 /target
 /data
 .DS_Store
-**/.env
+**/.env*
 src/lib/howitt-postgresql/refinery_k8s.toml

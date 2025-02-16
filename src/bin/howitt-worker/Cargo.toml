@@ -29,10 +29,4 @@ thiserror = "*"
 rwgps = { path = "../../lib/rwgps" }
 rwgps_types = { path = "../../lib/rwgps-types" }
 infer = "0.16.0"
-
-[target.'cfg(target_os = "linux")'.dependencies.libheif-rs]
-version = "*"
-features = ["compile-libheif", "embedded-libheif-plugins"]
-
-[target.'cfg(not(target_os = "linux"))'.dependencies.libheif-rs]
-version = "*"
+libheif-rs = "*"

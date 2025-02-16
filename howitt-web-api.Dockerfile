@@ -5,7 +5,17 @@ ENV RUSTFLAGS='-C target-cpu=znver2'
 
 RUN RUSTFLAGS='' cargo install cargo-chef
 
-RUN apt update && apt install -y cmake
+# Add Debian sid to your APT sources list
+RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/sid.list
+
+# Create an APT preferences file that gives libheif packages higher priority from sid
+RUN echo "Package: libheif*\n\
+    Pin: release a=sid\n\
+    Pin-Priority: 990\n" > /etc/apt/preferences.d/libheif
+
+# Update package lists and install the modern libheif libraries from sid.
+# (Be sure to include any other dependencies that libheif might require, for example, the corresponding shared library)
+RUN apt-get update && apt-get install -y libheif-dev 
 
 WORKDIR /app
 
@@ -30,9 +40,9 @@ RUN cargo build  --release --bin howitt-web
 
 # We do not need the Rust toolchain to run the binary!
 
-FROM debian:bookworm-slim AS runtime
+FROM debian:sid-slim AS runtime
 
-RUN apt update && apt install -y ca-certificates
+RUN apt update && apt install -y ca-certificates libheif-dev
 
 WORKDIR /app
 
