@@ -5,6 +5,8 @@ ENV RUSTFLAGS='-C target-cpu=znver2'
 
 RUN RUSTFLAGS='' cargo install cargo-chef
 
+RUN apt update && apt install -y libheif-dev
+
 WORKDIR /app
 
 # planner
@@ -30,7 +32,7 @@ RUN cargo build  --release --bin howitt-web
 
 FROM debian:bookworm-slim AS runtime
 
-RUN apt update && apt install -y ca-certificates
+RUN apt update && apt install -y ca-certificates libheif-dev
 
 WORKDIR /app
 
