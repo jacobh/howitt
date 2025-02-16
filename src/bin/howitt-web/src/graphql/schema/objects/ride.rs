@@ -65,6 +65,27 @@ impl Ride {
     async fn finished_at(&self) -> DateTime<Utc> {
         self.0.finished_at
     }
+
+    pub async fn tz<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Option<String>, async_graphql::Error> {
+        let SchemaData {
+            simplified_ride_points_fetcher,
+            tz_finder,
+            ..
+        } = ctx.data()?;
+
+        let points = simplified_ride_points_fetcher
+            .fetch(self.0.id, DetailLevel::Low)
+            .await?;
+
+        Ok(points
+            .first()
+            .map(Point::as_geo_point)
+            .map(|point| tz_finder.get_tz_name(point.x(), point.y()).to_string()))
+    }
+
     async fn points<'ctx>(
         &self,
         ctx: &Context<'ctx>,

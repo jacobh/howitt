@@ -45,6 +45,16 @@ impl Media {
         self.0.captured_at
     }
 
+    async fn tz<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Option<String>, async_graphql::Error> {
+        let SchemaData { tz_finder, .. } = ctx.data()?;
+
+        Ok(self
+            .0
+            .point
+            .as_ref()
+            .map(|point| tz_finder.get_tz_name(point.x(), point.y()).to_string()))
+    }
+
     pub async fn content_at(&self) -> DateTime<Utc> {
         self.0.captured_at.unwrap_or(self.0.created_at).clone()
     }

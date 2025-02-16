@@ -40,6 +40,7 @@ use graphql::{
     },
     schema::build_schema,
 };
+use tzf_rs::DefaultFinder;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -98,6 +99,7 @@ async fn main() -> Result<(), anyhow::Error> {
         user_auth_service: user_auth_service.clone(),
         repos: repos.clone(),
         job_storage: job_storage.clone(),
+        tz_finder: DefaultFinder::new(),
     });
 
     let app_state = app_state::AppState {

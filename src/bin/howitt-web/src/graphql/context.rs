@@ -9,6 +9,7 @@ use howitt::{
 };
 use howitt_clients::RedisClient;
 use howitt_jobs::storage::LockFreeStorage;
+use tzf_rs::DefaultFinder;
 
 use super::loaders::{
     ride_loader::RideLoader, route_points_loader::RoutePointsLoader, user_loader::UserLoader,
@@ -24,6 +25,7 @@ pub struct SchemaData {
     pub rwgps_client_id: String,
     pub user_auth_service: UserAuthService,
     pub job_storage: LockFreeStorage<Job>,
+    pub tz_finder: DefaultFinder,
 }
 
 pub struct RequestData {

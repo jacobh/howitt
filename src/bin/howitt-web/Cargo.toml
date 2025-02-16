@@ -51,7 +51,7 @@ futures = "*"
 oauth2 = "*"
 ring = "*"
 hex = "*"
-
+tzf-rs = { version = "*", default-features = false }
 
 [dev-dependencies]
 test-case = "3.1.0"

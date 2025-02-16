@@ -27,6 +27,19 @@ impl TripLeg {
     async fn rides(&self) -> Vec<Ride> {
         self.1.clone().into_iter().map(Ride).collect()
     }
+
+    async fn tz<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Option<String>, async_graphql::Error> {
+        let first_ride = self.1.first();
+
+        if let Some(ride) = first_ride {
+            let ride = Ride(ride.clone());
+
+            ride.tz(ctx).await
+        } else {
+            Ok(None)
+        }
+    }
+
     pub async fn elevation_points<'ctx>(
         &self,
         ctx: &Context<'ctx>,
@@ -99,6 +112,17 @@ impl Trip {
 
     async fn description(&self) -> Option<&str> {
         self.0.description.as_deref()
+    }
+
+    async fn tz<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Option<String>, async_graphql::Error> {
+        let rides = self.rides(ctx).await?;
+        let first_ride = rides.first();
+
+        if let Some(ride) = first_ride {
+            ride.tz(ctx).await
+        } else {
+            Ok(None)
+        }
     }
 
     async fn user<'ctx>(&self, ctx: &Context<'ctx>) -> Result<UserProfile, async_graphql::Error> {
