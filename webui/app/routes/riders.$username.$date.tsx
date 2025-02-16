@@ -26,6 +26,7 @@ const RidesWithDateQuery = gql(`
       ridesWithDate(date: $date) {
         id
         date
+        tz
         pointsJson(detailLevel: $detailLevel)
         ...rideSummary
         ...elevationPath
@@ -66,14 +67,25 @@ function UserProfileDate(): React.ReactElement {
   );
 
   // Format the date for display using Temporal
-  const displayDate = params.date
-    ? Temporal.PlainDate.from(params.date).toLocaleString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : undefined;
+  const displayDate = useMemo(() => {
+    const firstRide = data?.userWithUsername?.ridesWithDate?.at(0);
+
+    if (!params.date || !firstRide) {
+      return undefined;
+    }
+
+    const timeZone = Temporal.TimeZone.from(
+      firstRide.tz ?? "Australia/Melbourne",
+    );
+
+    return Temporal.PlainDate.from(params.date).toLocaleString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone,
+    });
+  }, [params.date, data]);
 
   return (
     <Container>

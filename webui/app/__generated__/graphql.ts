@@ -146,6 +146,7 @@ export type Media = TemporalContentBlock & {
   path: Scalars["String"]["output"];
   point?: Maybe<Array<Scalars["Float"]["output"]>>;
   rides: Array<Ride>;
+  tz?: Maybe<Scalars["String"]["output"]>;
   user: UserProfile;
 };
 
@@ -292,6 +293,7 @@ export type Ride = ElevationPath &
     points: Array<Array<Scalars["Float"]["output"]>>;
     pointsJson: Scalars["String"]["output"];
     startedAt: Scalars["DateTime"]["output"];
+    tz?: Maybe<Scalars["String"]["output"]>;
     user: UserProfile;
   };
 
@@ -383,6 +385,7 @@ export type Trip = MediaTarget & {
   rides: Array<Ride>;
   slug: Scalars["String"]["output"];
   temporalContentBlocks: Array<TemporalContentBlock>;
+  tz?: Maybe<Scalars["String"]["output"]>;
   user: UserProfile;
   year: Scalars["Int"]["output"];
 };
@@ -394,6 +397,7 @@ export type TripLeg = ElevationPath & {
   elevationPoints: Array<Scalars["Float"]["output"]>;
   elevationPointsJson: Scalars["String"]["output"];
   rides: Array<Ride>;
+  tz?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type TripMediaOutput = {
@@ -504,6 +508,7 @@ export type RideItemFragment = {
   __typename?: "Ride";
   id: any;
   date: any;
+  tz?: string | null;
   distance: number;
   startedAt: any;
   finishedAt: any;
@@ -517,6 +522,7 @@ export type RideSummaryFragment = {
   distance: number;
   startedAt: any;
   finishedAt: any;
+  tz?: string | null;
 } & { " $fragmentName"?: "RideSummaryFragment" };
 
 export type RouteItemFragment = {
@@ -772,7 +778,13 @@ export type RidesWithDateQuery = {
     __typename?: "UserProfile";
     username: string;
     ridesWithDate: Array<
-      { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
+      {
+        __typename?: "Ride";
+        id: any;
+        date: any;
+        tz?: string | null;
+        pointsJson: string;
+      } & {
         " $fragmentRefs"?: {
           RideSummaryFragment: RideSummaryFragment;
           ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
@@ -820,6 +832,7 @@ export type UserProfileQueryQuery = {
 type ContentBlock_Media_Fragment = {
   __typename: "Media";
   capturedAt?: any | null;
+  tz?: string | null;
   contentAt: any;
   mediaId: any;
   imageSizes: {
@@ -838,6 +851,7 @@ type ContentBlock_Note_Fragment = {
 
 type ContentBlock_Ride_Fragment = ({
   __typename: "Ride";
+  tz?: string | null;
   contentAt: any;
   rideId: any;
 } & { " $fragmentRefs"?: { RideItemFragment: RideItemFragment } }) & {
@@ -1190,6 +1204,7 @@ export const RideSummaryFragmentDoc = {
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "tz" } },
         ],
       },
     },
@@ -1569,6 +1584,7 @@ export const RideItemFragmentDoc = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "tz" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
@@ -1616,6 +1632,7 @@ export const ContentBlockFragmentDoc = {
                   alias: { kind: "Name", value: "rideId" },
                   name: { kind: "Name", value: "id" },
                 },
+                { kind: "Field", name: { kind: "Name", value: "tz" } },
                 {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "rideItem" },
@@ -1638,6 +1655,7 @@ export const ContentBlockFragmentDoc = {
                   name: { kind: "Name", value: "id" },
                 },
                 { kind: "Field", name: { kind: "Name", value: "capturedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "tz" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "imageSizes" },
@@ -1711,6 +1729,7 @@ export const ContentBlockFragmentDoc = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "tz" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
@@ -2608,6 +2627,7 @@ export const RidesWithDateDocument = {
                     selections: [
                       { kind: "Field", name: { kind: "Name", value: "id" } },
                       { kind: "Field", name: { kind: "Name", value: "date" } },
+                      { kind: "Field", name: { kind: "Name", value: "tz" } },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "pointsJson" },
@@ -2678,6 +2698,7 @@ export const RidesWithDateDocument = {
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
+          { kind: "Field", name: { kind: "Name", value: "tz" } },
         ],
       },
     },
@@ -2880,6 +2901,7 @@ export const UserProfileQueryDocument = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "tz" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
@@ -3282,6 +3304,7 @@ export const TripQueryDocument = {
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "date" } },
+          { kind: "Field", name: { kind: "Name", value: "tz" } },
           { kind: "Field", name: { kind: "Name", value: "distance" } },
           { kind: "Field", name: { kind: "Name", value: "startedAt" } },
           { kind: "Field", name: { kind: "Name", value: "finishedAt" } },
@@ -3485,6 +3508,7 @@ export const TripQueryDocument = {
                   alias: { kind: "Name", value: "rideId" },
                   name: { kind: "Name", value: "id" },
                 },
+                { kind: "Field", name: { kind: "Name", value: "tz" } },
                 {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "rideItem" },
@@ -3507,6 +3531,7 @@ export const TripQueryDocument = {
                   name: { kind: "Name", value: "id" },
                 },
                 { kind: "Field", name: { kind: "Name", value: "capturedAt" } },
+                { kind: "Field", name: { kind: "Name", value: "tz" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "imageSizes" },

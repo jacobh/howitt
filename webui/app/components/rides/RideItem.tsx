@@ -9,6 +9,7 @@ export const RideItemFragment = gql(`
     fragment rideItem on Ride {
         id
         date
+        tz
         distance
         startedAt
         finishedAt
@@ -47,8 +48,14 @@ export function RideItem({ ride: rideFragment }: Props): React.ReactNode {
       const endTime = Temporal.Instant.from(ride.finishedAt);
       const duration = startTime.until(endTime);
 
-      const date = Temporal.PlainDate.from(ride.date);
-      const formattedDate = date.toLocaleString("en-US", {
+      const timeZone = Temporal.TimeZone.from(ride.tz ?? "Australia/Melbourne");
+
+      const zonedDateTime = startTime.toZonedDateTime({
+        timeZone,
+        calendar: "iso8601",
+      });
+
+      const formattedDate = zonedDateTime.toLocaleString("en-US", {
         day: "numeric",
         month: "short",
         year: "numeric",

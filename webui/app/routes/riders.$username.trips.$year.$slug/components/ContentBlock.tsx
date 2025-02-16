@@ -10,6 +10,7 @@ import { useIntersectionObserver } from "usehooks-ts";
 import { useCallback, useMemo, useState } from "react";
 import { map as mapIcon } from "ionicons/icons";
 import { SvgIcon } from "~/components/ui/SvgIcon";
+import { Temporal } from "@js-temporal/polyfill";
 
 const contentBlockStyles = css({
   position: "relative", // This ensures the overlay positions relative to this container
@@ -97,11 +98,13 @@ export const ContentBlockFragment = gql(`
     contentAt
     ... on Ride {
       rideId: id
+      tz
       ...rideItem
     }
     ... on Media {
       mediaId: id
       capturedAt
+      tz
       imageSizes {
         fit1600 {
           webpUrl
@@ -211,10 +214,12 @@ export function ContentBlock({
       <div>
         <img src={media.imageSizes.fit1600.webpUrl} css={mediaStyles} alt="" />
         <div css={mediaCaptionStyles}>
-          {new Date(media.capturedAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {Temporal.Instant.from(media.capturedAt)
+            .toZonedDateTimeISO(media.tz ?? "Australia/Melbourne")
+            .toLocaleString(undefined, {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
         </div>
       </div>
     ))

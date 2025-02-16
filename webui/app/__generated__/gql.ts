@@ -18,9 +18,9 @@ const documents = {
     types.ElevationPathFragmentDoc,
   "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ":
     types.ViewerInfoFragmentDoc,
-  "\n    fragment rideItem on Ride {\n        id\n        date\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n":
+  "\n    fragment rideItem on Ride {\n        id\n        date\n        tz\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n":
     types.RideItemFragmentDoc,
-  "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n  }\n":
+  "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n    tz\n  }\n":
     types.RideSummaryFragmentDoc,
   "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n":
     types.RouteItemFragmentDoc,
@@ -52,11 +52,11 @@ const documents = {
     types.TripItemFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
     types.LoginViewerInfoDocument,
-  "\n  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(detailLevel: $detailLevel)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n":
+  "\n  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        tz\n        pointsJson(detailLevel: $detailLevel)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n":
     types.RidesWithDateDocument,
   "\n  query UserProfileQuery($username: String!, $detailLevel: PointsDetail!) {\n    userWithUsername(username: $username) {\n        id\n        username\n        recentRides {\n          id\n          date\n          pointsJson(detailLevel: $detailLevel)\n          ...rideItem\n        }\n        trips {\n          id\n          name\n          legs {\n            rides {\n              id\n              pointsJson(detailLevel: $detailLevel)\n            }\n          }\n          ...tripItem\n        }\n    }\n    viewer {\n      id\n      ...viewerInfo\n    }\n  }\n":
     types.UserProfileQueryDocument,
-  "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      capturedAt\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n":
+  "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      tz\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      capturedAt\n      tz\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n":
     types.ContentBlockFragmentDoc,
   "\n  query TripQuery($username: String!, $slug: String!, $detailLevel: PointsDetail!) {\n    viewer {\n      id\n      ...viewerInfo\n    }\n\n    userWithUsername(username: $username) {\n      username\n      tripWithSlug(slug: $slug) {\n        id\n        name\n        ...editTrip\n        user {\n          id\n        }\n        media {\n          id\n          point\n        }\n        legs {\n          ...elevationPath\n          rides {\n            id\n            ...elevationPath\n            pointsJson(detailLevel: $detailLevel)\n          }\n        }\n        temporalContentBlocks {\n          ...contentBlock\n        }\n      }\n    }\n  }\n":
     types.TripQueryDocument,
@@ -112,14 +112,14 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    fragment rideItem on Ride {\n        id\n        date\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n",
-): (typeof documents)["\n    fragment rideItem on Ride {\n        id\n        date\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n"];
+  source: "\n    fragment rideItem on Ride {\n        id\n        date\n        tz\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n",
+): (typeof documents)["\n    fragment rideItem on Ride {\n        id\n        date\n        tz\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n  }\n",
-): (typeof documents)["\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n  }\n"];
+  source: "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n    tz\n  }\n",
+): (typeof documents)["\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n    tz\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -214,8 +214,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(detailLevel: $detailLevel)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n",
-): (typeof documents)["\n  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        pointsJson(detailLevel: $detailLevel)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n"];
+  source: "\n  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        tz\n        pointsJson(detailLevel: $detailLevel)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        tz\n        pointsJson(detailLevel: $detailLevel)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -226,8 +226,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      capturedAt\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n",
-): (typeof documents)["\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      capturedAt\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n"];
+  source: "\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      tz\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      capturedAt\n      tz\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n",
+): (typeof documents)["\n  fragment contentBlock on TemporalContentBlock {\n    __typename\n    contentAt\n    ... on Ride {\n      rideId: id\n      tz\n      ...rideItem\n    }\n    ... on Media {\n      mediaId: id\n      capturedAt\n      tz\n      imageSizes {\n        fit1600 {\n          webpUrl\n        }\n      }\n      rides {\n        id\n      }\n    }\n    ... on Note {\n      text\n      ride {\n        id\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
