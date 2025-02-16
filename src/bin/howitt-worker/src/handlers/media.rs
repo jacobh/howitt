@@ -4,7 +4,8 @@ use howitt::repos::Repos;
 use howitt::services::media::keys::{generate_resized_media_key, GenerateResizedMediaKeyParams};
 use howitt::services::media::MediaGeoInferrer;
 use image::imageops::FilterType;
-use image::{DynamicImage, GenericImageView, ImageReader};
+use image::{DynamicImage, GenericImageView, ImageBuffer, ImageReader, RgbImage};
+use libheif_rs::{ColorSpace, HeifContext, LibHeif, RgbChroma};
 use libwebp_sys::WebPPreset;
 use std::io::Cursor;
 use thiserror::Error;
@@ -128,6 +129,10 @@ pub enum MediaJobError {
     LocationInferFailed(anyhow::Error),
     #[error("Semaphore error: {0}")]
     Semaphore(#[from] tokio::sync::AcquireError),
+    #[error("Failed to infer media type: {0}")]
+    InferFailed(String),
+    #[error("Failed to load HEIF image: {0}")]
+    HeifError(#[from] libheif_rs::HeifError),
 }
 
 pub async fn handle_media_job(job: MediaJob, ctx: Context) -> Result<(), MediaJobError> {
@@ -161,11 +166,33 @@ pub async fn handle_media_job(job: MediaJob, ctx: Context) -> Result<(), MediaJo
                 .ok_or_else(|| MediaJobError::BucketObjectNotFound(media.path.clone()))?;
 
             let size_kb = bytes.len() as f64 / 1024.0;
-            info!("Media file size: {:.2} KB", size_kb);
+            let kind =
+                infer::get(&bytes).ok_or_else(|| MediaJobError::InferFailed(media.path.clone()))?;
 
-            let img = ImageReader::new(Cursor::new(&bytes))
-                .with_guessed_format()?
-                .decode()?;
+            info!("Media file size: {:.2} KB", size_kb);
+            info!("Media kind: {:?}", &kind.mime_type());
+
+            let img = match kind.mime_type() {
+                "image/heif" => {
+                    let lib_heif = LibHeif::new();
+                    let ctx = HeifContext::read_from_bytes(&bytes)?;
+                    let handle = ctx.primary_image_handle()?;
+                    let heif_image =
+                        lib_heif.decode(&handle, ColorSpace::Rgb(RgbChroma::Rgb), None)?;
+
+                    let img = RgbImage::from_raw(
+                        heif_image.width(),
+                        heif_image.height(),
+                        heif_image.planes().interleaved.unwrap().data.to_vec(),
+                    )
+                    .unwrap();
+
+                    DynamicImage::from(img)
+                }
+                _ => ImageReader::new(Cursor::new(&bytes))
+                    .with_guessed_format()?
+                    .decode()?,
+            };
 
             for image_spec in IMAGE_SPECS.iter() {
                 let img_clone = img.clone();
