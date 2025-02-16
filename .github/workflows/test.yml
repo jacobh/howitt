@@ -7,6 +7,9 @@ jobs:
         runs-on: ubuntu-latest
         environment: Production
 
+        env:
+          PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
+
         steps:
             - name: Checkout
               uses: actions/checkout@v3
