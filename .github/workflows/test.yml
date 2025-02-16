@@ -8,7 +8,7 @@ jobs:
         environment: Production
 
         env:
-          PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
+          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
 
         steps:
             - name: Checkout
