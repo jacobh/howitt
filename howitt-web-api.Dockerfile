@@ -5,7 +5,11 @@ ENV RUSTFLAGS='-C target-cpu=znver2'
 
 RUN RUSTFLAGS='' cargo install cargo-chef
 
-RUN apt update && apt install -y libheif-dev pkg-config
+# Add sid repository and set up APT pinning
+RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/unstable.list && \
+    echo 'Package: *\nPin: release a=sid\nPin-Priority: 50\n\nPackage: libheif-dev\nPin: release a=sid\nPin-Priority: 990' > /etc/apt/preferences.d/unstable && \
+    apt update && \
+    apt install -y libheif-dev pkg-config
 
 # Set PKG_CONFIG_PATH so that pkg-config can find libheif.pc
 ENV PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
@@ -35,7 +39,12 @@ RUN cargo build  --release --bin howitt-web
 
 FROM debian:bookworm-slim AS runtime
 
-RUN apt update && apt install -y ca-certificates libheif-dev pkg-config
+# Add sid repository and set up APT pinning in the runtime image
+RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/unstable.list && \
+    echo 'Package: *\nPin: release a=sid\nPin-Priority: 50\n\nPackage: libheif-dev\nPin: release a=sid\nPin-Priority: 990' > /etc/apt/preferences.d/unstable && \
+    apt update && \
+    apt install -y ca-certificates libheif-dev pkg-config
+
 
 WORKDIR /app
 
