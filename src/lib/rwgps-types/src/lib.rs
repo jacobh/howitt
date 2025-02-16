@@ -360,7 +360,7 @@ pub struct Elevation {
     pub min_i: Option<f64>,
     pub max_i: Option<f64>,
     #[serde(rename = "_avg")]
-    pub avg: f64,
+    pub avg: Option<f64>,
     #[serde(rename = "avg")]
     pub avg2: f64,
 }
@@ -376,7 +376,7 @@ pub struct Grade {
     pub max_i: Option<f64>,
     pub min_i: Option<f64>,
     #[serde(rename = "_avg")]
-    pub avg: f64,
+    pub avg: Option<f64>,
     #[serde(rename = "avg")]
     pub avg2: f64,
 }
