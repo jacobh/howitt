@@ -8,7 +8,7 @@ RUN RUSTFLAGS='' cargo install cargo-chef
 RUN apt update && apt install -y libheif-dev pkg-config
 
 # Set PKG_CONFIG_PATH so that pkg-config can find libheif.pc
-ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+ENV PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig
 
 WORKDIR /app
 
