@@ -1,4 +1,3 @@
-pub mod detect_segments;
 pub mod euclidean;
 pub mod fetchers;
 pub mod generate_cuesheet;
