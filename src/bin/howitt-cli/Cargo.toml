@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 howitt = { path = "../../lib/howitt" }
-howitt-fs = { path = "../../lib/howitt-fs" }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
 howitt_clients = { path = "../../lib/howitt-clients" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }

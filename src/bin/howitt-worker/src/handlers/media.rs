@@ -4,7 +4,7 @@ use howitt::repos::Repos;
 use howitt::services::media::keys::{generate_resized_media_key, GenerateResizedMediaKeyParams};
 use howitt::services::media::MediaGeoInferrer;
 use image::imageops::FilterType;
-use image::{DynamicImage, GenericImageView, ImageBuffer, ImageReader, RgbImage};
+use image::{DynamicImage, GenericImageView, ImageReader, RgbImage};
 use libheif_rs::{ColorSpace, HeifContext, LibHeif, RgbChroma};
 use libwebp_sys::WebPPreset;
 use std::io::Cursor;
