@@ -10,7 +10,7 @@ pub enum PointOfInterestType {
     Generic,
 }
 
-pub type PointOfInterestId = ModelUuid<{ ModelName::Checkpoint }>;
+pub type PointOfInterestId = ModelUuid<{ ModelName::PointOfInterest }>;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PointOfInterest {

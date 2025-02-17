@@ -39,10 +39,9 @@ pub trait ModelId:
 #[derive(ConstParamTy, PartialEq, Eq, Clone, Copy)]
 pub enum ModelName {
     Media,
-    Checkpoint,
+    PointOfInterest,
     Ride,
     Route,
-    Segment,
     User,
     Trip,
     Note,
@@ -51,10 +50,9 @@ impl ModelName {
     const fn to_str(self) -> &'static str {
         match self {
             ModelName::Media => "MEDIA",
-            ModelName::Checkpoint => "CHECKPOINT",
+            ModelName::PointOfInterest => "POI",
             ModelName::Ride => "RIDE",
             ModelName::Route => "ROUTE",
-            ModelName::Segment => "SEGMENT",
             ModelName::User => "USER",
             ModelName::Trip => "TRIP",
             ModelName::Note => "NOTE",
