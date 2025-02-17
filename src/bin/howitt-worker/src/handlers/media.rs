@@ -8,6 +8,7 @@ use image::{DynamicImage, GenericImageView, ImageBuffer, ImageReader, RgbImage};
 use libheif_rs::{ColorSpace, HeifContext, LibHeif, RgbChroma};
 use libwebp_sys::WebPPreset;
 use std::io::Cursor;
+use std::sync::Arc;
 use thiserror::Error;
 use webp::WebPConfig;
 
@@ -194,10 +195,14 @@ pub async fn handle_media_job(job: MediaJob, ctx: Context) -> Result<(), MediaJo
                     .decode()?,
             };
 
-            for image_spec in IMAGE_SPECS.iter() {
-                let img_clone = img.clone();
+            let img = Arc::new(img);
 
-                let resized = rayon_spawn_blocking(move || resize(&img_clone, &image_spec)).await;
+            for image_spec in IMAGE_SPECS.iter() {
+                let img = img.clone();
+
+                let resized = rayon_spawn_blocking(move || resize(&img, &image_spec)).await;
+
+                let resized = Arc::new(resized);
 
                 for content_type in [ImageContentType::Jpeg, ImageContentType::Webp] {
                     let resized_clone = resized.clone();
