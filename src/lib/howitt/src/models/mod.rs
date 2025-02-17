@@ -13,6 +13,7 @@ pub mod media;
 pub mod note;
 pub mod point;
 pub mod point_of_interest;
+pub mod point_of_interest_visit;
 pub mod ride;
 pub mod route;
 pub mod route_description;
@@ -40,6 +41,7 @@ pub trait ModelId:
 pub enum ModelName {
     Media,
     PointOfInterest,
+    PointOfInterestVisit,
     Ride,
     Route,
     User,
@@ -51,6 +53,7 @@ impl ModelName {
         match self {
             ModelName::Media => "MEDIA",
             ModelName::PointOfInterest => "POI",
+            ModelName::PointOfInterestVisit => "POI_VISIT",
             ModelName::Ride => "RIDE",
             ModelName::Route => "ROUTE",
             ModelName::User => "USER",
