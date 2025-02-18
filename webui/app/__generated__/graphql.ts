@@ -771,6 +771,34 @@ export type LoginViewerInfoQuery = {
     | null;
 };
 
+export type PoIsQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type PoIsQueryQuery = {
+  __typename?: "Query";
+  pointsOfInterest: Array<
+    {
+      __typename?: "PointOfInterest";
+      id: any;
+      name: string;
+      point: Array<number>;
+      pointOfInterestType: PointOfInterestType;
+    } & { " $fragmentRefs"?: { PoiItemFragment: PoiItemFragment } }
+  >;
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
+};
+
+export type PoiItemFragment = {
+  __typename?: "PointOfInterest";
+  id: any;
+  name: string;
+  point: Array<number>;
+  pointOfInterestType: PointOfInterestType;
+} & { " $fragmentName"?: "PoiItemFragment" };
+
 export type RidesWithDateQueryVariables = Exact<{
   username: Scalars["String"]["input"];
   date: Scalars["IsoDate"]["input"];
@@ -1580,6 +1608,31 @@ export const TripItemFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<TripItemFragment, unknown>;
+export const PoiItemFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "poiItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "PointOfInterest" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "point" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "pointOfInterestType" },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PoiItemFragment, unknown>;
 export const RideItemFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -2600,6 +2653,98 @@ export const LoginViewerInfoDocument = {
   LoginViewerInfoQuery,
   LoginViewerInfoQueryVariables
 >;
+export const PoIsQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "POIsQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "pointsOfInterest" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "point" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "pointOfInterestType" },
+                },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "poiItem" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "poiItem" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "PointOfInterest" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "point" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "pointOfInterestType" },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PoIsQueryQuery, PoIsQueryQueryVariables>;
 export const RidesWithDateDocument = {
   kind: "Document",
   definitions: [

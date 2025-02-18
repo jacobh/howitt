@@ -1,3 +1,5 @@
+import { PointOfInterestType } from "~/__generated__/graphql";
+
 export interface Track {
   id: string;
   kind: "ride" | "route";
@@ -14,6 +16,12 @@ export interface Marker {
 
 type TrackLike = { id: string; pointsJson: string };
 
+type PointOfInterestLike = {
+  id: string;
+  name: string;
+  point: number[];
+  pointOfInterestType: PointOfInterestType;
+};
 export function buildTrack(
   { id, pointsJson }: TrackLike,
   opts: Pick<Track, "kind" | "style">,
@@ -32,6 +40,19 @@ export function buildRouteTrack(
 ): Track {
   return buildTrack(route, { kind: "route", style });
 }
+
 export function buildRideTrack(ride: TrackLike, style?: Track["style"]): Track {
   return buildTrack(ride, { kind: "ride", style });
+}
+
+export function buildMarker(
+  { id, point, name }: PointOfInterestLike,
+  style?: Marker["style"],
+): Marker {
+  return {
+    id,
+    point: [point[0], point[1]],
+    label: name,
+    style,
+  };
 }
