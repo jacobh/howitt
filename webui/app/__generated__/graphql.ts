@@ -208,6 +208,7 @@ export type PointOfInterest = MediaTarget & {
   name: Scalars["String"]["output"];
   point: Array<Scalars["Float"]["output"]>;
   pointOfInterestType: PointOfInterestType;
+  slug: Scalars["String"]["output"];
 };
 
 export enum PointOfInterestType {
@@ -226,7 +227,7 @@ export enum PointsDetail {
 
 export type Query = {
   __typename?: "Query";
-  pointOfInterest?: Maybe<PointOfInterest>;
+  pointOfInterestWithSlug?: Maybe<PointOfInterest>;
   pointsOfInterest: Array<PointOfInterest>;
   publicUsers: Array<UserProfile>;
   publishedTrips: Array<Trip>;
@@ -242,8 +243,8 @@ export type Query = {
   viewer?: Maybe<Viewer>;
 };
 
-export type QueryPointOfInterestArgs = {
-  id: Scalars["Int"]["input"];
+export type QueryPointOfInterestWithSlugArgs = {
+  slug: Scalars["String"]["input"];
 };
 
 export type QueryQueryRoutesArgs = {
@@ -771,6 +772,31 @@ export type LoginViewerInfoQuery = {
     | null;
 };
 
+export type PoiQueryQueryVariables = Exact<{
+  slug: Scalars["String"]["input"];
+}>;
+
+export type PoiQueryQuery = {
+  __typename?: "Query";
+  pointOfInterestWithSlug?: {
+    __typename?: "PointOfInterest";
+    id: any;
+    name: string;
+    point: Array<number>;
+    pointOfInterestType: PointOfInterestType;
+    media: Array<{
+      __typename?: "Media";
+      id: any;
+      point?: Array<number> | null;
+    }>;
+  } | null;
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
+};
+
 export type PoIsQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type PoIsQueryQuery = {
@@ -796,6 +822,7 @@ export type PoiItemFragment = {
   id: any;
   name: string;
   point: Array<number>;
+  slug: string;
   pointOfInterestType: PointOfInterestType;
 } & { " $fragmentName"?: "PoiItemFragment" };
 
@@ -1624,6 +1651,7 @@ export const PoiItemFragmentDoc = {
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "point" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "pointOfInterestType" },
@@ -2653,6 +2681,108 @@ export const LoginViewerInfoDocument = {
   LoginViewerInfoQuery,
   LoginViewerInfoQueryVariables
 >;
+export const PoiQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "POIQuery" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "slug" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "pointOfInterestWithSlug" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "slug" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "slug" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "point" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "pointOfInterestType" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "media" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "point" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PoiQueryQuery, PoiQueryQueryVariables>;
 export const PoIsQueryDocument = {
   kind: "Document",
   definitions: [
@@ -2712,6 +2842,7 @@ export const PoIsQueryDocument = {
           { kind: "Field", name: { kind: "Name", value: "id" } },
           { kind: "Field", name: { kind: "Name", value: "name" } },
           { kind: "Field", name: { kind: "Name", value: "point" } },
+          { kind: "Field", name: { kind: "Name", value: "slug" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "pointOfInterestType" },

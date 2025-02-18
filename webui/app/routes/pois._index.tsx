@@ -14,6 +14,7 @@ import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { useMemo, useState } from "react";
 import { buildMarker } from "~/components/map/types";
 import { FragmentType, useFragment } from "~/__generated__";
+import { Link } from "@remix-run/react";
 
 const POIsQuery = gql(`
   query POIsQuery {
@@ -56,6 +57,7 @@ const POIItemFragment = gql(`
       id
       name
       point
+      slug
       pointOfInterestType
     }
   `);
@@ -69,7 +71,9 @@ function POIItem({
 
   return (
     <div>
-      <div css={poiNameCss}>{poi.name}</div>
+      <div css={poiNameCss}>
+        <Link to={`/pois/${poi.slug}`}>{poi.name}</Link>
+      </div>
       <div css={poiTypeCss}>{poi.pointOfInterestType.toLowerCase()}</div>
     </div>
   );

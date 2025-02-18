@@ -54,9 +54,11 @@ const documents = {
     types.TripItemFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
     types.LoginViewerInfoDocument,
+  "\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
+    types.PoiQueryDocument,
   "\n  query POIsQuery {\n    pointsOfInterest {\n      id\n      name\n      point\n      pointOfInterestType\n      ...poiItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.PoIsQueryDocument,
-  "\n    fragment poiItem on PointOfInterest {\n      id\n      name\n      point\n      pointOfInterestType\n    }\n  ":
+  "\n    fragment poiItem on PointOfInterest {\n      id\n      name\n      point\n      slug\n      pointOfInterestType\n    }\n  ":
     types.PoiItemFragmentDoc,
   "\n  query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {\n    viewer {\n      ...viewerInfo\n    }\n    userWithUsername(username: $username) {\n      username\n      ridesWithDate(date: $date) {\n        id\n        date\n        tz\n        pointsJson(detailLevel: $detailLevel)\n        ...rideSummary\n        ...elevationPath\n      }\n    }\n  }\n":
     types.RidesWithDateDocument,
@@ -226,14 +228,20 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
+  source: "\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n",
+): (typeof documents)["\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
   source: "\n  query POIsQuery {\n    pointsOfInterest {\n      id\n      name\n      point\n      pointOfInterestType\n      ...poiItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n",
 ): (typeof documents)["\n  query POIsQuery {\n    pointsOfInterest {\n      id\n      name\n      point\n      pointOfInterestType\n      ...poiItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    fragment poiItem on PointOfInterest {\n      id\n      name\n      point\n      pointOfInterestType\n    }\n  ",
-): (typeof documents)["\n    fragment poiItem on PointOfInterest {\n      id\n      name\n      point\n      pointOfInterestType\n    }\n  "];
+  source: "\n    fragment poiItem on PointOfInterest {\n      id\n      name\n      point\n      slug\n      pointOfInterestType\n    }\n  ",
+): (typeof documents)["\n    fragment poiItem on PointOfInterest {\n      id\n      name\n      point\n      slug\n      pointOfInterestType\n    }\n  "];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
