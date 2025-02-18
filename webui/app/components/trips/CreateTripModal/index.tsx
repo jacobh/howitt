@@ -6,6 +6,7 @@ import { Modal } from "../../Modal";
 import { useNavigate } from "@remix-run/react";
 import { RideTable } from "./components/RideTable";
 import { Controller, useForm } from "react-hook-form";
+import { tokens } from "~/styles/tokens";
 
 const CreateTripMutation = gql(`
   mutation CreateTrip($input: CreateTripInput!) {
@@ -49,7 +50,7 @@ const formFieldStyles = css`
 const inputStyles = css`
   padding: 0.5rem;
   width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid ${tokens.colors.grey200};
 `;
 
 const buttonGroupStyles = css`

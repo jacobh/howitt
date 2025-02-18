@@ -3,7 +3,7 @@ import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__/gql";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
-import { tableContainerCss, tableCss } from "./Table";
+import { tableContainerCss, tableCss } from "../ui/Table";
 
 const AllRoutesQuery = gql(`
     query AllRoutes($username: String!) {
