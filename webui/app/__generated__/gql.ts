@@ -22,8 +22,10 @@ const documents = {
     types.RideItemFragmentDoc,
   "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n    tz\n  }\n":
     types.RideSummaryFragmentDoc,
-  "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n":
+  "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n        ...routeVitals\n    }\n":
     types.RouteItemFragmentDoc,
+  "\n  fragment routeVitals on Route {\n    distance\n    elevationAscentM\n    elevationDescentM\n  }\n":
+    types.RouteVitalsFragmentDoc,
   "\n  query SettingsRideList($username: String!) {\n    userWithUsername(username: $username) {\n      rides {\n        id\n        name\n        startedAt\n        finishedAt\n        distance\n        date\n      }\n    }\n  }\n":
     types.SettingsRideListDocument,
   "\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          slug\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  ":
@@ -66,7 +68,7 @@ const documents = {
     types.UserItemFragmentDoc,
   "\n  fragment nearbyRoutesInfo on Terminus {\n    bearing\n    nearbyRoutes {\n      delta {\n        distance\n        bearing\n      }\n      closestTerminus {\n        bearing\n        route {\n          id\n          ...routeItem\n        }\n      }\n    }\n  }\n":
     types.NearbyRoutesInfoFragmentDoc,
-  "\nquery RouteQuery($slug: String!) {\n  routeWithSlug(slug: $slug) {\n    id\n    name\n    slug\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n":
+  "\nquery RouteQuery($slug: String!) {\n  routeWithSlug(slug: $slug) {\n    id\n    name\n    slug\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n    ...routeVitals\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n":
     types.RouteQueryDocument,
   "\n  query homeQuery($input: QueryRoutesInput!) {\n    queryRoutes(input: $input) {\n      id\n      samplePoints\n      ...routeItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.HomeQueryDocument,
@@ -124,8 +126,14 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n",
-): (typeof documents)["\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n    }\n"];
+  source: "\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n        ...routeVitals\n    }\n",
+): (typeof documents)["\n    fragment routeItem on Route {\n        id\n        name\n        slug\n        distance\n        elevationAscentM\n        elevationDescentM\n        isMetaComplete\n        ...routeVitals\n    }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  fragment routeVitals on Route {\n    distance\n    elevationAscentM\n    elevationDescentM\n  }\n",
+): (typeof documents)["\n  fragment routeVitals on Route {\n    distance\n    elevationAscentM\n    elevationDescentM\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -256,8 +264,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\nquery RouteQuery($slug: String!) {\n  routeWithSlug(slug: $slug) {\n    id\n    name\n    slug\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n",
-): (typeof documents)["\nquery RouteQuery($slug: String!) {\n  routeWithSlug(slug: $slug) {\n    id\n    name\n    slug\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n"];
+  source: "\nquery RouteQuery($slug: String!) {\n  routeWithSlug(slug: $slug) {\n    id\n    name\n    slug\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n    ...routeVitals\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n",
+): (typeof documents)["\nquery RouteQuery($slug: String!) {\n  routeWithSlug(slug: $slug) {\n    id\n    name\n    slug\n    externalRef {\n      canonicalUrl\n    }\n    tags\n    distance\n    elevationAscentM\n    elevationDescentM\n    pointsJson\n    description\n    technicalDifficulty\n    physicalDifficulty\n    scouted\n    direction\n    minimumBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    idealBike {\n      tyreWidth\n      frontSuspension\n      rearSuspension\n    }\n    termini {\n      bearing\n\n      nearbyRoutes {\n        closestTerminus {\n          route {\n            id\n            pointsJson\n          }\n        }\n      }\n\n      ...nearbyRoutesInfo\n    }\n\n    ...elevationPath\n    ...routeVitals\n  }\n  viewer {\n    ...viewerInfo\n  }\n}\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

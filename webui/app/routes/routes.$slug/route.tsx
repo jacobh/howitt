@@ -67,6 +67,7 @@ query RouteQuery($slug: String!) {
     }
 
     ...elevationPath
+    ...routeVitals
   }
   viewer {
     ...viewerInfo

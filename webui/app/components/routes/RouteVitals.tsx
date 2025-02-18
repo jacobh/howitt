@@ -1,10 +1,18 @@
 import { css } from "@emotion/react";
-import { Route } from "~/__generated__/graphql";
+import { FragmentType, gql, useFragment } from "~/__generated__";
 import { formatDistance, formatVertical } from "~/services/format";
 import { tokens } from "~/styles/tokens";
 
+export const RouteVitalsFragment = gql(`
+  fragment routeVitals on Route {
+    distance
+    elevationAscentM
+    elevationDescentM
+  }
+`);
+
 interface Props {
-  route: Pick<Route, "distance" | "elevationAscentM" | "elevationDescentM">;
+  route: FragmentType<typeof RouteVitalsFragment>;
 }
 
 const routeSubtitleCss = css`
@@ -17,6 +25,7 @@ const routeSubtitleCss = css`
   font-size: 0.875rem; /* 14px */
   line-height: 1.25rem; /* 20px */
 `;
+
 export const routeSubtitleArrowCss = css`
   color: ${tokens.colors.midGrey};
 
@@ -25,7 +34,9 @@ export const routeSubtitleArrowCss = css`
   text-align: center;
 `;
 
-export function RouteVitals({ route }: Props): React.ReactNode {
+export function RouteVitals({ route: routeFragment }: Props): React.ReactNode {
+  const route = useFragment(RouteVitalsFragment, routeFragment);
+
   return (
     <p css={routeSubtitleCss}>
       <span>

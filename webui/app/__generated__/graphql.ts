@@ -526,7 +526,7 @@ export type RideSummaryFragment = {
   tz?: string | null;
 } & { " $fragmentName"?: "RideSummaryFragment" };
 
-export type RouteItemFragment = {
+export type RouteItemFragment = ({
   __typename?: "Route";
   id: any;
   name: string;
@@ -535,7 +535,16 @@ export type RouteItemFragment = {
   elevationAscentM: number;
   elevationDescentM: number;
   isMetaComplete: boolean;
-} & { " $fragmentName"?: "RouteItemFragment" };
+} & { " $fragmentRefs"?: { RouteVitalsFragment: RouteVitalsFragment } }) & {
+  " $fragmentName"?: "RouteItemFragment";
+};
+
+export type RouteVitalsFragment = {
+  __typename?: "Route";
+  distance: number;
+  elevationAscentM: number;
+  elevationDescentM: number;
+} & { " $fragmentName"?: "RouteVitalsFragment" };
 
 export type SettingsRideListQueryVariables = Exact<{
   username: Scalars["String"]["input"];
@@ -1022,6 +1031,7 @@ export type RouteQueryQuery = {
       } & {
         " $fragmentRefs"?: {
           ElevationPath_Route_Fragment: ElevationPath_Route_Fragment;
+          RouteVitalsFragment: RouteVitalsFragment;
         };
       })
     | null;
@@ -1769,6 +1779,27 @@ export const UserItemFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<UserItemFragment, unknown>;
+export const RouteVitalsFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeVitals" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RouteVitalsFragment, unknown>;
 export const RouteItemFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -1789,6 +1820,26 @@ export const RouteItemFragmentDoc = {
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
           { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "routeVitals" },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeVitals" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
         ],
       },
     },
@@ -1869,6 +1920,22 @@ export const NearbyRoutesInfoFragmentDoc = {
     },
     {
       kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeVitals" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
       name: { kind: "Name", value: "routeItem" },
       typeCondition: {
         kind: "NamedType",
@@ -1884,6 +1951,10 @@ export const NearbyRoutesInfoFragmentDoc = {
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
           { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "routeVitals" },
+          },
         ],
       },
     },
@@ -3855,6 +3926,10 @@ export const RouteQueryDocument = {
                   kind: "FragmentSpread",
                   name: { kind: "Name", value: "elevationPath" },
                 },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "routeVitals" },
+                },
               ],
             },
           },
@@ -3876,6 +3951,22 @@ export const RouteQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeVitals" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
       name: { kind: "Name", value: "routeItem" },
       typeCondition: {
         kind: "NamedType",
@@ -3891,6 +3982,10 @@ export const RouteQueryDocument = {
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
           { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "routeVitals" },
+          },
         ],
       },
     },
@@ -4083,6 +4178,22 @@ export const HomeQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
+      name: { kind: "Name", value: "routeVitals" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Route" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "distance" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
+          { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
       name: { kind: "Name", value: "routeItem" },
       typeCondition: {
         kind: "NamedType",
@@ -4098,6 +4209,10 @@ export const HomeQueryDocument = {
           { kind: "Field", name: { kind: "Name", value: "elevationAscentM" } },
           { kind: "Field", name: { kind: "Name", value: "elevationDescentM" } },
           { kind: "Field", name: { kind: "Name", value: "isMetaComplete" } },
+          {
+            kind: "FragmentSpread",
+            name: { kind: "Name", value: "routeVitals" },
+          },
         ],
       },
     },

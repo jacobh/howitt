@@ -13,6 +13,7 @@ export const RouteItemFragment = gql(`
         elevationAscentM
         elevationDescentM
         isMetaComplete
+        ...routeVitals
     }
 `);
 
