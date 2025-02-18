@@ -68,7 +68,7 @@ const fieldContainerCss = css({
 
 const labelCss = css({
   display: "block",
-  color: tokens.colors.darkGrey,
+  color: tokens.colors.grey700,
   marginBottom: "0.5rem",
   fontWeight: 500,
 });
@@ -80,12 +80,12 @@ const valueCss = css({
   backgroundColor: tokens.colors.offWhite,
   border: `1px solid ${tokens.colors.lightGrey}`,
   borderRadius: "4px",
-  color: tokens.colors.darkGrey,
+  color: tokens.colors.grey700,
 });
 
 const linkCss = css({
   display: "inline-block",
-  color: tokens.colors.darkGrey,
+  color: tokens.colors.grey700,
   textDecoration: "none",
   marginTop: "1rem",
 
@@ -118,7 +118,7 @@ const welcomeListCss = css({
 
 const connectionDatesCss = css({
   fontSize: "0.9rem",
-  color: tokens.colors.darkGrey,
+  color: tokens.colors.grey700,
   marginTop: "0.5rem",
   marginBottom: "1rem",
 });

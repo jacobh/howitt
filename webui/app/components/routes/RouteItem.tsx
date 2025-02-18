@@ -33,7 +33,7 @@ const defaultRouteTitleCss = css({
 
 const titlePostfixCss = css`
   text-decoration: none;
-  color: ${tokens.colors.darkGrey};
+  color: ${tokens.colors.grey700};
 `;
 
 const subtitleContainerCss = css`

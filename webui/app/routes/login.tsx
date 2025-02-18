@@ -36,7 +36,7 @@ const formCss = css`
 
 const fieldLabelCss = css`
   margin-bottom: 2px;
-  color: ${tokens.colors.darkGrey};
+  color: ${tokens.colors.grey700};
 `;
 
 const submitCss = css(

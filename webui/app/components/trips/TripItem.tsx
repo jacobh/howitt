@@ -39,7 +39,7 @@ const subtitleContainerCss = css`
 `;
 
 const tripMetaCss = css`
-  color: ${tokens.colors.darkGrey};
+  color: ${tokens.colors.grey700};
   font-size: 0.9em;
 `;
 

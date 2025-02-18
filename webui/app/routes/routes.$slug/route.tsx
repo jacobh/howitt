@@ -172,7 +172,7 @@ export default function Route(): React.ReactElement {
               )}
               {route.externalRef ? (
                 <section css={contentSectionCss}>
-                  <p css={{ color: tokens.colors.darkGrey }}>
+                  <p css={{ color: tokens.colors.grey700 }}>
                     <a
                       target="_blank"
                       rel="noreferrer"
