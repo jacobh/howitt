@@ -73,7 +73,7 @@ export function ElevationProfile({
           />
           <Area
             dataKey="elevation"
-            stroke={tokens.colors.purple500}
+            stroke={tokens.colors.purple600}
             fill={tokens.colors.purple500}
             isAnimationActive={false}
           />
