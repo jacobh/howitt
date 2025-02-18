@@ -27,6 +27,6 @@ export const tabTriggerStyles = css`
   }
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: ${tokens.colors.grey50};
   }
 `;

@@ -11,6 +11,7 @@ import { useCallback, useMemo, useState } from "react";
 import { map as mapIcon } from "ionicons/icons";
 import { SvgIcon } from "~/components/ui/SvgIcon";
 import { Temporal } from "@js-temporal/polyfill";
+import { tokens } from "~/styles/tokens";
 
 const contentBlockStyles = css({
   position: "relative", // This ensures the overlay positions relative to this container
@@ -81,7 +82,7 @@ const mediaStyles = css({
 });
 
 const mediaCaptionStyles = css({
-  color: "#464646",
+  color: tokens.colors.grey700,
   fontSize: "14px",
   margin: "8px 4px 24px",
 });

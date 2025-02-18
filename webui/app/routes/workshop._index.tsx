@@ -96,7 +96,7 @@ const linkCss = css({
 
 const welcomeHeadingCss = css({
   margin: "0 0 8px 0",
-  color: "#333",
+  color: tokens.colors.grey900,
 });
 
 const welcomeTextCss = css({

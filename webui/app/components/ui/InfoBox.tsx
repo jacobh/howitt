@@ -1,12 +1,13 @@
 import { css } from "@emotion/react";
 import { PropsWithChildren } from "react";
+import { tokens } from "~/styles/tokens";
 
 const infoBoxStyles = css({
-  backgroundColor: "#f5f5f5",
+  backgroundColor: tokens.colors.grey50,
   padding: "12px 16px",
   borderRadius: "8px",
   fontSize: "14px",
-  color: "#666",
+  color: tokens.colors.grey600,
   marginTop: "12px",
   marginBottom: "20px",
 });
