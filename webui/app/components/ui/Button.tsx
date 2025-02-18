@@ -3,14 +3,14 @@ import { tokens } from "~/styles/tokens";
 
 export const buttonStyles = css`
   background-color: white;
-  border: 1px solid ${tokens.colors.lightGrey};
+  border: 1px solid ${tokens.colors.grey300};
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
 
   &:hover {
-    background-color: ${tokens.colors.offWhite};
+    background-color: ${tokens.colors.grey100};
   }
 
   &:disabled {

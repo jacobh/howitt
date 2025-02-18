@@ -32,10 +32,10 @@ const POIsQuery = gql(`
 
 const poiItemContainerCss = css`
   padding: 20px 1.5%;
-  border-bottom: 1px solid ${tokens.colors.offWhite};
+  border-bottom: 1px solid ${tokens.colors.grey100};
 
   &:hover {
-    background-color: ${tokens.colors.offWhite};
+    background-color: ${tokens.colors.grey100};
   }
 `;
 
@@ -46,7 +46,7 @@ const poiNameCss = css`
 `;
 
 const poiTypeCss = css`
-  color: ${tokens.colors.midGrey};
+  color: ${tokens.colors.grey500};
   font-size: 0.875rem;
   line-height: 1.25rem;
 `;

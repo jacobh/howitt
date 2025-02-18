@@ -16,7 +16,7 @@ interface Props {
 }
 
 const routeSubtitleCss = css`
-  color: ${tokens.colors.midGrey};
+  color: ${tokens.colors.grey500};
 
   display: grid;
   grid-auto-flow: column;
@@ -27,7 +27,7 @@ const routeSubtitleCss = css`
 `;
 
 export const routeSubtitleArrowCss = css`
-  color: ${tokens.colors.midGrey};
+  color: ${tokens.colors.grey500};
 
   width: 30px;
   display: inline-block;

@@ -26,7 +26,7 @@ const formCss = css`
   }
 
   input {
-    border: 1px solid ${tokens.colors.lightGrey};
+    border: 1px solid ${tokens.colors.grey300};
     padding: 8px;
     width: 100%;
     margin-bottom: 14px;

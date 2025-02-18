@@ -1,9 +1,6 @@
 export const tokens = {
   colors: {
     black: "#000000",
-    midGrey: "#808080",
-    lightGrey: "#a8a8a8",
-    offWhite: "#e6e6e6",
     grey50: "#f6f6f6",
     grey100: "#e7e7e7",
     grey200: "#d1d1d1",

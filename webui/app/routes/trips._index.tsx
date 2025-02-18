@@ -54,10 +54,10 @@ const TripsQueryWithPoints = gql(`
 
 const tripItemContainerCss = css`
   padding: 20px 1.5%;
-  border-bottom: 1px solid ${tokens.colors.offWhite};
+  border-bottom: 1px solid ${tokens.colors.grey100};
 
   &:hover {
-    background-color: ${tokens.colors.offWhite};
+    background-color: ${tokens.colors.grey100};
   }
 `;
 

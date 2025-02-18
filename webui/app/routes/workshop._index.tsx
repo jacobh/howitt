@@ -77,8 +77,8 @@ const valueCss = css({
   display: "block",
   padding: "0.5rem",
   width: "100%",
-  backgroundColor: tokens.colors.offWhite,
-  border: `1px solid ${tokens.colors.lightGrey}`,
+  backgroundColor: tokens.colors.grey50,
+  border: `1px solid ${tokens.colors.grey300}`,
   borderRadius: "4px",
   color: tokens.colors.grey700,
 });

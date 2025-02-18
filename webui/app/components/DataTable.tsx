@@ -16,11 +16,11 @@ const dataTableCss = css`
   width: 100%;
 
   td {
-    border-left: 1px solid ${tokens.colors.offWhite};
+    border-left: 1px solid ${tokens.colors.grey200};
     padding: 5px 10%;
 
     &:last-child {
-      border-right: 1px solid ${tokens.colors.offWhite};
+      border-right: 1px solid ${tokens.colors.grey200};
     }
   }
 
@@ -29,10 +29,10 @@ const dataTableCss = css`
     grid-auto-flow: column;
     grid-template-columns: 1fr 1fr;
 
-    border-top: 1px solid ${tokens.colors.offWhite};
+    border-top: 1px solid ${tokens.colors.grey200};
 
     &:last-child {
-      border-bottom: 1px solid ${tokens.colors.offWhite};
+      border-bottom: 1px solid ${tokens.colors.grey200};
     }
   }
 `;
