@@ -12,5 +12,17 @@ export const tokens = {
     grey800: "#454545",
     grey900: "#3d3d3d",
     grey950: "#0a0a0a",
+    // used for elevation profile
+    purple50: "#f1f3fc",
+    purple100: "#e6e9f9",
+    purple200: "#d1d6f4",
+    purple300: "#b5bbec",
+    purple400: "#9899e1",
+    purple500: "#8884d8",
+    purple600: "#7164c7",
+    purple700: "#6154ae",
+    purple800: "#4f468d",
+    purple900: "#443e71",
+    purple950: "#282442",
   },
 };

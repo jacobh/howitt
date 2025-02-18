@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { zipStrict } from "~/services/zipStrict";
+import { tokens } from "~/styles/tokens";
 
 export const ElevationPathFragment = gql(`
   fragment elevationPath on ElevationPath {
@@ -72,8 +73,8 @@ export function ElevationProfile({
           />
           <Area
             dataKey="elevation"
-            stroke="#8884d8"
-            fill="#8884d8"
+            stroke={tokens.colors.purple500}
+            fill={tokens.colors.purple500}
             isAnimationActive={false}
           />
         </AreaChart>
