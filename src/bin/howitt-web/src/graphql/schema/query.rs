@@ -215,8 +215,12 @@ impl Query {
         Ok(pois.into_iter().map(PointOfInterest).collect())
     }
 
-    async fn point_of_interest(&self, _ctx: &Context<'_>, _id: usize) -> Option<PointOfInterest> {
-        None
+    async fn point_of_interest_with_slug<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+        slug: String,
+    ) -> Result<Option<PointOfInterest>, async_graphql::Error> {
+        Ok(None)
     }
 
     async fn user_with_username<'ctx>(

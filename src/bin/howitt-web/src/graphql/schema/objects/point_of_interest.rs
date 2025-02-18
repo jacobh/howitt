@@ -28,6 +28,9 @@ impl PointOfInterest {
     async fn name(&self) -> &str {
         &self.0.name
     }
+    async fn slug(&self) -> &str {
+        "todo"
+    }
     async fn point(&self) -> Vec<f64> {
         vec![self.0.point.x(), self.0.point.y()]
     }
