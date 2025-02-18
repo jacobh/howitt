@@ -4,6 +4,7 @@ import { sortBy } from "lodash";
 import { gql } from "~/__generated__/gql";
 import { Link } from "@remix-run/react";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
+import { tokens } from "~/styles/tokens";
 
 const AllTripsQuery = gql(`
     query AllTrips($username: String!) {
@@ -22,7 +23,7 @@ const AllTripsQuery = gql(`
 const tripTableContainerCss = css`
   max-height: 67vh;
   overflow: hidden;
-  border: 1px solid #ddd;
+  border: 1px solid ${tokens.colors.grey200};
 `;
 
 const tripTableCss = css`
@@ -32,13 +33,13 @@ const tripTableCss = css`
 
   th,
   td {
-    padding: 8px;
+    padding: 10px 10px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid ${tokens.colors.grey200};
   }
 
   th {
-    background-color: #f5f5f5;
+    background-color: ${tokens.colors.grey50};
     font-weight: 500;
     position: sticky;
     top: 0;
@@ -63,7 +64,7 @@ const tripTableCss = css`
   }
 
   tbody tr:hover {
-    background-color: #f8f8f8;
+    background-color: ${tokens.colors.grey50};
   }
 `;
 

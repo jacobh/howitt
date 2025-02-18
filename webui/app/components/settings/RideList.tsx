@@ -4,6 +4,7 @@ import { Link } from "@remix-run/react";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
+import { tokens } from "~/styles/tokens";
 
 const AllRidesQuery = gql(`
   query SettingsRideList($username: String!) {
@@ -23,7 +24,7 @@ const AllRidesQuery = gql(`
 const rideTableContainerCss = css`
   max-height: 67vh;
   overflow: hidden;
-  border: 1px solid #ddd;
+  border: 1px solid ${tokens.colors.grey200};
 `;
 
 const rideTableCss = css`
@@ -33,13 +34,13 @@ const rideTableCss = css`
 
   th,
   td {
-    padding: 8px;
+    padding: 10px 10px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid ${tokens.colors.grey200};
   }
 
   th {
-    background-color: #f5f5f5;
+    background-color: ${tokens.colors.grey50};
     font-weight: 500;
     position: sticky;
     top: 0;
@@ -64,7 +65,7 @@ const rideTableCss = css`
   }
 
   tbody tr:hover {
-    background-color: #f8f8f8;
+    background-color: ${tokens.colors.grey50};
   }
 `;
 
