@@ -3,6 +3,8 @@ import { FragmentType, gql, useFragment } from "~/__generated__";
 import { buttonStyles } from "~/components/ui/Button";
 import { ThumbnailImage } from "./ThumbnailImage";
 import { useMemo } from "react";
+import { tableContainerCss, tableCss } from "~/components/ui/Table";
+import { tokens } from "~/styles/tokens";
 
 export const TripMediaFragment = gql(`
   fragment tripMedia on Trip {
@@ -26,73 +28,38 @@ interface Props {
   removingMedia: boolean;
 }
 
-const mediaTableContainerCss = css`
-  max-height: 67vh;
-  overflow: hidden;
-  border: 1px solid #ddd;
-`;
+const mediaTableCss = css(
+  tableCss,
+  css`
+    th:nth-of-type(1),
+    td:nth-of-type(1) {
+      width: 120px;
+    } /* Thumbnail */
+    th:nth-of-type(2),
+    td:nth-of-type(2) {
+      width: auto;
+    } /* Path - takes remaining space */
+    th:nth-of-type(3),
+    td:nth-of-type(3) {
+      width: 100px;
+    } /* Created At */
+    th:nth-of-type(4),
+    td:nth-of-type(4) {
+      width: 80px;
+    } /* Actions */
 
-const mediaTableCss = css`
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-
-  th,
-  td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-
-  th {
-    background-color: #f5f5f5;
-    font-weight: 500;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  th:nth-of-type(1),
-  td:nth-of-type(1) {
-    width: 120px;
-  } /* Thumbnail */
-  th:nth-of-type(2),
-  td:nth-of-type(2) {
-    width: auto;
-  } /* Path - takes remaining space */
-  th:nth-of-type(3),
-  td:nth-of-type(3) {
-    width: 100px;
-  } /* Created At */
-  th:nth-of-type(4),
-  td:nth-of-type(4) {
-    width: 80px;
-  } /* Actions */
-
-  td:nth-of-type(2) {
-    white-space: normal;
-    word-break: break-all;
-  }
-
-  tbody {
-    display: block;
-    overflow-y: auto;
-    max-height: calc(67vh - 41px); /* 41px accounts for header height */
-  }
-
-  thead,
-  tbody tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-  }
-`;
+    td:nth-of-type(2) {
+      white-space: normal;
+      word-break: break-all;
+    }
+  `,
+);
 
 const deleteButtonCss = css(
   buttonStyles,
   css`
     padding: 4px 8px;
-    color: #666;
+    color: ${tokens.colors.grey500};
     font-size: 0.875rem;
 
     &:hover {
@@ -101,9 +68,9 @@ const deleteButtonCss = css(
     }
 
     &:disabled {
-      background-color: #f5f5f5;
-      color: #999;
-      border-color: #ddd;
+      background-color: ${tokens.colors.grey50};
+      color: ${tokens.colors.grey400};
+      border-color: ${tokens.colors.grey200};
     }
   `,
 );
@@ -132,7 +99,7 @@ export function MediaTable({
   }, [trip.media]);
 
   return (
-    <div css={mediaTableContainerCss}>
+    <div css={tableContainerCss}>
       <table css={mediaTableCss}>
         <thead>
           <tr>

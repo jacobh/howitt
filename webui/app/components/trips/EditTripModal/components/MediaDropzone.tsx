@@ -3,22 +3,22 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone-esm";
 import Cookies from "js-cookie";
 import { getApiBaseUrl } from "~/env.client";
+import { tokens } from "~/styles/tokens";
 
 const dropzoneStyles = css({
-  border: "2px dashed #cccccc",
+  border: `2px dashed ${tokens.colors.grey300}`,
   borderRadius: "4px",
   padding: "20px",
   textAlign: "center",
-  background: "#ffffff",
   cursor: "pointer",
   marginTop: "16px",
   "&:hover": {
-    borderColor: "#999999",
+    borderColor: tokens.colors.grey500,
   },
 });
 
 const dragActiveStyles = css({
-  background: "#f0f0f0",
+  background: tokens.colors.grey100,
 });
 
 interface Props {

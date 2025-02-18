@@ -2,6 +2,7 @@ import { css } from "@emotion/react";
 import { useEffect, useState } from "react";
 
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import { tokens } from "~/styles/tokens";
 
 function useCheckImage(url: string): {
   isReady: boolean;
@@ -45,7 +46,7 @@ const loadingCss = css(thumbnailImageCss, {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "#f5f5f5",
+  background: tokens.colors.grey50,
 });
 
 interface ThumbnailImageProps {

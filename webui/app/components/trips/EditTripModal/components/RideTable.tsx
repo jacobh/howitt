@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
 import { useMutation } from "@apollo/client/react/hooks/useMutation";
 import { sortBy } from "lodash";
+import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
+import { tableContainerCss, tableCss } from "~/components/ui/Table";
 
 export const TripRidesFragment = gql(`
   fragment tripRides on Trip {
@@ -52,66 +54,12 @@ interface Props {
   trip: FragmentType<typeof TripRidesFragment>;
   refetch: () => void;
 }
-const rideTableContainerCss = css`
-  max-height: 67vh;
-  overflow: hidden;
-  border: 1px solid #ddd;
-`;
-
-const rideTableCss = css`
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-
-  th,
-  td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-
-  th {
-    background-color: #f5f5f5;
-    font-weight: 500;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  tbody {
-    display: block;
-    overflow-y: auto;
-    max-height: calc(67vh - 41px); /* 41px accounts for header height */
-  }
-
-  thead,
-  tbody tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-  }
-
-  tbody tr {
-    cursor: pointer;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: #f8f8f8;
-    }
-  }
-`;
 
 const checkboxCss = css`
   width: 20px;
   height: 20px;
   cursor: pointer;
   pointer-events: none;
-`;
-
-const loadingStyles = css`
-  padding: 16px;
-  color: #666;
-  font-style: italic;
 `;
 
 export function RideTable({
@@ -168,12 +116,12 @@ export function RideTable({
   }, [allRidesData]);
 
   if (loading || updatingRides) {
-    return <div css={loadingStyles}>Loading rides...</div>;
+    return <LoadingSpinnerSidebarContent />;
   }
 
   return (
-    <div css={rideTableContainerCss}>
-      <table css={rideTableCss}>
+    <div css={tableContainerCss}>
+      <table css={tableCss}>
         <thead>
           <tr>
             <th>Started At</th>

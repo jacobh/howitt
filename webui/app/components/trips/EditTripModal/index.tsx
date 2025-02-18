@@ -18,6 +18,7 @@ import {
   tabsRootStyles,
   tabTriggerStyles,
 } from "~/components/ui/Tabs";
+import { tokens } from "~/styles/tokens";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -105,7 +106,7 @@ const formFieldStyles = css`
 const inputStyles = css`
   padding: 0.5rem;
   width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid ${tokens.colors.grey300};
 `;
 
 const buttonGroupStyles = css`
@@ -118,7 +119,7 @@ const buttonGroupStyles = css`
 const contentTabStyles = css`
   max-height: 80vh;
   overflow: hidden;
-  border: 1px solid #ddd;
+  border: 1px solid ${tokens.colors.grey200};
 `;
 
 const contentBlockContainerStyles = css`
@@ -137,7 +138,7 @@ const contentBlockStyles = css`
 `;
 
 const contentMetaStyles = css`
-  color: #666;
+  color: ${tokens.colors.grey700};
   font-size: 0.9em;
 `;
 
@@ -148,20 +149,20 @@ const mediaImageStyles = css`
 
 const rideBlockStyles = css`
   padding: 0.5rem;
-  background-color: #f5f5f5;
+  background-color: ${tokens.colors.grey50};
   border-radius: 4px;
 `;
 
 const addNoteButtonStyles = css`
-  border: 1px dashed #ccc;
+  border: 1px dashed ${tokens.colors.grey300};
   padding: 0.5rem;
   text-align: center;
   cursor: pointer;
-  color: #666;
+  color: ${tokens.colors.grey600};
   margin: 0.5rem 20px;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: ${tokens.colors.grey50};
   }
 `;
 
@@ -173,7 +174,7 @@ const noteContainerStyles = css`
 const deleteNoteButtonStyles = css`
   background: none;
   border: none;
-  color: #666;
+  color: ${tokens.colors.grey600};
   cursor: pointer;
   padding: 0.25rem;
 
