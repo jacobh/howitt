@@ -4,9 +4,10 @@ use super::{Model, ModelName, ModelUuid};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum PointOfInterestType {
-    RailwayStation,
+    PublicTransportStop,
+    Campsite,
+    WaterSource,
     Hut,
-    Locality,
     Generic,
 }
 

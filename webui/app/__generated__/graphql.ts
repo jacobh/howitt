@@ -211,10 +211,11 @@ export type PointOfInterest = MediaTarget & {
 };
 
 export enum PointOfInterestType {
+  Campsite = "CAMPSITE",
   Generic = "GENERIC",
   Hut = "HUT",
-  Locality = "LOCALITY",
-  RailwayStation = "RAILWAY_STATION",
+  PublicTransportStop = "PUBLIC_TRANSPORT_STOP",
+  WaterSource = "WATER_SOURCE",
 }
 
 export enum PointsDetail {

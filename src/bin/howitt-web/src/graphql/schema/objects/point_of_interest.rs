@@ -11,9 +11,10 @@ use super::media::Media;
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 #[graphql(remote = "howitt::models::point_of_interest::PointOfInterestType")]
 pub enum PointOfInterestType {
-    RailwayStation,
+    PublicTransportStop,
+    Campsite,
+    WaterSource,
     Hut,
-    Locality,
     Generic,
 }
 
