@@ -1,10 +1,9 @@
 import { useQuery } from "@apollo/client/react/hooks/useQuery";
-import { css } from "@emotion/react";
 import { Link } from "@remix-run/react";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
-import { tokens } from "~/styles/tokens";
+import { tableContainerCss, tableCss } from "./Table";
 
 const AllRidesQuery = gql(`
   query SettingsRideList($username: String!) {
@@ -20,54 +19,6 @@ const AllRidesQuery = gql(`
     }
   }
 `);
-
-const rideTableContainerCss = css`
-  max-height: 67vh;
-  overflow: hidden;
-  border: 1px solid ${tokens.colors.grey200};
-`;
-
-const rideTableCss = css`
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-
-  th,
-  td {
-    padding: 10px 10px;
-    text-align: left;
-    border-bottom: 1px solid ${tokens.colors.grey200};
-  }
-
-  th {
-    background-color: ${tokens.colors.grey50};
-    font-weight: 500;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  tbody {
-    display: block;
-    overflow-y: auto;
-    max-height: calc(67vh - 41px);
-  }
-
-  thead,
-  tbody tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-  }
-
-  tbody tr {
-    transition: background-color 0.2s;
-  }
-
-  tbody tr:hover {
-    background-color: ${tokens.colors.grey50};
-  }
-`;
 
 interface RideListProps {
   username: string;
@@ -88,8 +39,8 @@ export function RideList({ username }: RideListProps): React.ReactElement {
   }
 
   return (
-    <div css={rideTableContainerCss}>
-      <table css={rideTableCss}>
+    <div css={tableContainerCss}>
+      <table css={tableCss}>
         <thead>
           <tr>
             <th>Started At</th>
