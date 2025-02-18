@@ -220,7 +220,20 @@ impl Query {
         ctx: &Context<'ctx>,
         slug: String,
     ) -> Result<Option<PointOfInterest>, async_graphql::Error> {
-        Ok(None)
+        let SchemaData {
+            repos: Repos {
+                point_of_interest_repo,
+                ..
+            },
+            ..
+        } = ctx.data()?;
+
+        let pois = point_of_interest_repo.all().await?;
+
+        Ok(pois
+            .into_iter()
+            .find(|poi| poi.slug == slug)
+            .map(PointOfInterest))
     }
 
     async fn user_with_username<'ctx>(

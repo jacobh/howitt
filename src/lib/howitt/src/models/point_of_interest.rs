@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{Model, ModelName, ModelUuid};
+use super::{user::UserId, Model, ModelName, ModelUuid};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum PointOfInterestType {
@@ -16,9 +16,12 @@ pub type PointOfInterestId = ModelUuid<{ ModelName::PointOfInterest }>;
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PointOfInterest {
     pub id: PointOfInterestId,
+    pub user_id: UserId,
     pub name: String,
+    pub slug: String,
     pub point: geo::Point<f64>,
     pub point_of_interest_type: PointOfInterestType,
+    pub description: Option<String>,
 }
 
 impl Model for PointOfInterest {

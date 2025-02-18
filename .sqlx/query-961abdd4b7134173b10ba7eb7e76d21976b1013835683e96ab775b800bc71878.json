@@ -27,6 +27,21 @@
         "ordinal": 4,
         "name": "point",
         "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "slug",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "description",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -37,7 +52,10 @@
       false,
       false,
       false,
-      false
+      false,
+      false,
+      false,
+      true
     ]
   },
   "hash": "961abdd4b7134173b10ba7eb7e76d21976b1013835683e96ab775b800bc71878"
