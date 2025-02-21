@@ -3,14 +3,16 @@ use chrono::{DateTime, Datelike, Utc};
 use howitt::jobs::rwgps::RwgpsJob;
 use howitt::jobs::Job;
 use howitt::models::media::MediaId;
+use howitt::models::point_of_interest::{PointOfInterest as PoiModel, PointOfInterestId};
 use howitt::models::ride::{RideFilter, RideId};
 use howitt::models::trip::{Trip as TripModel, TripId, TripNote};
 use howitt::repos::Repos;
 use howitt::services::slug::generate_slug;
 
 use crate::graphql::context::{RequestData, SchemaData};
-use crate::graphql::schema::{trip::Trip, ModelId};
+use crate::graphql::schema::{point_of_interest::PointOfInterest, trip::Trip, ModelId};
 
+use super::point_of_interest::PointOfInterestType;
 use super::viewer::Viewer;
 
 #[derive(InputObject)]
@@ -65,6 +67,33 @@ pub struct UpdateTripMediaInput {
 #[derive(SimpleObject)]
 pub struct TripMediaOutput {
     pub trip: Option<Trip>,
+}
+
+#[derive(InputObject)]
+pub struct CreatePointOfInterestInput {
+    pub name: String,
+    pub point: Vec<f64>,
+    pub point_of_interest_type: PointOfInterestType,
+    pub description: Option<String>,
+}
+
+#[derive(SimpleObject)]
+pub struct CreatePointOfInterestOutput {
+    pub point_of_interest: PointOfInterest,
+}
+
+#[derive(InputObject)]
+pub struct UpdatePointOfInterestInput {
+    pub point_of_interest_id: ModelId<PointOfInterestId>,
+    pub name: String,
+    pub point: Vec<f64>,
+    pub point_of_interest_type: PointOfInterestType,
+    pub description: Option<String>,
+}
+
+#[derive(SimpleObject)]
+pub struct UpdatePointOfInterestOutput {
+    pub point_of_interest: Option<PointOfInterest>,
 }
 
 pub struct Mutation;
@@ -266,6 +295,85 @@ impl Mutation {
 
         Ok(TripMediaOutput {
             trip: Some(Trip(trip)),
+        })
+    }
+
+    async fn create_point_of_interest(
+        &self,
+        ctx: &Context<'_>,
+        input: CreatePointOfInterestInput,
+    ) -> Result<CreatePointOfInterestOutput, Error> {
+        let SchemaData {
+            repos: Repos {
+                point_of_interest_repo,
+                ..
+            },
+            ..
+        } = ctx.data()?;
+        let RequestData { login } = ctx.data()?;
+
+        let login = login
+            .as_ref()
+            .ok_or_else(|| Error::new("Authentication required"))?;
+
+        let point = geo::Point::new(input.point[0], input.point[1]);
+
+        let poi = PoiModel {
+            id: PointOfInterestId::new(),
+            user_id: login.session.user_id,
+            name: input.name.clone(),
+            slug: generate_slug(&input.name),
+            point,
+            point_of_interest_type: input.point_of_interest_type.into(),
+            description: input.description,
+        };
+
+        point_of_interest_repo.put(poi.clone()).await?;
+
+        Ok(CreatePointOfInterestOutput {
+            point_of_interest: PointOfInterest(poi),
+        })
+    }
+
+    async fn update_point_of_interest(
+        &self,
+        ctx: &Context<'_>,
+        input: UpdatePointOfInterestInput,
+    ) -> Result<UpdatePointOfInterestOutput, Error> {
+        let SchemaData {
+            repos: Repos {
+                point_of_interest_repo,
+                ..
+            },
+            ..
+        } = ctx.data()?;
+        let RequestData { login } = ctx.data()?;
+
+        let login = login
+            .as_ref()
+            .ok_or_else(|| Error::new("Authentication required"))?;
+
+        let mut poi = point_of_interest_repo
+            .get(input.point_of_interest_id.0)
+            .await?;
+
+        if poi.user_id != login.session.user_id {
+            return Err(Error::new(
+                "Not authorized to update this point of interest",
+            ));
+        }
+
+        let point = geo::Point::new(input.point[0], input.point[1]);
+
+        poi.name = input.name;
+        poi.point = point;
+        poi.point_of_interest_type = input.point_of_interest_type.into();
+        poi.description = input.description;
+
+        point_of_interest_repo.put(poi.clone()).await?;
+
+        Ok(UpdatePointOfInterestOutput {
+            point_of_interest: Some(PointOfInterest(poi)),
         })
     }
 
