@@ -7,6 +7,8 @@ use itertools::Itertools;
 use crate::graphql::context::{RequestData, SchemaData};
 use crate::graphql::schema::{ride::Ride, route::Route, trip::Trip, IsoDate, ModelId};
 
+use super::point_of_interest::PointOfInterest;
+
 pub struct UserProfile(pub howitt::models::user::User);
 
 #[Object]
@@ -150,5 +152,28 @@ impl UserProfile {
             .map(crate::graphql::schema::route::Route)
             .collect_vec();
         Ok(routes)
+    }
+
+    async fn points_of_interest<'ctx>(
+        &self,
+        ctx: &Context<'ctx>,
+    ) -> Result<Vec<PointOfInterest>, async_graphql::Error> {
+        let SchemaData {
+            repos: Repos {
+                point_of_interest_repo,
+                ..
+            },
+            ..
+        } = ctx.data()?;
+
+        let points = point_of_interest_repo
+            .all()
+            .await?
+            .into_iter()
+            .filter(|poi| poi.user_id == self.0.id)
+            .map(PointOfInterest)
+            .collect();
+
+        Ok(points)
     }
 }
