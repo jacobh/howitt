@@ -280,6 +280,9 @@ export function EditTripModal({
             <Tabs.Trigger value="media" css={tabTriggerStyles}>
               Media
             </Tabs.Trigger>
+            <Tabs.Trigger value="pois" css={tabTriggerStyles}>
+              POIs
+            </Tabs.Trigger>
           </Tabs.List>
 
           <Tabs.Content value="trip">
@@ -438,6 +441,9 @@ export function EditTripModal({
               uploading={uploading}
               setUploading={setUploading}
             />
+          </Tabs.Content>
+          <Tabs.Content value="pois">
+            <p>Coming soon</p>
           </Tabs.Content>
         </Tabs.Root>
       </form>
