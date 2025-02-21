@@ -108,6 +108,28 @@ impl Repo for PostgresMediaRepo {
                 .fetch_all(conn.as_mut())
                 .await?
             }
+            MediaFilter::Ids(ids) => {
+                let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
+
+                sqlx::query_as!(
+                    MediaRow,
+                    r#"
+                    SELECT
+                        m.*,
+                        mr.ride_ids,
+                        mr.route_ids,
+                        mr.trip_ids,
+                        mr.poi_ids
+                    FROM media m
+                    INNER JOIN media_relations mr ON mr.id = m.id
+                    WHERE m.id = ANY($1)
+                    ORDER BY created_at DESC
+                    "#,
+                    &uuids
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
             MediaFilter::ForUser(user_id) => {
                 sqlx::query_as!(
                     MediaRow,

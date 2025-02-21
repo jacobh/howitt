@@ -87,6 +87,7 @@ impl Media {
 #[derive(Debug, Clone)]
 pub enum MediaFilter {
     All,
+    Ids(Vec<MediaId>),
     ForUser(UserId),
     ForRide(RideId),
     ForRoute(RouteId),

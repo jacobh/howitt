@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    SELECT\n                        m.*,\n                        mr.ride_ids,\n                        mr.route_ids,\n                        mr.trip_ids,\n                        mr.poi_ids\n                    FROM media m\n                    INNER JOIN media_relations mr ON mr.id = m.id\n                    WHERE m.id = ANY($1)\n                    ORDER BY created_at DESC\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "point",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "captured_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "ride_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 7,
+        "name": "route_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "trip_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 9,
+        "name": "poi_ids",
+        "type_info": "UuidArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "f88b1c8b844c93e98c1ff807cdf7647908f2f6d730030607cb00e28be7e1fc5c"
+}

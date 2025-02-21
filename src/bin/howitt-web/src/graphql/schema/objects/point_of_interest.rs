@@ -6,7 +6,7 @@ use howitt::{
 
 use crate::graphql::{context::SchemaData, schema::ModelId};
 
-use super::media::Media;
+use super::{media::Media, point_of_interest_visit::PointOfInterestVisit};
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 #[graphql(remote = "howitt::models::point_of_interest::PointOfInterestType")]
@@ -56,5 +56,12 @@ impl PointOfInterest {
             .await?;
 
         Ok(media.into_iter().map(Media).collect())
+    }
+
+    pub async fn visits<'ctx>(
+        &self,
+        _ctx: &Context<'ctx>,
+    ) -> Result<Vec<PointOfInterestVisit>, async_graphql::Error> {
+        Ok(vec![])
     }
 }
