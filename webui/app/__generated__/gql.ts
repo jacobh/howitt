@@ -18,6 +18,8 @@ const documents = {
     types.ElevationPathFragmentDoc,
   "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ":
     types.ViewerInfoFragmentDoc,
+  "\n  mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n":
+    types.CreatePointOfInterestDocument,
   "\n    fragment rideItem on Ride {\n        id\n        date\n        tz\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n":
     types.RideItemFragmentDoc,
   "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n    tz\n  }\n":
@@ -118,6 +120,12 @@ export function gql(
 export function gql(
   source: "\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  ",
 ): (typeof documents)["\n    fragment viewerInfo on Viewer {\n        id\n        profile {\n          username\n        }\n    }\n  "];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n",
+): (typeof documents)["\n  mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -558,6 +558,23 @@ export type ViewerInfoFragment = {
   profile: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "ViewerInfoFragment" };
 
+export type CreatePointOfInterestMutationVariables = Exact<{
+  input: CreatePointOfInterestInput;
+}>;
+
+export type CreatePointOfInterestMutation = {
+  __typename?: "Mutation";
+  createPointOfInterest: {
+    __typename?: "CreatePointOfInterestOutput";
+    pointOfInterest: {
+      __typename?: "PointOfInterest";
+      id: any;
+      name: string;
+      slug: string;
+    };
+  };
+};
+
 export type RideItemFragment = {
   __typename?: "Ride";
   id: any;
@@ -2111,6 +2128,71 @@ export const NearbyRoutesInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<NearbyRoutesInfoFragment, unknown>;
+export const CreatePointOfInterestDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreatePointOfInterest" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreatePointOfInterestInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createPointOfInterest" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "pointOfInterest" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "slug" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreatePointOfInterestMutation,
+  CreatePointOfInterestMutationVariables
+>;
 export const AllPoIsDocument = {
   kind: "Document",
   definitions: [
