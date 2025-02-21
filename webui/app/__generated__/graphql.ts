@@ -62,6 +62,18 @@ export type BikeSpec = {
   tyreWidth: Array<Scalars["Float"]["output"]>;
 };
 
+export type CreatePointOfInterestInput = {
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  name: Scalars["String"]["input"];
+  point: Array<Scalars["Float"]["input"]>;
+  pointOfInterestType: PointOfInterestType;
+};
+
+export type CreatePointOfInterestOutput = {
+  __typename?: "CreatePointOfInterestOutput";
+  pointOfInterest: PointOfInterest;
+};
+
 export type CreateTripInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   name: Scalars["String"]["input"];
@@ -157,15 +169,25 @@ export type MediaTarget = {
 export type Mutation = {
   __typename?: "Mutation";
   clearRwgpsConnection: Viewer;
+  createPointOfInterest: CreatePointOfInterestOutput;
   createTrip: CreateTripOutput;
   initiateRwgpsHistorySync: Viewer;
+  updatePointOfInterest: UpdatePointOfInterestOutput;
   updateTrip: UpdateTripOutput;
   updateTripMedia: TripMediaOutput;
   updateTripRides: TripRidesOutput;
 };
 
+export type MutationCreatePointOfInterestArgs = {
+  input: CreatePointOfInterestInput;
+};
+
 export type MutationCreateTripArgs = {
   input: CreateTripInput;
+};
+
+export type MutationUpdatePointOfInterestArgs = {
+  input: UpdatePointOfInterestInput;
 };
 
 export type MutationUpdateTripArgs = {
@@ -209,6 +231,7 @@ export type PointOfInterest = MediaTarget & {
   point: Array<Scalars["Float"]["output"]>;
   pointOfInterestType: PointOfInterestType;
   slug: Scalars["String"]["output"];
+  visits: Array<PointOfInterestVisit>;
 };
 
 export enum PointOfInterestType {
@@ -218,6 +241,16 @@ export enum PointOfInterestType {
   PublicTransportStop = "PUBLIC_TRANSPORT_STOP",
   WaterSource = "WATER_SOURCE",
 }
+
+export type PointOfInterestVisit = {
+  __typename?: "PointOfInterestVisit";
+  comment?: Maybe<Scalars["String"]["output"]>;
+  media: Array<Media>;
+  pointOfInterest: PointOfInterest;
+  status: VisitStatus;
+  user: UserProfile;
+  visitedAt: Scalars["DateTime"]["output"];
+};
 
 export enum PointsDetail {
   High = "HIGH",
@@ -417,6 +450,19 @@ export type TripRidesOutput = {
   trip?: Maybe<Trip>;
 };
 
+export type UpdatePointOfInterestInput = {
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  name: Scalars["String"]["input"];
+  point: Array<Scalars["Float"]["input"]>;
+  pointOfInterestId: Scalars["PointOfInterestId"]["input"];
+  pointOfInterestType: PointOfInterestType;
+};
+
+export type UpdatePointOfInterestOutput = {
+  __typename?: "UpdatePointOfInterestOutput";
+  pointOfInterest?: Maybe<PointOfInterest>;
+};
+
 export type UpdateTripInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   isPublished: Scalars["Boolean"]["input"];
@@ -444,6 +490,7 @@ export type UserProfile = {
   __typename?: "UserProfile";
   email?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["UserId"]["output"];
+  pointsOfInterest: Array<PointOfInterest>;
   recentRides: Array<Ride>;
   rides: Array<Ride>;
   ridesWithDate: Array<Ride>;
@@ -476,6 +523,11 @@ export type Viewer = {
   rwgpsAuthRequestUrl: Scalars["String"]["output"];
   rwgpsConnection?: Maybe<UserRwgpsConnection>;
 };
+
+export enum VisitStatus {
+  AllGood = "ALL_GOOD",
+  Issue = "ISSUE",
+}
 
 type ElevationPath_Ride_Fragment = {
   __typename?: "Ride";
@@ -546,6 +598,24 @@ export type RouteVitalsFragment = {
   elevationAscentM: number;
   elevationDescentM: number;
 } & { " $fragmentName"?: "RouteVitalsFragment" };
+
+export type AllPoIsQueryVariables = Exact<{
+  username: Scalars["String"]["input"];
+}>;
+
+export type AllPoIsQuery = {
+  __typename?: "Query";
+  userWithUsername?: {
+    __typename?: "UserProfile";
+    pointsOfInterest: Array<{
+      __typename?: "PointOfInterest";
+      id: any;
+      name: string;
+      slug: string;
+      pointOfInterestType: PointOfInterestType;
+    }>;
+  } | null;
+};
 
 export type SettingsRideListQueryVariables = Exact<{
   username: Scalars["String"]["input"];
@@ -2041,6 +2111,72 @@ export const NearbyRoutesInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<NearbyRoutesInfoFragment, unknown>;
+export const AllPoIsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "AllPOIs" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "username" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "userWithUsername" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "username" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "username" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "pointsOfInterest" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "slug" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "pointOfInterestType" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AllPoIsQuery, AllPoIsQueryVariables>;
 export const SettingsRideListDocument = {
   kind: "Document",
   definitions: [

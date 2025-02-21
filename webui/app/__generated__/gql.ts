@@ -26,6 +26,8 @@ const documents = {
     types.RouteItemFragmentDoc,
   "\n  fragment routeVitals on Route {\n    distance\n    elevationAscentM\n    elevationDescentM\n  }\n":
     types.RouteVitalsFragmentDoc,
+  "\n  query AllPOIs($username: String!) {\n    userWithUsername(username: $username) {\n      pointsOfInterest {\n        id\n        name\n        slug\n        pointOfInterestType\n      }\n    }\n  }\n":
+    types.AllPoIsDocument,
   "\n  query SettingsRideList($username: String!) {\n    userWithUsername(username: $username) {\n      rides {\n        id\n        name\n        startedAt\n        finishedAt\n        distance\n        date\n      }\n    }\n  }\n":
     types.SettingsRideListDocument,
   "\n    query AllRoutes($username: String!) {\n      userWithUsername(username: $username) {\n        routes {\n          id\n          name\n          slug\n          distance\n          elevationAscentM\n          elevationDescentM\n        }\n      }\n    }\n  ":
@@ -140,6 +142,12 @@ export function gql(
 export function gql(
   source: "\n  fragment routeVitals on Route {\n    distance\n    elevationAscentM\n    elevationDescentM\n  }\n",
 ): (typeof documents)["\n  fragment routeVitals on Route {\n    distance\n    elevationAscentM\n    elevationDescentM\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query AllPOIs($username: String!) {\n    userWithUsername(username: $username) {\n      pointsOfInterest {\n        id\n        name\n        slug\n        pointOfInterestType\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query AllPOIs($username: String!) {\n    userWithUsername(username: $username) {\n      pointsOfInterest {\n        id\n        name\n        slug\n        pointOfInterestType\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

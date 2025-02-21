@@ -18,6 +18,7 @@ import { RideList } from "../components/settings/RideList";
 import { RouteList } from "../components/settings/RouteList";
 import { TripList } from "../components/settings/TripList";
 import { CreateTripModal } from "~/components/trips/CreateTripModal";
+import { POIList } from "~/components/settings/POIList";
 
 const SettingsQuery = gql(`
   query settings {
@@ -177,6 +178,9 @@ export default function Settings(): React.ReactElement {
             <Tabs.Trigger value="trips" css={tabTriggerStyles}>
               Trips
             </Tabs.Trigger>
+            <Tabs.Trigger value="pois" css={tabTriggerStyles}>
+              POIs
+            </Tabs.Trigger>
           </Tabs.List>
 
           <Tabs.Content value="settings">
@@ -284,6 +288,16 @@ export default function Settings(): React.ReactElement {
             ) : (
               <div css={fieldContainerCss}>
                 <p>No trips available.</p>
+              </div>
+            )}
+          </Tabs.Content>
+
+          <Tabs.Content value="pois">
+            {profile?.username ? (
+              <POIList username={profile.username} />
+            ) : (
+              <div css={fieldContainerCss}>
+                <p>No points of interest available.</p>
               </div>
             )}
           </Tabs.Content>
