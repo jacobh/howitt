@@ -1,6 +1,6 @@
 import { useMutation } from "@apollo/client/react/hooks/useMutation";
 import { css } from "@emotion/react";
-import { Control, useForm, useWatch } from "react-hook-form";
+import { Control, useForm, UseFormSetValue, useWatch } from "react-hook-form";
 import { useNavigate } from "@remix-run/react";
 import { gql } from "~/__generated__";
 import { Modal } from "../../Modal";
@@ -8,6 +8,7 @@ import { tokens } from "~/styles/tokens";
 import { PointOfInterestType } from "~/__generated__/graphql";
 import { DEFAULT_INITIAL_VIEW, Map as MapComponent } from "~/components/map";
 import { Marker } from "~/components/map/types";
+import { useCallback } from "react";
 
 const CreatePointOfInterestMutation = gql(`
   mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {
@@ -75,10 +76,9 @@ const selectStyles = css`
 `;
 
 const mapContainerStyles = css({
-  height: "300px",
+  height: "500px",
   marginTop: "12px",
   borderRadius: "4px",
-  // overflow: "hidden",
 });
 
 interface FormInputs {
@@ -91,8 +91,10 @@ interface FormInputs {
 
 function LocationMap({
   control,
+  setValue,
 }: {
   control: Control<FormInputs>;
+  setValue: UseFormSetValue<FormInputs>;
 }): React.ReactElement {
   const latitude = useWatch({
     control,
@@ -113,12 +115,21 @@ function LocationMap({
         }
       : undefined;
 
+  const handleMapEvent = useCallback(
+    (event: { coords: { lat: number; lon: number } }) => {
+      setValue("latitude", event.coords.lat);
+      setValue("longitude", event.coords.lon);
+    },
+    [setValue],
+  );
+
   return (
     <div css={mapContainerStyles}>
       <MapComponent
         interactive={true}
         markers={marker ? [marker] : []}
         initialView={DEFAULT_INITIAL_VIEW}
+        onEvent={handleMapEvent}
       />
     </div>
   );
@@ -131,6 +142,7 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
     handleSubmit,
     formState: { errors },
     control,
+    setValue,
   } = useForm<FormInputs>();
 
   const [createPOI, { loading }] = useMutation(CreatePointOfInterestMutation, {
@@ -216,7 +228,7 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
         </div>
         <div css={formFieldStyles}>
           <div>{/* label */}</div>
-          <LocationMap control={control} />
+          <LocationMap control={control} setValue={setValue} />
         </div>
 
         <div css={formFieldStyles}>
