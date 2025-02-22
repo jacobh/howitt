@@ -172,21 +172,28 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
             )}
           </div>
         </div>
+
         <div css={formFieldStyles}>
           <div>{/* label */}</div>
-          <Controller
-            control={control}
-            name="location"
-            defaultValue={undefined}
-            render={({ field: { value, onChange } }): React.ReactElement => (
-              <LocationMap
-                value={value}
-                onChange={(newValue): void => {
-                  onChange(newValue);
-                }}
-              />
+          <div>
+            <Controller
+              control={control}
+              name="location"
+              defaultValue={undefined}
+              rules={{ required: "Please select a location on the map" }}
+              render={({ field: { value, onChange } }): React.ReactElement => (
+                <LocationMap
+                  value={value}
+                  onChange={(newValue): void => {
+                    onChange(newValue);
+                  }}
+                />
+              )}
+            />
+            {errors.location && (
+              <div css={errorMessageStyles}>{errors.location.message}</div>
             )}
-          />
+          </div>
         </div>
 
         <div css={formFieldStyles}>
