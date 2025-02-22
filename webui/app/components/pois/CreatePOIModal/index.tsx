@@ -147,10 +147,7 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
         input: {
           name: data.name,
           description: data.description || null,
-          point: [
-            parseFloat(data.location.longitude.toString()),
-            parseFloat(data.location.latitude.toString()),
-          ],
+          point: [data.location.longitude, data.location.latitude],
           pointOfInterestType: data.pointOfInterestType,
         },
       },
