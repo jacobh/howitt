@@ -20,7 +20,7 @@ const documents = {
     types.ViewerInfoFragmentDoc,
   "\n  mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n":
     types.CreatePointOfInterestDocument,
-  "\n    fragment editPOI on PointOfInterest {\n      id\n      name\n      description\n      point\n      pointOfInterestType\n    }\n  ":
+  "\n  fragment editPOI on PointOfInterest {\n    id\n    name\n    description\n    point\n    pointOfInterestType\n  }\n":
     types.EditPoiFragmentDoc,
   "\n  mutation UpdatePointOfInterest($input: UpdatePointOfInterestInput!) {\n    updatePointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        description\n        point\n        pointOfInterestType\n      }\n    }\n  }\n":
     types.UpdatePointOfInterestDocument,
@@ -134,8 +134,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n    fragment editPOI on PointOfInterest {\n      id\n      name\n      description\n      point\n      pointOfInterestType\n    }\n  ",
-): (typeof documents)["\n    fragment editPOI on PointOfInterest {\n      id\n      name\n      description\n      point\n      pointOfInterestType\n    }\n  "];
+  source: "\n  fragment editPOI on PointOfInterest {\n    id\n    name\n    description\n    point\n    pointOfInterestType\n  }\n",
+): (typeof documents)["\n  fragment editPOI on PointOfInterest {\n    id\n    name\n    description\n    point\n    pointOfInterestType\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
