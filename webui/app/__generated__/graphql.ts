@@ -225,6 +225,7 @@ export type PointDelta = {
 
 export type PointOfInterest = MediaTarget & {
   __typename?: "PointOfInterest";
+  description?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["PointOfInterestId"]["output"];
   media: Array<Media>;
   name: Scalars["String"]["output"];
@@ -575,6 +576,34 @@ export type CreatePointOfInterestMutation = {
   };
 };
 
+export type EditPoiFragment = {
+  __typename?: "PointOfInterest";
+  id: any;
+  name: string;
+  description?: string | null;
+  point: Array<number>;
+  pointOfInterestType: PointOfInterestType;
+} & { " $fragmentName"?: "EditPoiFragment" };
+
+export type UpdatePointOfInterestMutationVariables = Exact<{
+  input: UpdatePointOfInterestInput;
+}>;
+
+export type UpdatePointOfInterestMutation = {
+  __typename?: "Mutation";
+  updatePointOfInterest: {
+    __typename?: "UpdatePointOfInterestOutput";
+    pointOfInterest?: {
+      __typename?: "PointOfInterest";
+      id: any;
+      name: string;
+      description?: string | null;
+      point: Array<number>;
+      pointOfInterestType: PointOfInterestType;
+    } | null;
+  };
+};
+
 export type RideItemFragment = {
   __typename?: "Ride";
   id: any;
@@ -865,18 +894,21 @@ export type PoiQueryQueryVariables = Exact<{
 
 export type PoiQueryQuery = {
   __typename?: "Query";
-  pointOfInterestWithSlug?: {
-    __typename?: "PointOfInterest";
-    id: any;
-    name: string;
-    point: Array<number>;
-    pointOfInterestType: PointOfInterestType;
-    media: Array<{
-      __typename?: "Media";
-      id: any;
-      point?: Array<number> | null;
-    }>;
-  } | null;
+  pointOfInterestWithSlug?:
+    | ({
+        __typename?: "PointOfInterest";
+        id: any;
+        name: string;
+        point: Array<number>;
+        description?: string | null;
+        pointOfInterestType: PointOfInterestType;
+        media: Array<{
+          __typename?: "Media";
+          id: any;
+          point?: Array<number> | null;
+        }>;
+      } & { " $fragmentRefs"?: { EditPoiFragment: EditPoiFragment } })
+    | null;
   viewer?:
     | ({ __typename?: "Viewer" } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
@@ -1339,6 +1371,32 @@ export const ViewerInfoFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<ViewerInfoFragment, unknown>;
+export const EditPoiFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "editPOI" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "PointOfInterest" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "description" } },
+          { kind: "Field", name: { kind: "Name", value: "point" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "pointOfInterestType" },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EditPoiFragment, unknown>;
 export const RideSummaryFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -2193,6 +2251,79 @@ export const CreatePointOfInterestDocument = {
   CreatePointOfInterestMutation,
   CreatePointOfInterestMutationVariables
 >;
+export const UpdatePointOfInterestDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdatePointOfInterest" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "UpdatePointOfInterestInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "updatePointOfInterest" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "pointOfInterest" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "point" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "pointOfInterestType" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdatePointOfInterestMutation,
+  UpdatePointOfInterestMutationVariables
+>;
 export const AllPoIsDocument = {
   kind: "Document",
   definitions: [
@@ -2941,6 +3072,7 @@ export const PoiQueryDocument = {
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "name" } },
                 { kind: "Field", name: { kind: "Name", value: "point" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "pointOfInterestType" },
@@ -2955,6 +3087,10 @@ export const PoiQueryDocument = {
                       { kind: "Field", name: { kind: "Name", value: "point" } },
                     ],
                   },
+                },
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "editPOI" },
                 },
               ],
             },
@@ -2971,6 +3107,27 @@ export const PoiQueryDocument = {
                 },
               ],
             },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "editPOI" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "PointOfInterest" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          { kind: "Field", name: { kind: "Name", value: "name" } },
+          { kind: "Field", name: { kind: "Name", value: "description" } },
+          { kind: "Field", name: { kind: "Name", value: "point" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "pointOfInterestType" },
           },
         ],
       },

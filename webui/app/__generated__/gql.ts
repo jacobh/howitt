@@ -20,6 +20,10 @@ const documents = {
     types.ViewerInfoFragmentDoc,
   "\n  mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n":
     types.CreatePointOfInterestDocument,
+  "\n    fragment editPOI on PointOfInterest {\n      id\n      name\n      description\n      point\n      pointOfInterestType\n    }\n  ":
+    types.EditPoiFragmentDoc,
+  "\n  mutation UpdatePointOfInterest($input: UpdatePointOfInterestInput!) {\n    updatePointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        description\n        point\n        pointOfInterestType\n      }\n    }\n  }\n":
+    types.UpdatePointOfInterestDocument,
   "\n    fragment rideItem on Ride {\n        id\n        date\n        tz\n        distance\n        startedAt\n        finishedAt\n        user {\n            username\n        }\n    }\n":
     types.RideItemFragmentDoc,
   "\n  fragment rideSummary on Ride {\n    id\n    name\n    distance\n    startedAt\n    finishedAt\n    tz\n  }\n":
@@ -58,7 +62,7 @@ const documents = {
     types.TripItemFragmentDoc,
   "\n  query LoginViewerInfo {\n    viewer {\n      id\n      profile {\n        username\n      }\n    ...viewerInfo\n    }\n  }  \n":
     types.LoginViewerInfoDocument,
-  "\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
+  "\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      description\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n      ...editPOI\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.PoiQueryDocument,
   "\n  query POIsQuery {\n    pointsOfInterest {\n      id\n      name\n      point\n      pointOfInterestType\n      ...poiItem\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n":
     types.PoIsQueryDocument,
@@ -126,6 +130,18 @@ export function gql(
 export function gql(
   source: "\n  mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n",
 ): (typeof documents)["\n  mutation CreatePointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n    fragment editPOI on PointOfInterest {\n      id\n      name\n      description\n      point\n      pointOfInterestType\n    }\n  ",
+): (typeof documents)["\n    fragment editPOI on PointOfInterest {\n      id\n      name\n      description\n      point\n      pointOfInterestType\n    }\n  "];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation UpdatePointOfInterest($input: UpdatePointOfInterestInput!) {\n    updatePointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        description\n        point\n        pointOfInterestType\n      }\n    }\n  }\n",
+): (typeof documents)["\n  mutation UpdatePointOfInterest($input: UpdatePointOfInterestInput!) {\n    updatePointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        description\n        point\n        pointOfInterestType\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -244,8 +260,8 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n",
-): (typeof documents)["\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
+  source: "\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      description\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n      ...editPOI\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n",
+): (typeof documents)["\n  query POIQuery($slug: String!) {\n    pointOfInterestWithSlug(slug: $slug) {\n      id\n      name\n      point\n      description\n      pointOfInterestType\n      media {\n        id\n        point\n      }\n      ...editPOI\n    }\n    viewer {\n      ...viewerInfo\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

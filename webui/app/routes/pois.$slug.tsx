@@ -9,11 +9,13 @@ import {
 } from "~/components/layout";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { buildMarker } from "~/components/map/types";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { DEFAULT_INITIAL_VIEW } from "~/components/map";
+import { EditPOIModal } from "~/components/pois/EditPOIModal";
+import { buttonStyles } from "~/components/ui/Button";
 
 const POIQuery = gql(`
   query POIQuery($slug: String!) {
@@ -21,11 +23,13 @@ const POIQuery = gql(`
       id
       name
       point
+      description
       pointOfInterestType
       media {
         id
         point
       }
+      ...editPOI
     }
     viewer {
       ...viewerInfo
@@ -50,10 +54,18 @@ const contentContainerCss = css`
   padding: 20px;
 `;
 
+const editButtonStyles = css(
+  buttonStyles,
+  css`
+    margin: 12px 0;
+  `,
+);
+
 export default function POIDetail(): React.ReactElement {
   const params = useParams();
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
 
-  const { data, loading } = useQuery(POIQuery, {
+  const { data, loading, refetch } = useQuery(POIQuery, {
     variables: { slug: params.slug ?? "" },
   });
 
@@ -99,6 +111,20 @@ export default function POIDetail(): React.ReactElement {
           <div css={contentContainerCss}>
             <div css={poiNameCss}>{poi.name}</div>
             <div css={poiTypeCss}>{poi.pointOfInterestType.toLowerCase()}</div>
+            <button
+              onClick={(): void => setEditModalOpen(true)}
+              css={editButtonStyles}
+            >
+              Edit POI
+            </button>
+            {isEditModalOpen && (
+              <EditPOIModal
+                poi={poi}
+                isOpen={true}
+                onClose={(): void => setEditModalOpen(false)}
+                refetch={refetch}
+              />
+            )}
           </div>
         ) : (
           <div css={contentContainerCss}>Point of interest not found</div>

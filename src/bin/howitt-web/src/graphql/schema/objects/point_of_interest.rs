@@ -38,6 +38,10 @@ impl PointOfInterest {
         vec![self.0.point.x(), self.0.point.y()]
     }
 
+    async fn description(&self) -> Option<&str> {
+        self.0.description.as_deref()
+    }
+
     async fn point_of_interest_type(&self) -> PointOfInterestType {
         PointOfInterestType::from(self.0.point_of_interest_type.clone())
     }
