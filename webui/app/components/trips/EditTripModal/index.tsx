@@ -19,6 +19,7 @@ import {
   tabTriggerStyles,
 } from "~/components/ui/Tabs";
 import { tokens } from "~/styles/tokens";
+import { POITab } from "./components/POITab";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -27,6 +28,7 @@ export const EditTripFragment = gql(`
     description
     ...tripRides
     ...tripMedia
+    ...tripPois
     isPublished
     media {
       id
@@ -443,7 +445,7 @@ export function EditTripModal({
             />
           </Tabs.Content>
           <Tabs.Content value="pois">
-            <p>Coming soon</p>
+            <POITab trip={trip} />
           </Tabs.Content>
         </Tabs.Root>
       </form>

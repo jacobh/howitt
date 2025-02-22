@@ -776,6 +776,12 @@ export type TripMediaFragment = {
   }>;
 } & { " $fragmentName"?: "TripMediaFragment" };
 
+export type TripPoisFragment = {
+  __typename?: "Trip";
+  id: any;
+  user: { __typename?: "UserProfile"; username: string };
+} & { " $fragmentName"?: "TripPoisFragment" };
+
 export type TripRidesFragment = {
   __typename?: "Trip";
   id: any;
@@ -830,6 +836,7 @@ export type EditTripFragment = ({
   " $fragmentRefs"?: {
     TripRidesFragment: TripRidesFragment;
     TripMediaFragment: TripMediaFragment;
+    TripPoisFragment: TripPoisFragment;
   };
 }) & { " $fragmentName"?: "EditTripFragment" };
 
@@ -1518,6 +1525,35 @@ export const TripMediaFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<TripMediaFragment, unknown>;
+export const TripPoisFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripPois" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<TripPoisFragment, unknown>;
 export const EditTripFragmentDoc = {
   kind: "Document",
   definitions: [
@@ -1542,6 +1578,7 @@ export const EditTripFragmentDoc = {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripMedia" },
           },
+          { kind: "FragmentSpread", name: { kind: "Name", value: "tripPois" } },
           { kind: "Field", name: { kind: "Name", value: "isPublished" } },
           {
             kind: "Field",
@@ -1718,6 +1755,30 @@ export const EditTripFragmentDoc = {
                     ],
                   },
                 },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripPois" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
               ],
             },
           },
@@ -4017,6 +4078,30 @@ export const TripQueryDocument = {
     },
     {
       kind: "FragmentDefinition",
+      name: { kind: "Name", value: "tripPois" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Trip" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
       name: { kind: "Name", value: "rideItem" },
       typeCondition: {
         kind: "NamedType",
@@ -4089,6 +4174,7 @@ export const TripQueryDocument = {
             kind: "FragmentSpread",
             name: { kind: "Name", value: "tripMedia" },
           },
+          { kind: "FragmentSpread", name: { kind: "Name", value: "tripPois" } },
           { kind: "Field", name: { kind: "Name", value: "isPublished" } },
           {
             kind: "Field",
