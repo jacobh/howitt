@@ -1,6 +1,6 @@
 import { useMutation } from "@apollo/client/react/hooks/useMutation";
 import { css } from "@emotion/react";
-import { Control, useForm, UseFormSetValue, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "@remix-run/react";
 import { gql } from "~/__generated__";
 import { Modal } from "../../Modal";
@@ -51,12 +51,6 @@ const inputStyles = css`
   border-radius: 4px;
 `;
 
-const coordinateContainerStyles = css`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-`;
-
 const errorMessageStyles = css`
   color: #dc2626;
   font-size: 0.875rem;
@@ -84,43 +78,39 @@ const mapContainerStyles = css({
 interface FormInputs {
   name: string;
   description: string;
-  longitude: number;
-  latitude: number;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
   pointOfInterestType: PointOfInterestType;
 }
 
+interface LocationMapProps {
+  value?: { latitude: number; longitude: number };
+  onChange: (value: { latitude: number; longitude: number }) => void;
+}
+
 function LocationMap({
-  control,
-  setValue,
-}: {
-  control: Control<FormInputs>;
-  setValue: UseFormSetValue<FormInputs>;
-}): React.ReactElement {
-  const latitude = useWatch({
-    control,
-    name: "latitude",
-  });
-
-  const longitude = useWatch({
-    control,
-    name: "longitude",
-  });
-
+  value,
+  onChange,
+}: LocationMapProps): React.ReactElement {
   const marker: Marker | undefined =
-    latitude && longitude
+    value?.latitude && value?.longitude
       ? {
           id: "new-poi",
-          point: [longitude, latitude],
+          point: [value.longitude, value.latitude],
           style: "highlighted",
         }
       : undefined;
 
   const handleMapEvent = useCallback(
     (event: { coords: { lat: number; lon: number } }) => {
-      setValue("latitude", event.coords.lat);
-      setValue("longitude", event.coords.lon);
+      onChange({
+        latitude: event.coords.lat,
+        longitude: event.coords.lon,
+      });
     },
-    [setValue],
+    [onChange],
   );
 
   return (
@@ -142,7 +132,6 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
     handleSubmit,
     formState: { errors },
     control,
-    setValue,
   } = useForm<FormInputs>();
 
   const [createPOI, { loading }] = useMutation(CreatePointOfInterestMutation, {
@@ -159,8 +148,8 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
           name: data.name,
           description: data.description || null,
           point: [
-            parseFloat(data.longitude.toString()),
-            parseFloat(data.latitude.toString()),
+            parseFloat(data.location.longitude.toString()),
+            parseFloat(data.location.latitude.toString()),
           ],
           pointOfInterestType: data.pointOfInterestType,
         },
@@ -186,49 +175,21 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
             )}
           </div>
         </div>
-
-        <div css={formFieldStyles}>
-          <label htmlFor="coordinates">Coordinates</label>
-          <div css={coordinateContainerStyles}>
-            <div>
-              <input
-                id="longitude"
-                type="number"
-                step="any"
-                placeholder="Longitude"
-                css={inputStyles}
-                {...register("longitude", {
-                  required: "Longitude is required",
-                  min: -180,
-                  max: 180,
-                })}
-              />
-              {errors.longitude && (
-                <div css={errorMessageStyles}>{errors.longitude.message}</div>
-              )}
-            </div>
-            <div>
-              <input
-                id="latitude"
-                type="number"
-                step="any"
-                placeholder="Latitude"
-                css={inputStyles}
-                {...register("latitude", {
-                  required: "Latitude is required",
-                  min: -90,
-                  max: 90,
-                })}
-              />
-              {errors.latitude && (
-                <div css={errorMessageStyles}>{errors.latitude.message}</div>
-              )}
-            </div>
-          </div>
-        </div>
         <div css={formFieldStyles}>
           <div>{/* label */}</div>
-          <LocationMap control={control} setValue={setValue} />
+          <Controller
+            control={control}
+            name="location"
+            defaultValue={undefined}
+            render={({ field: { value, onChange } }): React.ReactElement => (
+              <LocationMap
+                value={value}
+                onChange={(newValue): void => {
+                  onChange(newValue);
+                }}
+              />
+            )}
+          />
         </div>
 
         <div css={formFieldStyles}>
