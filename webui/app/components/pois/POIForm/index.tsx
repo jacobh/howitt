@@ -4,6 +4,7 @@ import { useForm, Controller, FormProvider } from "react-hook-form";
 import { tokens } from "~/styles/tokens";
 import { PointOfInterestType } from "~/__generated__/graphql";
 import { LocationMap } from "./components/LocationMap";
+import { capitalCase } from "change-case";
 
 const formStyles = css`
   display: flex;
@@ -136,15 +137,11 @@ export function POIForm({
                 required: "Type is required",
               })}
             >
-              <option value={PointOfInterestType.Generic}>Generic</option>
-              <option value={PointOfInterestType.Campsite}>Campsite</option>
-              <option value={PointOfInterestType.WaterSource}>
-                Water Source
-              </option>
-              <option value={PointOfInterestType.Hut}>Hut</option>
-              <option value={PointOfInterestType.PublicTransportStop}>
-                Public Transport Stop
-              </option>
+              {Object.values(PointOfInterestType).map((type) => (
+                <option key={type} value={type}>
+                  {capitalCase(type)}
+                </option>
+              ))}
             </select>
             {errors.pointOfInterestType && (
               <div css={errorMessageStyles}>
