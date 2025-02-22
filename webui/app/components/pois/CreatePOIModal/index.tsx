@@ -27,6 +27,10 @@ interface Props {
   onClose: () => void;
 }
 
+const headingStyles = css`
+  margin-bottom: 1rem;
+`;
+
 const formStyles = css`
   display: flex;
   flex-direction: column;
@@ -156,7 +160,8 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <h2>Create Point of Interest</h2>
+      <h2 css={headingStyles}>Create Point of Interest</h2>
+
       <form onSubmit={handleSubmit(onSubmit)} css={formStyles}>
         <div css={formFieldStyles}>
           <label htmlFor="name">Name</label>
@@ -174,7 +179,7 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
         </div>
 
         <div css={formFieldStyles}>
-          <div>{/* label */}</div>
+          <label htmlFor="location">Location</label>
           <div>
             <Controller
               control={control}
