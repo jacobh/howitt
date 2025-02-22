@@ -20,12 +20,7 @@ export interface MapProps {
   initialView?:
     | { type: "tracks"; trackIds: string[] }
     | { type: "view"; view: ViewOptions };
-  onVisibleRoutesChanged?: (
-    routes: { routeId: string; distanceFromCenter: number }[],
-  ) => void;
   interactive?: boolean;
-
-  onRouteClicked?: (routeId: string | undefined) => void;
 }
 
 export const DEFAULT_VIEW: ViewOptions = {
@@ -89,8 +84,6 @@ export function Map({
   tracks = [],
   markers = [],
   initialView,
-  onVisibleRoutesChanged,
-  onRouteClicked,
   mapInstance,
   onNewMapInstance,
   interactive = true,
@@ -100,8 +93,6 @@ export function Map({
   const { map } = useMap({
     mapInstance,
     onNewMapInstance,
-    onVisibleRoutesChanged,
-    onRouteClicked,
     mapElementRef,
     interactive,
   });

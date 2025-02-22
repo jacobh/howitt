@@ -12,7 +12,6 @@ import { RouteItem } from "~/components/routes/RouteItem";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { isNotNil } from "~/services/isNotNil";
-import { sortBy } from "lodash";
 import { useSearchParams } from "@remix-run/react";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
@@ -51,13 +50,6 @@ const routeItemContainerCss = css`
   }
 `;
 
-const clickedRouteItemContainerCss = css(
-  routeItemContainerCss,
-  css`
-    background-color: ${tokens.colors.grey100};
-  `,
-);
-
 const routeTitleCss = css`
   font-size: 1.25rem; /* 20px */
   line-height: 1.75rem; /* 28px */
@@ -93,17 +85,9 @@ export default function Routes(): React.ReactElement {
     ssr: false,
   });
 
-  const [clickedRouteId, setClickedRouteId] = useState<string | undefined>(
-    undefined,
-  );
-
   const [hoveredRouteId, setHoveredRouteId] = useState<string | undefined>(
     undefined,
   );
-
-  const [visibleRouteIds, setVisibleRouteIds] = useState<
-    { routeId: string; distanceFromCenter: number }[] | undefined
-  >(undefined);
 
   const routeIdMap: Record<
     string,
@@ -116,19 +100,7 @@ export default function Routes(): React.ReactElement {
     [data],
   );
 
-  const sidebarRoutes = useMemo(
-    () =>
-      isNotNil(visibleRouteIds)
-        ? sortBy(
-            visibleRouteIds,
-            ({ distanceFromCenter }) => distanceFromCenter,
-          )
-            .filter(({ routeId }) => routeId !== clickedRouteId)
-            .map(({ routeId }) => routeIdMap[routeId])
-            .filter(isNotNil)
-        : Object.values(routeIdMap),
-    [clickedRouteId, routeIdMap, visibleRouteIds],
-  );
+  const sidebarRoutes = useMemo(() => Object.values(routeIdMap), [routeIdMap]);
 
   const baseRouteTracks = useMemo(
     () =>
@@ -154,13 +126,10 @@ export default function Routes(): React.ReactElement {
     () =>
       baseRouteTracks.map((track) =>
         create(track, (draft) => {
-          draft.style =
-            hoveredRouteId === track.id || clickedRouteId === track.id
-              ? "highlighted"
-              : "default";
+          draft.style = hoveredRouteId === track.id ? "highlighted" : "default";
         }),
       ),
-    [baseRouteTracks, hoveredRouteId, clickedRouteId],
+    [baseRouteTracks, hoveredRouteId],
   );
 
   return (
@@ -180,18 +149,6 @@ export default function Routes(): React.ReactElement {
         }
       >
         {loading ? <LoadingSpinnerSidebarContent /> : <></>}
-        {clickedRouteId ? (
-          <div
-            css={clickedRouteItemContainerCss}
-            onMouseEnter={(): void => setHoveredRouteId(clickedRouteId)}
-            onMouseLeave={(): void => setHoveredRouteId(undefined)}
-          >
-            <RouteItem
-              route={routeIdMap[clickedRouteId]}
-              routeTitleCss={routeTitleCss}
-            />
-          </div>
-        ) : null}
         {sidebarRoutes.map((route) => (
           <div
             key={route.id}
@@ -204,12 +161,7 @@ export default function Routes(): React.ReactElement {
         ))}
       </SidebarContainer>
       <MapContainer>
-        <PrimaryMap
-          tracks={tracks}
-          initialView={DEFAULT_INITIAL_VIEW}
-          onVisibleRoutesChanged={setVisibleRouteIds}
-          onRouteClicked={setClickedRouteId}
-        />
+        <PrimaryMap tracks={tracks} initialView={DEFAULT_INITIAL_VIEW} />
       </MapContainer>
     </Container>
   );

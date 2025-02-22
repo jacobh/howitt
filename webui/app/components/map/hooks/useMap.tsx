@@ -1,26 +1,15 @@
 import { useEffect, useState } from "react";
 import { defaults as defaultInteractions } from "ol/interaction/defaults";
 import OlMap from "ol/Map";
-import { getDistance } from "ol/sphere";
-import View, { ViewOptions } from "ol/View";
+import { ViewOptions } from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
 import { useGeographic } from "ol/proj";
-import { MapBrowserEvent } from "ol";
-import VectorLayer from "ol/layer/Vector";
-import VectorSource from "ol/source/Vector";
-import BaseEvent from "ol/events/Event";
-import { isNotNil } from "~/services/isNotNil";
-import { debounce, min } from "lodash";
 import { MapProps } from "..";
 
 type UseMapProps = Pick<
   MapProps,
-  | "mapInstance"
-  | "onNewMapInstance"
-  | "onVisibleRoutesChanged"
-  | "onRouteClicked"
-  | "interactive"
+  "mapInstance" | "onNewMapInstance" | "interactive"
 > & { mapElementRef: React.RefObject<HTMLElement | null> };
 
 export const DEFAULT_VIEW: ViewOptions = {
@@ -32,8 +21,6 @@ export const DEFAULT_VIEW: ViewOptions = {
 export function useMap({
   mapInstance: existingMapInstance,
   onNewMapInstance,
-  onRouteClicked,
-  onVisibleRoutesChanged,
   mapElementRef,
   interactive = true,
 }: UseMapProps): { map: OlMap | undefined } {
@@ -89,68 +76,6 @@ export function useMap({
       }
     }
   }, [map, interactive]);
-
-  useEffect(() => {
-    if (!map) return;
-
-    const clickListener = (event: MapBrowserEvent<UIEvent>): void => {
-      const feature = map.getFeaturesAtPixel(event.pixel, {
-        hitTolerance: 20.0,
-      })[0];
-
-      onRouteClicked?.(feature?.getProperties().routeId);
-    };
-
-    map.on("click", clickListener);
-
-    return () => map.un("click", clickListener);
-  }, [onRouteClicked, map]);
-
-  useEffect(() => {
-    if (!map) return;
-
-    const onViewChange = debounce((event: BaseEvent): void => {
-      const view = event.target as View;
-      const { extent, viewState } = view.getViewStateAndExtent();
-
-      const visibleRoutes = map
-        .getAllLayers()
-        .filter((x): x is VectorLayer => x instanceof VectorLayer)
-        .flatMap((layer) => {
-          const source = layer.getSource() as VectorSource;
-          const features = source.getFeaturesInExtent(extent);
-          const distanceFromCenter = min(
-            features
-              .map((feature) =>
-                feature.getGeometry()?.getClosestPoint(viewState.center),
-              )
-              .filter(isNotNil)
-              .map((closestPoint) =>
-                getDistance(closestPoint, viewState.center),
-              ),
-          );
-
-          return isNotNil(distanceFromCenter)
-            ? { layer, distanceFromCenter }
-            : undefined;
-        })
-        .filter(isNotNil)
-        .flatMap(({ layer }) =>
-          isNotNil(layer.getProperties().routeId)
-            ? { routeId: layer.getProperties().routeId, distanceFromCenter: 0 }
-            : undefined,
-        )
-        .filter(isNotNil);
-
-      if (onVisibleRoutesChanged) {
-        onVisibleRoutesChanged(visibleRoutes);
-      }
-    }, 250);
-
-    map.getView().on("change:center", onViewChange);
-
-    return () => map.getView().un("change:center", onViewChange);
-  }, [onVisibleRoutesChanged, map]);
 
   return { map };
 }
