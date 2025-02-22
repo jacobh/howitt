@@ -2,9 +2,8 @@ import { css } from "@emotion/react";
 import React from "react";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import { tokens } from "~/styles/tokens";
-import { DEFAULT_INITIAL_VIEW, Map as MapComponent } from "~/components/map";
 import { PointOfInterestType } from "~/__generated__/graphql";
-import { Marker } from "~/components/map/types";
+import { LocationMap } from "./components/LocationMap";
 
 const formStyles = css`
   display: flex;
@@ -41,12 +40,6 @@ const selectStyles = css`
   height: 38px;
 `;
 
-const mapContainerStyles = css({
-  height: "500px",
-  marginTop: "12px",
-  borderRadius: "4px",
-});
-
 const buttonGroupStyles = css`
   display: flex;
   gap: 1rem;
@@ -62,45 +55,6 @@ export interface FormInputs {
     longitude: number;
   };
   pointOfInterestType: PointOfInterestType;
-}
-
-interface LocationMapProps {
-  value?: { latitude: number; longitude: number };
-  onChange: (value: { latitude: number; longitude: number }) => void;
-}
-
-function LocationMap({
-  value,
-  onChange,
-}: LocationMapProps): React.ReactElement {
-  const marker: Marker | undefined = value
-    ? {
-        id: "poi-marker",
-        point: [value.longitude, value.latitude],
-        style: "highlighted",
-      }
-    : undefined;
-
-  const handleMapEvent = React.useCallback(
-    (event: { coords: { lat: number; lon: number } }) => {
-      onChange({
-        latitude: event.coords.lat,
-        longitude: event.coords.lon,
-      });
-    },
-    [onChange],
-  );
-
-  return (
-    <div css={mapContainerStyles}>
-      <MapComponent
-        interactive={true}
-        markers={marker ? [marker] : []}
-        initialView={DEFAULT_INITIAL_VIEW}
-        onEvent={handleMapEvent}
-      />
-    </div>
-  );
 }
 
 export interface POIFormProps {
