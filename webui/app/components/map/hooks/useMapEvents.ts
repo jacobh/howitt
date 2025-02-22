@@ -21,13 +21,17 @@ interface UseMapEventsProps {
 export function useMapEvents({ map, onEvent }: UseMapEventsProps): void {
   const handleClick = useCallback(
     (event: MapBrowserEvent<MouseEvent>): void => {
+      if (!onEvent) {
+        return;
+      }
+
       const clickCoordinate: Coordinate = event.map.getCoordinateFromPixel(
         event.pixel,
       );
 
       const [lon, lat] = clickCoordinate;
 
-      onEvent?.({
+      onEvent({
         type: "click",
         coords: {
           lon,
