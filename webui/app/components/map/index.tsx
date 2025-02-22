@@ -9,6 +9,7 @@ import { useTrackLayers } from "./hooks/useTrackLayers";
 import { useInitialView } from "./hooks/useInitialView";
 import { Marker, Track } from "./types";
 import { useMarkerLayers } from "./hooks/useMarkerLayers";
+import { useMapEvents, MapEvent } from "./hooks/useMapEvents";
 
 export { PrimaryMapContext } from "./context";
 
@@ -21,6 +22,7 @@ export interface MapProps {
     | { type: "tracks"; trackIds: string[] }
     | { type: "view"; view: ViewOptions };
   interactive?: boolean;
+  onEvent?: (event: MapEvent) => void;
 }
 
 export const DEFAULT_VIEW: ViewOptions = {
@@ -87,6 +89,7 @@ export function Map({
   mapInstance,
   onNewMapInstance,
   interactive = true,
+  onEvent,
 }: MapProps): React.ReactElement {
   const mapElementRef = useRef<HTMLDivElement>(null);
 
@@ -100,6 +103,7 @@ export function Map({
   useInitialView({ map, tracks, initialView });
   useTrackLayers({ map, tracks });
   useMarkerLayers({ map, markers });
+  useMapEvents({ map, onEvent });
 
   return <div css={mapCss} ref={mapElementRef} />;
 }
