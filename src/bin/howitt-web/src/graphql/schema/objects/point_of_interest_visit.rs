@@ -7,10 +7,18 @@ use crate::graphql::context::SchemaData;
 use super::{media::Media, point_of_interest::PointOfInterest, user::UserProfile};
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
-#[graphql(remote = "howitt::models::point_of_interest_visit::VisitStatus")]
-pub enum VisitStatus {
+#[graphql(remote = "howitt::models::point_of_interest_visit::POICondition")]
+pub enum POICondition {
     AllGood,
     Issue,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[graphql(remote = "howitt::models::point_of_interest_visit::VisitConfirmation")]
+pub enum VisitConfirmation {
+    Pending,
+    Confirmed,
+    Rejected,
 }
 
 pub struct PointOfInterestVisit(pub howitt::models::point_of_interest_visit::PointOfInterestVisit);
@@ -21,8 +29,12 @@ impl PointOfInterestVisit {
         self.0.visited_at
     }
 
-    async fn status(&self) -> VisitStatus {
-        VisitStatus::from(self.0.status.clone())
+    async fn condition(&self) -> Option<POICondition> {
+        self.0.condition.clone().map(POICondition::from)
+    }
+
+    async fn confirmation(&self) -> VisitConfirmation {
+        VisitConfirmation::from(self.0.confirmation.clone())
     }
 
     async fn comment(&self) -> Option<&str> {
