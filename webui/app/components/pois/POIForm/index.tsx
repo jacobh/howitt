@@ -5,6 +5,7 @@ import { tokens } from "~/styles/tokens";
 import { PointOfInterestType } from "~/__generated__/graphql";
 import { LocationMap } from "./components/LocationMap";
 import { capitalCase } from "change-case";
+import { Track } from "~/components/map/types";
 
 const formStyles = css`
   display: flex;
@@ -64,6 +65,7 @@ export interface POIFormProps {
   loading?: boolean;
   onCancel?: () => void;
   resetOnSubmit?: boolean;
+  tracks?: Track[];
 }
 
 export function POIForm({
@@ -72,6 +74,7 @@ export function POIForm({
   loading = false,
   onCancel,
   resetOnSubmit = false,
+  tracks,
 }: POIFormProps): React.ReactElement {
   const methods = useForm<FormInputs>({
     defaultValues: {
@@ -129,6 +132,7 @@ export function POIForm({
               render={({ field: { value, onChange } }): React.ReactElement => (
                 <LocationMap
                   value={value}
+                  tracks={tracks}
                   onChange={(newValue): void => {
                     onChange(newValue);
                   }}

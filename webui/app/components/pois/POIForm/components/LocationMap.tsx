@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import React from "react";
 import { DEFAULT_INITIAL_VIEW, Map as MapComponent } from "~/components/map";
-import { Marker } from "~/components/map/types";
+import { Marker, Track } from "~/components/map/types";
 
 const mapContainerStyles = css({
   height: "500px",
@@ -12,11 +12,13 @@ const mapContainerStyles = css({
 interface LocationMapProps {
   value?: { latitude: number; longitude: number };
   onChange: (value: { latitude: number; longitude: number }) => void;
+  tracks?: Track[];
 }
 
 export function LocationMap({
   value,
   onChange,
+  tracks = [],
 }: LocationMapProps): React.ReactElement {
   const marker: Marker | undefined = value
     ? {
@@ -41,6 +43,7 @@ export function LocationMap({
       <MapComponent
         interactive={true}
         markers={marker ? [marker] : []}
+        tracks={tracks}
         initialView={DEFAULT_INITIAL_VIEW}
         onEvent={handleMapEvent}
       />
