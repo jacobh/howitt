@@ -782,6 +782,23 @@ export type TripPoisFragment = {
   user: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "TripPoisFragment" };
 
+export type CreateTripPointOfInterestMutationVariables = Exact<{
+  input: CreatePointOfInterestInput;
+}>;
+
+export type CreateTripPointOfInterestMutation = {
+  __typename?: "Mutation";
+  createPointOfInterest: {
+    __typename?: "CreatePointOfInterestOutput";
+    pointOfInterest: {
+      __typename?: "PointOfInterest";
+      id: any;
+      name: string;
+      slug: string;
+    };
+  };
+};
+
 export type TripRidesFragment = {
   __typename?: "Trip";
   id: any;
@@ -2818,6 +2835,71 @@ export const CreateTripDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateTripMutation, CreateTripMutationVariables>;
+export const CreateTripPointOfInterestDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "CreateTripPointOfInterest" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "CreatePointOfInterestInput" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "createPointOfInterest" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "input" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "pointOfInterest" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      { kind: "Field", name: { kind: "Name", value: "slug" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateTripPointOfInterestMutation,
+  CreateTripPointOfInterestMutationVariables
+>;
 export const UpdateTripRidesDocument = {
   kind: "Document",
   definitions: [

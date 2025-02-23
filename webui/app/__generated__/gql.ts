@@ -46,8 +46,10 @@ const documents = {
     types.CreateTripDocument,
   "\n  fragment tripMedia on Trip {\n    id\n    media {\n      id\n      path\n      createdAt\n      capturedAt\n      imageSizes {\n        fill600 {\n          webpUrl\n        }\n      }\n    }\n  }\n":
     types.TripMediaFragmentDoc,
-  "\n  fragment tripPois on Trip {\n    id\n    user {\n        username\n    }\n  }\n":
+  "\n  fragment tripPois on Trip {\n    id\n    user {\n      username\n    }\n  }\n":
     types.TripPoisFragmentDoc,
+  "\n  mutation CreateTripPointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n":
+    types.CreateTripPointOfInterestDocument,
   "\n  fragment tripRides on Trip {\n    id\n    user {\n        username\n    }\n    rides {\n      id\n      name\n      startedAt\n      finishedAt\n      distance\n    }\n  }\n":
     types.TripRidesFragmentDoc,
   "\n    query AllRides($username: String!) {\n      userWithUsername(username: $username) {\n        rides {\n          id\n          name\n          startedAt\n          finishedAt\n          distance\n        }\n      }\n    }\n  ":
@@ -214,8 +216,14 @@ export function gql(
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(
-  source: "\n  fragment tripPois on Trip {\n    id\n    user {\n        username\n    }\n  }\n",
-): (typeof documents)["\n  fragment tripPois on Trip {\n    id\n    user {\n        username\n    }\n  }\n"];
+  source: "\n  fragment tripPois on Trip {\n    id\n    user {\n      username\n    }\n  }\n",
+): (typeof documents)["\n  fragment tripPois on Trip {\n    id\n    user {\n      username\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  mutation CreateTripPointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n",
+): (typeof documents)["\n  mutation CreateTripPointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
