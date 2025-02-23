@@ -134,9 +134,7 @@ export function POITab({ trip: tripFragment }: Props): React.ReactElement {
             <POIForm
               onSubmit={handleSubmit}
               loading={loading}
-              onCancel={(): void => {
-                // You might want to add logic to close the accordion here
-              }}
+              resetOnSubmit={true}
             />
           </Accordion.Content>
         </Accordion.Item>

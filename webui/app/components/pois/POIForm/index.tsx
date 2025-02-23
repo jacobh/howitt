@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import React from "react";
+import React, { useCallback } from "react";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import { tokens } from "~/styles/tokens";
 import { PointOfInterestType } from "~/__generated__/graphql";
@@ -62,7 +62,8 @@ export interface POIFormProps {
   defaultValues?: Partial<FormInputs>;
   onSubmit: (data: FormInputs) => void;
   loading?: boolean;
-  onCancel: () => void;
+  onCancel?: () => void;
+  resetOnSubmit?: boolean;
 }
 
 export function POIForm({
@@ -70,6 +71,7 @@ export function POIForm({
   onSubmit,
   loading = false,
   onCancel,
+  resetOnSubmit = false,
 }: POIFormProps): React.ReactElement {
   const methods = useForm<FormInputs>({
     defaultValues: {
@@ -85,11 +87,23 @@ export function POIForm({
     handleSubmit,
     control,
     formState: { errors },
+    reset,
   } = methods;
+
+  const handleFormSubmit = useCallback(
+    (data: FormInputs): void => {
+      onSubmit(data);
+
+      if (resetOnSubmit) {
+        reset();
+      }
+    },
+    [onSubmit, reset, resetOnSubmit],
+  );
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} css={formStyles}>
+      <form onSubmit={handleSubmit(handleFormSubmit)} css={formStyles}>
         <div css={formFieldStyles}>
           <label htmlFor="name">Name</label>
           <div>
