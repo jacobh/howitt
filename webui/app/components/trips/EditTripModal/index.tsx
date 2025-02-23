@@ -267,27 +267,27 @@ export function EditTripModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <form onSubmit={handleSubmit} css={formStyles}>
-        <Tabs.Root defaultValue="trip" css={tabsRootStyles}>
-          <Tabs.List css={tabsListStyles}>
-            <Tabs.Trigger value="trip" css={tabTriggerStyles}>
-              Trip
-            </Tabs.Trigger>
-            <Tabs.Trigger value="content" css={tabTriggerStyles}>
-              Content
-            </Tabs.Trigger>
-            <Tabs.Trigger value="rides" css={tabTriggerStyles}>
-              Rides
-            </Tabs.Trigger>
-            <Tabs.Trigger value="media" css={tabTriggerStyles}>
-              Media
-            </Tabs.Trigger>
-            <Tabs.Trigger value="pois" css={tabTriggerStyles}>
-              POIs
-            </Tabs.Trigger>
-          </Tabs.List>
+      <Tabs.Root defaultValue="trip" css={tabsRootStyles}>
+        <Tabs.List css={tabsListStyles}>
+          <Tabs.Trigger value="trip" css={tabTriggerStyles}>
+            Trip
+          </Tabs.Trigger>
+          <Tabs.Trigger value="content" css={tabTriggerStyles}>
+            Content
+          </Tabs.Trigger>
+          <Tabs.Trigger value="rides" css={tabTriggerStyles}>
+            Rides
+          </Tabs.Trigger>
+          <Tabs.Trigger value="media" css={tabTriggerStyles}>
+            Media
+          </Tabs.Trigger>
+          <Tabs.Trigger value="pois" css={tabTriggerStyles}>
+            POIs
+          </Tabs.Trigger>
+        </Tabs.List>
 
-          <Tabs.Content value="trip">
+        <Tabs.Content value="trip">
+          <form onSubmit={handleSubmit} css={formStyles}>
             <div css={formFieldStyles}>
               <label htmlFor="name">Name</label>
               <input
@@ -329,14 +329,16 @@ export function EditTripModal({
                 {loading ? "Saving..." : "Save"}
               </button>
             </div>
-          </Tabs.Content>
+          </form>
+        </Tabs.Content>
 
-          <Tabs.Content value="rides">
-            <RideTable trip={trip} refetch={refetch} />
-            <p>Toggling rides will automatically save</p>
-          </Tabs.Content>
+        <Tabs.Content value="rides">
+          <RideTable trip={trip} refetch={refetch} />
+          <p>Toggling rides will automatically save</p>
+        </Tabs.Content>
 
-          <Tabs.Content value="content">
+        <Tabs.Content value="content">
+          <form onSubmit={handleSubmit} css={formStyles}>
             <div css={contentTabStyles}>
               <div css={contentBlockContainerStyles}>
                 {localContentBlocks.at(0)?.__typename !== "Note" && (
@@ -429,26 +431,26 @@ export function EditTripModal({
                 {loading ? "Saving..." : "Save"}
               </button>
             </div>
-          </Tabs.Content>
+          </form>
+        </Tabs.Content>
 
-          <Tabs.Content value="media">
-            <MediaTable
-              trip={trip}
-              onRemoveMedia={handleRemoveMedia}
-              removingMedia={updatingMedia}
-            />
-            <MediaDropzone
-              tripId={trip.id}
-              onUploadComplete={refetch}
-              uploading={uploading}
-              setUploading={setUploading}
-            />
-          </Tabs.Content>
-          <Tabs.Content value="pois">
-            <POITab trip={trip} />
-          </Tabs.Content>
-        </Tabs.Root>
-      </form>
+        <Tabs.Content value="media">
+          <MediaTable
+            trip={trip}
+            onRemoveMedia={handleRemoveMedia}
+            removingMedia={updatingMedia}
+          />
+          <MediaDropzone
+            tripId={trip.id}
+            onUploadComplete={refetch}
+            uploading={uploading}
+            setUploading={setUploading}
+          />
+        </Tabs.Content>
+        <Tabs.Content value="pois">
+          <POITab trip={trip} />
+        </Tabs.Content>
+      </Tabs.Root>
     </Modal>
   );
 }
