@@ -1,0 +1,435 @@
+type BikeSpec {
+  frontSuspension: [Float!]!
+  rearSuspension: [Float!]!
+  tyreWidth: [Float!]!
+}
+
+input CreatePointOfInterestInput {
+  description: String
+  name: String!
+  point: [Float!]!
+  pointOfInterestType: PointOfInterestType!
+}
+
+type CreatePointOfInterestOutput {
+  pointOfInterest: PointOfInterest!
+}
+
+input CreateTripInput {
+  description: String
+  name: String!
+  rideIds: [RideId!]!
+}
+
+type CreateTripOutput {
+  trip: Trip!
+}
+
+type Cue {
+  destination: String!
+  distanceMeters: Float!
+  elevationAscentMeters: Float!
+  elevationDescentMeters: Float!
+  origin: String!
+}
+
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
+enum DifficultyRating {
+  BLACK
+  BLUE
+  DOUBLE_BLACK
+  GREEN
+}
+
+enum Direction {
+  EITHER
+  ONLY_AS_ROUTED
+  PRIMARLITY_AS_ROUTED
+}
+
+interface ElevationPath {
+  """
+  Array of distance points
+  """
+  distancePoints: [Float!]!
+
+  """
+  Array of distance points
+  """
+  distancePointsJson: String!
+
+  """
+  Array of elevation points
+  """
+  elevationPoints: [Float!]!
+
+  """
+  Array of elevation points
+  """
+  elevationPointsJson: String!
+}
+
+type ExternalRef {
+  canonicalUrl: Url!
+}
+
+enum ImageMode {
+  FILL
+  FIT
+}
+
+type ImageSize {
+  height: Int!
+  jpegUrl: String!
+  mode: ImageMode!
+  webpUrl: String!
+  width: Int!
+}
+
+type ImageSizes {
+  fill300: ImageSize!
+  fill600: ImageSize!
+  fit800: ImageSize!
+  fit1200: ImageSize!
+  fit1600: ImageSize!
+  fit2000: ImageSize!
+  fit2400: ImageSize!
+}
+
+scalar IsoDate
+
+type Media implements TemporalContentBlock {
+  capturedAt: DateTime
+  contentAt: DateTime!
+  createdAt: DateTime!
+  id: MediaId!
+  imageSizes: ImageSizes!
+  path: String!
+  point: [Float!]
+  rides: [Ride!]!
+  tz: String
+  user: UserProfile!
+}
+
+scalar MediaId
+
+interface MediaTarget {
+  media: [Media!]!
+}
+
+type Mutation {
+  clearRwgpsConnection: Viewer!
+  createPointOfInterest(
+    input: CreatePointOfInterestInput!
+  ): CreatePointOfInterestOutput!
+  createTrip(input: CreateTripInput!): CreateTripOutput!
+  initiateRwgpsHistorySync: Viewer!
+  updatePointOfInterest(
+    input: UpdatePointOfInterestInput!
+  ): UpdatePointOfInterestOutput!
+  updateTrip(input: UpdateTripInput!): UpdateTripOutput!
+  updateTripMedia(input: UpdateTripMediaInput!): TripMediaOutput!
+  updateTripRides(input: UpdateTripRidesInput!): TripRidesOutput!
+}
+
+type NearbyRoute {
+  closestTerminus: Terminus!
+  closestTerminusDelta: PointDelta!
+  delta: PointDelta!
+}
+
+type Note implements TemporalContentBlock {
+  contentAt: DateTime!
+  ride: Ride
+  text: String!
+}
+
+type PointDelta {
+  bearing: Float!
+  distance: Float!
+  elevationGain: Float!
+}
+
+type PointOfInterest implements MediaTarget {
+  description: String
+  id: PointOfInterestId!
+  media: [Media!]!
+  name: String!
+  point: [Float!]!
+  pointOfInterestType: PointOfInterestType!
+  slug: String!
+  visits: [PointOfInterestVisit!]!
+}
+
+scalar PointOfInterestId
+
+enum PointOfInterestType {
+  CAMPSITE
+  GENERIC
+  HUT
+  PUBLIC_TRANSPORT_STOP
+  WATER_SOURCE
+}
+
+type PointOfInterestVisit {
+  comment: String
+  media: [Media!]!
+  pointOfInterest: PointOfInterest!
+  status: VisitStatus!
+  user: UserProfile!
+  visitedAt: DateTime!
+}
+
+enum PointsDetail {
+  HIGH
+  LOW
+  MEDIUM
+}
+
+type Query {
+  pointOfInterestWithSlug(slug: String!): PointOfInterest
+  pointsOfInterest: [PointOfInterest!]!
+  publicUsers: [UserProfile!]!
+  publishedTrips: [Trip!]!
+  queryRoutes(input: QueryRoutesInput!): [Route!]!
+  rides: [Ride!]!
+  route(id: RouteId!): Route
+  routeWithSlug(slug: String!): Route
+  routes: [Route!]!
+  starredRoutes: [Route!]!
+  trip(id: TripId!): Trip
+  trips: [Trip!]!
+  userWithUsername(username: String!): UserProfile
+  viewer: Viewer
+}
+
+input QueryRouteFilters {
+  hasAllTags: [String!]
+  hasSomeTags: [String!]
+  isPublished: Boolean
+}
+
+input QueryRoutesInput {
+  filters: [QueryRouteFilters!]!
+}
+
+type Ride implements ElevationPath & MediaTarget & TemporalContentBlock {
+  contentAt: DateTime!
+  date: IsoDate!
+  distance: Float!
+  distancePoints: [Float!]!
+  distancePointsJson: String!
+  elevationPoints: [Float!]!
+  elevationPointsJson: String!
+  finishedAt: DateTime!
+  id: RideId!
+  media: [Media!]!
+  name: String!
+  points(detailLevel: PointsDetail!): [[Float!]!]!
+  pointsJson(detailLevel: PointsDetail!): String!
+  startedAt: DateTime!
+  tz: String
+  user: UserProfile!
+}
+
+scalar RideId
+
+type Route implements ElevationPath & MediaTarget {
+  cues: [Cue!]!
+  description: String
+  direction: Direction
+  distance: Float!
+  distancePoints: [Float!]!
+  distancePointsJson: String!
+  elevationAscentM: Float!
+  elevationDescentM: Float!
+  elevationPoints: [Float!]!
+  elevationPointsJson: String!
+  externalRef: ExternalRef
+  id: RouteId!
+  idealBike: BikeSpec
+  isMetaComplete: Boolean!
+  media: [Media!]!
+  minimumBike: BikeSpec
+  name: String!
+  physicalDifficulty: DifficultyRating
+  points: [[Float!]!]!
+  pointsCount: Int!
+  pointsJson: String!
+  samplePoints: [[Float!]!]!
+  samplePointsCount: Int!
+  scouted: Scouted
+  slug: String!
+  tags: [String!]
+  technicalDifficulty: DifficultyRating
+  termini: [Terminus!]!
+  user: UserProfile!
+}
+
+scalar RouteId
+
+enum Scouted {
+  NO
+  PARTIALLY
+  YES
+}
+
+enum SlopeEnd {
+  DOWNHILL
+  FLAT
+  UPHILL
+}
+
+interface TemporalContentBlock {
+  """
+  Timestamp associated with this content
+  """
+  contentAt: DateTime!
+}
+
+type Terminus {
+  bearing: Float!
+  distanceFromStart: Float!
+  elevationGainFromStart: Float!
+  end: TerminusEnd!
+  nearbyRoutes: [NearbyRoute!]!
+  point: [Float!]!
+  route: Route!
+  slopeEnd: SlopeEnd!
+}
+
+enum TerminusEnd {
+  END
+  START
+}
+
+type Trip implements MediaTarget {
+  description: String
+  id: TripId!
+  isPublished: Boolean!
+  legs: [TripLeg!]!
+  media: [Media!]!
+  name: String!
+  notes: [Note!]!
+  rides: [Ride!]!
+  slug: String!
+  temporalContentBlocks: [TemporalContentBlock!]!
+  tz: String
+  user: UserProfile!
+  year: Int!
+}
+
+scalar TripId
+
+type TripLeg implements ElevationPath {
+  distancePoints: [Float!]!
+  distancePointsJson: String!
+  elevationPoints: [Float!]!
+  elevationPointsJson: String!
+  rides: [Ride!]!
+  tz: String
+}
+
+type TripMediaOutput {
+  trip: Trip
+}
+
+input TripNoteInput {
+  text: String!
+  timestamp: DateTime!
+}
+
+type TripRidesOutput {
+  trip: Trip
+}
+
+"""
+A UUID is a unique 128-bit number, stored as 16 octets. UUIDs are parsed as
+Strings within GraphQL. UUIDs are used to assign unique identifiers to
+entities without requiring a central allocating authority.
+
+# References
+
+* [Wikipedia: Universally Unique Identifier](http://en.wikipedia.org/wiki/Universally_unique_identifier)
+* [RFC4122: A Universally Unique IDentifier (UUID) URN Namespace](http://tools.ietf.org/html/rfc4122)
+"""
+scalar UUID
+
+input UpdatePointOfInterestInput {
+  description: String
+  name: String!
+  point: [Float!]!
+  pointOfInterestId: PointOfInterestId!
+  pointOfInterestType: PointOfInterestType!
+}
+
+type UpdatePointOfInterestOutput {
+  pointOfInterest: PointOfInterest
+}
+
+input UpdateTripInput {
+  description: String
+  isPublished: Boolean!
+  name: String!
+  notes: [TripNoteInput!]!
+  tripId: TripId!
+}
+
+input UpdateTripMediaInput {
+  mediaIds: [MediaId!]!
+  tripId: TripId!
+}
+
+type UpdateTripOutput {
+  trip: Trip
+}
+
+input UpdateTripRidesInput {
+  rideIds: [RideId!]!
+  tripId: TripId!
+}
+
+"""
+URL is a String implementing the [URL Standard](http://url.spec.whatwg.org/)
+"""
+scalar Url
+
+scalar UserId
+
+type UserProfile {
+  email: String
+  id: UserId!
+  pointsOfInterest: [PointOfInterest!]!
+  recentRides: [Ride!]!
+  rides: [Ride!]!
+  ridesWithDate(date: IsoDate!): [Ride!]!
+  routes: [Route!]!
+  tripWithSlug(slug: String!): Trip
+  trips: [Trip!]!
+  username: String!
+}
+
+type UserRwgpsConnection {
+  createdAt: DateTime!
+  id: UUID!
+  rwgpsUserId: Int!
+  updatedAt: DateTime!
+}
+
+type Viewer {
+  id: String!
+  profile: UserProfile!
+  rwgpsAuthRequestUrl: String!
+  rwgpsConnection: UserRwgpsConnection
+}
+
+enum VisitStatus {
+  ALL_GOOD
+  ISSUE
+}

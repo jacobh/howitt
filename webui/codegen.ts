@@ -4,6 +4,9 @@ const config: CodegenConfig = {
   schema: process.env.GRAPHQL_URL ?? "https://api.howittplains.net/",
   documents: ["app/**/*.tsx"],
   generates: {
+    "./app/__generated__/schema.graphql": {
+      plugins: ["schema-ast"],
+    },
     "./app/__generated__/": {
       preset: "client",
       plugins: [],
