@@ -1,9 +1,12 @@
+import * as Accordion from "@radix-ui/react-accordion";
 import { FragmentType, gql, useFragment } from "~/__generated__";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { css } from "@emotion/react";
 import { FormInputs, POIForm } from "~/components/pois/POIForm";
 import { tokens } from "~/styles/tokens";
 import { useMutation } from "@apollo/client/react/hooks/useMutation";
+import { SvgIcon } from "~/components/ui/SvgIcon";
+import { chevronDownOutline } from "ionicons/icons";
 
 export const TripPoisFragment = gql(`
   fragment tripPois on Trip {
@@ -33,11 +36,53 @@ const containerStyles = css`
   overflow-y: auto;
 `;
 
-const headerStyles = css`
+const accordionTriggerStyles = css`
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem;
+
+  .AccordionChevron {
+    transition: transform 300ms;
+
+    width: 24px;
+    height: 24px;
+  }
+
+  &[data-state="open"] .AccordionChevron {
+    transform: rotate(180deg);
+  }
+`;
+
+const accordionContentStyles = css`
+  overflow: hidden;
+
+  &[data-state="open"] {
+    animation: slideDown 300ms ease-out;
+  }
+
+  &[data-state="closed"] {
+    animation: slideUp 300ms ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
 `;
 
 type Props = {
@@ -46,13 +91,11 @@ type Props = {
 
 export function POITab({ trip: tripFragment }: Props): React.ReactElement {
   const trip = useFragment(TripPoisFragment, tripFragment);
-  const [showForm, setShowForm] = useState(false);
 
   const [createPOI, { loading }] = useMutation(
     CreateTripPointOfInterestMutation,
     {
       onCompleted: () => {
-        setShowForm(false);
         // TODO: Refresh POIs list when implemented
       },
     },
@@ -74,31 +117,32 @@ export function POITab({ trip: tripFragment }: Props): React.ReactElement {
     [createPOI],
   );
 
-  if (!showForm) {
-    return (
-      <div css={containerStyles}>
-        <div css={headerStyles}>
-          <h3>Points of Interest</h3>
-          <button type="button" onClick={(): void => setShowForm(true)}>
-            Add POI
-          </button>
-        </div>
-        {/* TODO: Add POIs list here */}
-        <p>No points of interest yet</p>
-      </div>
-    );
-  }
-
   return (
     <div css={containerStyles}>
-      <div css={headerStyles}>
-        <h3>Create Point of Interest</h3>
-      </div>
-      <POIForm
-        onSubmit={handleSubmit}
-        loading={loading}
-        onCancel={(): void => setShowForm(false)}
-      />
+      <Accordion.Root type="single" collapsible>
+        <Accordion.Item value="create-poi">
+          <Accordion.Header>
+            <Accordion.Trigger css={accordionTriggerStyles}>
+              <span>Add Point of Interest</span>
+              <SvgIcon
+                svgData={chevronDownOutline}
+                className="AccordionChevron"
+              />
+            </Accordion.Trigger>
+          </Accordion.Header>
+          <Accordion.Content css={accordionContentStyles}>
+            <POIForm
+              onSubmit={handleSubmit}
+              loading={loading}
+              onCancel={(): void => {
+                // You might want to add logic to close the accordion here
+              }}
+            />
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion.Root>
+      {/* TODO: Add POIs list here */}
+      <p>No points of interest yet</p>
     </div>
   );
 }
