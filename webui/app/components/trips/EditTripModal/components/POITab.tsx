@@ -1,18 +1,35 @@
 import * as Accordion from "@radix-ui/react-accordion";
 import { FragmentType, gql, useFragment } from "~/__generated__";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { FormInputs, POIForm } from "~/components/pois/POIForm";
 import { tokens } from "~/styles/tokens";
 import { useMutation } from "@apollo/client/react/hooks/useMutation";
 import { SvgIcon } from "~/components/ui/SvgIcon";
 import { chevronDownOutline } from "ionicons/icons";
+import { buildRideTrack } from "~/components/map/types";
+import { useQuery } from "@apollo/client/react/hooks/useQuery";
 
 export const TripPoisFragment = gql(`
   fragment tripPois on Trip {
     id
     user {
       username
+    }
+  }
+`);
+
+const TripRidesQuery = gql(`
+  query TripRidesForPOI($tripId: TripId!) {
+    trip(id: $tripId) {
+      id
+      legs {
+        rides {
+          id
+          name
+          pointsJson(detailLevel: HIGH)
+        }
+      }
     }
   }
 `);
@@ -92,6 +109,20 @@ type Props = {
 export function POITab({ trip: tripFragment }: Props): React.ReactElement {
   const trip = useFragment(TripPoisFragment, tripFragment);
 
+  const { data: ridesData } = useQuery(TripRidesQuery, {
+    variables: {
+      tripId: trip.id,
+    },
+  });
+
+  const tracks = useMemo(() => {
+    if (!ridesData?.trip?.legs) return [];
+
+    return ridesData.trip.legs
+      .flatMap((leg) => leg.rides)
+      .map((ride) => buildRideTrack(ride));
+  }, [ridesData]);
+
   const [createPOI, { loading }] = useMutation(
     CreateTripPointOfInterestMutation,
     {
@@ -135,6 +166,7 @@ export function POITab({ trip: tripFragment }: Props): React.ReactElement {
               onSubmit={handleSubmit}
               loading={loading}
               resetOnSubmit={true}
+              tracks={tracks}
             />
           </Accordion.Content>
         </Accordion.Item>

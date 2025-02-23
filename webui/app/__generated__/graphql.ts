@@ -782,6 +782,27 @@ export type TripPoisFragment = {
   user: { __typename?: "UserProfile"; username: string };
 } & { " $fragmentName"?: "TripPoisFragment" };
 
+export type TripRidesForPoiQueryVariables = Exact<{
+  tripId: Scalars["TripId"]["input"];
+}>;
+
+export type TripRidesForPoiQuery = {
+  __typename?: "Query";
+  trip?: {
+    __typename?: "Trip";
+    id: any;
+    legs: Array<{
+      __typename?: "TripLeg";
+      rides: Array<{
+        __typename?: "Ride";
+        id: any;
+        name: string;
+        pointsJson: string;
+      }>;
+    }>;
+  } | null;
+};
+
 export type CreateTripPointOfInterestMutationVariables = Exact<{
   input: CreatePointOfInterestInput;
 }>;
@@ -2835,6 +2856,97 @@ export const CreateTripDocument = {
     },
   ],
 } as unknown as DocumentNode<CreateTripMutation, CreateTripMutationVariables>;
+export const TripRidesForPoiDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "TripRidesForPOI" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "tripId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "TripId" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "trip" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "tripId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "legs" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rides" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "name" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "pointsJson" },
+                              arguments: [
+                                {
+                                  kind: "Argument",
+                                  name: { kind: "Name", value: "detailLevel" },
+                                  value: { kind: "EnumValue", value: "HIGH" },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  TripRidesForPoiQuery,
+  TripRidesForPoiQueryVariables
+>;
 export const CreateTripPointOfInterestDocument = {
   kind: "Document",
   definitions: [

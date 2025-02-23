@@ -48,6 +48,8 @@ const documents = {
     types.TripMediaFragmentDoc,
   "\n  fragment tripPois on Trip {\n    id\n    user {\n      username\n    }\n  }\n":
     types.TripPoisFragmentDoc,
+  "\n  query TripRidesForPOI($tripId: TripId!) {\n    trip(id: $tripId) {\n      id\n      legs {\n        rides {\n          id\n          name\n          pointsJson(detailLevel: HIGH)\n        }\n      }\n    }\n  }\n":
+    types.TripRidesForPoiDocument,
   "\n  mutation CreateTripPointOfInterest($input: CreatePointOfInterestInput!) {\n    createPointOfInterest(input: $input) {\n      pointOfInterest {\n        id\n        name\n        slug\n      }\n    }\n  }\n":
     types.CreateTripPointOfInterestDocument,
   "\n  fragment tripRides on Trip {\n    id\n    user {\n        username\n    }\n    rides {\n      id\n      name\n      startedAt\n      finishedAt\n      distance\n    }\n  }\n":
@@ -218,6 +220,12 @@ export function gql(
 export function gql(
   source: "\n  fragment tripPois on Trip {\n    id\n    user {\n      username\n    }\n  }\n",
 ): (typeof documents)["\n  fragment tripPois on Trip {\n    id\n    user {\n      username\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(
+  source: "\n  query TripRidesForPOI($tripId: TripId!) {\n    trip(id: $tripId) {\n      id\n      legs {\n        rides {\n          id\n          name\n          pointsJson(detailLevel: HIGH)\n        }\n      }\n    }\n  }\n",
+): (typeof documents)["\n  query TripRidesForPOI($tripId: TripId!) {\n    trip(id: $tripId) {\n      id\n      legs {\n        rides {\n          id\n          name\n          pointsJson(detailLevel: HIGH)\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
