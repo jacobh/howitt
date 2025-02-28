@@ -352,7 +352,7 @@ pub async fn handle(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{DateTime, Duration, TimeZone, Utc};
+    use chrono::{TimeZone, Utc};
     use geo::Point as GeoPoint;
 
     // Helper function to create a test point

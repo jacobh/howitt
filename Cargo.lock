@@ -1959,6 +1959,7 @@ dependencies = [
  "mapbox-geocoding",
  "open-meteo",
  "prettytable-rs",
+ "rand",
  "rayon",
  "rwgps",
  "rwgps_types",

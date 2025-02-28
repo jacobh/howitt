@@ -36,3 +36,4 @@ open-meteo = { path = "../../lib/open-meteo" }
 serde_yaml = "0.9.34"
 geo = "*"
 serde = { version = "*", features = ["derive"] }
+rand = "*"
