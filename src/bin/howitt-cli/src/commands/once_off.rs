@@ -3,6 +3,7 @@ use howitt::models::point::delta::{Delta, DistanceDelta};
 use howitt::models::point::progress::{Progress, TemporalDistanceElevationProgress};
 use howitt::models::point::{Point, TemporalElevationPoint, WithDatetime};
 use howitt::models::ride::RideId;
+use howitt::models::user::UserId;
 use howitt::repos::AnyhowRepo;
 use howitt::services::euclidean::{geo_to_euclidean, TransformParams};
 use howitt_postgresql::PostgresRepos;
@@ -11,7 +12,8 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize)]
 struct RideSegmentAnalysis {
-    ride_id: String,
+    user_id: UserId,
+    ride_id: RideId,
     ride_name: String,
     total_segments: usize,
     total_distance_m: f64,
@@ -213,6 +215,7 @@ fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoin
 }
 
 fn analyze_ride_segments(
+    user_id: UserId,
     ride_id: RideId,
     ride_name: String,
     segments: Vec<Vec<TemporalElevationPoint>>,
@@ -268,7 +271,8 @@ fn analyze_ride_segments(
     let mean_segment_distance_m = round_to_3dp(mean_segment_distance_m);
 
     RideSegmentAnalysis {
-        ride_id: ride_id.to_string(),
+        user_id,
+        ride_id,
         ride_name,
         total_segments: segments.len(),
         total_distance_m,
@@ -349,10 +353,10 @@ pub async fn handle(
     }
 
     // Calculate metrics for each segment
-    let analysis = analyze_ride_segments(ride.id, ride.name, segments);
+    let analysis = analyze_ride_segments(ride.user_id, ride.id, ride.name, segments);
 
     // Output as JSON
-    println!("{}", serde_json::to_string_pretty(&analysis)?);
+    println!("{}", serde_json::to_string_pretty(&vec![analysis])?);
 
     Ok(())
 }
