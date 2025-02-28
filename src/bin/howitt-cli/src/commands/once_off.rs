@@ -1,6 +1,7 @@
 use crate::Context;
-use howitt::models::point::delta::{Delta, DistanceDelta, ElevationGainDelta, ElevationLossDelta};
-use howitt::models::point::{Point, TemporalElevationPoint, WithDatetime, WithElevation};
+use howitt::models::point::delta::{Delta, DistanceDelta};
+use howitt::models::point::progress::{Progress, TemporalDistanceElevationProgress};
+use howitt::models::point::{Point, TemporalElevationPoint, WithDatetime};
 use howitt::models::ride::RideId;
 use howitt::repos::AnyhowRepo;
 use howitt::services::euclidean::{geo_to_euclidean, TransformParams};
@@ -76,48 +77,27 @@ fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoin
     let start_point = segment_points.first().expect("Segment should not be empty");
     let end_point = segment_points.last().expect("Segment should not be empty");
 
-    // Calculate elapsed time
-    let elapsed_time = end_point
-        .datetime()
-        .signed_duration_since(*start_point.datetime());
-    let elapsed_time_secs = elapsed_time.num_seconds();
-
-    // Calculate metrics using all points in the segment
-    let mut distance_m = 0.0;
-    let mut elevation_gain_m = 0.0;
-    let mut elevation_loss_m = 0.0;
-
-    // Calculate metrics using all points in the segment
-    for i in 0..segment_points.len() - 1 {
-        let p1 = &segment_points[i];
-        let p2 = &segment_points[i + 1];
-
-        // Accumulate distance
-        distance_m += DistanceDelta::delta(p1, p2).0;
-
-        // Accumulate elevation changes
-        let elev_delta = p2.elevation() - p1.elevation();
-        if elev_delta > 0.0 {
-            elevation_gain_m += elev_delta;
-        } else {
-            elevation_loss_m += -elev_delta;
-        }
-    }
-
     // Calculate Euclidean coordinates
     let end_euclidean = geo_to_euclidean(TransformParams {
         origin: *start_point.as_geo_point(),
         point: *end_point.as_geo_point(),
     });
 
+    // Calculate segment-specific metrics using accumulated progress
+    let progress = TemporalDistanceElevationProgress::last_from_points(segment_points.to_vec())
+        .expect("Segment should have at least one point");
+
+    // Calculate elapsed time in seconds
+    let elapsed_time_secs = progress.elapsed.num_seconds();
+
     RideSegment {
         segment_index: idx,
         start_datetime: *start_point.datetime(),
         end_datetime: *end_point.datetime(),
         elapsed_time_secs,
-        distance_m: round_to_3dp(distance_m),
-        elevation_gain_m: round_to_3dp(elevation_gain_m),
-        elevation_loss_m: round_to_3dp(elevation_loss_m),
+        distance_m: round_to_3dp(progress.distance_m),
+        elevation_gain_m: round_to_3dp(progress.elevation_gain_m),
+        elevation_loss_m: round_to_3dp(progress.elevation_loss_m),
         x_offset_m: round_to_3dp(end_euclidean.x()),
         y_offset_m: round_to_3dp(end_euclidean.y()),
     }
