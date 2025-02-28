@@ -1962,6 +1962,7 @@ dependencies = [
  "rayon",
  "rwgps",
  "rwgps_types",
+ "serde",
  "serde_json",
  "serde_yaml",
  "tokio",
