@@ -65,6 +65,11 @@ fn create_segments(
     }
 }
 
+/// Rounds a floating point value to 3 decimal places
+fn round_to_3dp(value: f64) -> f64 {
+    (value * 1000.0).round() / 1000.0
+}
+
 fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoint]) -> RideSegment {
     let start_point = segment_points.first().expect("Segment should not be empty");
     let end_point = segment_points.last().expect("Segment should not be empty");
@@ -108,11 +113,11 @@ fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoin
         start_datetime: *start_point.datetime(),
         end_datetime: *end_point.datetime(),
         elapsed_time_secs,
-        distance_m,
-        elevation_gain_m,
-        elevation_loss_m,
-        x_offset_m: end_euclidean.x(),
-        y_offset_m: end_euclidean.y(),
+        distance_m: round_to_3dp(distance_m),
+        elevation_gain_m: round_to_3dp(elevation_gain_m),
+        elevation_loss_m: round_to_3dp(elevation_loss_m),
+        x_offset_m: round_to_3dp(end_euclidean.x()),
+        y_offset_m: round_to_3dp(end_euclidean.y()),
     }
 }
 
