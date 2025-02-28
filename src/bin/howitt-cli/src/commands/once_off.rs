@@ -15,6 +15,8 @@ struct RideSegmentAnalysis {
     ride_name: String,
     total_segments: usize,
     total_distance_m: f64,
+    mean_elapsed_time_secs: f64,
+    mean_segment_distance_m: f64,
     segments: Vec<RideSegment>,
 }
 
@@ -128,6 +130,7 @@ fn analyze_ride_segments(
 ) -> RideSegmentAnalysis {
     let mut segment_metrics = Vec::with_capacity(segments.len());
     let mut total_distance_m = 0.0;
+    let mut total_elapsed_time_secs = 0;
 
     for (idx, segment_points) in segments.iter().enumerate() {
         if segment_points.is_empty() {
@@ -136,14 +139,34 @@ fn analyze_ride_segments(
 
         let segment = calculate_segment_metrics(idx, segment_points);
         total_distance_m += segment.distance_m;
+        total_elapsed_time_secs += segment.elapsed_time_secs;
         segment_metrics.push(segment);
     }
+
+    let segment_count = segment_metrics.len();
+    let mean_elapsed_time_secs = if segment_count > 0 {
+        total_elapsed_time_secs as f64 / segment_count as f64
+    } else {
+        0.0
+    };
+
+    let mean_segment_distance_m = if segment_count > 0 {
+        total_distance_m / segment_count as f64
+    } else {
+        0.0
+    };
+
+    // Round the averages to 3 decimal places for consistency
+    let mean_elapsed_time_secs = round_to_3dp(mean_elapsed_time_secs);
+    let mean_segment_distance_m = round_to_3dp(mean_segment_distance_m);
 
     RideSegmentAnalysis {
         ride_id: ride_id.to_string(),
         ride_name,
         total_segments: segments.len(),
         total_distance_m,
+        mean_elapsed_time_secs,
+        mean_segment_distance_m,
         segments: segment_metrics,
     }
 }
