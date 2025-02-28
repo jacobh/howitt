@@ -6,7 +6,6 @@ use howitt::models::ride::RideId;
 use howitt::repos::AnyhowRepo;
 use howitt::services::euclidean::{geo_to_euclidean, TransformParams};
 use howitt_postgresql::PostgresRepos;
-use itertools::Itertools;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -36,40 +35,45 @@ struct RideSegment {
     elevation_loss_m: f64,
     x_offset_m: f64,
     y_offset_m: f64,
+    z_offset_m: f64,
 }
 
 fn create_segments(
     points: Vec<TemporalElevationPoint>,
     min_segment_distance: f64,
-) -> Box<dyn Iterator<Item = Vec<TemporalElevationPoint>> + 'static> {
+) -> Vec<Vec<TemporalElevationPoint>> {
     if points.len() < 2 {
-        return Box::new(std::iter::empty());
+        return Vec::new();
     }
 
-    let start_point = &points[0];
+    let mut all_segments = Vec::new();
+    let mut remaining_points = points;
 
-    // Find the first point that's at least min_segment_distance away from start
-    match points
-        .iter()
-        .position(|point| DistanceDelta::delta(start_point, point).0 >= min_segment_distance)
-    {
-        Some(end_idx) => {
-            // Create a segment up to and including end_idx
-            let current_segment = points[..=end_idx].to_vec();
-            // Create remaining points starting from end_idx (including overlap)
-            let remaining = points[end_idx..].to_vec();
+    while !remaining_points.is_empty() {
+        let start_point = &remaining_points[0];
 
-            // Chain current segment with recursive results
-            Box::new(
-                std::iter::once(current_segment)
-                    .chain(create_segments(remaining, min_segment_distance)),
-            )
-        }
-        None => {
-            // All points belong to one segment
-            Box::new(std::iter::once(points))
+        // Find the first point that's at least min_segment_distance away from start
+        match remaining_points
+            .iter()
+            .position(|point| DistanceDelta::delta(start_point, point).0 >= min_segment_distance)
+        {
+            Some(end_idx) => {
+                // Create a segment up to and including end_idx
+                let current_segment = remaining_points[..=end_idx].to_vec();
+                // Update remaining points starting from end_idx (including overlap)
+                remaining_points = remaining_points[end_idx..].to_vec();
+                // Add current segment to results
+                all_segments.push(current_segment);
+            }
+            None => {
+                // All remaining points belong to one segment
+                all_segments.push(remaining_points);
+                break;
+            }
         }
     }
+
+    all_segments
 }
 
 /// Rounds a floating point value to 3 decimal places
@@ -175,6 +179,9 @@ fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoin
         point: *end_point.as_geo_point(),
     });
 
+    // Calculate elevation difference (z offset)
+    let z_offset_m = end_point.elevation - start_point.elevation;
+
     // Calculate segment-specific metrics using accumulated progress
     let progress = TemporalDistanceElevationProgress::last_from_points(segment_points.to_vec())
         .expect("Segment should have at least one point");
@@ -201,6 +208,7 @@ fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoin
         elevation_loss_m: round_to_3dp(progress.elevation_loss_m),
         x_offset_m: round_to_3dp(end_euclidean.x()),
         y_offset_m: round_to_3dp(end_euclidean.y()),
+        z_offset_m: round_to_3dp(z_offset_m),
     }
 }
 
@@ -290,7 +298,7 @@ pub async fn handle(
         job_storage,
     }: Context,
 ) -> Result<(), anyhow::Error> {
-    let ride_id_str = "0194e470-84a4-7403-a71c-2265cfc9bbdd";
+    let ride_id_str = "0193e151-f4e8-a55e-2835-c47089c5e2a1";
     let ride_id = match Uuid::parse_str(ride_id_str) {
         Ok(uuid) => RideId::from(uuid),
         Err(_) => {
@@ -333,7 +341,7 @@ pub async fn handle(
     }
 
     // Create segments (at least 250m each)
-    let segments = create_segments(ride_points.points.clone(), 250.0).collect_vec();
+    let segments = create_segments(ride_points.points.clone(), 250.0);
 
     if segments.is_empty() {
         println!("No segments could be created");
