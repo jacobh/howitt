@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO osm_highway_features (\n                id,\n                feature_type,\n                properties,\n                geometry,\n                geometry_type,\n                created_at\n            ) VALUES (\n                $1, \n                'Feature', \n                $2, \n                ST_GeomFromGeoJSON($3), \n                $4,\n                $5\n            )\n            ON CONFLICT (id) DO UPDATE SET\n                properties = EXCLUDED.properties,\n                geometry = EXCLUDED.geometry,\n                geometry_type = EXCLUDED.geometry_type\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb",
+        "Text",
+        "Varchar",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c813da5006beed85a7c4443163f939cb6e6bee290001b60f8cdcba0082191a16"
+}

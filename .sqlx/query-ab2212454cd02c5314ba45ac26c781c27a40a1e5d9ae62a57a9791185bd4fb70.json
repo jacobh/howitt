@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    SELECT \n                        id,\n                        feature_type,\n                        properties,\n                        geometry_type,\n                        ST_AsGeoJSON(geometry)::json as \"geometry_json!\",\n                        created_at\n                    FROM \n                        osm_highway_features\n                    WHERE \n                        id = $1\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "feature_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "properties",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "geometry_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "geometry_json!",
+        "type_info": "Json"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "ab2212454cd02c5314ba45ac26c781c27a40a1e5d9ae62a57a9791185bd4fb70"
+}

@@ -7,7 +7,6 @@ use howitt::models::Model;
 use howitt::repos::Repo;
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::str::FromStr;
 use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
@@ -18,7 +17,7 @@ struct OsmFeatureRow {
     feature_type: String,
     properties: serde_json::Value,
     geometry_type: String,
-    geometry_json: String, // This will be PostGIS geometry as GeoJSON string
+    geometry_json: serde_json::Value,
     created_at: DateTime<Utc>,
 }
 
@@ -27,7 +26,7 @@ impl TryFrom<OsmFeatureRow> for OsmFeature {
 
     fn try_from(row: OsmFeatureRow) -> Result<Self, Self::Error> {
         // Parse the GeoJSON string into a GeoJson object
-        let geojson = GeoJson::from_str(&row.geometry_json)?;
+        let geojson = GeoJson::try_from(row.geometry_json)?;
 
         // Convert GeoJSON to geo::Geometry
         let geometry = match geojson {
@@ -93,7 +92,7 @@ impl Repo for PostgresOsmFeatureRepo {
                         feature_type,
                         properties,
                         geometry_type,
-                        ST_AsGeoJSON(geometry) as "geometry_json!",
+                        ST_AsGeoJSON(geometry)::json as "geometry_json!",
                         created_at
                     FROM 
                         osm_highway_features
@@ -111,7 +110,7 @@ impl Repo for PostgresOsmFeatureRepo {
                         feature_type,
                         properties,
                         geometry_type,
-                        ST_AsGeoJSON(geometry) as "geometry_json!",
+                        ST_AsGeoJSON(geometry)::json as "geometry_json!",
                         created_at
                     FROM 
                         osm_highway_features
@@ -141,7 +140,7 @@ impl Repo for PostgresOsmFeatureRepo {
                         feature_type,
                         properties,
                         geometry_type,
-                        ST_AsGeoJSON(geometry) as "geometry_json!",
+                        ST_AsGeoJSON(geometry)::json as "geometry_json!",
                         created_at
                     FROM 
                         osm_highway_features
@@ -183,7 +182,7 @@ impl Repo for PostgresOsmFeatureRepo {
                         o.feature_type,
                         o.properties,
                         o.geometry_type,
-                        ST_AsGeoJSON(o.geometry) AS "geometry_json!",
+                        ST_AsGeoJSON(o.geometry)::json AS "geometry_json!",
                         o.created_at
                     FROM 
                         osm_highway_features o,
