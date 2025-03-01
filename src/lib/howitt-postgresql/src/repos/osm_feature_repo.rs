@@ -162,6 +162,47 @@ impl Repo for PostgresOsmFeatureRepo {
                 .fetch_all(conn.as_mut())
                 .await?
             }
+            OsmFeatureFilter::SimilarToGeometry { geometry, limit } => {
+                // Convert the geo::Geometry to a GeoJSON Geometry
+                let geojson_geometry = GeoJsonGeometry::from(&geometry);
+                let geometry_json = geojson_geometry.to_string();
+
+                // Calculate a reasonable search distance for initial filtering (~200m in decimal degrees)
+                // 0.002 is approximately 200m at the equator
+                let search_distance = 0.005;
+
+                // Find similar features using Hausdorff distance
+                sqlx::query_as!(
+                    OsmFeatureRow,
+                    r#"
+                    WITH input_geometry AS (
+                        SELECT ST_GeomFromGeoJSON($1) AS geom
+                    )
+                    SELECT 
+                        o.id,
+                        o.feature_type,
+                        o.properties,
+                        o.geometry_type,
+                        ST_AsGeoJSON(o.geometry) AS "geometry_json!",
+                        o.created_at
+                    FROM 
+                        osm_highway_features o,
+                        input_geometry g
+                    WHERE 
+                        -- Filter to features within reasonable distance for performance
+                        ST_DWithin(o.geometry, g.geom, $2)
+                    ORDER BY 
+                        -- Sort by shape similarity (Hausdorff distance - lower is more similar)
+                        ST_HausdorffDistance(o.geometry, g.geom) ASC
+                    LIMIT $3
+                    "#,
+                    geometry_json,
+                    search_distance,
+                    limit.unwrap_or(100) as i64
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
         };
 
         Ok(features

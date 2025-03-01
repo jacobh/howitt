@@ -39,9 +39,8 @@ pub enum OsmFeatureFilter {
         max_distance_meters: f64,
         limit: Option<usize>,
     },
-    // do not implement the below
-    // WithinBounds {
-    //     bounds: geo::Rect,
-    //     limit: Option<usize>,
-    // },
+    SimilarToGeometry {
+        geometry: geo::Geometry,
+        limit: Option<usize>,
+    },
 }
