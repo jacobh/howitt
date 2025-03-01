@@ -8,7 +8,7 @@ CREATE TABLE osm_highway_features (
     properties JSONB NOT NULL,
     geometry GEOMETRY(GEOMETRY, 4326) NOT NULL,  
     geometry_type VARCHAR(50) NOT NULL, -- e.g. MultiLineString, MultiPolygon, Point
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- Add indexes for common queries
@@ -79,3 +79,68 @@ CREATE INDEX idx_osm_highway_features_geometry ON osm_highway_features USING GIS
 --     E'{"type":"MultiLineString","coordinates":[[[146.7618034,-37.3579189],[146.7625678,-37.3575253],[146.7630242,-37.3574146]]]}',
 --     2325.85310957
 -- );
+
+-- -- scratch query
+-- WITH ride_segment AS (
+--     SELECT ST_GeomFromGeoJSON(
+--         '{
+--         "coordinates": [
+--           [
+--             145.01749841634842,
+--             -37.78962722016847
+--           ],
+--           [
+--             145.0198619754048,
+--             -37.79207038155238
+--           ],
+--           [
+--             145.01995693983048,
+--             -37.79265406002954
+--           ],
+--           [
+--             145.0194610144933,
+--             -37.793112661313
+--           ],
+--           [
+--             145.0178650845491,
+--             -37.79292296690176
+--           ],
+--           [
+--             145.0166490123126,
+--             -37.79288336001298
+--           ],
+--           [
+--             145.01451231272216,
+--             -37.79232053003594
+--           ],
+--           [
+--             145.01429072906137,
+--             -37.79368799344229
+--           ],
+--           [
+--             145.01474444798606,
+--             -37.79421329277897
+--           ]
+--         ],
+--         "type": "LineString"
+--       }'
+--     ) AS geom
+-- )
+-- SELECT 
+--     o.id,
+--     o.feature_type,
+--     o.properties,
+--     o.geometry_type,
+--     ST_AsGeoJSON(o.geometry) AS geometry_json,
+--     -- Hausdorff distance for shape similarity (lower = more similar)
+--     ST_HausdorffDistance(o.geometry, r.geom) AS hausdorff_distance
+-- FROM 
+--     osm_highway_features o,
+--     ride_segment r
+-- WHERE 
+--     -- Filter to features within reasonable distance for performance
+--     ST_DWithin(o.geometry, r.geom, 0.002) -- ~200m in decimal degrees
+-- ORDER BY 
+--     -- Sort by shape similarity
+--     ST_HausdorffDistance(o.geometry, r.geom) ASC
+-- LIMIT 5;

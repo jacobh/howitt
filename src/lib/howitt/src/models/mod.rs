@@ -11,6 +11,7 @@ pub mod filters;
 pub mod maybe_pair;
 pub mod media;
 pub mod note;
+pub mod osm;
 pub mod point;
 pub mod point_of_interest;
 pub mod point_of_interest_visit;
@@ -47,6 +48,7 @@ pub enum ModelName {
     User,
     Trip,
     Note,
+    OsmFeature,
 }
 impl ModelName {
     const fn to_str(self) -> &'static str {
@@ -59,6 +61,7 @@ impl ModelName {
             ModelName::User => "USER",
             ModelName::Trip => "TRIP",
             ModelName::Note => "NOTE",
+            ModelName::OsmFeature => "OSM_FEATURE",
         }
     }
 }

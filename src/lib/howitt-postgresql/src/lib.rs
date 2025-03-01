@@ -35,4 +35,6 @@ impl PostgresClient {
 pub enum PostgresRepoError {
     Sqlx(#[from] sqlx::Error),
     SerdeJson(#[from] serde_json::Error),
+    GeoJson(#[from] geojson::Error),
+    Generic(anyhow::Error),
 }
