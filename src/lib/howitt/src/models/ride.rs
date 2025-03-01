@@ -61,9 +61,15 @@ pub struct RidePoints {
 
 impl Model for RidePoints {
     type Id = RideId;
-    type Filter = ();
+    type Filter = RidePointsFilter;
 
     fn id(&self) -> RideId {
         RideId::from(self.id)
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum RidePointsFilter {
+    All,
+    Ids(Vec<RideId>),
 }
