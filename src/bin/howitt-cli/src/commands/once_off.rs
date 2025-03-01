@@ -292,27 +292,26 @@ pub async fn handle(
                 })
                 .await;
 
-                // Check if segments creation was successful
-                match segments_result {
-                    Ok(segments) => {
-                        // Second rayon blocking call to analyze segments
-                        let user_id = ride_clone.user_id;
-                        let ride_id = ride_clone.id;
-                        let ride_name = ride_clone.name.clone();
-
-                        Some(
-                            rayon_spawn_blocking(move || {
-                                // Calculate metrics for each segment
-                                analyze_ride_segments(user_id, ride_id, ride_name, segments)
-                            })
-                            .await,
-                        )
-                    }
+                let segments = match segments_result {
+                    Ok(segments) => segments,
                     Err(e) => {
                         eprintln!("Error creating segments for ride {}: {}", ride_id, e);
-                        None
+                        return None;
                     }
-                }
+                };
+
+                // Second rayon blocking call to analyze segments
+                let user_id = ride_clone.user_id;
+                let ride_id = ride_clone.id;
+                let ride_name = ride_clone.name.clone();
+
+                Some(
+                    rayon_spawn_blocking(move || {
+                        // Calculate metrics for each segment
+                        analyze_ride_segments(user_id, ride_id, ride_name, segments)
+                    })
+                    .await,
+                )
             })
         })
         .collect_futures_ordered()
