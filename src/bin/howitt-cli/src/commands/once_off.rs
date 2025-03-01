@@ -7,12 +7,12 @@ use howitt::ext::rayon::rayon_spawn_blocking;
 use howitt::models::point::delta::{Delta, DistanceDelta};
 use howitt::models::point::progress::{Progress, TemporalDistanceElevationProgress};
 use howitt::models::point::{Point, TemporalElevationPoint, WithDatetime};
-use howitt::models::ride::{Ride, RideId, RidePointsFilter};
+use howitt::models::ride::{RideId, RidePointsFilter};
 use howitt::models::user::UserId;
 use howitt::repos::AnyhowRepo;
 use howitt::services::euclidean::{geo_to_euclidean, TransformParams};
 use howitt::services::stopped_time::StoppedTimeAnalyzer;
-use howitt_postgresql::{PostgresRepos, PostgresRidePointsRepo, PostgresRideRepo};
+use howitt_postgresql::PostgresRepos;
 use serde::Serialize;
 use tokio::sync::Semaphore;
 
@@ -276,8 +276,8 @@ pub async fn handle(
                 // Acquire a permit from the semaphore
                 let _permit = semaphore_clone.acquire().await.unwrap();
 
-                // Process the ride analysis using rayon for CPU-intensive work
-                match rayon_spawn_blocking(move || {
+                // First rayon blocking call to create segments
+                let segments_result = rayon_spawn_blocking(move || {
                     // Create segments (at least 250m each)
                     let segments = create_segments(points_clone, 250.0);
 
@@ -288,21 +288,28 @@ pub async fn handle(
                         ));
                     }
 
-                    // Calculate metrics for each segment
-                    let analysis = analyze_ride_segments(
-                        ride_clone.user_id,
-                        ride_clone.id,
-                        ride_clone.name.clone(),
-                        segments,
-                    );
-
-                    Ok(analysis)
+                    Ok(segments)
                 })
-                .await
-                {
-                    Ok(analysis) => Some(analysis),
+                .await;
+
+                // Check if segments creation was successful
+                match segments_result {
+                    Ok(segments) => {
+                        // Second rayon blocking call to analyze segments
+                        let user_id = ride_clone.user_id;
+                        let ride_id = ride_clone.id;
+                        let ride_name = ride_clone.name.clone();
+
+                        Some(
+                            rayon_spawn_blocking(move || {
+                                // Calculate metrics for each segment
+                                analyze_ride_segments(user_id, ride_id, ride_name, segments)
+                            })
+                            .await,
+                        )
+                    }
                     Err(e) => {
-                        eprintln!("Error analyzing ride {}: {}", ride_id, e);
+                        eprintln!("Error creating segments for ride {}: {}", ride_id, e);
                         None
                     }
                 }
