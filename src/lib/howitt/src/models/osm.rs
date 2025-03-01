@@ -34,12 +34,12 @@ impl Model for OsmFeature {
 pub enum OsmFeatureFilter {
     All,
     Id(OsmFeatureId),
+    NearPoint {
+        point: geo::Point,
+        max_distance_meters: f64,
+        limit: Option<usize>,
+    },
     // do not implement the below
-    // NearPoint {
-    //     point: geo::Point,
-    //     distance_meters: Option<f64>,
-    //     limit: Option<usize>,
-    // },
     // WithinBounds {
     //     bounds: geo::Rect,
     //     limit: Option<usize>,

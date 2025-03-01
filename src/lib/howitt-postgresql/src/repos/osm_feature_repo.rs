@@ -123,6 +123,45 @@ impl Repo for PostgresOsmFeatureRepo {
                 .fetch_all(conn.as_mut())
                 .await?
             }
+            OsmFeatureFilter::NearPoint {
+                point,
+                max_distance_meters,
+                limit,
+            } => {
+                // Extract coordinates from the geo::Point
+                let (lon, lat) = (point.x(), point.y());
+
+                // Use ST_DistanceSphere to find features within the specified distance
+                // ST_DistanceSphere measures the spherical distance in meters
+                sqlx::query_as!(
+                    OsmFeatureRow,
+                    r#"
+                    SELECT 
+                        id,
+                        feature_type,
+                        properties,
+                        geometry_type,
+                        ST_AsGeoJSON(geometry) as "geometry_json!",
+                        created_at
+                    FROM 
+                        osm_highway_features
+                    WHERE 
+                        ST_DistanceSphere(
+                            geometry,
+                            ST_SetSRID(ST_MakePoint($1, $2), 4326)
+                        ) <= $3
+                    ORDER BY 
+                        geometry <-> ST_SetSRID(ST_MakePoint($1, $2), 4326)
+                    LIMIT $4
+                    "#,
+                    lon,
+                    lat,
+                    max_distance_meters,
+                    limit.unwrap_or(100) as i64
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
         };
 
         Ok(features
