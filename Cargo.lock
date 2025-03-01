@@ -1932,6 +1932,7 @@ dependencies = [
  "num",
  "once_cell",
  "ordered-float",
+ "rand",
  "rayon",
  "regex",
  "rustc-hash",

@@ -201,61 +201,6 @@ fn analyze_ride_segments(
     }
 }
 
-async fn fetch_ride_analysis(
-    ride_id: RideId,
-    ride_repo: PostgresRideRepo,
-    ride_points_repo: PostgresRidePointsRepo,
-) -> Result<RideSegmentAnalysis, anyhow::Error> {
-    // Fetch the ride and its points
-    let ride = match ride_repo.get(ride_id).await {
-        Ok(ride) => ride,
-        Err(e) => {
-            // Check if the error is because the ride was not found
-            if e.to_string().contains("not found") {
-                return Err(anyhow::anyhow!("Ride not found with ID: {}", ride_id));
-            }
-            return Err(e.into());
-        }
-    };
-
-    let ride_points = match ride_points_repo.get(ride_id).await {
-        Ok(points) => points,
-        Err(e) => {
-            // Check if the error is because points were not found
-            if e.to_string().contains("not found") {
-                return Err(anyhow::anyhow!("No points found for ride: {}", ride_id));
-            }
-            return Err(e.into());
-        }
-    };
-
-    // Check if we have enough points
-    if ride_points.points.len() < 2 {
-        return Err(anyhow::anyhow!(
-            "Ride has too few points ({})",
-            ride_points.points.len()
-        ));
-    }
-
-    rayon_spawn_blocking(move || {
-        // Create segments (at least 250m each)
-        let segments = create_segments(ride_points.points.clone(), 250.0);
-
-        if segments.is_empty() {
-            return Err(anyhow::anyhow!(
-                "No segments could be created for ride: {}",
-                ride_id
-            ));
-        }
-
-        // Calculate metrics for each segment
-        let analysis = analyze_ride_segments(ride.user_id, ride.id, ride.name, segments);
-
-        Ok(analysis)
-    })
-    .await
-}
-
 #[allow(unused_variables)]
 pub async fn handle(
     Context {
