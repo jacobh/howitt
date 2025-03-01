@@ -2,8 +2,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::Context;
+use geo::LineString;
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::ext::rayon::rayon_spawn_blocking;
+use howitt::models::osm::{OsmFeature, OsmFeatureFilter};
 use howitt::models::point::delta::{Delta, DistanceDelta};
 use howitt::models::point::progress::{Progress, TemporalDistanceElevationProgress};
 use howitt::models::point::{Point, TemporalElevationPoint, WithDatetime};
@@ -11,8 +13,12 @@ use howitt::models::ride::{RideId, RidePointsFilter};
 use howitt::models::user::UserId;
 use howitt::repos::AnyhowRepo;
 use howitt::services::euclidean::{geo_to_euclidean, TransformParams};
+use howitt::services::simplify_points::{simplify_points_v2, DetailLevel};
 use howitt::services::stopped_time::StoppedTimeAnalyzer;
 use howitt_postgresql::PostgresRepos;
+use itertools::Itertools;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use serde::Serialize;
 use tokio::sync::Semaphore;
 
@@ -44,6 +50,7 @@ struct RideSegment {
     x_offset_m: f64,
     y_offset_m: f64,
     z_offset_m: f64,
+    feature_properties: Option<HashMap<String, String>>,
 }
 
 fn create_segments(
@@ -89,7 +96,11 @@ fn round_to_3dp(value: f64) -> f64 {
     (value * 1000.0).round() / 1000.0
 }
 
-fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoint]) -> RideSegment {
+fn calculate_segment_metrics(
+    idx: usize,
+    segment_points: &[TemporalElevationPoint],
+    similar_feature: Option<OsmFeature>,
+) -> RideSegment {
     let start_point = segment_points.first().expect("Segment should not be empty");
     let end_point = segment_points.last().expect("Segment should not be empty");
 
@@ -129,6 +140,7 @@ fn calculate_segment_metrics(idx: usize, segment_points: &[TemporalElevationPoin
         x_offset_m: round_to_3dp(end_euclidean.x()),
         y_offset_m: round_to_3dp(end_euclidean.y()),
         z_offset_m: round_to_3dp(z_offset_m),
+        feature_properties: similar_feature.map(|f| f.properties),
     }
 }
 
@@ -137,6 +149,7 @@ fn analyze_ride_segments(
     ride_id: RideId,
     ride_name: String,
     segments: Vec<Vec<TemporalElevationPoint>>,
+    similar_features: Vec<Option<OsmFeature>>,
 ) -> RideSegmentAnalysis {
     let mut segment_metrics = Vec::with_capacity(segments.len());
     let mut total_distance_m = 0.0;
@@ -144,12 +157,16 @@ fn analyze_ride_segments(
     let mut total_stopped_time_secs = 0;
     let mut total_moving_time_secs = 0;
 
-    for (idx, segment_points) in segments.iter().enumerate() {
+    for (idx, (segment_points, similar_feature)) in segments
+        .iter()
+        .zip(similar_features.into_iter())
+        .enumerate()
+    {
         if segment_points.is_empty() {
             continue; // Skip empty segments
         }
 
-        let segment = calculate_segment_metrics(idx, segment_points);
+        let segment = calculate_segment_metrics(idx, &segment_points, similar_feature);
         total_distance_m += segment.distance_m;
         total_elapsed_time_secs += segment.elapsed_time_secs;
         total_stopped_time_secs += segment.stopped_time_secs;
@@ -232,7 +249,10 @@ pub async fn handle(
         .collect::<HashMap<_, _>>();
 
     // Extract just the ride IDs
-    let ride_ids: Vec<RideId> = rides_by_id.keys().cloned().take(10).collect();
+    // Extract just the ride IDs
+    let mut ride_ids: Vec<RideId> = rides_by_id.keys().cloned().collect();
+    ride_ids.shuffle(&mut thread_rng());
+    let ride_ids = ride_ids.into_iter().take(100).collect::<Vec<_>>();
 
     // Batch fetch all ride points
     println!("Fetching points for all rides...");
@@ -271,6 +291,7 @@ pub async fn handle(
             let ride_clone = ride.clone();
             let points_clone = points.clone();
             let semaphore_clone = semaphore.clone();
+            let osm_feature_repo = osm_feature_repo.clone();
 
             Some(async move {
                 // Acquire a permit from the semaphore
@@ -300,6 +321,33 @@ pub async fn handle(
                     }
                 };
 
+                let segments2 = segments.clone();
+
+                let simplified_segments = rayon_spawn_blocking(move || {
+                    segments2
+                        .into_iter()
+                        .map(|segment| simplify_points_v2(segment, DetailLevel::Low))
+                        .collect_vec()
+                })
+                .await;
+
+                let similar_features = simplified_segments
+                    .into_iter()
+                    .map(|segment| async {
+                        osm_feature_repo
+                            .find_model(OsmFeatureFilter::SimilarToGeometry {
+                                geometry: geo::Geometry::LineString(LineString::from_iter(
+                                    segment.into_iter().map(|p| p.to_geo_point()),
+                                )),
+                                limit: Some(1),
+                            })
+                            .await
+                            .ok()
+                            .flatten()
+                    })
+                    .collect_futures_ordered()
+                    .await;
+
                 // Second rayon blocking call to analyze segments
                 let user_id = ride_clone.user_id;
                 let ride_id = ride_clone.id;
@@ -308,7 +356,13 @@ pub async fn handle(
                 Some(
                     rayon_spawn_blocking(move || {
                         // Calculate metrics for each segment
-                        analyze_ride_segments(user_id, ride_id, ride_name, segments)
+                        analyze_ride_segments(
+                            user_id,
+                            ride_id,
+                            ride_name,
+                            segments,
+                            similar_features,
+                        )
                     })
                     .await,
                 )
