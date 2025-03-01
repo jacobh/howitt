@@ -8,5 +8,6 @@ pub mod num;
 pub mod simplify_points;
 pub mod slug;
 pub mod smoothing;
+pub mod stopped_time;
 pub mod sync;
 pub mod user;
