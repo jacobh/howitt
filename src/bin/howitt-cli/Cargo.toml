@@ -38,3 +38,4 @@ geo = "*"
 serde = { version = "*", features = ["derive"] }
 rand = "*"
 geojson = "*"
+indicatif = "*"
