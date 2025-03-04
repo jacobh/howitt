@@ -211,6 +211,30 @@ impl Repo for PostgresOsmFeatureRepo {
                 .fetch_all(conn.as_mut())
                 .await?
             }
+            OsmFeatureFilter::IntersectsRide { ride_id } => {
+                sqlx::query_as!(
+                    OsmFeatureRow,
+                    r#"
+                    SELECT 
+                        b.id,
+                        b.feature_type,
+                        b.properties,
+                        b.geometry_type,
+                        ST_AsGeoJSON(b.geometry)::json as "geometry_json!",
+                        b.created_at
+                    FROM 
+                        osm_highway_features b
+                    JOIN 
+                        ride_geometries r ON ST_Intersects(r.geometry, b.geometry)
+                    WHERE 
+                        r.ride_id = $1
+                        AND b.properties->>'boundary' IS NOT NULL
+                    "#,
+                    ride_id.as_uuid()
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
         };
 
         Ok(features

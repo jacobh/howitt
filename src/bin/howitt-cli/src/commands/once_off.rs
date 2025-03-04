@@ -5,10 +5,10 @@ use std::sync::{
 };
 
 use crate::Context;
-use geo::LineString;
+use geo::{Intersects, LineString};
 use howitt::ext::futures::FuturesIteratorExt;
 use howitt::ext::rayon::rayon_spawn_blocking;
-use howitt::models::osm::{OsmFeature, OsmFeatureFilter};
+use howitt::models::osm::{OsmFeature, OsmFeatureFilter, OsmFeatureId};
 use howitt::models::point::delta::{Delta, DistanceDelta};
 use howitt::models::point::progress::{
     DistanceElevationProgress, Progress, TemporalDistanceElevationProgress,
@@ -59,6 +59,7 @@ struct RideSegment {
     y_offset_m: f64,
     z_offset_m: f64,
     feature_properties: Option<HashMap<String, String>>,
+    boundary_ids: Vec<OsmFeatureId>,
 }
 
 fn create_segments(
@@ -108,6 +109,7 @@ fn calculate_segment_metrics(
     idx: usize,
     segment_points: &[TemporalElevationPoint],
     similar_feature: Option<OsmFeature>,
+    ride_boundaries: &[OsmFeature],
 ) -> RideSegment {
     let start_point = segment_points.first().expect("Segment should not be empty");
     let end_point = segment_points.last().expect("Segment should not be empty");
@@ -135,6 +137,12 @@ fn calculate_segment_metrics(
     // Calculate moving time (elapsed time minus stopped time)
     let moving_time_secs = elapsed_time_secs - stopped_time_secs;
 
+    let boundaries = ride_boundaries.into_iter().filter(|boundary| {
+        boundary.geometry.intersects(&LineString::from_iter(
+            segment_points.iter().map(|p| p.to_geo_point()),
+        ))
+    });
+
     RideSegment {
         segment_index: idx,
         start_datetime: *start_point.datetime(),
@@ -149,6 +157,7 @@ fn calculate_segment_metrics(
         y_offset_m: round_to_3dp(end_euclidean.y()),
         z_offset_m: round_to_3dp(z_offset_m),
         feature_properties: similar_feature.map(|f| f.properties),
+        boundary_ids: boundaries.map(|b| b.id()).collect(),
     }
 }
 
@@ -158,6 +167,7 @@ fn analyze_ride_segments(
     ride_name: String,
     segments: Vec<Vec<TemporalElevationPoint>>,
     similar_features: Vec<Option<OsmFeature>>,
+    ride_boundaries: Vec<OsmFeature>,
 ) -> RideSegmentAnalysis {
     let mut segment_metrics = Vec::with_capacity(segments.len());
     let mut total_distance_m = 0.0;
@@ -174,7 +184,8 @@ fn analyze_ride_segments(
             continue; // Skip empty segments
         }
 
-        let segment = calculate_segment_metrics(idx, &segment_points, similar_feature);
+        let segment =
+            calculate_segment_metrics(idx, &segment_points, similar_feature, &ride_boundaries);
         total_distance_m += segment.distance_m;
         total_elapsed_time_secs += segment.elapsed_time_secs;
         total_stopped_time_secs += segment.stopped_time_secs;
@@ -565,6 +576,7 @@ async fn process_routes(context: &Context, route_ids: Vec<RouteId>) -> Result<()
                                     segment.into_iter().map(|p| p.to_geo_point()),
                                 )),
                                 limit: Some(1),
+                                is_highway: true,
                             })
                             .await
                             .ok()
@@ -664,32 +676,32 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
         job_storage,
     } = &context;
 
-    // Define route IDs to analyze
-    const ROUTE_ID_STRS: &[&str] = &[
-        "018b4c6d-b4a0-fb6e-02b3-f5688562ab67",
-        "018afe4c-9390-ff2a-74d3-4d1797cf6092",
-        "018b4c81-7f08-9ea1-40cf-b93993e0d187",
-        "018b4c72-6ba8-79fc-ab63-33ed9b83b8fd",
-    ];
+    // // Define route IDs to analyze
+    // const ROUTE_ID_STRS: &[&str] = &[
+    //     "018b4c6d-b4a0-fb6e-02b3-f5688562ab67",
+    //     "018afe4c-9390-ff2a-74d3-4d1797cf6092",
+    //     "018b4c81-7f08-9ea1-40cf-b93993e0d187",
+    //     "018b4c72-6ba8-79fc-ab63-33ed9b83b8fd",
+    // ];
 
-    // // Parse route IDs
-    // let route_ids = ROUTE_ID_STRS
-    //     .iter()
-    //     .map(|id_str| RouteId::from(Uuid::parse_str(id_str).unwrap()))
-    //     .collect::<Vec<_>>();
+    // // // Parse route IDs
+    // // let route_ids = ROUTE_ID_STRS
+    // //     .iter()
+    // //     .map(|id_str| RouteId::from(Uuid::parse_str(id_str).unwrap()))
+    // //     .collect::<Vec<_>>();
 
-    // println!("Processing {} routes", route_ids.len());
-    let route_ids = route_repo
-        .filter_models(RouteFilter::Starred)
-        .await?
-        .into_iter()
-        .map(|route| route.id)
-        .collect_vec();
+    // // println!("Processing {} routes", route_ids.len());
+    // let route_ids = route_repo
+    //     .filter_models(RouteFilter::Starred)
+    //     .await?
+    //     .into_iter()
+    //     .map(|route| route.id)
+    //     .collect_vec();
 
-    // Process routes first
-    process_routes(&context, route_ids).await?;
+    // // Process routes first
+    // process_routes(&context, route_ids).await?;
 
-    return Ok(());
+    // return Ok(());
 
     // Fetch all rides from the repository
     println!("Fetching all rides...");
@@ -700,6 +712,7 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
     let rides_by_id = all_rides
         .into_iter()
         .map(|ride| (ride.id, ride))
+        // .take(10)
         .collect::<HashMap<_, _>>();
 
     // Extract just the ride IDs
@@ -848,6 +861,7 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
                                 geometry: geo::Geometry::LineString(LineString::from_iter(
                                     segment.into_iter().map(|p| p.to_geo_point()),
                                 )),
+                                is_highway: true,
                                 limit: Some(1),
                             })
                             .await
@@ -857,6 +871,11 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
                     .collect_futures_ordered()
                     .await;
 
+                let boundaries = osm_feature_repo
+                    .filter_models(OsmFeatureFilter::IntersectsRide { ride_id })
+                    .await
+                    .unwrap_or_default();
+
                 // Second rayon blocking call to analyze segments
                 let user_id = ride.user_id;
                 let ride_id = ride.id;
@@ -865,7 +884,14 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
                 pb_clone.set_message(format!("Analyzing segments for ride {}", ride_id));
                 let result = rayon_spawn_blocking(move || {
                     // Calculate metrics for each segment
-                    analyze_ride_segments(user_id, ride_id, ride_name, segments, similar_features)
+                    analyze_ride_segments(
+                        user_id,
+                        ride_id,
+                        ride_name,
+                        segments,
+                        similar_features,
+                        boundaries,
+                    )
                 })
                 .await;
 

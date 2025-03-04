@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::{Model, ModelName, ModelUuid};
+use super::{ride::RideId, Model, ModelName, ModelUuid};
 
 pub type OsmFeatureId = ModelUuid<{ ModelName::OsmFeature }>;
 
@@ -43,5 +43,8 @@ pub enum OsmFeatureFilter {
         geometry: geo::Geometry,
         limit: Option<usize>,
         is_highway: bool,
+    },
+    IntersectsRide {
+        ride_id: RideId,
     },
 }
