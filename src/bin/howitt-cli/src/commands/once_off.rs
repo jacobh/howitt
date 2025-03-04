@@ -15,7 +15,7 @@ use howitt::models::point::progress::{
 };
 use howitt::models::point::{ElevationPoint, Point, TemporalElevationPoint, WithDatetime};
 use howitt::models::ride::{RideId, RidePointsFilter};
-use howitt::models::route::{RouteId, RoutePointsFilter};
+use howitt::models::route::{RouteFilter, RouteId, RoutePointsFilter};
 use howitt::models::user::UserId;
 use howitt::repos::AnyhowRepo;
 use howitt::services::euclidean::{geo_to_euclidean, TransformParams};
@@ -672,13 +672,19 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
         "018b4c72-6ba8-79fc-ab63-33ed9b83b8fd",
     ];
 
-    // Parse route IDs
-    let route_ids = ROUTE_ID_STRS
-        .iter()
-        .map(|id_str| RouteId::from(Uuid::parse_str(id_str).unwrap()))
-        .collect::<Vec<_>>();
+    // // Parse route IDs
+    // let route_ids = ROUTE_ID_STRS
+    //     .iter()
+    //     .map(|id_str| RouteId::from(Uuid::parse_str(id_str).unwrap()))
+    //     .collect::<Vec<_>>();
 
-    println!("Processing {} routes", route_ids.len());
+    // println!("Processing {} routes", route_ids.len());
+    let route_ids = route_repo
+        .filter_models(RouteFilter::Starred)
+        .await?
+        .into_iter()
+        .map(|route| route.id)
+        .collect_vec();
 
     // Process routes first
     process_routes(&context, route_ids).await?;
