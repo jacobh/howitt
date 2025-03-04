@@ -42,5 +42,6 @@ pub enum OsmFeatureFilter {
     SimilarToGeometry {
         geometry: geo::Geometry,
         limit: Option<usize>,
+        is_highway: bool,
     },
 }
