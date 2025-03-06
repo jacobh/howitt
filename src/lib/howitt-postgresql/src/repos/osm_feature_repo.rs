@@ -171,15 +171,22 @@ impl Repo for PostgresOsmFeatureRepo {
                 let geometry_json = geojson_geometry.to_string();
 
                 // Calculate a reasonable search distance for initial filtering (~200m in decimal degrees)
-                // 0.002 is approximately 200m at the equator
+                // 0.005 is used as an example; adjust as needed based on your requirements
                 let search_distance = 0.005;
 
-                // Find similar features using Hausdorff distance
+                // Find similar features by computing a one-way (directed) distance.
+                // We break the input geometry into points and compute the maximum distance
+                // from any input point to the candidate feature.
                 sqlx::query_as!(
                     OsmFeatureRow,
                     r#"
                     WITH input_geometry AS (
                         SELECT ST_GeomFromGeoJSON($1) AS geom
+                    ),
+                    input_points AS (
+                        SELECT (dp).geom AS pt
+                        FROM input_geometry,
+                             ST_DumpPoints(input_geometry.geom) AS dp
                     )
                     SELECT 
                         o.id,
@@ -188,19 +195,18 @@ impl Repo for PostgresOsmFeatureRepo {
                         o.geometry_type,
                         ST_AsGeoJSON(o.geometry)::json AS "geometry_json!",
                         o.created_at
-                    FROM 
-                        osm_highway_features o,
-                        input_geometry g
+                    FROM osm_highway_features o, input_geometry ig
                     WHERE 
-                        -- Filter to features within reasonable distance for performance
-                        ST_DWithin(o.geometry, g.geom, $2)
+                        ST_DWithin(o.geometry, ig.geom, $2)
                         AND (
                             ($3 AND o.properties->>'highway' IS NOT NULL)
                             OR (NOT $3 AND o.properties->>'highway' IS NULL)
                         )
-                    ORDER BY 
-                        -- Sort by shape similarity (Hausdorff distance - lower is more similar)
-                        ST_HausdorffDistance(o.geometry, g.geom) ASC
+                        AND ST_GeometryType(o.geometry) IN ('ST_LineString', 'ST_MultiLineString')
+                    ORDER BY (
+                        SELECT AVG(ST_Distance(p.pt, o.geometry))
+                        FROM input_points p
+                    ) ASC
                     LIMIT $4
                     "#,
                     geometry_json,
@@ -231,6 +237,30 @@ impl Repo for PostgresOsmFeatureRepo {
                         AND b.properties->>'boundary' IS NOT NULL
                     "#,
                     ride_id.as_uuid()
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
+            OsmFeatureFilter::IntersectsRoute { route_id } => {
+                sqlx::query_as!(
+                    OsmFeatureRow,
+                    r#"
+                    SELECT 
+                        b.id,
+                        b.feature_type,
+                        b.properties,
+                        b.geometry_type,
+                        ST_AsGeoJSON(b.geometry)::json as "geometry_json!",
+                        b.created_at
+                    FROM 
+                        osm_highway_features b
+                    JOIN 
+                        route_geometries r ON ST_Intersects(r.geometry, b.geometry)
+                    WHERE 
+                        r.route_id = $1
+                        AND b.properties->>'boundary' IS NOT NULL
+                    "#,
+                    route_id.as_uuid()
                 )
                 .fetch_all(conn.as_mut())
                 .await?

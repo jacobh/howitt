@@ -262,6 +262,7 @@ struct RouteSegment {
     y_offset_m: f64,
     z_offset_m: f64,
     feature_properties: Option<HashMap<String, String>>,
+    boundary_ids: Vec<OsmFeatureId>,
 }
 
 fn create_route_segments(
@@ -306,6 +307,7 @@ fn calculate_route_segment_metrics(
     idx: usize,
     segment_points: &[ElevationPoint],
     similar_feature: Option<OsmFeature>,
+    route_boundaries: &[OsmFeature],
 ) -> RouteSegment {
     let start_point = segment_points.first().expect("Segment should not be empty");
     let end_point = segment_points.last().expect("Segment should not be empty");
@@ -323,6 +325,13 @@ fn calculate_route_segment_metrics(
     let progress = DistanceElevationProgress::last_from_points(segment_points.to_vec())
         .expect("Segment should have at least one point");
 
+    // Find boundaries that intersect with this segment
+    let boundaries = route_boundaries.into_iter().filter(|boundary| {
+        boundary.geometry.intersects(&LineString::from_iter(
+            segment_points.iter().map(|p| p.to_geo_point()),
+        ))
+    });
+
     RouteSegment {
         segment_index: idx,
         distance_m: round_to_3dp(progress.distance_m),
@@ -332,6 +341,7 @@ fn calculate_route_segment_metrics(
         y_offset_m: round_to_3dp(end_euclidean.y()),
         z_offset_m: round_to_3dp(z_offset_m),
         feature_properties: similar_feature.map(|f| f.properties),
+        boundary_ids: boundaries.map(|b| b.id()).collect(),
     }
 }
 
@@ -342,6 +352,7 @@ fn analyze_route_segments(
     is_forward: bool,
     segments: Vec<Vec<ElevationPoint>>,
     similar_features: Vec<Option<OsmFeature>>,
+    route_boundaries: Vec<OsmFeature>,
 ) -> RouteSegmentAnalysis {
     let mut segment_metrics = Vec::with_capacity(segments.len());
     let mut total_distance_m = 0.0;
@@ -357,7 +368,12 @@ fn analyze_route_segments(
             continue; // Skip empty segments
         }
 
-        let segment = calculate_route_segment_metrics(idx, &segment_points, similar_feature);
+        let segment = calculate_route_segment_metrics(
+            idx,
+            &segment_points,
+            similar_feature,
+            &route_boundaries,
+        );
         total_distance_m += segment.distance_m;
         total_elevation_gain_m += segment.elevation_gain_m;
         total_elevation_loss_m += segment.elevation_loss_m;
@@ -563,6 +579,17 @@ async fn process_routes(context: &Context, route_ids: Vec<RouteId>) -> Result<()
                 })
                 .await;
 
+                // Inside the map function in the processing loop, before analyzing segments:
+                pb_clone.set_message(format!(
+                    "Finding boundaries for route {} ({})",
+                    route_id, direction_text
+                ));
+
+                let route_boundaries = osm_feature_repo
+                    .filter_models(OsmFeatureFilter::IntersectsRoute { route_id })
+                    .await
+                    .unwrap_or_default();
+
                 pb_clone.set_message(format!(
                     "Finding similar features for route {} ({})",
                     route_id, direction_text
@@ -600,9 +627,10 @@ async fn process_routes(context: &Context, route_ids: Vec<RouteId>) -> Result<()
                         route_id,
                         route_name,
                         slug,
-                        is_forward, // Pass the direction flag
+                        is_forward,
                         segments,
                         similar_features,
+                        route_boundaries,
                     )
                 })
                 .await;
@@ -676,32 +704,32 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
         job_storage,
     } = &context;
 
-    // // Define route IDs to analyze
-    // const ROUTE_ID_STRS: &[&str] = &[
-    //     "018b4c6d-b4a0-fb6e-02b3-f5688562ab67",
-    //     "018afe4c-9390-ff2a-74d3-4d1797cf6092",
-    //     "018b4c81-7f08-9ea1-40cf-b93993e0d187",
-    //     "018b4c72-6ba8-79fc-ab63-33ed9b83b8fd",
-    // ];
+    // Define route IDs to analyze
+    const ROUTE_ID_STRS: &[&str] = &[
+        "018b4c6d-b4a0-fb6e-02b3-f5688562ab67",
+        "018afe4c-9390-ff2a-74d3-4d1797cf6092",
+        "018b4c81-7f08-9ea1-40cf-b93993e0d187",
+        "018b4c72-6ba8-79fc-ab63-33ed9b83b8fd",
+    ];
 
-    // // // Parse route IDs
-    // // let route_ids = ROUTE_ID_STRS
-    // //     .iter()
-    // //     .map(|id_str| RouteId::from(Uuid::parse_str(id_str).unwrap()))
-    // //     .collect::<Vec<_>>();
+    // // Parse route IDs
+    // let route_ids = ROUTE_ID_STRS
+    //     .iter()
+    //     .map(|id_str| RouteId::from(Uuid::parse_str(id_str).unwrap()))
+    //     .collect::<Vec<_>>();
 
-    // // println!("Processing {} routes", route_ids.len());
-    // let route_ids = route_repo
-    //     .filter_models(RouteFilter::Starred)
-    //     .await?
-    //     .into_iter()
-    //     .map(|route| route.id)
-    //     .collect_vec();
+    // println!("Processing {} routes", route_ids.len());
+    let route_ids = route_repo
+        .filter_models(RouteFilter::Starred)
+        .await?
+        .into_iter()
+        .map(|route| route.id)
+        .collect_vec();
 
-    // // Process routes first
-    // process_routes(&context, route_ids).await?;
+    // Process routes first
+    process_routes(&context, route_ids).await?;
 
-    // return Ok(());
+    return Ok(());
 
     // Fetch all rides from the repository
     println!("Fetching all rides...");
