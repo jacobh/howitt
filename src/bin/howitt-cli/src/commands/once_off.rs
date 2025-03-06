@@ -24,11 +24,8 @@ use howitt::services::stopped_time::StoppedTimeAnalyzer;
 use howitt_postgresql::PostgresRepos;
 use indicatif::{ProgressBar, ProgressStyle};
 use itertools::Itertools;
-use rand::seq::SliceRandom;
-use rand::thread_rng;
 use serde::Serialize;
 use tokio::sync::Semaphore;
-use uuid::Uuid;
 
 #[derive(Debug, Serialize)]
 struct RideSegmentAnalysis {
@@ -62,10 +59,7 @@ struct RideSegment {
     boundary_ids: Vec<OsmFeatureId>,
 }
 
-fn create_segments(
-    points: Vec<TemporalElevationPoint>,
-    min_segment_distance: f64,
-) -> Vec<Vec<TemporalElevationPoint>> {
+fn create_segments<P: Point>(points: Vec<P>, min_segment_distance: f64) -> Vec<Vec<P>> {
     if points.len() < 2 {
         return Vec::new();
     }
@@ -263,44 +257,6 @@ struct RouteSegment {
     z_offset_m: f64,
     feature_properties: Option<HashMap<String, String>>,
     boundary_ids: Vec<OsmFeatureId>,
-}
-
-fn create_route_segments(
-    points: Vec<ElevationPoint>,
-    min_segment_distance: f64,
-) -> Vec<Vec<ElevationPoint>> {
-    if points.len() < 2 {
-        return Vec::new();
-    }
-
-    let mut all_segments = Vec::new();
-    let mut remaining_points = points;
-
-    while !remaining_points.is_empty() {
-        let start_point = &remaining_points[0];
-
-        // Find the first point that's at least min_segment_distance away from start
-        match remaining_points
-            .iter()
-            .position(|point| DistanceDelta::delta(start_point, point).0 >= min_segment_distance)
-        {
-            Some(end_idx) => {
-                // Create a segment up to and including end_idx
-                let current_segment = remaining_points[..=end_idx].to_vec();
-                // Update remaining points starting from end_idx (including overlap)
-                remaining_points = remaining_points[end_idx..].to_vec();
-                // Add current segment to results
-                all_segments.push(current_segment);
-            }
-            None => {
-                // All remaining points belong to one segment
-                all_segments.push(remaining_points);
-                break;
-            }
-        }
-    }
-
-    all_segments
 }
 
 fn calculate_route_segment_metrics(
@@ -542,7 +498,7 @@ async fn process_routes(context: &Context, route_ids: Vec<RouteId>) -> Result<()
                 // First rayon blocking call to create segments
                 let segments_result = rayon_spawn_blocking(move || {
                     // Create segments (at least 250m each)
-                    let segments = create_route_segments(points, 250.0);
+                    let segments = create_segments(points, 250.0);
 
                     if segments.is_empty() {
                         return Err(anyhow::anyhow!(
