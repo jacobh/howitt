@@ -50,4 +50,12 @@ pub enum OsmFeatureFilter {
     IntersectsRoute {
         route_id: RouteId,
     },
+    IntersectsRideBuffer {
+        ride_id: RideId,
+        buffer_meters: f64,
+    },
+    IntersectsRouteBuffer {
+        route_id: RouteId,
+        buffer_meters: f64,
+    },
 }

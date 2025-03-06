@@ -265,6 +265,86 @@ impl Repo for PostgresOsmFeatureRepo {
                 .fetch_all(conn.as_mut())
                 .await?
             }
+            OsmFeatureFilter::IntersectsRideBuffer {
+                ride_id,
+                buffer_meters,
+            } => {
+                sqlx::query_as!(
+                    OsmFeatureRow,
+                    r#"
+                    WITH ride_buffer AS (
+                      SELECT 
+                        ride_id,
+                        ST_Buffer(
+                          geometry::geography, 
+                          $2
+                        )::geometry AS buffer_geometry
+                      FROM 
+                        ride_geometries
+                      WHERE 
+                        ride_id = $1
+                    )
+                    
+                    SELECT 
+                      h.id,
+                      h.feature_type,
+                      h.properties,
+                      h.geometry_type,
+                      ST_AsGeoJSON(h.geometry)::json as "geometry_json!",
+                      h.created_at
+                    FROM 
+                      osm_highway_features h
+                    JOIN 
+                      ride_buffer rb ON ST_Intersects(h.geometry, rb.buffer_geometry)
+                    WHERE 
+                      h.properties->>'highway' IS NOT NULL
+                    "#,
+                    ride_id.as_uuid(),
+                    buffer_meters,
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
+            OsmFeatureFilter::IntersectsRouteBuffer {
+                route_id,
+                buffer_meters,
+            } => {
+                sqlx::query_as!(
+                    OsmFeatureRow,
+                    r#"
+                    WITH route_buffer AS (
+                      SELECT 
+                        route_id,
+                        ST_Buffer(
+                          geometry::geography, 
+                          $2
+                        )::geometry AS buffer_geometry
+                      FROM 
+                        route_geometries
+                      WHERE 
+                        route_id = $1
+                    )
+                    
+                    SELECT 
+                      h.id,
+                      h.feature_type,
+                      h.properties,
+                      h.geometry_type,
+                      ST_AsGeoJSON(h.geometry)::json as "geometry_json!",
+                      h.created_at
+                    FROM 
+                      osm_highway_features h
+                    JOIN 
+                      route_buffer rb ON ST_Intersects(h.geometry, rb.buffer_geometry)
+                    WHERE 
+                      h.properties->>'highway' IS NOT NULL
+                    "#,
+                    route_id.as_uuid(),
+                    buffer_meters,
+                )
+                .fetch_all(conn.as_mut())
+                .await?
+            }
         };
 
         Ok(features
