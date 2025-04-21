@@ -8,6 +8,11 @@ import { match, P } from "ts-pattern";
 
 import "./compression-polyfill";
 import { cors } from "hono/cors";
+import type {
+  NearbyFeaturesResponse,
+  WaterBetaTopic,
+  WaterFeaturesResponse,
+} from "./schema";
 
 function parseGeometry(geomString: string): Geometry {
   return JSON.parse(geomString) as Geometry;
@@ -159,7 +164,10 @@ app.get("/api/water-features", async (c) => {
 
   const parsed = res.map(parseIndexRowToFeature);
 
-  return c.json({ type: "FeatureCollection", features: parsed });
+  return c.json<WaterFeaturesResponse>({
+    type: "FeatureCollection",
+    features: parsed,
+  });
 });
 
 // lon,lat
@@ -184,9 +192,7 @@ const QueryParams = z.object({
   radius: z.coerce.number().optional(),
 });
 
-function groupWaterBetaByTopic(
-  rows: WaterBetaRow[]
-): Record<string, unknown>[] {
+function groupWaterBetaByTopic(rows: WaterBetaRow[]): WaterBetaTopic[] {
   const map: Map<number, WaterBetaRow[]> = new Map(
     rows.map((wb) => [wb.topic_id, []])
   );
@@ -198,11 +204,11 @@ function groupWaterBetaByTopic(
   return map
     .entries()
     .map(
-      ([topic_id, [firstRow, ...otherRows]]): Record<string, unknown> => ({
+      ([topic_id, [firstRow, ...otherRows]]): WaterBetaTopic => ({
         topic_id,
-        name: firstRow?.name,
-        osm_feature_id: firstRow?.osm_feature_id,
-        general_notes: firstRow?.general_notes,
+        name: firstRow?.name ?? "",
+        osm_feature_id: firstRow?.osm_feature_id ?? 0,
+        general_notes: firstRow?.general_notes ?? "",
         observations: [firstRow, ...otherRows]
           .filter((x) => x !== undefined)
           .map(
@@ -259,7 +265,7 @@ app.get("/api/water-features/query", async (c) => {
     return map;
   })();
 
-  return c.json({
+  return c.json<NearbyFeaturesResponse>({
     type: "FeatureCollection",
     features: nearbyFeatures.map((feature) => ({
       ...feature,
