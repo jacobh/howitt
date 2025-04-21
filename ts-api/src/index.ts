@@ -156,8 +156,14 @@ function parseWaterBetaRow(row: any): WaterBetaRow {
 
 const app = new Hono();
 app.use(logger());
+app.use(
+  cors({
+    origin: "*",
+    allowMethods: ["GET", "POST"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(compress());
-app.use(cors());
 
 app.get("/api/water-features", async (c) => {
   const res: unknown[] = await featureIndexQuery.execute();
