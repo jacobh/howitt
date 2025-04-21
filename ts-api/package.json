@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "PORT=3001 bun run ./index.ts",
-    "serve": "PORT=80 bun run ./index.ts"
+    "dev": "PORT=3001 bun run ./src/index.ts",
+    "serve": "PORT=80 bun run ./src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
