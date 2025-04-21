@@ -10,6 +10,7 @@ import { createEmotionCache } from "~/styles/createEmotionCache";
 import { ServerStyleContext } from "~/styles/server.context";
 import { getDataFromTree } from "@apollo/client/react/ssr";
 import { createApolloClient } from "./services/apollo";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const API_BASE_URL = process.env.API_BASE_URL ?? "https://api.howittplains.net";
 
@@ -23,6 +24,8 @@ export default async function handleRequest(
 ): Promise<Response> {
   const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
 
+  const queryClient = new QueryClient();
+
   const client = createApolloClient({
     ssrMode: true,
     graphqlUrl: API_BASE_URL,
@@ -33,11 +36,13 @@ export default async function handleRequest(
   const { extractCriticalToChunks } = createEmotionServer(styleCache);
 
   const App = (
-    <ApolloProvider client={client}>
-      <CacheProvider value={styleCache}>
-        <RemixServer context={remixContext} url={request.url} />
-      </CacheProvider>
-    </ApolloProvider>
+    <QueryClientProvider client={queryClient}>
+      <ApolloProvider client={client}>
+        <CacheProvider value={styleCache}>
+          <RemixServer context={remixContext} url={request.url} />
+        </CacheProvider>
+      </ApolloProvider>
+    </QueryClientProvider>
   );
 
   await getDataFromTree(App);
