@@ -49,6 +49,7 @@ spec:
        - howittplains.net
        - www.howittplains.net
        - api.howittplains.net
+       - ts-api.howittplains.net
      secretName: tls-howittplains-ingress-http
   rules:
   - host: howittplains.net
@@ -79,5 +80,15 @@ spec:
         backend:
           service:
             name: howitt-web-api
+            port:
+              number: 80
+  - host: ts-api.howittplains.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: howitt-ts-api
             port:
               number: 80

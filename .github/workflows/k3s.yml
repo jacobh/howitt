@@ -19,6 +19,10 @@ jobs:
                 image_name: ${{ github.repository }}-webui
                 context: webui
                 dockerfile: Dockerfile
+              - name: ts-api
+                image_name: ${{ github.repository }}-ts-api
+                context: ts-api
+                dockerfile: Dockerfile
               - name: web-api
                 image_name: ${{ github.repository }}-web-api
                 context: .

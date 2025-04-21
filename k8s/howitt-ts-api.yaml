@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: howitt-ts-api
+  name: howitt-ts-api
+spec:
+  type: ClusterIP
+  ports:
+    - name: "80"
+      port: 80
+      targetPort: 80
+  selector:
+    service: howitt-ts-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: howitt-ts-api
+  name: howitt-ts-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: howitt-ts-api
+  template:
+    metadata:
+      labels:
+        service: howitt-ts-api
+    spec:
+      containers:
+        - image: ghcr.io/jacobh/howitt-ts-api:main@${GITHUB_SHA}
+          imagePullPolicy: Always
+          name: howitt-ts-api
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: GRAPHQL_URL
+              value: http://howitt-web-api/
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always
