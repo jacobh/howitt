@@ -265,6 +265,10 @@ app.get("/api/water-features/query", async (c) => {
   });
 });
 
+app.get("/api/now", (c) => {
+  return c.json({ now: new Date().toISOString() });
+});
+
 export default {
   port: 3001,
   fetch: app.fetch,
