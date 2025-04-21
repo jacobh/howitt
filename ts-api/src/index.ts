@@ -252,6 +252,10 @@ app.get("/api/water-features/query", async (c) => {
   })();
 
   const waterBetaRows = await (async () => {
+    if (nearbyFeatures.length === 0) {
+      return [];
+    }
+
     const waterBeta: unknown[] = await makeWaterBetaQuery(
       nearbyFeatures.map(({ properties: { id } }) => id)
     ).execute();
