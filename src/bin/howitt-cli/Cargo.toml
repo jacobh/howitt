@@ -39,3 +39,4 @@ serde = { version = "*", features = ["derive"] }
 rand = "*"
 geojson = "*"
 indicatif = "*"
+ordered-float = "*"

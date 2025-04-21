@@ -498,7 +498,7 @@ async fn process_routes(context: &Context, route_ids: Vec<RouteId>) -> Result<()
                 // First rayon blocking call to create segments
                 let segments_result = rayon_spawn_blocking(move || {
                     // Create segments (at least 250m each)
-                    let segments = create_segments(points, 250.0);
+                    let segments = create_segments(points, 100.0);
 
                     if segments.is_empty() {
                         return Err(anyhow::anyhow!(
@@ -690,6 +690,12 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
     // Fetch all rides from the repository
     println!("Fetching all rides...");
     let all_rides = ride_repo.all().await?;
+
+    let all_rides = all_rides
+        .into_iter()
+        .filter(|ride| ride.distance > 10_000.0)
+        .collect_vec();
+
     println!("Found {} rides to analyze", all_rides.len());
 
     // Process these to create a HashMap for easier lookup
@@ -737,7 +743,7 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
         .collect::<HashMap<_, _>>();
 
     // Create a semaphore to limit concurrency
-    let semaphore = Arc::new(Semaphore::new(10));
+    let semaphore = Arc::new(Semaphore::new(8));
 
     // Create a counter for completed rides
     let completed_rides = Arc::new(AtomicUsize::new(0));
@@ -800,7 +806,7 @@ pub async fn handle(context: Context) -> Result<(), anyhow::Error> {
                 // First rayon blocking call to create segments
                 let segments_result = rayon_spawn_blocking(move || {
                     // Create segments (at least 250m each)
-                    let segments = create_segments(points, 250.0);
+                    let segments = create_segments(points, 100.0);
 
                     if segments.is_empty() {
                         return Err(anyhow::anyhow!(

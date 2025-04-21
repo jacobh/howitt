@@ -1975,6 +1975,7 @@ dependencies = [
  "itertools 0.14.0",
  "mapbox-geocoding",
  "open-meteo",
+ "ordered-float",
  "prettytable-rs",
  "rand",
  "rayon",
