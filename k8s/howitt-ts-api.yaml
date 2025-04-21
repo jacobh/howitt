@@ -37,8 +37,11 @@ spec:
             - containerPort: 80
               protocol: TCP
           env:
-            - name: GRAPHQL_URL
-              value: http://howitt-web-api/
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: howitt-db
+                  key: DATABASE_URL
       imagePullSecrets:
         - name: regcred
       restartPolicy: Always
