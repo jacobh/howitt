@@ -196,6 +196,7 @@ const PointString = z.string().transform((s): Point => {
 const QueryParams = z.object({
   origin: PointString,
   radius: z.coerce.number().optional(),
+  limit: z.coerce.number().optional(),
 });
 
 function groupWaterBetaByTopic(rows: WaterBetaRow[]): WaterBetaTopic[] {
@@ -240,7 +241,7 @@ function groupWaterBetaByTopic(rows: WaterBetaRow[]): WaterBetaTopic[] {
 }
 
 app.get("/api/water-features/query", async (c) => {
-  const { origin, radius } = QueryParams.parse(c.req.query()); // Parse the query parameters
+  const { origin, radius, limit } = QueryParams.parse(c.req.query()); // Parse the query parameters
 
   const nearbyFeatures = await (async () => {
     const res: unknown[] = await makeNearbyFeatureQuery({
@@ -277,15 +278,18 @@ app.get("/api/water-features/query", async (c) => {
 
   return c.json<NearbyFeaturesResponse>({
     type: "FeatureCollection",
-    features: nearbyFeatures.map((feature) => ({
-      ...feature,
-      properties: {
-        ...feature.properties,
-        waterBeta: groupWaterBetaByTopic(
-          waterBetaByFeatureId.get(feature.properties.id) ?? []
-        ),
-      },
-    })),
+    features: nearbyFeatures
+      .map((feature) => ({
+        ...feature,
+        properties: {
+          ...feature.properties,
+          waterBeta: groupWaterBetaByTopic(
+            waterBetaByFeatureId.get(feature.properties.id) ?? []
+          ),
+        },
+      }))
+      .filter((feature) => feature.properties.waterBeta.length > 0)
+      .slice(0, limit ?? 100),
   });
 });
 
