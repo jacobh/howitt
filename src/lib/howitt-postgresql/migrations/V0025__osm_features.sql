@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+
 CREATE TABLE osm_features (
     id BIGINT PRIMARY KEY,
     geometry GEOMETRY(GEOMETRY, 4326),
