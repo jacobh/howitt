@@ -90,6 +90,9 @@ jobs:
             - name: webui
               file: howitt-webui.yaml
               is_deployment: true
+            - name: ts-api
+              file: howitt-ts-api.yaml
+              is_deployment: true
             - name: web-api
               file: howitt-web-api.yaml
               is_deployment: true
