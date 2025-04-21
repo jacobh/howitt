@@ -216,6 +216,11 @@ export type Note = TemporalContentBlock & {
   text: Scalars["String"]["output"];
 };
 
+export enum Poicondition {
+  AllGood = "ALL_GOOD",
+  Issue = "ISSUE",
+}
+
 export type PointDelta = {
   __typename?: "PointDelta";
   bearing: Scalars["Float"]["output"];
@@ -246,9 +251,10 @@ export enum PointOfInterestType {
 export type PointOfInterestVisit = {
   __typename?: "PointOfInterestVisit";
   comment?: Maybe<Scalars["String"]["output"]>;
+  condition?: Maybe<Poicondition>;
+  confirmation: VisitConfirmation;
   media: Array<Media>;
   pointOfInterest: PointOfInterest;
-  status: VisitStatus;
   user: UserProfile;
   visitedAt: Scalars["DateTime"]["output"];
 };
@@ -525,9 +531,10 @@ export type Viewer = {
   rwgpsConnection?: Maybe<UserRwgpsConnection>;
 };
 
-export enum VisitStatus {
-  AllGood = "ALL_GOOD",
-  Issue = "ISSUE",
+export enum VisitConfirmation {
+  Confirmed = "CONFIRMED",
+  Pending = "PENDING",
+  Rejected = "REJECTED",
 }
 
 type ElevationPath_Ride_Fragment = {
@@ -1323,6 +1330,17 @@ export type TripsQueryPointsQuery = {
       rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
     }>;
   }>;
+};
+
+export type ViewerQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type ViewerQueryQuery = {
+  __typename?: "Query";
+  viewer?:
+    | ({ __typename?: "Viewer" } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
+    | null;
 };
 
 export type SettingsQueryVariables = Exact<{ [key: string]: never }>;
@@ -5452,6 +5470,58 @@ export const TripsQueryPointsDocument = {
   TripsQueryPointsQuery,
   TripsQueryPointsQueryVariables
 >;
+export const ViewerQueryDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "viewerQuery" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "viewer" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "FragmentSpread",
+                  name: { kind: "Name", value: "viewerInfo" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "viewerInfo" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Viewer" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "id" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "profile" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "username" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ViewerQueryQuery, ViewerQueryQueryVariables>;
 export const SettingsDocument = {
   kind: "Document",
   definitions: [

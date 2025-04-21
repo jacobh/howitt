@@ -150,6 +150,11 @@ type Note implements TemporalContentBlock {
   text: String!
 }
 
+enum Poicondition {
+  ALL_GOOD
+  ISSUE
+}
+
 type PointDelta {
   bearing: Float!
   distance: Float!
@@ -179,9 +184,10 @@ enum PointOfInterestType {
 
 type PointOfInterestVisit {
   comment: String
+  condition: Poicondition
+  confirmation: VisitConfirmation!
   media: [Media!]!
   pointOfInterest: PointOfInterest!
-  status: VisitStatus!
   user: UserProfile!
   visitedAt: DateTime!
 }
@@ -429,7 +435,8 @@ type Viewer {
   rwgpsConnection: UserRwgpsConnection
 }
 
-enum VisitStatus {
-  ALL_GOOD
-  ISSUE
+enum VisitConfirmation {
+  CONFIRMED
+  PENDING
+  REJECTED
 }
