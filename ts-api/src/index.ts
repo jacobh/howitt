@@ -7,6 +7,7 @@ import { z } from "zod";
 import { match, P } from "ts-pattern";
 
 import "./compression-polyfill";
+import { cors } from "hono/cors";
 
 function parseGeometry(geomString: string): Geometry {
   return JSON.parse(geomString) as Geometry;
@@ -151,6 +152,7 @@ function parseWaterBetaRow(row: any): WaterBetaRow {
 const app = new Hono();
 app.use(logger());
 app.use(compress());
+app.use(cors());
 
 app.get("/api/water-features", async (c) => {
   const res: unknown[] = await featureIndexQuery.execute();
