@@ -1,6 +1,6 @@
-import { DEFAULT_INITIAL_VIEW } from "../components/map";
+import { DEFAULT_INITIAL_VIEW } from "../../components/map";
 import { useQuery as useGqlQuery } from "@apollo/client/react/hooks/useQuery";
-import { gql } from "../__generated__/gql";
+import { gql } from "../../__generated__/gql";
 import {
   Container,
   MapContainer,
