@@ -1,9 +1,12 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { compress } from "hono/compress";
 import { sql } from "bun";
 import type { Feature, Geometry, Point } from "geojson";
 import { z } from "zod";
 import { match, P } from "ts-pattern";
+
+import "./compression-polyfill";
 
 function parseGeometry(geomString: string): Geometry {
   return JSON.parse(geomString) as Geometry;
@@ -147,6 +150,7 @@ function parseWaterBetaRow(row: any): WaterBetaRow {
 
 const app = new Hono();
 app.use(logger());
+app.use(compress());
 
 app.get("/api/water-features", async (c) => {
   const res: unknown[] = await featureIndexQuery.execute();
