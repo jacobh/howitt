@@ -25,6 +25,7 @@
     "@remix-run/react": "^2.15.2",
     "@tanstack/react-query": "^5.74.4",
     "@types/compression": "^1.7.5",
+    "@types/geojson": "^7946.0.16",
     "@types/lodash": "^4.17.14",
     "@types/morgan": "^1.9.9",
     "@types/source-map-support": "^0.5.10",
