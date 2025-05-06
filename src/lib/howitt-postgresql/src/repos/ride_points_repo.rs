@@ -1,6 +1,6 @@
 use howitt::{
     ext::iter::ResultIterExt,
-    models::ride::{RideId, RidePoints},
+    models::ride::{RideId, RidePoints, RidePointsFilter},
     repos::Repo,
 };
 use uuid::Uuid;
@@ -33,22 +33,46 @@ impl Repo for PostgresRidePointsRepo {
     type Model = RidePoints;
     type Error = PostgresRepoError;
 
-    async fn filter_models(&self, _: ()) -> Result<Vec<RidePoints>, PostgresRepoError> {
-        self.all().await
+    async fn filter_models(
+        &self,
+        filter: RidePointsFilter,
+    ) -> Result<Vec<RidePoints>, PostgresRepoError> {
+        let mut conn = self.client.acquire().await.unwrap();
+
+        match filter {
+            RidePointsFilter::All => {
+                let query = sqlx::query_as!(RidePointsRow, r#"select * from ride_points"#);
+
+                Ok(query
+                    .fetch_all(conn.as_mut())
+                    .await?
+                    .into_iter()
+                    .map(RidePoints::try_from)
+                    .collect_result_vec()?)
+            }
+            RidePointsFilter::Ids(ids) => {
+                let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
+
+                let query = sqlx::query_as!(
+                    RidePointsRow,
+                    r#"select * from ride_points where ride_id = ANY($1)"#,
+                    &uuids
+                );
+
+                Ok(query
+                    .fetch_all(conn.as_mut())
+                    .await?
+                    .into_iter()
+                    .map(RidePoints::try_from)
+                    .collect_result_vec()?)
+            }
+        }
     }
 
     async fn all(&self) -> Result<Vec<RidePoints>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
-
-        let query = sqlx::query_as!(RidePointsRow, r#"select * from ride_points"#);
-
-        Ok(query
-            .fetch_all(conn.as_mut())
-            .await?
-            .into_iter()
-            .map(RidePoints::try_from)
-            .collect_result_vec()?)
+        self.filter_models(RidePointsFilter::All).await
     }
+
     async fn get(&self, id: RideId) -> Result<RidePoints, PostgresRepoError> {
         let mut conn = self.client.acquire().await.unwrap();
 

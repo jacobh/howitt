@@ -14,7 +14,7 @@ pub struct PostgresClient {
 impl PostgresClient {
     pub async fn connect(url: &str) -> Result<PostgresClient, PostgresRepoError> {
         Ok(PostgresClient {
-            pool: PgPoolOptions::new().max_connections(5).connect(url).await?,
+            pool: PgPoolOptions::new().max_connections(8).connect(url).await?,
         })
     }
 
@@ -32,4 +32,6 @@ impl PostgresClient {
 pub enum PostgresRepoError {
     Sqlx(#[from] sqlx::Error),
     SerdeJson(#[from] serde_json::Error),
+    GeoJson(#[from] geojson::Error),
+    Generic(anyhow::Error),
 }

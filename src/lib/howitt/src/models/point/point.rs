@@ -1,6 +1,10 @@
 pub trait Point: std::fmt::Debug + Clone {
     fn as_geo_point(&self) -> &geo::Point;
 
+    fn to_geo_point(&self) -> geo::Point {
+        *self.as_geo_point()
+    }
+
     fn x_y(&self) -> (f64, f64) {
         geo::Point::x_y(*self.as_geo_point())
     }
