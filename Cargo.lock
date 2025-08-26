@@ -982,6 +982,7 @@ dependencies = [
  "encode_unicode",
  "libc",
  "once_cell",
+ "unicode-width 0.2.0",
  "windows-sys 0.59.0",
 ]
 
@@ -1695,6 +1696,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "geojson"
+version = "0.24.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e26f3c45b36fccc9cf2805e61d4da6bc4bbd5a3a9589b01afa3a40eff703bd79"
+dependencies = [
+ "geo-types",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.11",
+]
+
+[[package]]
 name = "geometry-rs"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1919,6 +1933,7 @@ dependencies = [
  "num",
  "once_cell",
  "ordered-float",
+ "rand",
  "rayon",
  "regex",
  "rustc-hash",
@@ -1948,20 +1963,25 @@ dependencies = [
  "clap",
  "derive_more",
  "geo",
+ "geojson",
  "gpx",
  "howitt",
  "howitt-postgresql",
  "howitt_client_types",
  "howitt_clients",
  "howitt_jobs",
+ "indicatif",
  "inquire",
  "itertools 0.14.0",
  "mapbox-geocoding",
  "open-meteo",
+ "ordered-float",
  "prettytable-rs",
+ "rand",
  "rayon",
  "rwgps",
  "rwgps_types",
+ "serde",
  "serde_json",
  "serde_yaml",
  "tokio",
@@ -1974,11 +1994,14 @@ dependencies = [
 name = "howitt-postgresql"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "argon2",
  "async-trait",
  "chrono",
  "chrono-tz",
  "derive_more",
+ "geo",
+ "geojson",
  "howitt",
  "itertools 0.14.0",
  "serde_json",
@@ -2506,6 +2529,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "indicatif"
+version = "0.17.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "183b3088984b400f4cfac3620d5e076c84da5364016b4f49473de574b2586235"
+dependencies = [
+ "console",
+ "number_prefix",
+ "portable-atomic",
+ "unicode-width 0.2.0",
+ "web-time",
+]
+
+[[package]]
 name = "infer"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2537,7 +2573,7 @@ dependencies = [
  "newline-converter",
  "once_cell",
  "unicode-segmentation",
- "unicode-width",
+ "unicode-width 0.1.14",
 ]
 
 [[package]]
@@ -3188,6 +3224,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "number_prefix"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
+
+[[package]]
 name = "oauth2"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3596,7 +3638,7 @@ dependencies = [
  "is-terminal",
  "lazy_static",
  "term",
- "unicode-width",
+ "unicode-width 0.1.14",
 ]
 
 [[package]]
@@ -5569,6 +5611,12 @@ name = "unicode-width"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7dd6e30e90baa6f72411720665d41d89b9a3d039dc45b8faea1ddd07f617f6af"
+
+[[package]]
+name = "unicode-width"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
 
 [[package]]
 name = "unicode-xid"

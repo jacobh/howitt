@@ -24,3 +24,6 @@ sqlx = { version = "0.8", features = [
 ] }
 argon2 = "0.5.3"
 chrono-tz = "0.10.1"
+geo = "*"
+geojson = "*"
+anyhow = "*"

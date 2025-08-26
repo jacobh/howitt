@@ -1,0 +1,55 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    SELECT \n                        id,\n                        feature_type,\n                        properties,\n                        geometry_type,\n                        ST_AsGeoJSON(geometry)::json as \"geometry_json!\",\n                        created_at\n                    FROM \n                        osm_highway_features\n                    WHERE \n                        ST_DistanceSphere(\n                            geometry,\n                            ST_SetSRID(ST_MakePoint($1, $2), 4326)\n                        ) <= $3\n                    ORDER BY \n                        geometry <-> ST_SetSRID(ST_MakePoint($1, $2), 4326)\n                    LIMIT $4\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "feature_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "properties",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "geometry_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "geometry_json!",
+        "type_info": "Json"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Float8",
+        "Float8",
+        "Float8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "ae38680a9fa9bb8196b2c3db3ced5ce4b6adb51af007634ca7b2755bc6195739"
+}

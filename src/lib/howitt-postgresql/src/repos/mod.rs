@@ -4,6 +4,7 @@ use crate::PostgresClient;
 use howitt::repos::Repos;
 
 mod media_repo;
+mod osm_feature_repo;
 mod poi_repo;
 mod ride_points_repo;
 mod ride_repo;
@@ -13,6 +14,7 @@ mod trip_repo;
 mod user_repo;
 
 pub use media_repo::PostgresMediaRepo;
+pub use osm_feature_repo::PostgresOsmFeatureRepo;
 pub use poi_repo::PostgresPointOfInterestRepo;
 pub use ride_points_repo::PostgresRidePointsRepo;
 pub use ride_repo::PostgresRideRepo;
@@ -31,6 +33,7 @@ pub struct PostgresRepos {
     pub route_points_repo: PostgresRoutePointsRepo,
     pub trip_repo: PostgresTripRepo,
     pub user_repo: PostgresUserRepo,
+    pub osm_feature_repo: PostgresOsmFeatureRepo,
 }
 
 impl PostgresRepos {
@@ -44,6 +47,7 @@ impl PostgresRepos {
             route_points_repo: PostgresRoutePointsRepo::new(client.clone()),
             trip_repo: PostgresTripRepo::new(client.clone()),
             user_repo: PostgresUserRepo::new(client.clone()),
+            osm_feature_repo: PostgresOsmFeatureRepo::new(client.clone()),
         }
     }
 }
@@ -59,6 +63,7 @@ impl From<PostgresRepos> for Repos {
             route_points_repo: Arc::new(postgres_context.route_points_repo),
             trip_repo: Arc::new(postgres_context.trip_repo),
             user_repo: Arc::new(postgres_context.user_repo),
+            osm_feature_repo: Arc::new(postgres_context.osm_feature_repo),
         }
     }
 }

@@ -1,4 +1,5 @@
 use crate::ext::futures::FuturesIteratorExt;
+use crate::models::osm::OsmFeature;
 use crate::models::{
     media::Media,
     point_of_interest::PointOfInterest,
@@ -141,6 +142,7 @@ pub type RouteRepo = Arc<dyn AnyhowRepo<Model = Route>>;
 pub type RoutePointsRepo = Arc<dyn AnyhowRepo<Model = RoutePoints>>;
 pub type TripRepo = Arc<dyn AnyhowRepo<Model = Trip>>;
 pub type UserRepo = Arc<dyn AnyhowRepo<Model = User>>;
+pub type OsmFeatureRepo = Arc<dyn AnyhowRepo<Model = OsmFeature>>;
 
 #[derive(Clone)]
 pub struct Repos {
@@ -152,4 +154,5 @@ pub struct Repos {
     pub route_points_repo: RoutePointsRepo,
     pub trip_repo: TripRepo,
     pub user_repo: UserRepo,
+    pub osm_feature_repo: OsmFeatureRepo,
 }

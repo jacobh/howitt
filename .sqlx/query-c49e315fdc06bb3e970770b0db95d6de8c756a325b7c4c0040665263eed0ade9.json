@@ -1,0 +1,54 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    WITH input_geometry AS (\n                        SELECT ST_GeomFromGeoJSON($1) AS geom\n                    )\n                    SELECT \n                        o.id,\n                        o.feature_type,\n                        o.properties,\n                        o.geometry_type,\n                        ST_AsGeoJSON(o.geometry)::json AS \"geometry_json!\",\n                        o.created_at\n                    FROM \n                        osm_highway_features o,\n                        input_geometry g\n                    WHERE \n                        -- Filter to features within reasonable distance for performance\n                        ST_DWithin(o.geometry, g.geom, $2)\n                    ORDER BY \n                        -- Sort by shape similarity (Hausdorff distance - lower is more similar)\n                        ST_HausdorffDistance(o.geometry, g.geom) ASC\n                    LIMIT $3\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "feature_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "properties",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "geometry_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "geometry_json!",
+        "type_info": "Json"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Float8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "c49e315fdc06bb3e970770b0db95d6de8c756a325b7c4c0040665263eed0ade9"
+}
