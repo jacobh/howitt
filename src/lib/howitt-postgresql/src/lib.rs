@@ -1,51 +1,33 @@
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use tokio_postgres::Client;
-
+mod pool;
 mod repos;
 mod traced_client;
+pub use pool::{ConnectionFactory, PostgresPool};
 pub use repos::*;
 pub use traced_client::{PostgresConnection, PostgresTransaction};
 
-/// A request-scoped connection on Workers. The lock prevents concurrent repository
-/// calls from interleaving statements inside an explicit transaction.
-#[derive(Clone)]
-pub struct PostgresClient {
-    client: Arc<Mutex<Client>>,
-    #[cfg(not(target_arch = "wasm32"))]
-    config: Option<Arc<tokio_postgres::Config>>,
-}
-
-impl std::fmt::Debug for PostgresClient {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Connection configuration includes credentials; never include it in logs.
-        f.debug_struct("PostgresClient").finish_non_exhaustive()
-    }
-}
-
-impl PostgresClient {
-    pub fn new(client: Client) -> Self {
-        Self {
-            client: Arc::new(Mutex::new(client)),
-            #[cfg(not(target_arch = "wasm32"))]
-            config: None,
-        }
-    }
-
+impl PostgresPool {
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn connect(url: &str) -> Result<Self, PostgresRepoError> {
-        let config = Arc::new(url.parse::<tokio_postgres::Config>()?);
-        let client = Self::connect_native(&config).await?;
-        Ok(Self {
-            client: Arc::new(Mutex::new(client)),
-            config: Some(config),
-        })
+        Ok(Self::new(NativeConnectionFactory(url.parse()?)))
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    async fn connect_native(config: &tokio_postgres::Config) -> Result<Client, PostgresRepoError> {
+    pub async fn acquire(&self) -> Result<PostgresConnection, PostgresRepoError> {
+        let lease = traced_client::db_span("connection.wait", "ACQUIRE")
+            .trace(self.lease())
+            .await?;
+        Ok(PostgresConnection::from_lease(lease))
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+struct NativeConnectionFactory(tokio_postgres::Config);
+
+#[cfg(not(target_arch = "wasm32"))]
+#[async_trait::async_trait]
+impl ConnectionFactory for NativeConnectionFactory {
+    async fn connect(&self) -> Result<tokio_postgres::Client, PostgresRepoError> {
         let tls = postgres_native_tls::MakeTlsConnector::new(native_tls::TlsConnector::new()?);
-        let (client, connection) = config.connect(tls).await?;
+        let (client, connection) = self.0.connect(tls).await?;
         tokio::spawn(async move {
             if let Err(error) = connection.await {
                 tracing::error!(%error, "PostgreSQL connection closed");
@@ -53,32 +35,16 @@ impl PostgresClient {
         });
         Ok(client)
     }
-
-    pub async fn acquire(&self) -> Result<PostgresConnection<'_>, PostgresRepoError> {
-        let client = traced_client::db_span("connection.wait", "ACQUIRE")
-            .trace(async { Ok::<_, PostgresRepoError>(self.client.lock().await) })
-            .await?;
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            let mut client = client;
-            if client.is_closed() {
-                if let Some(config) = &self.config {
-                    // Reconnect for a new operation only. Never replay a failed
-                    // statement/transaction, whose commit outcome may be unknown.
-                    *client = traced_client::db_span("connection.reconnect", "CONNECT")
-                        .trace(Self::connect_native(config))
-                        .await?;
-                }
-            }
-            return Ok(PostgresConnection::new(client));
-        }
-        #[cfg(target_arch = "wasm32")]
-        Ok(PostgresConnection::new(client))
-    }
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum PostgresRepoError {
+    #[error("PostgreSQL connection acquisition timed out")]
+    AcquireTimeout,
+    #[error("PostgreSQL connection pool closed")]
+    PoolClosed,
+    #[error("PostgreSQL socket connection failed: {0}")]
+    Connection(String),
     #[error("PostgreSQL query failed: {0}")]
     Postgres(#[from] tokio_postgres::Error),
     #[error("Invalid stored JSON: {0}")]

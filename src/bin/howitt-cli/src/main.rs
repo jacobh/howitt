@@ -4,7 +4,7 @@ use apalis_redis::RedisStorage;
 use clap::{Parser, Subcommand};
 use howitt::jobs::Job;
 use howitt_jobs::storage::LockFreeStorage;
-use howitt_postgresql::{PostgresClient, PostgresRepos};
+use howitt_postgresql::{PostgresPool, PostgresRepos};
 
 mod commands;
 mod utils;
@@ -41,14 +41,14 @@ enum Commands {
 }
 
 pub struct Context {
-    pub postgres_client: PostgresClient,
+    pub postgres_pool: PostgresPool,
     pub repos: PostgresRepos,
     pub job_storage: LockFreeStorage<Job>,
 }
 
 impl Context {
     pub async fn new() -> Result<Self, anyhow::Error> {
-        let postgres_client = PostgresClient::connect(
+        let postgres_pool = PostgresPool::connect(
             &std::env::var("DATABASE_URL")
                 .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
         )
@@ -62,8 +62,8 @@ impl Context {
         let job_storage = RedisStorage::new(conn);
 
         Ok(Self {
-            repos: PostgresRepos::new(postgres_client.clone()),
-            postgres_client,
+            repos: PostgresRepos::new(postgres_pool.clone()),
+            postgres_pool,
             job_storage: LockFreeStorage::new(job_storage),
         })
     }

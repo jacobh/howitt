@@ -5,7 +5,7 @@ use crate::Context;
 #[allow(unused_variables)]
 pub async fn handle(
     Context {
-        postgres_client,
+        postgres_pool,
         repos:
             PostgresRepos {
                 user_repo,

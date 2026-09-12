@@ -12,7 +12,7 @@ use howitt::models::user::UserId;
 use howitt::repos::Repo;
 use uuid::Uuid;
 
-use crate::{PostgresClient, PostgresRepoError};
+use crate::{PostgresPool, PostgresRepoError};
 
 struct MediaRow {
     id: Uuid,
@@ -98,7 +98,7 @@ impl TryFrom<MediaRow> for Media {
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresMediaRepo {
-    client: PostgresClient,
+    pool: PostgresPool,
 }
 
 #[async_trait::async_trait]
@@ -107,7 +107,7 @@ impl Repo for PostgresMediaRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: MediaFilter) -> Result<Vec<Media>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         let media = match filter {
             MediaFilter::All => conn
@@ -269,7 +269,7 @@ impl Repo for PostgresMediaRepo {
     }
 
     async fn get(&self, id: MediaId) -> Result<Media, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(Media::try_from(MediaRow::try_from(
             &conn
@@ -292,7 +292,7 @@ impl Repo for PostgresMediaRepo {
     }
 
     async fn put(&self, media: Media) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await?;
+        let mut conn = self.pool.acquire().await?;
         let tx = conn.transaction().await?;
 
         // Insert/update the media record

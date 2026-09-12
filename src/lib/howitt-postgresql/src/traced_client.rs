@@ -1,16 +1,23 @@
 //! Central statement instrumentation; no SQL text, parameters or error messages.
+use crate::pool::ConnectionLease;
 use howitt_observability::TraceSpan;
-use std::ops::Deref;
-use tokio::sync::MutexGuard;
+use std::{
+    ops::Deref,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+};
 use tokio_postgres::{
     types::{ToSql, Type},
-    Client, Error, GenericClient, Row, Transaction,
+    Error, GenericClient, Row, Transaction,
 };
 
 pub struct TracedClient<C> {
     inner: C,
+    reusable: Arc<AtomicBool>,
 }
-pub type PostgresConnection<'a> = TracedClient<MutexGuard<'a, Client>>;
+pub type PostgresConnection = TracedClient<ConnectionLease>;
 pub type PostgresTransaction<'a> = TracedClient<Box<Transaction<'a>>>;
 
 pub(crate) fn db_span(method: &str, operation: &str) -> TraceSpan {
@@ -38,8 +45,14 @@ fn operation(statement: &str) -> &'static str {
 }
 
 impl<C> TracedClient<C> {
-    pub(crate) fn new(inner: C) -> Self {
-        Self { inner }
+    fn new(inner: C, reusable: Arc<AtomicBool>) -> Self {
+        Self { inner, reusable }
+    }
+
+    fn check_connection<T>(&self, result: Result<T, Error>) -> Result<T, Error> {
+        // A server error can precede the driver's is_closed update. Discard on
+        // failure rather than leasing a dying connection or replaying a query.
+        result.inspect_err(|_| self.reusable.store(false, Ordering::Relaxed))
     }
 }
 
@@ -52,49 +65,68 @@ where
         statement: &str,
         params: &[(&(dyn ToSql + Sync), Type)],
     ) -> Result<Vec<Row>, Error> {
-        db_span("query_typed", operation(statement))
-            .trace(self.inner.query_typed(statement, params))
-            .await
+        self.check_connection(
+            db_span("query_typed", operation(statement))
+                .trace(self.inner.query_typed(statement, params))
+                .await,
+        )
     }
     pub async fn query_typed_one(
         &self,
         statement: &str,
         params: &[(&(dyn ToSql + Sync), Type)],
     ) -> Result<Row, Error> {
-        db_span("query_typed_one", operation(statement))
-            .trace(self.inner.query_typed_one(statement, params))
-            .await
+        self.check_connection(
+            db_span("query_typed_one", operation(statement))
+                .trace(self.inner.query_typed_one(statement, params))
+                .await,
+        )
     }
     pub async fn query_typed_opt(
         &self,
         statement: &str,
         params: &[(&(dyn ToSql + Sync), Type)],
     ) -> Result<Option<Row>, Error> {
-        db_span("query_typed_opt", operation(statement))
-            .trace(self.inner.query_typed_opt(statement, params))
-            .await
+        self.check_connection(
+            db_span("query_typed_opt", operation(statement))
+                .trace(self.inner.query_typed_opt(statement, params))
+                .await,
+        )
     }
     pub async fn execute_typed(
         &self,
         statement: &str,
         params: &[(&(dyn ToSql + Sync), Type)],
     ) -> Result<u64, Error> {
-        db_span("execute_typed", operation(statement))
-            .trace(self.inner.execute_typed(statement, params))
-            .await
+        self.check_connection(
+            db_span("execute_typed", operation(statement))
+                .trace(self.inner.execute_typed(statement, params))
+                .await,
+        )
     }
 }
 
-impl PostgresConnection<'_> {
+impl PostgresConnection {
+    pub(crate) fn from_lease(inner: ConnectionLease) -> Self {
+        let reusable = inner.reusable.clone();
+        Self::new(inner, reusable)
+    }
+
     pub fn is_closed(&self) -> bool {
         self.inner.is_closed()
     }
 
     pub async fn transaction(&mut self) -> Result<PostgresTransaction<'_>, Error> {
+        // BEGIN failure/cancellation and dropped transactions discard the connection.
+        // Only an acknowledged COMMIT/ROLLBACK makes it safe to pool again.
+        self.reusable.store(false, Ordering::Relaxed);
         let transaction = db_span("transaction.begin", "BEGIN")
             .trace(self.inner.transaction())
             .await?;
-        Ok(TracedClient::new(Box::new(transaction)))
+        Ok(TracedClient::new(
+            Box::new(transaction),
+            self.reusable.clone(),
+        ))
     }
 }
 
@@ -102,12 +134,16 @@ impl PostgresTransaction<'_> {
     pub async fn commit(self) -> Result<(), Error> {
         db_span("transaction.commit", "COMMIT")
             .trace(self.inner.commit())
-            .await
+            .await?;
+        self.reusable.store(true, Ordering::Relaxed);
+        Ok(())
     }
     pub async fn rollback(self) -> Result<(), Error> {
         db_span("transaction.rollback", "ROLLBACK")
             .trace(self.inner.rollback())
-            .await
+            .await?;
+        self.reusable.store(true, Ordering::Relaxed);
+        Ok(())
     }
 }
 

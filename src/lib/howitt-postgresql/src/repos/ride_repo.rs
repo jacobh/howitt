@@ -9,7 +9,7 @@ use howitt::models::{ride::Ride, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
 
-use crate::{PostgresClient, PostgresRepoError};
+use crate::{PostgresPool, PostgresRepoError};
 
 #[allow(dead_code)]
 struct RideRow {
@@ -58,7 +58,7 @@ impl TryFrom<RideRow> for Ride {
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresRideRepo {
-    client: PostgresClient,
+    pool: PostgresPool,
 }
 
 #[async_trait::async_trait]
@@ -67,7 +67,7 @@ impl Repo for PostgresRideRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: RideFilter) -> Result<Vec<Ride>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         let rides = match filter {
             RideFilter::Ids(ids) => {
@@ -156,7 +156,7 @@ impl Repo for PostgresRideRepo {
     }
 
     async fn all(&self) -> Result<Vec<Ride>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(conn
             .query_typed(r#"select * from rides"#, &[])
@@ -169,7 +169,7 @@ impl Repo for PostgresRideRepo {
             .collect_result_vec()?)
     }
     async fn get(&self, id: <Ride as Model>::Id) -> Result<Ride, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(Ride::try_from(RideRow::try_from(
             &conn
@@ -182,7 +182,7 @@ impl Repo for PostgresRideRepo {
     }
 
     async fn put(&self, ride: Ride) -> Result<(), PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         conn.execute_typed(
             r#"insert into rides (

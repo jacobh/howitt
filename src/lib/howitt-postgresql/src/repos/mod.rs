@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::PostgresClient;
+use crate::PostgresPool;
 use howitt::repos::Repos;
 
 mod media_repo;
@@ -34,16 +34,16 @@ pub struct PostgresRepos {
 }
 
 impl PostgresRepos {
-    pub fn new(client: PostgresClient) -> PostgresRepos {
+    pub fn new(pool: PostgresPool) -> PostgresRepos {
         PostgresRepos {
-            media_repo: PostgresMediaRepo::new(client.clone()),
-            point_of_interest_repo: PostgresPointOfInterestRepo::new(client.clone()),
-            ride_points_repo: PostgresRidePointsRepo::new(client.clone()),
-            ride_repo: PostgresRideRepo::new(client.clone()),
-            route_repo: PostgresRouteRepo::new(client.clone()),
-            route_points_repo: PostgresRoutePointsRepo::new(client.clone()),
-            trip_repo: PostgresTripRepo::new(client.clone()),
-            user_repo: PostgresUserRepo::new(client.clone()),
+            media_repo: PostgresMediaRepo::new(pool.clone()),
+            point_of_interest_repo: PostgresPointOfInterestRepo::new(pool.clone()),
+            ride_points_repo: PostgresRidePointsRepo::new(pool.clone()),
+            ride_repo: PostgresRideRepo::new(pool.clone()),
+            route_repo: PostgresRouteRepo::new(pool.clone()),
+            route_points_repo: PostgresRoutePointsRepo::new(pool.clone()),
+            trip_repo: PostgresTripRepo::new(pool.clone()),
+            user_repo: PostgresUserRepo::new(pool.clone()),
         }
     }
 }

@@ -47,7 +47,10 @@ mod runtime {
     use crate::graphql::{
         context::SchemaData,
         loaders::{
-            ride_loader::RideLoader, route_data_loader::RouteDataLoader, user_loader::UserLoader,
+            ride_loader::RideLoader,
+            route_data_loader::RouteDataLoader,
+            trip_content_loader::{TripMediaLoader, TripRidesLoader},
+            user_loader::UserLoader,
         },
         schema::build_schema,
     };
@@ -59,38 +62,69 @@ mod runtime {
             user::{auth::UserAuthService, signup::UserSignupService},
         },
     };
-    use howitt_postgresql::{PostgresClient, PostgresRepos};
+    use howitt_postgresql::{ConnectionFactory, PostgresPool, PostgresRepoError, PostgresRepos};
     use tower::Service;
     use worker::{postgres_tls::PassthroughTls, *};
+
+    struct HyperdriveConnectionFactory {
+        host: String,
+        port: u16,
+        config: tokio_postgres::Config,
+    }
+
+    #[async_trait::async_trait]
+    impl ConnectionFactory for HyperdriveConnectionFactory {
+        async fn connect(&self) -> Result<tokio_postgres::Client, PostgresRepoError> {
+            worker::send::SendFuture::new(async {
+                let socket = Socket::builder()
+                    .secure_transport(SecureTransport::StartTls)
+                    .connect(&self.host, self.port)
+                    .map_err(|error| PostgresRepoError::Connection(error.to_string()))?;
+                let (client, connection) = self.config.connect_raw(socket, PassthroughTls).await?;
+                howitt_observability::spawn_local(async move {
+                    if let Err(error) = connection.await {
+                        console_error!("PostgreSQL connection closed: {error:?}");
+                    }
+                });
+                Ok(client)
+            })
+            .await
+        }
+    }
 
     async fn state(env: &Env) -> anyhow::Result<app_state::AppState> {
         // No insecure fallback: missing secrets must fail closed.
         let jwt_secret = env.secret("JWT_SECRET")?.to_string();
         let hyperdrive = env.hyperdrive("HYPERDRIVE")?;
-        let socket = Socket::builder()
-            .secure_transport(SecureTransport::StartTls)
-            .connect(hyperdrive.host(), hyperdrive.port())?;
-        let config = hyperdrive
-            .connection_string()
-            .parse::<tokio_postgres::Config>()?;
-        let (client, connection) = config.connect_raw(socket, PassthroughTls).await?;
-        howitt_observability::spawn_local(async move {
-            if let Err(error) = connection.await {
-                console_error!("PostgreSQL connection closed: {error:?}");
-            }
+        let pool = PostgresPool::new(HyperdriveConnectionFactory {
+            host: hyperdrive.host(),
+            port: hyperdrive.port(),
+            config: hyperdrive.connection_string().parse()?,
         });
-        let repos = Repos::from(PostgresRepos::new(PostgresClient::new(client)));
+        let repos = Repos::from(PostgresRepos::new(pool));
         let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
         let user_signup_service = UserSignupService::new(repos.user_repo.clone());
         let cache = cache::WorkerCache::new(env.kv("DERIVED_CACHE")?);
         let schema = build_schema(SchemaData {
-            ride_loader: DataLoader::new(
+            ride_loader: DataLoader::with_cache(
                 RideLoader::new(repos.ride_repo.clone()),
                 howitt_observability::spawn_local,
+                HashMapCache::default(),
             ),
-            user_loader: DataLoader::new(
+            user_loader: DataLoader::with_cache(
                 UserLoader::new(repos.user_repo.clone()),
                 howitt_observability::spawn_local,
+                HashMapCache::default(),
+            ),
+            trip_rides_loader: DataLoader::with_cache(
+                TripRidesLoader(repos.ride_repo.clone()),
+                howitt_observability::spawn_local,
+                HashMapCache::default(),
+            ),
+            trip_media_loader: DataLoader::with_cache(
+                TripMediaLoader(repos.media_repo.clone()),
+                howitt_observability::spawn_local,
+                HashMapCache::default(),
             ),
             route_points_loader: DataLoader::with_cache(
                 RouteDataLoader::new(repos.route_points_repo.clone(), cache.clone()),

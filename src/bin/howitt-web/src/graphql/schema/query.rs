@@ -247,6 +247,12 @@ impl Query {
         } = ctx.data()?;
 
         let user = user_repo.find_model(UserFilter::Username(username)).await?;
+        if let Some(user) = &user {
+            ctx.data::<SchemaData>()?
+                .user_loader
+                .feed_one(user.id, user.clone())
+                .await;
+        }
 
         Ok(user.map(UserProfile))
     }

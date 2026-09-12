@@ -9,7 +9,7 @@ use howitt::models::{user::User, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
 
-use crate::{PostgresClient, PostgresRepoError};
+use crate::{PostgresPool, PostgresRepoError};
 
 struct UserRow {
     id: Uuid,
@@ -76,7 +76,7 @@ impl TryFrom<UserRow> for User {
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresUserRepo {
-    client: PostgresClient,
+    pool: PostgresPool,
 }
 
 #[async_trait::async_trait]
@@ -85,7 +85,7 @@ impl Repo for PostgresUserRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: UserFilter) -> Result<Vec<User>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         let users = match filter {
             UserFilter::Ids(ids) => {
@@ -177,7 +177,7 @@ impl Repo for PostgresUserRepo {
     }
 
     async fn all(&self) -> Result<Vec<User>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(conn
             .query_typed(
@@ -204,7 +204,7 @@ impl Repo for PostgresUserRepo {
     }
 
     async fn get(&self, id: <User as Model>::Id) -> Result<User, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(User::try_from(UserRow::try_from(
             &conn
@@ -228,7 +228,7 @@ impl Repo for PostgresUserRepo {
     }
 
     async fn put(&self, model: User) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await?;
+        let mut conn = self.pool.acquire().await?;
         let tx = conn.transaction().await?;
 
         // Insert/update user

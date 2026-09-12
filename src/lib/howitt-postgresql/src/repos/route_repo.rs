@@ -11,7 +11,7 @@ use howitt::models::Model;
 use howitt::repos::Repo;
 use uuid::Uuid;
 
-use crate::{PostgresClient, PostgresRepoError};
+use crate::{PostgresPool, PostgresRepoError};
 
 #[allow(dead_code)]
 struct RouteIndexRow {
@@ -215,7 +215,7 @@ impl TryFrom<RouteRow> for Route {
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresRouteRepo {
-    client: PostgresClient,
+    pool: PostgresPool,
 }
 
 #[async_trait::async_trait]
@@ -224,7 +224,7 @@ impl Repo for PostgresRouteRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: RouteFilter) -> Result<Vec<Route>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         let rows = match filter {
             RouteFilter::Starred => {
@@ -261,7 +261,7 @@ impl Repo for PostgresRouteRepo {
     }
 
     async fn all(&self) -> Result<Vec<Route>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(conn
             .query_typed(
@@ -295,7 +295,7 @@ impl Repo for PostgresRouteRepo {
             .collect_result_vec()?)
     }
     async fn get(&self, id: <Route as Model>::Id) -> Result<Route, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(Route::try_from(RouteRow::try_from(
             &conn
@@ -308,7 +308,7 @@ impl Repo for PostgresRouteRepo {
     }
 
     async fn put(&self, route: Route) -> Result<(), PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         conn.execute_typed(
             r#"insert into routes (

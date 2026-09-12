@@ -6,7 +6,7 @@ use howitt::{
 use tokio_postgres::types::Type;
 use uuid::Uuid;
 
-use crate::{PostgresClient, PostgresRepoError};
+use crate::{PostgresPool, PostgresRepoError};
 
 struct RidePointsRow {
     ride_id: Uuid,
@@ -37,7 +37,7 @@ impl TryFrom<RidePointsRow> for RidePoints {
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresRidePointsRepo {
-    client: PostgresClient,
+    pool: PostgresPool,
 }
 
 #[async_trait::async_trait]
@@ -50,7 +50,7 @@ impl Repo for PostgresRidePointsRepo {
     }
 
     async fn all(&self) -> Result<Vec<RidePoints>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(conn
             .query_typed(r#"select * from ride_points"#, &[])
@@ -63,7 +63,7 @@ impl Repo for PostgresRidePointsRepo {
             .collect_result_vec()?)
     }
     async fn get(&self, id: RideId) -> Result<RidePoints, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(RidePoints::try_from(RidePointsRow::try_from(
             &conn
@@ -76,7 +76,7 @@ impl Repo for PostgresRidePointsRepo {
     }
 
     async fn put(&self, ride_points: RidePoints) -> Result<(), PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         conn.execute_typed(
             r#"insert into ride_points (

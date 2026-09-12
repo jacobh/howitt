@@ -8,7 +8,7 @@ use itertools::Itertools;
 use tokio_postgres::types::Type;
 use uuid::Uuid;
 
-use crate::{PostgresClient, PostgresRepoError};
+use crate::{PostgresPool, PostgresRepoError};
 
 struct TripRow {
     id: Uuid,
@@ -80,7 +80,7 @@ impl TryFrom<TripRow> for Trip {
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresTripRepo {
-    client: PostgresClient,
+    pool: PostgresPool,
 }
 
 #[async_trait::async_trait]
@@ -89,7 +89,7 @@ impl Repo for PostgresTripRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: TripFilter) -> Result<Vec<Trip>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         let trips = match filter {
             TripFilter::User(user_id) => conn
@@ -169,7 +169,7 @@ impl Repo for PostgresTripRepo {
     }
 
     async fn get(&self, id: TripId) -> Result<Trip, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(Trip::try_from(TripRow::try_from(
             &conn
@@ -190,7 +190,7 @@ impl Repo for PostgresTripRepo {
     }
 
     async fn put(&self, trip: Trip) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await?;
+        let mut conn = self.pool.acquire().await?;
         let tx = conn.transaction().await?;
 
         tx.execute_typed(

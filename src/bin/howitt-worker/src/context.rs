@@ -5,7 +5,7 @@ use howitt::{jobs::Job, repos::Repos};
 use howitt_client_types::BucketName;
 use howitt_clients::S3BucketClient;
 use howitt_jobs::storage::LockFreeStorage;
-use howitt_postgresql::{PostgresClient, PostgresRepos};
+use howitt_postgresql::{PostgresPool, PostgresRepos};
 use rwgps::RwgpsClient;
 
 #[derive(Clone)]
@@ -19,7 +19,7 @@ pub struct Context {
 
 impl Context {
     pub async fn new(job_storage: RedisStorage<Job>) -> Result<Self, anyhow::Error> {
-        let postgres_client = PostgresClient::connect(
+        let postgres_pool = PostgresPool::connect(
             &std::env::var("DATABASE_URL")
                 .unwrap_or(String::from("postgresql://jacob@localhost/howitt")),
         )
@@ -28,7 +28,7 @@ impl Context {
         let bucket_client = S3BucketClient::new_from_env(BucketName::Media);
 
         Ok(Self {
-            repos: Repos::from(PostgresRepos::new(postgres_client)),
+            repos: Repos::from(PostgresRepos::new(postgres_pool)),
             bucket_client: Arc::new(bucket_client),
             rwgps_client: RwgpsClient::new(),
             image_processing_semaphore: Arc::new(tokio::sync::Semaphore::new(4)),

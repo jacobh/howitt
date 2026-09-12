@@ -13,7 +13,7 @@ const MAPBOX_ACCESS_TOKEN: &str = "..."; // Fill in your access token here
 #[allow(unused_variables)]
 pub async fn handle(
     Context {
-        postgres_client,
+        postgres_pool,
         user_repo,
         route_repo,
         ride_repo,

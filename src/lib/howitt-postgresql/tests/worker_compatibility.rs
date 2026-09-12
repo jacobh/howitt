@@ -16,7 +16,7 @@ use howitt::{
     repos::Repo,
     services::user::password::hash_password,
 };
-use howitt_postgresql::{PostgresClient, PostgresRepos};
+use howitt_postgresql::{PostgresPool, PostgresRepos};
 use uuid::Uuid;
 
 #[tokio::test]
@@ -29,7 +29,7 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
     assert!(
         matches!(config.get_hosts(), [tokio_postgres::config::Host::Tcp(host)] if host == "127.0.0.1")
     );
-    let client = PostgresClient::connect(&url).await?;
+    let client = PostgresPool::connect(&url).await?;
     let identity = client
         .acquire()
         .await?

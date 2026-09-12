@@ -2,9 +2,7 @@ use std::iter;
 
 use async_graphql::{Context, Object};
 use futures::future::try_join3;
-use howitt::models::media::MediaFilter;
-use howitt::models::{ride::RideFilter, trip::TripId};
-use howitt::repos::Repos;
+use howitt::models::trip::TripId;
 use howitt::services::fetchers::ElevationPointsParams;
 use itertools::Itertools;
 
@@ -138,14 +136,17 @@ impl Trip {
 
     async fn rides<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<Ride>, async_graphql::Error> {
         let SchemaData {
-            repos: Repos { ride_repo, .. },
+            trip_rides_loader,
+            ride_loader,
             ..
         } = ctx.data()?;
-
-        let rides = ride_repo
-            .filter_models(RideFilter::ForTrip(self.0.id))
-            .await?;
-
+        let rides = trip_rides_loader
+            .load_one(self.0.id)
+            .await?
+            .unwrap_or_default();
+        ride_loader
+            .feed_many(rides.iter().map(|ride| (ride.id, ride.clone())))
+            .await;
         Ok(rides.into_iter().map(Ride).collect())
     }
 
@@ -164,13 +165,12 @@ impl Trip {
         ctx: &Context<'ctx>,
     ) -> Result<Vec<Media>, async_graphql::Error> {
         let SchemaData {
-            repos: Repos { media_repo, .. },
-            ..
+            trip_media_loader, ..
         } = ctx.data()?;
-
-        let media = media_repo
-            .filter_models(MediaFilter::ForTrip(self.0.id))
-            .await?;
+        let media = trip_media_loader
+            .load_one(self.0.id)
+            .await?
+            .unwrap_or_default();
 
         Ok(media.into_iter().map(Media).collect())
     }

@@ -94,6 +94,13 @@ pub struct UpdatePointOfInterestOutput {
     pub point_of_interest: Option<PointOfInterest>,
 }
 
+fn clear_trip_content_cache(ctx: &Context<'_>) -> Result<(), Error> {
+    let data = ctx.data::<SchemaData>()?;
+    data.trip_rides_loader.clear::<TripId>();
+    data.trip_media_loader.clear::<TripId>();
+    Ok(())
+}
+
 pub struct Mutation;
 
 #[Object]
@@ -157,6 +164,7 @@ impl Mutation {
         // Save the new trip
         trip_repo.put(trip.clone()).await?;
 
+        clear_trip_content_cache(ctx)?;
         Ok(CreateTripOutput { trip: Trip(trip) })
     }
 
@@ -201,6 +209,7 @@ impl Mutation {
         // Save changes
         trip_repo.put(trip.clone()).await?;
 
+        clear_trip_content_cache(ctx)?;
         Ok(UpdateTripOutput {
             trip: Some(Trip(trip)),
         })
@@ -256,6 +265,7 @@ impl Mutation {
         // Save changes
         trip_repo.put(trip.clone()).await?;
 
+        clear_trip_content_cache(ctx)?;
         Ok(TripRidesOutput {
             trip: Some(Trip(trip)),
         })
@@ -291,6 +301,7 @@ impl Mutation {
         // Save changes
         trip_repo.put(trip.clone()).await?;
 
+        clear_trip_content_cache(ctx)?;
         Ok(TripMediaOutput {
             trip: Some(Trip(trip)),
         })
@@ -397,6 +408,9 @@ impl Mutation {
 
         // Save changes
         user_repo.put(user).await?;
+        ctx.data::<SchemaData>()?
+            .user_loader
+            .clear::<howitt::models::user::UserId>();
 
         Ok(Viewer(login))
     }

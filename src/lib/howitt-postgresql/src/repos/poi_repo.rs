@@ -9,7 +9,7 @@ use howitt::models::{point_of_interest::PointOfInterest, Model};
 use howitt::repos::Repo;
 use uuid::Uuid;
 
-use crate::{PostgresClient, PostgresRepoError};
+use crate::{PostgresPool, PostgresRepoError};
 
 #[allow(dead_code)]
 struct PointOfInterestRow {
@@ -58,7 +58,7 @@ impl TryFrom<PointOfInterestRow> for PointOfInterest {
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct PostgresPointOfInterestRepo {
-    client: PostgresClient,
+    pool: PostgresPool,
 }
 
 #[async_trait::async_trait]
@@ -67,7 +67,7 @@ impl Repo for PostgresPointOfInterestRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, _filter: ()) -> Result<Vec<PointOfInterest>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(conn
             .query_typed(r#"select * from points_of_interest"#, &[])
@@ -81,7 +81,7 @@ impl Repo for PostgresPointOfInterestRepo {
     }
 
     async fn all(&self) -> Result<Vec<PointOfInterest>, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(conn
             .query_typed(r#"select * from points_of_interest"#, &[])
@@ -97,7 +97,7 @@ impl Repo for PostgresPointOfInterestRepo {
         &self,
         id: <PointOfInterest as Model>::Id,
     ) -> Result<PointOfInterest, PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         Ok(PointOfInterest::try_from(PointOfInterestRow::try_from(
             &conn
@@ -110,7 +110,7 @@ impl Repo for PostgresPointOfInterestRepo {
     }
 
     async fn put(&self, model: PointOfInterest) -> Result<(), PostgresRepoError> {
-        let conn = self.client.acquire().await?;
+        let conn = self.pool.acquire().await?;
 
         conn.execute_typed(
             r#"insert into points_of_interest (
