@@ -23,6 +23,7 @@ md5 = "*"
 howitt_derive = { path = "../howitt_derive" }
 rwgps_types = { path = "../rwgps-types" }
 howitt_client_types = { path = "../howitt-client-types" }
+howitt-observability = { path = "../howitt-observability" }
 csaps = { path = "../csaps" }
 futures = "*"
 ordered-float = "*"

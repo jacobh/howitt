@@ -14,6 +14,7 @@ tower-http = { version = "0.6", default-features = false, features = ["cors"] }
 async-graphql-axum = { git = "https://github.com/async-graphql/async-graphql.git" }
 async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", default-features = false, features = ["uuid", "chrono", "url", "dataloader", "graphiql"] }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
+howitt-observability = { path = "../../lib/howitt-observability" }
 howitt = { path = "../../lib/howitt" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }
 rwgps_types = { path = "../../lib/rwgps-types" }
@@ -43,5 +44,6 @@ getrandom = { version = "0.2", features = ["js"] }
 ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
 
 [dev-dependencies]
+tracing-subscriber = { version = "0.3", default-features = false, features = ["registry"] }
 test-case = "3.1.0"
 tokio = { version = "1", features = ["rt", "macros"] }

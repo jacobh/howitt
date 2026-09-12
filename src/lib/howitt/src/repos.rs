@@ -98,6 +98,18 @@ pub trait AnyhowRepo: Send + Sync + std::fmt::Debug {
     async fn put(&self, model: <Self as AnyhowRepo>::Model) -> Result<(), anyhow::Error>;
 }
 
+fn repo_span<T: Model>(operation: &'static str) -> howitt_observability::TraceSpan {
+    let model = std::any::type_name::<T>()
+        .rsplit("::")
+        .next()
+        .unwrap_or("Model");
+    let span =
+        howitt_observability::TraceSpan::new(&format!("repo.{model}.{operation}"), "repo.outcome");
+    span.attribute("repo.model", model);
+    span.attribute("repo.operation", operation);
+    span
+}
+
 #[async_trait]
 impl<R, T, E> AnyhowRepo for R
 where
@@ -108,28 +120,34 @@ where
     type Model = T;
 
     async fn all(&self) -> Result<Vec<T>, anyhow::Error> {
-        Ok(Repo::all(self).await?)
+        Ok(repo_span::<T>("all").trace(Repo::all(self)).await?)
     }
     async fn get(&self, id: T::Id) -> Result<T, anyhow::Error> {
-        Ok(Repo::get(self, id).await?)
+        Ok(repo_span::<T>("get").trace(Repo::get(self, id)).await?)
     }
     async fn get_batch(&self, ids: Vec<T::Id>) -> Result<Vec<T>, anyhow::Error> {
-        Ok(Repo::get_batch(self, ids).await?)
+        Ok(repo_span::<T>("get_batch")
+            .trace(Repo::get_batch(self, ids))
+            .await?)
     }
     async fn filter_models(
         &self,
         filter: <Self::Model as Model>::Filter,
     ) -> Result<Vec<Self::Model>, anyhow::Error> {
-        Ok(Repo::filter_models(self, filter).await?)
+        Ok(repo_span::<T>("filter_models")
+            .trace(Repo::filter_models(self, filter))
+            .await?)
     }
     async fn find_model(
         &self,
         filter: <Self::Model as Model>::Filter,
     ) -> Result<Option<Self::Model>, anyhow::Error> {
-        Ok(Repo::find_model(self, filter).await?)
+        Ok(repo_span::<T>("find_model")
+            .trace(Repo::find_model(self, filter))
+            .await?)
     }
     async fn put(&self, model: T) -> Result<(), anyhow::Error> {
-        Ok(Repo::put(self, model).await?)
+        Ok(repo_span::<T>("put").trace(Repo::put(self, model)).await?)
     }
 }
 

@@ -1708,6 +1708,7 @@ dependencies = [
  "geo",
  "getrandom 0.2.15",
  "gpx",
+ "howitt-observability",
  "howitt_client_types",
  "howitt_derive",
  "insta",
@@ -1770,6 +1771,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "howitt-observability"
+version = "0.1.0"
+dependencies = [
+ "tracing",
+ "wasm-bindgen-futures",
+ "worker",
+]
+
+[[package]]
 name = "howitt-postgresql"
 version = "0.0.0"
 dependencies = [
@@ -1780,10 +1790,12 @@ dependencies = [
  "derive_more",
  "geo",
  "howitt",
+ "howitt-observability",
  "itertools 0.14.0",
  "native-tls",
  "postgres-native-tls",
  "serde_json",
+ "test-case",
  "thiserror 2.0.11",
  "tokio",
  "tokio-postgres",
@@ -1809,6 +1821,7 @@ dependencies = [
  "geo",
  "getrandom 0.2.15",
  "howitt",
+ "howitt-observability",
  "howitt-postgresql",
  "howitt_client_types",
  "http",
@@ -1824,6 +1837,7 @@ dependencies = [
  "tower",
  "tower-http",
  "tracing",
+ "tracing-subscriber",
  "tzf-rs",
  "url",
  "uuid",

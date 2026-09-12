@@ -1,9 +1,11 @@
 use std::sync::Arc;
-use tokio::sync::{Mutex, MutexGuard};
+use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
 mod repos;
+mod traced_client;
 pub use repos::*;
+pub use traced_client::{PostgresConnection, PostgresTransaction};
 
 /// A request-scoped connection on Workers. The lock prevents concurrent repository
 /// calls from interleaving statements inside an explicit transaction.
@@ -52,8 +54,10 @@ impl PostgresClient {
         Ok(client)
     }
 
-    pub async fn acquire(&self) -> Result<MutexGuard<'_, Client>, PostgresRepoError> {
-        let client = self.client.lock().await;
+    pub async fn acquire(&self) -> Result<PostgresConnection<'_>, PostgresRepoError> {
+        let client = traced_client::db_span("connection.wait", "ACQUIRE")
+            .trace(async { Ok::<_, PostgresRepoError>(self.client.lock().await) })
+            .await?;
         #[cfg(not(target_arch = "wasm32"))]
         {
             let mut client = client;
@@ -61,13 +65,15 @@ impl PostgresClient {
                 if let Some(config) = &self.config {
                     // Reconnect for a new operation only. Never replay a failed
                     // statement/transaction, whose commit outcome may be unknown.
-                    *client = Self::connect_native(config).await?;
+                    *client = traced_client::db_span("connection.reconnect", "CONNECT")
+                        .trace(Self::connect_native(config))
+                        .await?;
                 }
             }
-            return Ok(client);
+            return Ok(PostgresConnection::new(client));
         }
         #[cfg(target_arch = "wasm32")]
-        Ok(client)
+        Ok(PostgresConnection::new(client))
     }
 }
 

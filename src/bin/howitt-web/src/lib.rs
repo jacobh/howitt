@@ -11,6 +11,7 @@ mod extractors;
 mod graphql;
 mod handlers;
 mod timezone;
+pub use graphql::observability::ResolverTracing;
 
 fn disabled_routes() -> Router {
     Router::new()
@@ -73,7 +74,7 @@ mod runtime {
             .connection_string()
             .parse::<tokio_postgres::Config>()?;
         let (client, connection) = config.connect_raw(socket, PassthroughTls).await?;
-        wasm_bindgen_futures::spawn_local(async move {
+        howitt_observability::spawn_local(async move {
             if let Err(error) = connection.await {
                 console_error!("PostgreSQL connection closed: {error:?}");
             }
@@ -85,15 +86,15 @@ mod runtime {
         let schema = build_schema(SchemaData {
             ride_loader: DataLoader::new(
                 RideLoader::new(repos.ride_repo.clone()),
-                wasm_bindgen_futures::spawn_local,
+                howitt_observability::spawn_local,
             ),
             user_loader: DataLoader::new(
                 UserLoader::new(repos.user_repo.clone()),
-                wasm_bindgen_futures::spawn_local,
+                howitt_observability::spawn_local,
             ),
             route_points_loader: DataLoader::with_cache(
                 RouteDataLoader::new(repos.route_points_repo.clone(), cache.clone()),
-                wasm_bindgen_futures::spawn_local,
+                howitt_observability::spawn_local,
                 HashMapCache::default(),
             ),
             simplified_ride_points_fetcher: SimplifiedRidePointsFetcher::new(

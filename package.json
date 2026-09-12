@@ -7,6 +7,7 @@
     "build:worker": "bash scripts/build-worker.sh",
     "dev:worker": "wrangler dev",
     "deploy:worker": "wrangler deploy",
-    "check:worker": "wrangler deploy --dry-run"
+    "check:worker": "wrangler deploy --dry-run",
+    "test:observability": "bun test scripts/tests/resolver-tracing.test.ts"
   }
 }
