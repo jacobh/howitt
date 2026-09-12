@@ -1,0 +1,16 @@
+name = "howitt-web"
+main = "src/bin/howitt-web/build/worker/shim.mjs"
+compatibility_date = "2026-09-12"
+workers_dev = true
+
+[build]
+command = "bash scripts/build-worker.sh"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "324c2bb0ba3d4ac9b1fce0618ccbae4d"
+
+# Public upstream timezone polygons are assets, not part of the Wasm upload.
+[assets]
+directory = "src/bin/howitt-web/build/assets"
+binding = "ASSETS"

@@ -25,6 +25,25 @@ struct UserRow {
     rwgps_updated_at: Option<DateTime<Utc>>,
 }
 
+impl TryFrom<&tokio_postgres::Row> for UserRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            username: row.try_get("username")?,
+            password: row.try_get("password")?,
+            email: row.try_get("email")?,
+            created_at: row.try_get("created_at")?,
+            rwgps_id: row.try_get("rwgps_id")?,
+            rwgps_user_id: row.try_get("rwgps_user_id")?,
+            rwgps_access_token: row.try_get("rwgps_access_token")?,
+            rwgps_created_at: row.try_get("rwgps_created_at")?,
+            rwgps_updated_at: row.try_get("rwgps_updated_at")?,
+        })
+    }
+}
+
 impl TryFrom<UserRow> for User {
     type Error = PostgresRepoError;
 
@@ -65,150 +84,154 @@ impl Repo for PostgresUserRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: UserFilter) -> Result<Vec<User>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
         let users = match filter {
             UserFilter::Ids(ids) => {
                 let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
 
-                sqlx::query_as!(
-                    UserRow,
+                conn.query(
                     r#"
-                    SELECT 
+                    SELECT
                         u.*,
-                        rc.id as "rwgps_id?",
-                        rc.rwgps_user_id as "rwgps_user_id?",
-                        rc.access_token as "rwgps_access_token?",
-                        rc.created_at as "rwgps_created_at?",
-                        rc.updated_at as "rwgps_updated_at?"
+                        rc.id as "rwgps_id",
+                        rc.rwgps_user_id as "rwgps_user_id",
+                        rc.access_token as "rwgps_access_token",
+                        rc.created_at as "rwgps_created_at",
+                        rc.updated_at as "rwgps_updated_at"
                     FROM users u
                     LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
                     WHERE u.id = ANY($1)
                     "#,
-                    &uuids
+                    &[&uuids],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
+                .iter()
+                .map(UserRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?
             }
-            UserFilter::Username(username) => {
-                sqlx::query_as!(
-                    UserRow,
+            UserFilter::Username(username) => conn
+                .query(
                     r#"
-                    SELECT 
+                    SELECT
                         u.*,
-                        rc.id as "rwgps_id?",
-                        rc.rwgps_user_id as "rwgps_user_id?",
-                        rc.access_token as "rwgps_access_token?",
-                        rc.created_at as "rwgps_created_at?",
-                        rc.updated_at as "rwgps_updated_at?"
+                        rc.id as "rwgps_id",
+                        rc.rwgps_user_id as "rwgps_user_id",
+                        rc.access_token as "rwgps_access_token",
+                        rc.created_at as "rwgps_created_at",
+                        rc.updated_at as "rwgps_updated_at"
                     FROM users u
                     LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
                     WHERE u.username = $1
                     "#,
-                    username
+                    &[&(username)],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
-            UserFilter::RwgpsId(rwgps_user_id) => {
-                sqlx::query_as!(
-                    UserRow,
+                .iter()
+                .map(UserRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            UserFilter::RwgpsId(rwgps_user_id) => conn
+                .query(
                     r#"
-                SELECT 
+                SELECT
                     u.*,
-                    rc.id as "rwgps_id?",
-                    rc.rwgps_user_id as "rwgps_user_id?",
-                    rc.access_token as "rwgps_access_token?",
-                    rc.created_at as "rwgps_created_at?",
-                    rc.updated_at as "rwgps_updated_at?"
+                    rc.id as "rwgps_id",
+                    rc.rwgps_user_id as "rwgps_user_id",
+                    rc.access_token as "rwgps_access_token",
+                    rc.created_at as "rwgps_created_at",
+                    rc.updated_at as "rwgps_updated_at"
                 FROM users u
                 INNER JOIN user_rwgps_connections rc ON rc.user_id = u.id
                 WHERE rc.rwgps_user_id = $1
                 "#,
-                    rwgps_user_id as i32
+                    &[&(rwgps_user_id as i32)],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
-            UserFilter::Email(email) => {
-                sqlx::query_as!(
-                    UserRow,
+                .iter()
+                .map(UserRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            UserFilter::Email(email) => conn
+                .query(
                     r#"
-                    SELECT 
+                    SELECT
                         u.*,
-                        rc.id as "rwgps_id?",
-                        rc.rwgps_user_id as "rwgps_user_id?",
-                        rc.access_token as "rwgps_access_token?",
-                        rc.created_at as "rwgps_created_at?",
-                        rc.updated_at as "rwgps_updated_at?"
+                        rc.id as "rwgps_id",
+                        rc.rwgps_user_id as "rwgps_user_id",
+                        rc.access_token as "rwgps_access_token",
+                        rc.created_at as "rwgps_created_at",
+                        rc.updated_at as "rwgps_updated_at"
                     FROM users u
                     LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
                     WHERE u.email = $1
                     "#,
-                    email
+                    &[&(email)],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
+                .iter()
+                .map(UserRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
         };
 
         Ok(users.into_iter().map(User::try_from).collect_result_vec()?)
     }
 
     async fn all(&self) -> Result<Vec<User>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            UserRow,
-            r#"
-            SELECT 
+        Ok(conn
+            .query(
+                r#"
+            SELECT
                 u.*,
-                rc.id as "rwgps_id?",
-                rc.rwgps_user_id as "rwgps_user_id?",
-                rc.access_token as "rwgps_access_token?",
-                rc.created_at as "rwgps_created_at?",
-                rc.updated_at as "rwgps_updated_at?"
+                rc.id as "rwgps_id",
+                rc.rwgps_user_id as "rwgps_user_id",
+                rc.access_token as "rwgps_access_token",
+                rc.created_at as "rwgps_created_at",
+                rc.updated_at as "rwgps_updated_at"
             FROM users u
             INNER JOIN user_rwgps_connections rc ON rc.user_id = u.id
             "#,
-        );
-
-        Ok(query
-            .fetch_all(conn.as_mut())
+                &[],
+            )
             .await?
+            .iter()
+            .map(UserRow::try_from)
+            .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .map(User::try_from)
             .collect_result_vec()?)
     }
 
     async fn get(&self, id: <User as Model>::Id) -> Result<User, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            UserRow,
-            r#"
-            SELECT 
+        Ok(User::try_from(UserRow::try_from(
+            &conn
+                .query_one(
+                    r#"
+            SELECT
                 u.*,
-                rc.id as "rwgps_id?",
-                rc.rwgps_user_id as "rwgps_user_id?",
-                rc.access_token as "rwgps_access_token?",
-                rc.created_at as "rwgps_created_at?",
-                rc.updated_at as "rwgps_updated_at?"
+                rc.id as "rwgps_id",
+                rc.rwgps_user_id as "rwgps_user_id",
+                rc.access_token as "rwgps_access_token",
+                rc.created_at as "rwgps_created_at",
+                rc.updated_at as "rwgps_updated_at"
             FROM users u
             LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
             WHERE u.id = $1
             "#,
-            id.as_uuid()
-        );
-
-        Ok(User::try_from(query.fetch_one(conn.as_mut()).await?)?)
+                    &[&(id.as_uuid())],
+                )
+                .await?,
+        )?)?)
     }
 
     async fn put(&self, model: User) -> Result<(), PostgresRepoError> {
-        let mut tx = self.client.begin().await?;
+        let mut conn = self.client.acquire().await?;
+        let tx = conn.transaction().await?;
 
         // Insert/update user
-        sqlx::query!(
+        tx.execute(
             r#"
             INSERT INTO users (
                 id,
@@ -223,18 +246,19 @@ impl Repo for PostgresUserRepo {
                 email = EXCLUDED.email,
                 created_at = EXCLUDED.created_at
             "#,
-            Uuid::from(model.id()),
-            model.username,
-            model.password.to_string(),
-            model.email,
-            model.created_at,
+            &[
+                &Uuid::from(model.id()),
+                &model.username,
+                &model.password.to_string(),
+                &model.email,
+                &model.created_at,
+            ],
         )
-        .execute(tx.as_mut())
         .await?;
 
         // Handle RWGPS connection
         if let Some(rwgps) = model.rwgps_connection {
-            sqlx::query!(
+            tx.execute(
                 r#"
                 INSERT INTO user_rwgps_connections (
                     id,
@@ -249,14 +273,15 @@ impl Repo for PostgresUserRepo {
                     access_token = EXCLUDED.access_token,
                     updated_at = EXCLUDED.updated_at
                 "#,
-                rwgps.id,
-                rwgps.user_id.as_uuid(),
-                rwgps.rwgps_user_id,
-                rwgps.access_token,
-                rwgps.created_at,
-                rwgps.updated_at,
+                &[
+                    &rwgps.id,
+                    rwgps.user_id.as_uuid(),
+                    &rwgps.rwgps_user_id,
+                    &rwgps.access_token,
+                    &rwgps.created_at,
+                    &rwgps.updated_at,
+                ],
             )
-            .execute(tx.as_mut())
             .await?;
         }
 

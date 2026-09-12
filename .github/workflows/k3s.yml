@@ -23,10 +23,6 @@ jobs:
                 image_name: ${{ github.repository }}-ts-api
                 context: ts-api
                 dockerfile: Dockerfile
-              - name: web-api
-                image_name: ${{ github.repository }}-web-api
-                context: .
-                dockerfile: howitt-web-api.Dockerfile
               - name: worker
                 image_name: ${{ github.repository }}-worker
                 context: .
@@ -92,9 +88,6 @@ jobs:
               is_deployment: true
             - name: ts-api
               file: howitt-ts-api.yaml
-              is_deployment: true
-            - name: web-api
-              file: howitt-web-api.yaml
               is_deployment: true
             - name: worker
               file: howitt-worker.yaml

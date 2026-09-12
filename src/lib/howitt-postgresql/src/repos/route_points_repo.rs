@@ -12,6 +12,17 @@ struct RoutePointsRow {
     points: serde_json::Value,
 }
 
+impl TryFrom<&tokio_postgres::Row> for RoutePointsRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            route_id: row.try_get("route_id")?,
+            points: row.try_get("points")?,
+        })
+    }
+}
+
 impl TryFrom<RoutePointsRow> for RoutePoints {
     type Error = PostgresRepoError;
 
@@ -37,19 +48,20 @@ impl Repo for PostgresRoutePointsRepo {
         &self,
         filter: RoutePointsFilter,
     ) -> Result<Vec<RoutePoints>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
         let route_points = match filter {
             RoutePointsFilter::Ids(ids) => {
                 let uuids: Vec<_> = ids.into_iter().map(|id| id.as_uuid().clone()).collect();
 
-                sqlx::query_as!(
-                    RoutePointsRow,
+                conn.query(
                     r#"select * from route_points where route_id = ANY($1)"#,
-                    &uuids
+                    &[&uuids],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
+                .iter()
+                .map(RoutePointsRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?
             }
         };
 
@@ -60,48 +72,49 @@ impl Repo for PostgresRoutePointsRepo {
     }
 
     async fn all(&self) -> Result<Vec<RoutePoints>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(RoutePointsRow, r#"select * from route_points"#);
-
-        Ok(query
-            .fetch_all(conn.as_mut())
+        Ok(conn
+            .query(r#"select * from route_points"#, &[])
             .await?
+            .iter()
+            .map(RoutePointsRow::try_from)
+            .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .map(RoutePoints::try_from)
             .collect_result_vec()?)
     }
 
     async fn get(&self, id: RouteId) -> Result<RoutePoints, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            RoutePointsRow,
-            r#"select * from route_points where route_id = $1"#,
-            id.as_uuid()
-        );
-
-        Ok(RoutePoints::try_from(
-            query.fetch_one(conn.as_mut()).await?,
-        )?)
+        Ok(RoutePoints::try_from(RoutePointsRow::try_from(
+            &conn
+                .query_one(
+                    r#"select * from route_points where route_id = $1"#,
+                    &[&(id.as_uuid())],
+                )
+                .await?,
+        )?)?)
     }
 
     async fn put(&self, route_points: RoutePoints) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query!(
+        conn.execute(
             r#"insert into route_points (
                 route_id,
                 points
             ) values ($1, $2)
-            ON CONFLICT (route_id) DO UPDATE 
-            SET 
+            ON CONFLICT (route_id) DO UPDATE
+            SET
                 points = EXCLUDED.points"#,
-            route_points.id.as_uuid(),
-            serde_json::to_value(route_points.points)?
-        );
-
-        query.execute(conn.as_mut()).await?;
+            &[
+                route_points.id.as_uuid(),
+                &serde_json::to_value(route_points.points)?,
+            ],
+        )
+        .await?;
 
         Ok(())
     }

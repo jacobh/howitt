@@ -34,6 +34,33 @@ struct RouteIndexRow {
     user_id: Uuid,
 }
 
+impl TryFrom<&tokio_postgres::Row> for RouteIndexRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            created_at: row.try_get("created_at")?,
+            name: row.try_get("name")?,
+            slug: row.try_get("slug")?,
+            external_ref: row.try_get("external_ref")?,
+            distance_m: row.try_get("distance_m")?,
+            sample_points: row.try_get("sample_points")?,
+            description: row.try_get("description")?,
+            published_at: row.try_get("published_at")?,
+            technical_difficulty: row.try_get("technical_difficulty")?,
+            physical_difficulty: row.try_get("physical_difficulty")?,
+            minimum_bike: row.try_get("minimum_bike")?,
+            ideal_bike: row.try_get("ideal_bike")?,
+            scouted: row.try_get("scouted")?,
+            direction: row.try_get("direction")?,
+            tags: row.try_get("tags")?,
+            is_starred: row.try_get("is_starred")?,
+            user_id: row.try_get("user_id")?,
+        })
+    }
+}
+
 impl TryFrom<RouteIndexRow> for Route {
     type Error = PostgresRepoError;
 
@@ -107,6 +134,33 @@ struct RouteRow {
     user_id: Uuid,
 }
 
+impl TryFrom<&tokio_postgres::Row> for RouteRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            created_at: row.try_get("created_at")?,
+            name: row.try_get("name")?,
+            slug: row.try_get("slug")?,
+            external_ref: row.try_get("external_ref")?,
+            distance_m: row.try_get("distance_m")?,
+            sample_points: row.try_get("sample_points")?,
+            description: row.try_get("description")?,
+            published_at: row.try_get("published_at")?,
+            technical_difficulty: row.try_get("technical_difficulty")?,
+            physical_difficulty: row.try_get("physical_difficulty")?,
+            minimum_bike: row.try_get("minimum_bike")?,
+            ideal_bike: row.try_get("ideal_bike")?,
+            scouted: row.try_get("scouted")?,
+            direction: row.try_get("direction")?,
+            tags: row.try_get("tags")?,
+            is_starred: row.try_get("is_starred")?,
+            user_id: row.try_get("user_id")?,
+        })
+    }
+}
+
 impl TryFrom<RouteRow> for Route {
     type Error = PostgresRepoError;
 
@@ -169,39 +223,44 @@ impl Repo for PostgresRouteRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: RouteFilter) -> Result<Vec<Route>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
         let rows = match filter {
             RouteFilter::Starred => {
-                sqlx::query_as!(RouteRow, r#"select * from routes where is_starred = true"#)
-                    .fetch_all(conn.as_mut())
-                    .await?
+                conn.query(
+                    r#"select * from routes where is_starred = true"#,
+                    &[
+                    ],
+                ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RouteFilter::All => {
-                sqlx::query_as!(RouteRow, r#"select * from routes"#)
-                    .fetch_all(conn.as_mut())
-                    .await?
+                conn.query(
+                    r#"select * from routes"#,
+                    &[
+                    ],
+                ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RouteFilter::Slug(slug) => {
-                sqlx::query_as!(RouteRow, r#"select * from routes where slug = $1"#, slug)
-                    .fetch_all(conn.as_mut())
-                    .await?
+                conn.query(
+                    r#"select * from routes where slug = $1"#,
+                    &[
+                        &slug,
+                    ],
+                ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
-            RouteFilter::RwgpsId(rwgps_id) => sqlx::query_as!(
-                RouteRow,
+            RouteFilter::RwgpsId(rwgps_id) => conn.query(
                 r#"select * from routes where (external_ref->'id'->'Rwgps'->'Route')::int = $1"#,
-                rwgps_id as i32
-            )
-            .fetch_all(conn.as_mut())
-            .await?,
+                &[
+                    &(rwgps_id as i32),
+                ],
+            ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?,
             RouteFilter::UserId(user_id) => {
-                sqlx::query_as!(
-                    RouteRow,
+                conn.query(
                     r#"select * from routes where user_id = $1"#,
-                    user_id.as_uuid()
-                )
-                .fetch_all(conn.as_mut())
-                .await?
+                    &[
+                        user_id.as_uuid(),
+                    ],
+                ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
         };
 
@@ -209,11 +268,11 @@ impl Repo for PostgresRouteRepo {
     }
 
     async fn all(&self) -> Result<Vec<Route>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            RouteIndexRow,
-            r#"select id,
+        Ok(conn
+            .query(
+                r#"select id,
                 created_at,
                 name,
                 slug,
@@ -231,32 +290,31 @@ impl Repo for PostgresRouteRepo {
                 tags,
                 is_starred,
                 user_id
-            from routes"#
-        );
-
-        Ok(query
-            .fetch_all(conn.as_mut())
+            from routes"#,
+                &[],
+            )
             .await?
+            .iter()
+            .map(RouteIndexRow::try_from)
+            .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .map(Route::try_from)
             .collect_result_vec()?)
     }
     async fn get(&self, id: <Route as Model>::Id) -> Result<Route, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            RouteRow,
-            r#"select * from routes where id = $1"#,
-            id.as_uuid()
-        );
-
-        Ok(Route::try_from(query.fetch_one(conn.as_mut()).await?)?)
+        Ok(Route::try_from(RouteRow::try_from(
+            &conn
+                .query_one(r#"select * from routes where id = $1"#, &[&(id.as_uuid())])
+                .await?,
+        )?)?)
     }
 
     async fn put(&self, route: Route) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query!(
+        conn.execute(
             r#"insert into routes (
                 id,
                 created_at,
@@ -293,67 +351,67 @@ impl Repo for PostgresRouteRepo {
                 direction = EXCLUDED.direction,
                 tags = EXCLUDED.tags,
                 is_starred = EXCLUDED.is_starred"#,
-            route.id.as_uuid(),
-            Utc::now(),
-            route.name,
-            route.slug,
-            route.external_ref.map(serde_json::to_value).transpose()?,
-            route.sample_points.map(serde_json::to_value).transpose()?,
-            route.distance as i32,
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.description.clone()),
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.published_at.clone()),
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.technical_difficulty)
-                .map(serde_json::to_value)
-                .transpose()?
-                .map(unwrap_string_value),
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.physical_difficulty)
-                .map(serde_json::to_value)
-                .transpose()?
-                .map(unwrap_string_value),
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.minimum_bike.clone())
-                .map(serde_json::to_value)
-                .transpose()?,
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.ideal_bike.clone())
-                .map(serde_json::to_value)
-                .transpose()?,
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.scouted)
-                .map(serde_json::to_value)
-                .transpose()?
-                .map(unwrap_string_value),
-            route
-                .description
-                .as_ref()
-                .and_then(|x| x.direction)
-                .map(serde_json::to_value)
-                .transpose()?
-                .map(unwrap_string_value),
-            route.description.as_ref().map(|x| &*x.tags).unwrap_or(&[]),
-            route.tags.contains(&Tag::BackcountrySegment),
-            route.user_id.as_uuid()
-        );
-
-        query.execute(conn.as_mut()).await?;
+            &[
+                route.id.as_uuid(),
+                &Utc::now(),
+                &route.name,
+                &route.slug,
+                &route.external_ref.map(serde_json::to_value).transpose()?,
+                &route.sample_points.map(serde_json::to_value).transpose()?,
+                &(route.distance as i32),
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.description.clone()),
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.published_at.clone()),
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.technical_difficulty)
+                    .map(serde_json::to_value)
+                    .transpose()?
+                    .map(unwrap_string_value),
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.physical_difficulty)
+                    .map(serde_json::to_value)
+                    .transpose()?
+                    .map(unwrap_string_value),
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.minimum_bike.clone())
+                    .map(serde_json::to_value)
+                    .transpose()?,
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.ideal_bike.clone())
+                    .map(serde_json::to_value)
+                    .transpose()?,
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.scouted)
+                    .map(serde_json::to_value)
+                    .transpose()?
+                    .map(unwrap_string_value),
+                &route
+                    .description
+                    .as_ref()
+                    .and_then(|x| x.direction)
+                    .map(serde_json::to_value)
+                    .transpose()?
+                    .map(unwrap_string_value),
+                &route.description.as_ref().map(|x| &*x.tags).unwrap_or(&[]),
+                &route.tags.contains(&Tag::BackcountrySegment),
+                route.user_id.as_uuid(),
+            ],
+        ).await?;
 
         Ok(())
     }

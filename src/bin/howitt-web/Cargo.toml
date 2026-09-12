@@ -3,55 +3,45 @@ name = "howitt-web"
 version = "0.0.0"
 edition = "2021"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-tokio = { version = "1", features = ["full"] }
-axum = { version = "*", features = ["multipart"] }
-axum-macros = "*"
-tower = "*"
-tower-http = { version = "*", features = ["full"] }
+axum = { version = "0.8", default-features = false, features = ["json", "query", "macros"] }
+axum-macros = "0.5"
+tower = { version = "0.5", default-features = false, features = ["util"] }
+tower-http = { version = "0.6", default-features = false, features = ["cors"] }
 async-graphql-axum = { git = "https://github.com/async-graphql/async-graphql.git" }
+async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", default-features = false, features = ["uuid", "chrono", "url", "dataloader", "graphiql"] }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
-anyhow = "*"
-async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", features = [
-    "uuid",
-    "chrono",
-    "url",
-    "dataloader",
-] }
 howitt = { path = "../../lib/howitt" }
-howitt_clients = { path = "../../lib/howitt-clients" }
-exif = { path = "../../lib/exif" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }
-howitt_jobs = { path = "../../lib/howitt-jobs" }
 rwgps_types = { path = "../../lib/rwgps-types" }
+anyhow = "1"
 geo = "*"
 chrono = "*"
 chrono-tz = "*"
-serde = { version = "*", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
 derive_more = { version = "1", features = ["full"] }
 itertools = "*"
 thiserror = "*"
 url = "*"
-serde_json = "*"
-async-trait = "*"
-http = "1.2.0"
-tracing = "*"
-tracing-subscriber = "*"
-dotenv = "0.15.0"
-axum_typed_multipart = { version = "*" }
-uuid = "*"
-infer = "0.16.0"
-apalis = { git = "https://github.com/geofmureithi/apalis.git", features = [
-    "limit",
-    "timeout",
-] }
-apalis-redis = { git = "https://github.com/geofmureithi/apalis.git" }
-nom-exif = "*"
-futures = "*"
-oauth2 = "*"
-ring = "*"
-hex = "*"
-tzf-rs = { version = "*", default-features = false }
+serde_json = "1"
+async-trait = "0.1"
+http = "1"
+tracing = "0.1"
+uuid = "1"
+futures = "0.3"
+tzf-rs = { version = "=0.4.11", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+worker = { version = "=0.8.5", features = ["http", "axum", "tokio-postgres"] }
+tokio-postgres = { version = "0.7.18", default-features = false, features = ["js"] }
+wasm-bindgen-futures = "0.4"
+futures-timer = { version = "3", features = ["wasm-bindgen"] }
+getrandom = { version = "0.2", features = ["js"] }
+ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
 
 [dev-dependencies]
 test-case = "3.1.0"
+tokio = { version = "1", features = ["rt", "macros"] }

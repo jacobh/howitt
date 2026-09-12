@@ -40,8 +40,15 @@ regex = "*"
 sanitize-filename = "0.6.0"
 tracing = "*"
 rustc-hash = "*"
-rayon = "*"
 
 [dev-dependencies]
 insta = { version = "*", features = ["toml"] }
 test-case = "3.1.0"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rayon = "*"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { version = "1", features = ["js"] }
+getrandom = { version = "0.2", features = ["js"] }
+ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }

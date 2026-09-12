@@ -22,6 +22,23 @@ struct RideRow {
     user_id: Uuid,
 }
 
+impl TryFrom<&tokio_postgres::Row> for RideRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            name: row.try_get("name")?,
+            created_at: row.try_get("created_at")?,
+            external_ref: row.try_get("external_ref")?,
+            distance_m: row.try_get("distance_m")?,
+            started_at: row.try_get("started_at")?,
+            finished_at: row.try_get("finished_at")?,
+            user_id: row.try_get("user_id")?,
+        })
+    }
+}
+
 impl TryFrom<RideRow> for Ride {
     type Error = PostgresRepoError;
 
@@ -49,59 +66,55 @@ impl Repo for PostgresRideRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: RideFilter) -> Result<Vec<Ride>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
         let rides = match filter {
             RideFilter::Ids(ids) => {
                 let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
-                
-                sqlx::query_as!(
-                    RideRow,
+
+                conn.query(
                     r#"select * from rides where id = ANY($1)"#,
-                    &uuids
-                )
-                .fetch_all(conn.as_mut())
-                .await
+                    &[
+                        &uuids,
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUser {
                 user_id,
                 started_at: Some(TemporalFilter::Before {before, last}),
             } => {
-                sqlx::query_as!(
-                    RideRow,
+                conn.query(
                     r#"select * from rides where user_id = $1 and started_at < $2 order by started_at desc limit $3"#,
-                    user_id.as_uuid(),
-                    before,
-                    last.unwrap_or(100_000) as i32
-                )
-                .fetch_all(conn.as_mut())
-                .await
+                    &[
+                        user_id.as_uuid(),
+                        &before,
+                        &(last.unwrap_or(100_000) as i64),
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUser {
                 user_id,
                 started_at: Some(TemporalFilter::After {after, first}),
             } => {
-                sqlx::query_as!(
-                    RideRow,
+                conn.query(
                     r#"select * from rides where user_id = $1 and started_at > $2 order by started_at asc limit $3"#,
-                    user_id.as_uuid(),
-                    after,
-                    first.unwrap_or(100_000) as i32
-                )
-                .fetch_all(conn.as_mut())
-                .await
+                    &[
+                        user_id.as_uuid(),
+                        &after,
+                        &(first.unwrap_or(100_000) as i64),
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUser {
                 user_id,
                 started_at: None,
             } => {
-                sqlx::query_as!(
-                    RideRow,
+                conn.query(
                     r#"select * from rides where user_id = $1"#,
-                    user_id.as_uuid()
-                )
-                .fetch_all(conn.as_mut())
-                .await
+                    &[
+                        user_id.as_uuid(),
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUserWithDate { user_id, date } => {
                 // Convert naive date to UTC timestamps for the start and end of the day in Melbourne timezone
@@ -115,82 +128,80 @@ impl Repo for PostgresRideRepo {
                     .unwrap()
                     .with_timezone(&Utc);
 
-                sqlx::query_as!(
-                    RideRow,
-                    r#"select * from rides 
-                    where user_id = $1 
+                conn.query(
+                    r#"select * from rides
+                    where user_id = $1
                     and started_at >= $2
                     and started_at < $3
                     order by started_at asc"#,
-                    user_id.as_uuid(),
-                    start_of_day,
-                    end_of_day
-                )
-                .fetch_all(conn.as_mut())
-                .await
+                    &[
+                        user_id.as_uuid(),
+                        &start_of_day,
+                        &end_of_day,
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForTrip(trip_id) => {
-                sqlx::query_as!(
-                    RideRow,
+                conn.query(
                     r#"
-                    SELECT r.* 
+                    SELECT r.*
                     FROM rides r
                     INNER JOIN trip_rides tr ON tr.ride_id = r.id
                     WHERE tr.trip_id = $1
                     ORDER BY r.started_at ASC
                     "#,
-                    trip_id.as_uuid()
-                )
-                .fetch_all(conn.as_mut())
-                .await
+                    &[
+                        trip_id.as_uuid(),
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::RwgpsId(rwgps_id) => {
-                sqlx::query_as!(
-                    RideRow,
+                conn.query(
                     r#"select * from rides where (external_ref->'id'->'Rwgps'->'Trip')::int = $1"#,
-                    rwgps_id as i32
-                )
-                .fetch_all(conn.as_mut())
-                .await
+                    &[
+                        &(rwgps_id as i32),
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::All => {
-                sqlx::query_as!(RideRow, r#"select * from rides"#)
-                    .fetch_all(conn.as_mut())
-                    .await
+                conn.query(
+                    r#"select * from rides"#,
+                    &[
+                    ],
+                ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
-        }?;
+        };
 
         Ok(rides.into_iter().map(Ride::try_from).collect_result_vec()?)
     }
 
     async fn all(&self) -> Result<Vec<Ride>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(RideRow, r#"select * from rides"#);
-
-        Ok(query
-            .fetch_all(conn.as_mut())
+        Ok(conn
+            .query(r#"select * from rides"#, &[])
             .await?
+            .iter()
+            .map(RideRow::try_from)
+            .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .map(Ride::try_from)
             .collect_result_vec()?)
     }
     async fn get(&self, id: <Ride as Model>::Id) -> Result<Ride, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            RideRow,
-            r#"select * from rides where id = $1"#,
-            id.as_uuid(),
-        );
-
-        Ok(Ride::try_from(query.fetch_one(conn.as_mut()).await?)?)
+        Ok(Ride::try_from(RideRow::try_from(
+            &conn
+                .query_one(r#"select * from rides where id = $1"#, &[&(id.as_uuid())])
+                .await?,
+        )?)?)
     }
 
     async fn put(&self, ride: Ride) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query!(
+        conn.execute(
             r#"insert into rides (
                 id,
                 name,
@@ -207,17 +218,18 @@ impl Repo for PostgresRideRepo {
                 distance_m = EXCLUDED.distance_m,
                 started_at = EXCLUDED.started_at,
                 finished_at = EXCLUDED.finished_at"#,
-            ride.id.as_uuid(),
-            ride.name,
-            Utc::now(),
-            ride.external_ref.map(serde_json::to_value).transpose()?,
-            ride.distance as i32,
-            ride.started_at,
-            ride.finished_at,
-            ride.user_id.as_uuid(),
-        );
-
-        query.execute(conn.as_mut()).await?;
+            &[
+                ride.id.as_uuid(),
+                &ride.name,
+                &Utc::now(),
+                &ride.external_ref.map(serde_json::to_value).transpose()?,
+                &(ride.distance as i32),
+                &ride.started_at,
+                &ride.finished_at,
+                ride.user_id.as_uuid(),
+            ],
+        )
+        .await?;
 
         Ok(())
     }

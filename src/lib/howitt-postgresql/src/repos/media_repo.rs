@@ -26,6 +26,25 @@ struct MediaRow {
     captured_at: Option<DateTime<Utc>>,
 }
 
+impl TryFrom<&tokio_postgres::Row> for MediaRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            created_at: row.try_get("created_at")?,
+            user_id: row.try_get("user_id")?,
+            path: row.try_get("path")?,
+            ride_ids: row.try_get("ride_ids")?,
+            route_ids: row.try_get("route_ids")?,
+            trip_ids: row.try_get("trip_ids")?,
+            poi_ids: row.try_get("poi_ids")?,
+            point: row.try_get("point")?,
+            captured_at: row.try_get("captured_at")?,
+        })
+    }
+}
+
 impl TryFrom<MediaRow> for Media {
     type Error = PostgresRepoError;
 
@@ -87,12 +106,11 @@ impl Repo for PostgresMediaRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: MediaFilter) -> Result<Vec<Media>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
         let media = match filter {
-            MediaFilter::All => {
-                sqlx::query_as!(
-                    MediaRow,
+            MediaFilter::All => conn
+                .query(
                     r#"
                     SELECT
                         m.*,
@@ -103,16 +121,17 @@ impl Repo for PostgresMediaRepo {
                     FROM media m
                     INNER JOIN media_relations mr ON mr.id = m.id
                     ORDER BY created_at DESC
-                    "#
+                    "#,
+                    &[],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
+                .iter()
+                .map(MediaRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
             MediaFilter::Ids(ids) => {
                 let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
 
-                sqlx::query_as!(
-                    MediaRow,
+                conn.query(
                     r#"
                     SELECT
                         m.*,
@@ -125,14 +144,15 @@ impl Repo for PostgresMediaRepo {
                     WHERE m.id = ANY($1)
                     ORDER BY created_at DESC
                     "#,
-                    &uuids
+                    &[&uuids],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
+                .iter()
+                .map(MediaRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?
             }
-            MediaFilter::ForUser(user_id) => {
-                sqlx::query_as!(
-                    MediaRow,
+            MediaFilter::ForUser(user_id) => conn
+                .query(
                     r#"
                     SELECT
                         m.*,
@@ -142,17 +162,17 @@ impl Repo for PostgresMediaRepo {
                         mr.poi_ids
                     FROM media m
                     INNER JOIN media_relations mr ON mr.id = m.id
-                    WHERE user_id = $1 
+                    WHERE user_id = $1
                     ORDER BY created_at DESC
                     "#,
-                    user_id.as_uuid()
+                    &[&(user_id.as_uuid())],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
-            MediaFilter::ForRide(ride_id) => {
-                sqlx::query_as!(
-                    MediaRow,
+                .iter()
+                .map(MediaRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            MediaFilter::ForRide(ride_id) => conn
+                .query(
                     r#"
                     SELECT
                         m.*,
@@ -166,14 +186,14 @@ impl Repo for PostgresMediaRepo {
                     WHERE rm.ride_id = $1
                     ORDER BY m.created_at DESC
                     "#,
-                    ride_id.as_uuid()
+                    &[&(ride_id.as_uuid())],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
-            MediaFilter::ForRoute(route_id) => {
-                sqlx::query_as!(
-                    MediaRow,
+                .iter()
+                .map(MediaRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            MediaFilter::ForRoute(route_id) => conn
+                .query(
                     r#"
                     SELECT
                         m.*,
@@ -187,14 +207,14 @@ impl Repo for PostgresMediaRepo {
                     WHERE rm.route_id = $1
                     ORDER BY m.created_at DESC
                     "#,
-                    route_id.as_uuid()
+                    &[&(route_id.as_uuid())],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
-            MediaFilter::ForTrip(trip_id) => {
-                sqlx::query_as!(
-                    MediaRow,
+                .iter()
+                .map(MediaRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            MediaFilter::ForTrip(trip_id) => conn
+                .query(
                     r#"
                     SELECT
                         m.*,
@@ -208,14 +228,14 @@ impl Repo for PostgresMediaRepo {
                     WHERE tm.trip_id = $1
                     ORDER BY m.created_at DESC
                     "#,
-                    trip_id.as_uuid()
+                    &[&(trip_id.as_uuid())],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
-            MediaFilter::ForPointOfInterest(poi_id) => {
-                sqlx::query_as!(
-                    MediaRow,
+                .iter()
+                .map(MediaRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            MediaFilter::ForPointOfInterest(poi_id) => conn
+                .query(
                     r#"
                     SELECT
                         m.*,
@@ -229,11 +249,12 @@ impl Repo for PostgresMediaRepo {
                     WHERE pm.poi_id = $1
                     ORDER BY m.created_at DESC
                     "#,
-                    poi_id.as_uuid()
+                    &[&(poi_id.as_uuid())],
                 )
-                .fetch_all(conn.as_mut())
                 .await?
-            }
+                .iter()
+                .map(MediaRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
         };
 
         Ok(media
@@ -247,11 +268,12 @@ impl Repo for PostgresMediaRepo {
     }
 
     async fn get(&self, id: MediaId) -> Result<Media, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            MediaRow,
-            r#"
+        Ok(Media::try_from(MediaRow::try_from(
+            &conn
+                .query_one(
+                    r#"
             SELECT
                 m.*,
                 mr.ride_ids,
@@ -262,17 +284,19 @@ impl Repo for PostgresMediaRepo {
             INNER JOIN media_relations mr ON mr.id = m.id
             WHERE m.id = $1
             "#,
-            id.as_uuid()
-        );
-
-        Ok(Media::try_from(query.fetch_one(conn.as_mut()).await?)?)
+                    &[&(id.as_uuid())],
+                )
+                .await?,
+        )?)?)
     }
 
     async fn put(&self, media: Media) -> Result<(), PostgresRepoError> {
-        let mut tx = self.client.begin().await?;
+        let mut conn = self.client.acquire().await?;
+        let tx = conn.transaction().await?;
 
         // Insert/update the media record
-        let query = sqlx::query!(
+
+        tx.execute(
             r#"
             INSERT INTO media (
                 id,
@@ -282,103 +306,93 @@ impl Repo for PostgresMediaRepo {
                 point,
                 captured_at
             ) VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (id) DO UPDATE 
+            ON CONFLICT (id) DO UPDATE
             SET path = EXCLUDED.path,
                 point = EXCLUDED.point,
                 captured_at = EXCLUDED.captured_at
             "#,
-            media.id.as_uuid(),
-            media.created_at,
-            media.user_id.as_uuid(),
-            media.path,
-            media.point.map(|p| serde_json::to_value(p).unwrap()),
-            media.captured_at,
-        );
-        query.execute(tx.as_mut()).await?;
+            &[
+                media.id.as_uuid(),
+                &media.created_at,
+                media.user_id.as_uuid(),
+                &media.path,
+                &media.point.map(|p| serde_json::to_value(p).unwrap()),
+                &media.captured_at,
+            ],
+        )
+        .await?;
 
         // Handle ride relations
         let ride_ids: Vec<_> = media.iter_ride_ids().map(|id| *id.as_uuid()).collect();
 
-        sqlx::query!(
+        tx.execute(
             r#"
-            DELETE FROM ride_media 
-            WHERE media_id = $1 
+            DELETE FROM ride_media
+            WHERE media_id = $1
             AND ride_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
             "#,
-            media.id.as_uuid(),
-            &ride_ids,
+            &[media.id.as_uuid(), &ride_ids],
         )
-        .execute(tx.as_mut())
         .await?;
 
         for ride_id in ride_ids {
-            sqlx::query!(
+            tx.execute(
                 r#"
-                INSERT INTO ride_media (ride_id, media_id) 
+                INSERT INTO ride_media (ride_id, media_id)
                 VALUES ($1, $2)
                 ON CONFLICT (ride_id, media_id) DO NOTHING
                 "#,
-                ride_id,
-                media.id.as_uuid(),
+                &[&ride_id, media.id.as_uuid()],
             )
-            .execute(tx.as_mut())
             .await?;
         }
 
         // Handle route relations
         let route_ids: Vec<_> = media.iter_route_ids().map(|id| *id.as_uuid()).collect();
-        sqlx::query!(
+        tx.execute(
             r#"
-            DELETE FROM route_media 
-            WHERE media_id = $1 
+            DELETE FROM route_media
+            WHERE media_id = $1
             AND route_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
             "#,
-            media.id.as_uuid(),
-            &route_ids,
+            &[media.id.as_uuid(), &route_ids],
         )
-        .execute(tx.as_mut())
         .await?;
 
         for route_id in route_ids {
-            sqlx::query!(
+            tx.execute(
                 r#"
-                INSERT INTO route_media (route_id, media_id) 
+                INSERT INTO route_media (route_id, media_id)
                 VALUES ($1, $2)
                 ON CONFLICT (route_id, media_id) DO NOTHING
                 "#,
-                route_id,
-                media.id.as_uuid(),
+                &[&route_id, media.id.as_uuid()],
             )
-            .execute(tx.as_mut())
             .await?;
         }
 
         // Handle trip relations
         let trip_ids: Vec<_> = media.iter_trip_ids().map(|id| *id.as_uuid()).collect();
 
-        sqlx::query!(
+        tx.execute(
             r#"
-            DELETE FROM trip_media 
-            WHERE media_id = $1 
+            DELETE FROM trip_media
+            WHERE media_id = $1
             AND trip_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
             "#,
-            media.id.as_uuid(),
-            &trip_ids,
+            &[media.id.as_uuid(), &trip_ids],
         )
-        .execute(tx.as_mut())
         .await?;
 
         for trip_id in trip_ids {
-            sqlx::query!(
+            tx.execute(
                 r#"
-                INSERT INTO trip_media (trip_id, media_id) 
+                INSERT INTO trip_media (trip_id, media_id)
                 VALUES ($1, $2)
                 ON CONFLICT (trip_id, media_id) DO NOTHING
                 "#,
-                trip_id,
-                media.id.as_uuid(),
+                &[&trip_id, media.id.as_uuid()],
             )
-            .execute(tx.as_mut())
             .await?;
         }
 
@@ -388,29 +402,25 @@ impl Repo for PostgresMediaRepo {
             .map(|id| *id.as_uuid())
             .collect();
 
-        sqlx::query!(
+        tx.execute(
             r#"
-            DELETE FROM poi_media 
-            WHERE media_id = $1 
+            DELETE FROM poi_media
+            WHERE media_id = $1
             AND poi_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
             "#,
-            media.id.as_uuid(),
-            &poi_ids,
+            &[media.id.as_uuid(), &poi_ids],
         )
-        .execute(tx.as_mut())
         .await?;
 
         for poi_id in poi_ids {
-            sqlx::query!(
+            tx.execute(
                 r#"
-                INSERT INTO poi_media (poi_id, media_id) 
+                INSERT INTO poi_media (poi_id, media_id)
                 VALUES ($1, $2)
                 ON CONFLICT (poi_id, media_id) DO NOTHING
                 "#,
-                poi_id,
-                media.id.as_uuid(),
+                &[&poi_id, media.id.as_uuid()],
             )
-            .execute(tx.as_mut())
             .await?;
         }
 

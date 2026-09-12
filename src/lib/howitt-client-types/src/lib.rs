@@ -48,6 +48,8 @@ pub trait HttpClient {
 
 #[async_trait::async_trait]
 pub trait RedisClient {
+    const ENABLED: bool = true;
+
     type Error: std::error::Error + Send + Sync + 'static;
 
     async fn get_bytes(&self, key: &str) -> Result<Option<bytes::Bytes>, Self::Error>;

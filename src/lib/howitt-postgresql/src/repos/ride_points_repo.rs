@@ -12,6 +12,17 @@ struct RidePointsRow {
     points: serde_json::Value,
 }
 
+impl TryFrom<&tokio_postgres::Row> for RidePointsRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            ride_id: row.try_get("ride_id")?,
+            points: row.try_get("points")?,
+        })
+    }
+}
+
 impl TryFrom<RidePointsRow> for RidePoints {
     type Error = PostgresRepoError;
 
@@ -38,44 +49,47 @@ impl Repo for PostgresRidePointsRepo {
     }
 
     async fn all(&self) -> Result<Vec<RidePoints>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(RidePointsRow, r#"select * from ride_points"#);
-
-        Ok(query
-            .fetch_all(conn.as_mut())
+        Ok(conn
+            .query(r#"select * from ride_points"#, &[])
             .await?
+            .iter()
+            .map(RidePointsRow::try_from)
+            .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .map(RidePoints::try_from)
             .collect_result_vec()?)
     }
     async fn get(&self, id: RideId) -> Result<RidePoints, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            RidePointsRow,
-            r#"select * from ride_points where ride_id = $1"#,
-            id.as_uuid()
-        );
-
-        Ok(RidePoints::try_from(query.fetch_one(conn.as_mut()).await?)?)
+        Ok(RidePoints::try_from(RidePointsRow::try_from(
+            &conn
+                .query_one(
+                    r#"select * from ride_points where ride_id = $1"#,
+                    &[&(id.as_uuid())],
+                )
+                .await?,
+        )?)?)
     }
 
     async fn put(&self, ride_points: RidePoints) -> Result<(), PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query!(
+        conn.execute(
             r#"insert into ride_points (
                 ride_id,
                 points
             ) values ($1, $2)
             ON CONFLICT (ride_id) DO UPDATE SET
                 points = EXCLUDED.points"#,
-            ride_points.id.as_uuid(),
-            serde_json::to_value(ride_points.points)?
-        );
-
-        query.execute(conn.as_mut()).await?;
+            &[
+                ride_points.id.as_uuid(),
+                &serde_json::to_value(ride_points.points)?,
+            ],
+        )
+        .await?;
 
         Ok(())
     }

@@ -3,3 +3,9 @@
 .DS_Store
 **/.env*
 src/lib/howitt-postgresql/refinery_k8s.toml
+
+# Cloudflare Worker development/build output and local-only secrets
+/node_modules/
+/.wrangler/
+**/.dev.vars*
+/src/bin/howitt-web/build/

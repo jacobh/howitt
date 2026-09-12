@@ -23,6 +23,26 @@ struct TripRow {
     is_published: bool,
 }
 
+impl TryFrom<&tokio_postgres::Row> for TripRow {
+    type Error = tokio_postgres::Error;
+
+    fn try_from(row: &tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: row.try_get("id")?,
+            name: row.try_get("name")?,
+            created_at: row.try_get("created_at")?,
+            slug: row.try_get("slug")?,
+            year: row.try_get("year")?,
+            description: row.try_get("description")?,
+            user_id: row.try_get("user_id")?,
+            notes: row.try_get("notes")?,
+            ride_ids: row.try_get("ride_ids")?,
+            media_ids: row.try_get("media_ids")?,
+            is_published: row.try_get("is_published")?,
+        })
+    }
+}
+
 impl TryFrom<TripRow> for Trip {
     type Error = PostgresRepoError;
 
@@ -68,14 +88,13 @@ impl Repo for PostgresTripRepo {
     type Error = PostgresRepoError;
 
     async fn filter_models(&self, filter: TripFilter) -> Result<Vec<Trip>, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
         let trips = match filter {
-            TripFilter::User(user_id) => {
-                sqlx::query_as!(
-                    TripRow,
+            TripFilter::User(user_id) => conn
+                .query(
                     r#"
-                        SELECT 
+                        SELECT
                             t.*,
                             tr.ride_ids,
                             tr.media_ids
@@ -83,16 +102,16 @@ impl Repo for PostgresTripRepo {
                         INNER JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1
                     "#,
-                    user_id.as_uuid(),
+                    &[&(user_id.as_uuid())],
                 )
-                .fetch_all(conn.as_mut())
-                .await
-            }
-            TripFilter::WithUserAndSlug { user_id, slug } => {
-                sqlx::query_as!(
-                    TripRow,
+                .await?
+                .iter()
+                .map(TripRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            TripFilter::WithUserAndSlug { user_id, slug } => conn
+                .query(
                     r#"
-                        SELECT 
+                        SELECT
                             t.*,
                             tr.ride_ids,
                             tr.media_ids
@@ -100,44 +119,46 @@ impl Repo for PostgresTripRepo {
                         INNER JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1 AND slug = $2
                     "#,
-                    user_id.as_uuid(),
-                    slug,
+                    &[&(user_id.as_uuid()), &(slug)],
                 )
-                .fetch_all(conn.as_mut())
-                .await
-            }
-            TripFilter::All => {
-                sqlx::query_as!(
-                    TripRow,
+                .await?
+                .iter()
+                .map(TripRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            TripFilter::All => conn
+                .query(
                     r#"
-                        SELECT 
+                        SELECT
                             t.*,
                             tr.ride_ids,
                             tr.media_ids
                         FROM trips t
                         INNER JOIN trip_relations tr ON tr.id = t.id
-                    "#
+                    "#,
+                    &[],
                 )
-                .fetch_all(conn.as_mut())
-                .await
-            }
-            TripFilter::Published => {
-                sqlx::query_as!(
-                    TripRow,
+                .await?
+                .iter()
+                .map(TripRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+            TripFilter::Published => conn
+                .query(
                     r#"
-                        SELECT 
+                        SELECT
                             t.*,
                             tr.ride_ids,
                             tr.media_ids
                         FROM trips t
                         INNER JOIN trip_relations tr ON tr.id = t.id
                         WHERE t.is_published = TRUE
-                    "#
+                    "#,
+                    &[],
                 )
-                .fetch_all(conn.as_mut())
-                .await
-            }
-        }?;
+                .await?
+                .iter()
+                .map(TripRow::try_from)
+                .collect::<Result<Vec<_>, _>>()?,
+        };
 
         Ok(trips.into_iter().map(Trip::try_from).collect_result_vec()?)
     }
@@ -147,12 +168,13 @@ impl Repo for PostgresTripRepo {
     }
 
     async fn get(&self, id: TripId) -> Result<Trip, PostgresRepoError> {
-        let mut conn = self.client.acquire().await.unwrap();
+        let conn = self.client.acquire().await?;
 
-        let query = sqlx::query_as!(
-            TripRow,
-            r#"
-                SELECT 
+        Ok(Trip::try_from(TripRow::try_from(
+            &conn
+                .query_one(
+                    r#"
+                SELECT
                     t.*,
                     tr.ride_ids,
                     tr.media_ids
@@ -160,16 +182,17 @@ impl Repo for PostgresTripRepo {
                 INNER JOIN trip_relations tr ON tr.id = t.id
                 WHERE t.id = $1
             "#,
-            id.as_uuid()
-        );
-
-        Ok(Trip::try_from(query.fetch_one(conn.as_mut()).await?)?)
+                    &[&(id.as_uuid())],
+                )
+                .await?,
+        )?)?)
     }
 
     async fn put(&self, trip: Trip) -> Result<(), PostgresRepoError> {
-        let mut tx = self.client.begin().await?;
+        let mut conn = self.client.acquire().await?;
+        let tx = conn.transaction().await?;
 
-        let query = sqlx::query!(
+        tx.execute(
             r#"
                 INSERT INTO trips (
                     id,
@@ -182,8 +205,8 @@ impl Repo for PostgresTripRepo {
                     notes,
                     is_published
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                ON CONFLICT (id) DO UPDATE 
-                SET 
+                ON CONFLICT (id) DO UPDATE
+                SET
                     name = EXCLUDED.name,
                     slug = EXCLUDED.slug,
                     year = EXCLUDED.year,
@@ -191,34 +214,36 @@ impl Repo for PostgresTripRepo {
                     notes = EXCLUDED.notes,
                     is_published = EXCLUDED.is_published
             "#,
-            trip.id.as_uuid(),
-            trip.name,
-            trip.slug,
-            trip.year,
-            trip.description,
-            trip.created_at,
-            trip.user_id.as_uuid(),
-            serde_json::to_value(&trip.notes)?,
-            trip.is_published,
-        );
-
-        query.execute(tx.as_mut()).await?;
+            &[
+                trip.id.as_uuid(),
+                &trip.name,
+                &trip.slug,
+                &trip.year,
+                &trip.description,
+                &trip.created_at,
+                trip.user_id.as_uuid(),
+                &serde_json::to_value(&trip.notes)?,
+                &trip.is_published,
+            ],
+        )
+        .await?;
 
         // Update ride associations
-        sqlx::query!(
+        tx.execute(
             r#"
-            DELETE FROM trip_rides 
-            WHERE trip_id = $1 
+            DELETE FROM trip_rides
+            WHERE trip_id = $1
             AND ride_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
         "#,
-            trip.id.as_uuid(),
-            &trip.ride_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+            &[
+                trip.id.as_uuid(),
+                &trip.ride_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+            ],
         )
-        .execute(tx.as_mut())
         .await?;
 
         for ride_id in trip.ride_ids {
-            let query = sqlx::query!(
+            tx.execute(
                 r#"
                 INSERT INTO trip_rides (
                     trip_id,
@@ -226,28 +251,27 @@ impl Repo for PostgresTripRepo {
                 ) VALUES ($1, $2)
                 ON CONFLICT (trip_id, ride_id) DO NOTHING
             "#,
-                *trip.id.as_uuid(),
-                *ride_id.as_uuid(),
-            );
-
-            query.execute(tx.as_mut()).await?;
+                &[trip.id.as_uuid(), ride_id.as_uuid()],
+            )
+            .await?;
         }
 
         // Update media associations
-        sqlx::query!(
+        tx.execute(
             r#"
-            DELETE FROM trip_media 
-            WHERE trip_id = $1 
+            DELETE FROM trip_media
+            WHERE trip_id = $1
             AND media_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
         "#,
-            trip.id.as_uuid(),
-            &trip.media_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+            &[
+                trip.id.as_uuid(),
+                &trip.media_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+            ],
         )
-        .execute(tx.as_mut())
         .await?;
 
         for media_id in trip.media_ids {
-            let query = sqlx::query!(
+            tx.execute(
                 r#"
                 INSERT INTO trip_media (
                     trip_id,
@@ -255,11 +279,9 @@ impl Repo for PostgresTripRepo {
                 ) VALUES ($1, $2)
                 ON CONFLICT (trip_id, media_id) DO NOTHING
             "#,
-                *trip.id.as_uuid(),
-                *media_id.as_uuid(),
-            );
-
-            query.execute(tx.as_mut()).await?;
+                &[trip.id.as_uuid(), media_id.as_uuid()],
+            )
+            .await?;
         }
 
         tx.commit().await?;

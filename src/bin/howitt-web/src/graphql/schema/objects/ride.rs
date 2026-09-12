@@ -80,10 +80,10 @@ impl Ride {
             .fetch(self.0.id, DetailLevel::Low)
             .await?;
 
-        Ok(points
-            .first()
-            .map(Point::as_geo_point)
-            .map(|point| tz_finder.get_tz_name(point.x(), point.y()).to_string()))
+        let Some(point) = points.first().map(Point::as_geo_point) else {
+            return Ok(None);
+        };
+        Ok(Some(tz_finder.get_tz_name(point.x(), point.y()).await?))
     }
 
     async fn points<'ctx>(
