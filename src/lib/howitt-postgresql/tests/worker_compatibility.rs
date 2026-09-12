@@ -2,11 +2,14 @@ use chrono::Utc;
 use howitt::{
     models::{
         filters::TemporalFilter,
-        media::{Media, MediaId, MediaRelationId},
+        media::{Media, MediaFilter, MediaId, MediaRelationId},
         point::{ElevationPoint, TemporalElevationPoint},
         point_of_interest::{PointOfInterest, PointOfInterestId, PointOfInterestType},
         ride::{Ride, RideFilter, RideId, RidePoints},
-        route::{Route, RouteFilter, RouteId, RoutePoints},
+        route::{Route, RouteFilter, RouteId, RoutePoints, RoutePointsFilter},
+        route_description::{
+            BikeSpec, DifficultyRating, Direction, Distance, RouteDescription, Scouted,
+        },
         trip::{Trip, TripFilter, TripId},
         user::{User, UserFilter, UserId, UserRwgpsConnection},
     },
@@ -30,7 +33,7 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
     let identity = client
         .acquire()
         .await?
-        .query_one("select current_database(), inet_server_addr()::text", &[])
+        .query_typed_one("select current_database(), inet_server_addr()::text", &[])
         .await?;
     assert_eq!(identity.get::<_, String>(0), name);
     assert_eq!(identity.get::<_, String>(1), "127.0.0.1/32");
@@ -90,7 +93,21 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
             slug: "test-route".into(),
             distance: 100.0,
             sample_points: Some(vec![elevation_point.clone()]),
-            description: None,
+            description: Some(RouteDescription {
+                description: Some("Synthetic description".into()),
+                published_at: Some(now),
+                technical_difficulty: Some(DifficultyRating::Blue),
+                physical_difficulty: Some(DifficultyRating::Black),
+                minimum_bike: Some(BikeSpec {
+                    tyre_width: Distance::Millimeters(50.0).into(),
+                    front_suspension: Default::default(),
+                    rear_suspension: Default::default(),
+                }),
+                ideal_bike: None,
+                scouted: Some(Scouted::Yes),
+                direction: Some(Direction::Either),
+                tags: vec!["synthetic".into()],
+            }),
             external_ref: None,
             tags: Default::default(),
         })
@@ -122,6 +139,34 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
     );
     assert_eq!(repos.route_points_repo.get(route_id).await?.points.len(), 1);
     assert_eq!(repos.route_points_repo.all().await?.len(), 1);
+    assert_eq!(
+        repos
+            .route_points_repo
+            .filter_models(RoutePointsFilter::Ids(vec![route_id]))
+            .await?
+            .len(),
+        1
+    );
+    for filter in [RouteFilter::All, RouteFilter::Slug("test-route".into())] {
+        assert_eq!(repos.route_repo.filter_models(filter).await?.len(), 1);
+    }
+    assert!(repos
+        .route_repo
+        .filter_models(RouteFilter::RwgpsId(123))
+        .await?
+        .is_empty());
+    assert!(repos
+        .route_repo
+        .filter_models(RouteFilter::Starred)
+        .await?
+        .is_empty());
+    let description = repos.route_repo.all().await?.remove(0).description.unwrap();
+    assert_eq!(
+        description.technical_difficulty,
+        Some(DifficultyRating::Blue)
+    );
+    assert_eq!(description.tags, vec!["synthetic"]);
+    assert!(description.minimum_bike.is_some());
 
     let ride_id = RideId::from(Uuid::from_u128(3));
     repos
@@ -255,13 +300,78 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
             relation_ids: vec![MediaRelationId::from(trip_id)],
         })
         .await?;
+    // Exercise the remaining typed parameter shapes on the same connection.
+    for filter in [
+        RideFilter::All,
+        RideFilter::ForUser {
+            user_id,
+            started_at: None,
+        },
+        RideFilter::ForUser {
+            user_id,
+            started_at: Some(TemporalFilter::Before {
+                before: now + chrono::Duration::days(1),
+                last: Some(10),
+            }),
+        },
+        RideFilter::ForUserWithDate {
+            user_id,
+            date: now
+                .with_timezone(&chrono_tz::Australia::Melbourne)
+                .date_naive(),
+        },
+        RideFilter::ForTrip(trip_id),
+    ] {
+        assert_eq!(repos.ride_repo.filter_models(filter).await?.len(), 1);
+    }
+    assert!(repos
+        .ride_repo
+        .filter_models(RideFilter::RwgpsId(123))
+        .await?
+        .is_empty());
+    assert_eq!(repos.ride_repo.all().await?.len(), 1);
+    assert_eq!(repos.ride_points_repo.all().await?.len(), 1);
+    assert_eq!(repos.point_of_interest_repo.all().await?.len(), 1);
+    assert_eq!(
+        repos.point_of_interest_repo.filter_models(()).await?.len(),
+        1
+    );
+    for filter in [
+        TripFilter::User(user_id),
+        TripFilter::WithUserAndSlug {
+            user_id,
+            slug: "test-trip".into(),
+        },
+        TripFilter::Published,
+    ] {
+        assert_eq!(repos.trip_repo.filter_models(filter).await?.len(), 1);
+    }
+    for filter in [
+        MediaFilter::Ids(vec![media_id]),
+        MediaFilter::ForRide(ride_id),
+        MediaFilter::ForRoute(route_id),
+        MediaFilter::ForPointOfInterest(poi_id),
+    ] {
+        assert_eq!(repos.media_repo.filter_models(filter).await?.len(), 1);
+    }
+    for filter in [MediaFilter::ForUser(user_id), MediaFilter::ForTrip(trip_id)] {
+        assert_eq!(repos.media_repo.filter_models(filter).await?.len(), 2);
+    }
     let connection = client.acquire().await?;
+    let prepared_count: i64 = connection
+        .query_typed_one("select count(*) from pg_prepared_statements", &[])
+        .await?
+        .get(0);
+    assert_eq!(
+        prepared_count, 0,
+        "repository operations must not leave named statements"
+    );
     let backend: i32 = connection
-        .query_one("select pg_backend_pid()", &[])
+        .query_typed_one("select pg_backend_pid()", &[])
         .await?
         .get(0);
     assert!(connection
-        .query_one("select pg_terminate_backend(pg_backend_pid())", &[])
+        .query_typed_one("select pg_terminate_backend(pg_backend_pid())", &[])
         .await
         .is_err());
     // A server's fatal response arrives before the driver closes its channel.
@@ -276,7 +386,7 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
     let replacement: i32 = client
         .acquire()
         .await?
-        .query_one("select pg_backend_pid()", &[])
+        .query_typed_one("select pg_backend_pid()", &[])
         .await?
         .get(0);
     assert_ne!(backend, replacement);

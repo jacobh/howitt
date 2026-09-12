@@ -1,4 +1,8 @@
-import { vitePlugin as remix } from "@remix-run/dev";
+import {
+  vitePlugin as remix,
+  cloudflareDevProxyVitePlugin,
+} from "@remix-run/dev";
+import type { WebuiEnv } from "./load-context";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -14,6 +18,14 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [
+    cloudflareDevProxyVitePlugin<WebuiEnv, Record<string, unknown>>({
+      getLoadContext: ({ context }) => ({
+        apiBaseUrl: context.cloudflare.env.API_BASE_URL,
+        apiFetch: context.cloudflare.env.API.fetch.bind(
+          context.cloudflare.env.API,
+        ),
+      }),
+    }),
     remix({
       future: {
         v3_fetcherPersist: true,

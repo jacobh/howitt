@@ -9,6 +9,7 @@ interface CreateApolloClientOptions {
   ssrMode?: boolean;
   initialState?: NormalizedCacheObject;
   graphqlUrl: string;
+  fetch: typeof fetch;
   getToken: () => string | undefined;
 }
 
@@ -16,10 +17,12 @@ export function createApolloClient({
   ssrMode = false,
   initialState,
   graphqlUrl,
+  fetch,
   getToken,
 }: CreateApolloClientOptions): ApolloClient<NormalizedCacheObject> {
   const httpLink = createHttpLink({
     uri: graphqlUrl,
+    fetch,
   });
 
   const authLink = setContext((_, { headers }) => {

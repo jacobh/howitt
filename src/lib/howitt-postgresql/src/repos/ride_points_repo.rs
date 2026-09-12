@@ -3,6 +3,7 @@ use howitt::{
     models::ride::{RideId, RidePoints},
     repos::Repo,
 };
+use tokio_postgres::types::Type;
 use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
@@ -52,7 +53,7 @@ impl Repo for PostgresRidePointsRepo {
         let conn = self.client.acquire().await?;
 
         Ok(conn
-            .query(r#"select * from ride_points"#, &[])
+            .query_typed(r#"select * from ride_points"#, &[])
             .await?
             .iter()
             .map(RidePointsRow::try_from)
@@ -66,9 +67,9 @@ impl Repo for PostgresRidePointsRepo {
 
         Ok(RidePoints::try_from(RidePointsRow::try_from(
             &conn
-                .query_one(
+                .query_typed_one(
                     r#"select * from ride_points where ride_id = $1"#,
-                    &[&(id.as_uuid())],
+                    &[(&(id.as_uuid()), Type::UUID)],
                 )
                 .await?,
         )?)?)
@@ -77,7 +78,7 @@ impl Repo for PostgresRidePointsRepo {
     async fn put(&self, ride_points: RidePoints) -> Result<(), PostgresRepoError> {
         let conn = self.client.acquire().await?;
 
-        conn.execute(
+        conn.execute_typed(
             r#"insert into ride_points (
                 ride_id,
                 points
@@ -85,8 +86,8 @@ impl Repo for PostgresRidePointsRepo {
             ON CONFLICT (ride_id) DO UPDATE SET
                 points = EXCLUDED.points"#,
             &[
-                ride_points.id.as_uuid(),
-                &serde_json::to_value(ride_points.points)?,
+                (ride_points.id.as_uuid(), Type::UUID),
+                (&serde_json::to_value(ride_points.points)?, Type::JSONB),
             ],
         )
         .await?;

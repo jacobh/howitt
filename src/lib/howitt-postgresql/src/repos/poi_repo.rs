@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::ext::serde::json::unwrap_string_value;
+use tokio_postgres::types::Type;
 
 use howitt::models::point_of_interest::PointOfInterestId;
 use howitt::models::user::UserId;
@@ -69,7 +70,7 @@ impl Repo for PostgresPointOfInterestRepo {
         let conn = self.client.acquire().await?;
 
         Ok(conn
-            .query(r#"select * from points_of_interest"#, &[])
+            .query_typed(r#"select * from points_of_interest"#, &[])
             .await?
             .iter()
             .map(PointOfInterestRow::try_from)
@@ -83,7 +84,7 @@ impl Repo for PostgresPointOfInterestRepo {
         let conn = self.client.acquire().await?;
 
         Ok(conn
-            .query(r#"select * from points_of_interest"#, &[])
+            .query_typed(r#"select * from points_of_interest"#, &[])
             .await?
             .iter()
             .map(PointOfInterestRow::try_from)
@@ -100,9 +101,9 @@ impl Repo for PostgresPointOfInterestRepo {
 
         Ok(PointOfInterest::try_from(PointOfInterestRow::try_from(
             &conn
-                .query_one(
+                .query_typed_one(
                     r#"select * from points_of_interest where id = $1"#,
-                    &[&(id.as_uuid())],
+                    &[(&(id.as_uuid()), Type::UUID)],
                 )
                 .await?,
         )?)?)
@@ -111,7 +112,7 @@ impl Repo for PostgresPointOfInterestRepo {
     async fn put(&self, model: PointOfInterest) -> Result<(), PostgresRepoError> {
         let conn = self.client.acquire().await?;
 
-        conn.execute(
+        conn.execute_typed(
             r#"insert into points_of_interest (
                 id,
                 created_at,
@@ -131,14 +132,17 @@ impl Repo for PostgresPointOfInterestRepo {
                 description = $8
              "#,
             &[
-                model.id.as_uuid(),
-                &Utc::now(),
-                &model.name,
-                &unwrap_string_value(serde_json::to_value(model.point_of_interest_type)?),
-                &serde_json::to_value(model.point)?,
-                model.user_id.as_uuid(),
-                &model.slug,
-                &model.description,
+                (model.id.as_uuid(), Type::UUID),
+                (&Utc::now(), Type::TIMESTAMPTZ),
+                (&model.name, Type::VARCHAR),
+                (
+                    &unwrap_string_value(serde_json::to_value(model.point_of_interest_type)?),
+                    Type::VARCHAR,
+                ),
+                (&serde_json::to_value(model.point)?, Type::JSONB),
+                (model.user_id.as_uuid(), Type::UUID),
+                (&model.slug, Type::VARCHAR),
+                (&model.description, Type::TEXT),
             ],
         )
         .await?;

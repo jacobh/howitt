@@ -15,10 +15,6 @@ jobs:
         strategy:
           matrix:
             include:
-              - name: webui
-                image_name: ${{ github.repository }}-webui
-                context: webui
-                dockerfile: Dockerfile
               - name: ts-api
                 image_name: ${{ github.repository }}-ts-api
                 context: ts-api
@@ -83,9 +79,6 @@ jobs:
       strategy:
         matrix:
           deployment:
-            - name: webui
-              file: howitt-webui.yaml
-              is_deployment: true
             - name: ts-api
               file: howitt-ts-api.yaml
               is_deployment: true

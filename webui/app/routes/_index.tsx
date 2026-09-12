@@ -1,4 +1,4 @@
-import { redirect, TypedResponse } from "@remix-run/node";
+import { redirect, TypedResponse } from "@remix-run/cloudflare";
 
 export async function loader(): Promise<TypedResponse<never>> {
   return redirect("/routes");

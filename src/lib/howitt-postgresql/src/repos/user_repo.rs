@@ -2,6 +2,7 @@ use argon2::password_hash::Encoding;
 use argon2::PasswordHash;
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
+use tokio_postgres::types::Type;
 
 use howitt::models::user::{UserFilter, UserId, UserRwgpsConnection};
 use howitt::models::{user::User, Model};
@@ -90,7 +91,7 @@ impl Repo for PostgresUserRepo {
             UserFilter::Ids(ids) => {
                 let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
 
-                conn.query(
+                conn.query_typed(
                     r#"
                     SELECT
                         u.*,
@@ -103,7 +104,7 @@ impl Repo for PostgresUserRepo {
                     LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
                     WHERE u.id = ANY($1)
                     "#,
-                    &[&uuids],
+                    &[(&uuids, Type::UUID_ARRAY)],
                 )
                 .await?
                 .iter()
@@ -111,7 +112,7 @@ impl Repo for PostgresUserRepo {
                 .collect::<Result<Vec<_>, _>>()?
             }
             UserFilter::Username(username) => conn
-                .query(
+                .query_typed(
                     r#"
                     SELECT
                         u.*,
@@ -124,14 +125,14 @@ impl Repo for PostgresUserRepo {
                     LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
                     WHERE u.username = $1
                     "#,
-                    &[&(username)],
+                    &[(&(username), Type::VARCHAR)],
                 )
                 .await?
                 .iter()
                 .map(UserRow::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
             UserFilter::RwgpsId(rwgps_user_id) => conn
-                .query(
+                .query_typed(
                     r#"
                 SELECT
                     u.*,
@@ -144,14 +145,14 @@ impl Repo for PostgresUserRepo {
                 INNER JOIN user_rwgps_connections rc ON rc.user_id = u.id
                 WHERE rc.rwgps_user_id = $1
                 "#,
-                    &[&(rwgps_user_id as i32)],
+                    &[(&(rwgps_user_id as i32), Type::INT4)],
                 )
                 .await?
                 .iter()
                 .map(UserRow::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
             UserFilter::Email(email) => conn
-                .query(
+                .query_typed(
                     r#"
                     SELECT
                         u.*,
@@ -164,7 +165,7 @@ impl Repo for PostgresUserRepo {
                     LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
                     WHERE u.email = $1
                     "#,
-                    &[&(email)],
+                    &[(&(email), Type::VARCHAR)],
                 )
                 .await?
                 .iter()
@@ -179,7 +180,7 @@ impl Repo for PostgresUserRepo {
         let conn = self.client.acquire().await?;
 
         Ok(conn
-            .query(
+            .query_typed(
                 r#"
             SELECT
                 u.*,
@@ -207,7 +208,7 @@ impl Repo for PostgresUserRepo {
 
         Ok(User::try_from(UserRow::try_from(
             &conn
-                .query_one(
+                .query_typed_one(
                     r#"
             SELECT
                 u.*,
@@ -220,7 +221,7 @@ impl Repo for PostgresUserRepo {
             LEFT JOIN user_rwgps_connections rc ON rc.user_id = u.id
             WHERE u.id = $1
             "#,
-                    &[&(id.as_uuid())],
+                    &[(&(id.as_uuid()), Type::UUID)],
                 )
                 .await?,
         )?)?)
@@ -231,7 +232,7 @@ impl Repo for PostgresUserRepo {
         let tx = conn.transaction().await?;
 
         // Insert/update user
-        tx.execute(
+        tx.execute_typed(
             r#"
             INSERT INTO users (
                 id,
@@ -247,18 +248,18 @@ impl Repo for PostgresUserRepo {
                 created_at = EXCLUDED.created_at
             "#,
             &[
-                &Uuid::from(model.id()),
-                &model.username,
-                &model.password.to_string(),
-                &model.email,
-                &model.created_at,
+                (&Uuid::from(model.id()), Type::UUID),
+                (&model.username, Type::VARCHAR),
+                (&model.password.to_string(), Type::VARCHAR),
+                (&model.email, Type::VARCHAR),
+                (&model.created_at, Type::TIMESTAMPTZ),
             ],
         )
         .await?;
 
         // Handle RWGPS connection
         if let Some(rwgps) = model.rwgps_connection {
-            tx.execute(
+            tx.execute_typed(
                 r#"
                 INSERT INTO user_rwgps_connections (
                     id,
@@ -274,12 +275,12 @@ impl Repo for PostgresUserRepo {
                     updated_at = EXCLUDED.updated_at
                 "#,
                 &[
-                    &rwgps.id,
-                    rwgps.user_id.as_uuid(),
-                    &rwgps.rwgps_user_id,
-                    &rwgps.access_token,
-                    &rwgps.created_at,
-                    &rwgps.updated_at,
+                    (&rwgps.id, Type::UUID),
+                    (rwgps.user_id.as_uuid(), Type::UUID),
+                    (&rwgps.rwgps_user_id, Type::INT4),
+                    (&rwgps.access_token, Type::VARCHAR),
+                    (&rwgps.created_at, Type::TIMESTAMPTZ),
+                    (&rwgps.updated_at, Type::TIMESTAMPTZ),
                 ],
             )
             .await?;

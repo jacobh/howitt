@@ -3,6 +3,7 @@ use howitt::{
     models::route::{RouteId, RoutePoints, RoutePointsFilter},
     repos::Repo,
 };
+use tokio_postgres::types::Type;
 use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
@@ -54,9 +55,9 @@ impl Repo for PostgresRoutePointsRepo {
             RoutePointsFilter::Ids(ids) => {
                 let uuids: Vec<_> = ids.into_iter().map(|id| id.as_uuid().clone()).collect();
 
-                conn.query(
+                conn.query_typed(
                     r#"select * from route_points where route_id = ANY($1)"#,
-                    &[&uuids],
+                    &[(&uuids, Type::UUID_ARRAY)],
                 )
                 .await?
                 .iter()
@@ -75,7 +76,7 @@ impl Repo for PostgresRoutePointsRepo {
         let conn = self.client.acquire().await?;
 
         Ok(conn
-            .query(r#"select * from route_points"#, &[])
+            .query_typed(r#"select * from route_points"#, &[])
             .await?
             .iter()
             .map(RoutePointsRow::try_from)
@@ -90,9 +91,9 @@ impl Repo for PostgresRoutePointsRepo {
 
         Ok(RoutePoints::try_from(RoutePointsRow::try_from(
             &conn
-                .query_one(
+                .query_typed_one(
                     r#"select * from route_points where route_id = $1"#,
-                    &[&(id.as_uuid())],
+                    &[(&(id.as_uuid()), Type::UUID)],
                 )
                 .await?,
         )?)?)
@@ -101,7 +102,7 @@ impl Repo for PostgresRoutePointsRepo {
     async fn put(&self, route_points: RoutePoints) -> Result<(), PostgresRepoError> {
         let conn = self.client.acquire().await?;
 
-        conn.execute(
+        conn.execute_typed(
             r#"insert into route_points (
                 route_id,
                 points
@@ -110,8 +111,8 @@ impl Repo for PostgresRoutePointsRepo {
             SET
                 points = EXCLUDED.points"#,
             &[
-                route_points.id.as_uuid(),
-                &serde_json::to_value(route_points.points)?,
+                (route_points.id.as_uuid(), Type::UUID),
+                (&serde_json::to_value(route_points.points)?, Type::JSONB),
             ],
         )
         .await?;

@@ -5,6 +5,7 @@ use howitt::models::route::{Route, RouteFilter, RouteId};
 use howitt::models::route_description::RouteDescription;
 use howitt::models::tag::Tag;
 use howitt::models::user::UserId;
+use tokio_postgres::types::Type;
 
 use howitt::models::Model;
 use howitt::repos::Repo;
@@ -227,39 +228,31 @@ impl Repo for PostgresRouteRepo {
 
         let rows = match filter {
             RouteFilter::Starred => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from routes where is_starred = true"#,
-                    &[
-                    ],
+                    &[],
                 ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RouteFilter::All => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from routes"#,
-                    &[
-                    ],
+                    &[],
                 ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RouteFilter::Slug(slug) => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from routes where slug = $1"#,
-                    &[
-                        &slug,
-                    ],
+                    &[(&slug, Type::VARCHAR)],
                 ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
-            RouteFilter::RwgpsId(rwgps_id) => conn.query(
+            RouteFilter::RwgpsId(rwgps_id) => conn.query_typed(
                 r#"select * from routes where (external_ref->'id'->'Rwgps'->'Route')::int = $1"#,
-                &[
-                    &(rwgps_id as i32),
-                ],
+                &[(&(rwgps_id as i32), Type::INT4)],
             ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?,
             RouteFilter::UserId(user_id) => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from routes where user_id = $1"#,
-                    &[
-                        user_id.as_uuid(),
-                    ],
+                    &[(user_id.as_uuid(), Type::UUID)],
                 ).await?.iter().map(RouteRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
         };
@@ -271,7 +264,7 @@ impl Repo for PostgresRouteRepo {
         let conn = self.client.acquire().await?;
 
         Ok(conn
-            .query(
+            .query_typed(
                 r#"select id,
                 created_at,
                 name,
@@ -306,7 +299,10 @@ impl Repo for PostgresRouteRepo {
 
         Ok(Route::try_from(RouteRow::try_from(
             &conn
-                .query_one(r#"select * from routes where id = $1"#, &[&(id.as_uuid())])
+                .query_typed_one(
+                    r#"select * from routes where id = $1"#,
+                    &[(&(id.as_uuid()), Type::UUID)],
+                )
                 .await?,
         )?)?)
     }
@@ -314,7 +310,7 @@ impl Repo for PostgresRouteRepo {
     async fn put(&self, route: Route) -> Result<(), PostgresRepoError> {
         let conn = self.client.acquire().await?;
 
-        conn.execute(
+        conn.execute_typed(
             r#"insert into routes (
                 id,
                 created_at,
@@ -351,66 +347,47 @@ impl Repo for PostgresRouteRepo {
                 direction = EXCLUDED.direction,
                 tags = EXCLUDED.tags,
                 is_starred = EXCLUDED.is_starred"#,
-            &[
-                route.id.as_uuid(),
-                &Utc::now(),
-                &route.name,
-                &route.slug,
-                &route.external_ref.map(serde_json::to_value).transpose()?,
-                &route.sample_points.map(serde_json::to_value).transpose()?,
-                &(route.distance as i32),
-                &route
+            &[(route.id.as_uuid(), Type::UUID), (&Utc::now(), Type::TIMESTAMPTZ), (&route.name, Type::TEXT), (&route.slug, Type::VARCHAR), (&route.external_ref.map(serde_json::to_value).transpose()?, Type::JSONB), (&route.sample_points.map(serde_json::to_value).transpose()?, Type::JSONB), (&(route.distance as i32), Type::INT4), (&route
                     .description
                     .as_ref()
-                    .and_then(|x| x.description.clone()),
-                &route
+                    .and_then(|x| x.description.clone()), Type::TEXT), (&route
                     .description
                     .as_ref()
-                    .and_then(|x| x.published_at.clone()),
-                &route
+                    .and_then(|x| x.published_at.clone()), Type::TIMESTAMPTZ), (&route
                     .description
                     .as_ref()
                     .and_then(|x| x.technical_difficulty)
                     .map(serde_json::to_value)
                     .transpose()?
-                    .map(unwrap_string_value),
-                &route
+                    .map(unwrap_string_value), Type::VARCHAR), (&route
                     .description
                     .as_ref()
                     .and_then(|x| x.physical_difficulty)
                     .map(serde_json::to_value)
                     .transpose()?
-                    .map(unwrap_string_value),
-                &route
+                    .map(unwrap_string_value), Type::VARCHAR), (&route
                     .description
                     .as_ref()
                     .and_then(|x| x.minimum_bike.clone())
                     .map(serde_json::to_value)
-                    .transpose()?,
-                &route
+                    .transpose()?, Type::JSONB), (&route
                     .description
                     .as_ref()
                     .and_then(|x| x.ideal_bike.clone())
                     .map(serde_json::to_value)
-                    .transpose()?,
-                &route
+                    .transpose()?, Type::JSONB), (&route
                     .description
                     .as_ref()
                     .and_then(|x| x.scouted)
                     .map(serde_json::to_value)
                     .transpose()?
-                    .map(unwrap_string_value),
-                &route
+                    .map(unwrap_string_value), Type::VARCHAR), (&route
                     .description
                     .as_ref()
                     .and_then(|x| x.direction)
                     .map(serde_json::to_value)
                     .transpose()?
-                    .map(unwrap_string_value),
-                &route.description.as_ref().map(|x| &*x.tags).unwrap_or(&[]),
-                &route.tags.contains(&Tag::BackcountrySegment),
-                route.user_id.as_uuid(),
-            ],
+                    .map(unwrap_string_value), Type::VARCHAR), (&route.description.as_ref().map(|x| &*x.tags).unwrap_or(&[]), Type::VARCHAR_ARRAY), (&route.tags.contains(&Tag::BackcountrySegment), Type::BOOL), (route.user_id.as_uuid(), Type::UUID)],
         ).await?;
 
         Ok(())

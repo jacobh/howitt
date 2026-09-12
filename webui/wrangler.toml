@@ -1,0 +1,20 @@
+name = "howitt-webui"
+main = "worker.ts"
+compatibility_date = "2026-09-12"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+preview_urls = false
+
+[build]
+command = "bun run build"
+
+[assets]
+directory = "./build/client"
+
+[vars]
+API_BASE_URL = "https://howitt-web.jacob-e2e.workers.dev"
+
+[[services]]
+binding = "API"
+service = "howitt-web"
+remote = true

@@ -1,6 +1,6 @@
 import { CacheProvider } from "@emotion/react";
 import createEmotionServer from "@emotion/server/create-instance";
-import { type AppLoadContext, type EntryContext } from "@remix-run/node";
+import { type AppLoadContext, type EntryContext } from "@remix-run/cloudflare";
 import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
 import { ApolloProvider } from "@apollo/client/react/context/ApolloProvider";
@@ -12,23 +12,22 @@ import { getDataFromTree } from "@apollo/client/react/ssr";
 import { createApolloClient } from "./services/apollo";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const API_BASE_URL = process.env.API_BASE_URL ?? "https://api.howittplains.net";
-
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   loadContext: AppLoadContext,
 ): Promise<Response> {
+  const apiBaseUrl = loadContext.apiBaseUrl;
   const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
 
   const queryClient = new QueryClient();
 
   const client = createApolloClient({
     ssrMode: true,
-    graphqlUrl: API_BASE_URL,
+    graphqlUrl: apiBaseUrl,
+    fetch: loadContext.apiFetch,
     getToken: () => cookieData.token,
   });
 
@@ -69,14 +68,16 @@ export default async function handleRequest(
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__ENV__=${JSON.stringify({
-            API_BASE_URL,
+            API_BASE_URL: apiBaseUrl,
           }).replace(/</g, "\\u003c")}`,
         }}
       />
     </ServerStyleContext.Provider>,
   );
 
-  responseHeaders.set("Content-Type", "text/html");
+  responseHeaders.set("Content-Type", "text/html; charset=utf-8");
+  // HTML contains viewer-specific Apollo state and versioned asset URLs.
+  responseHeaders.set("Cache-Control", "private, no-store");
 
   return new Response(`<!DOCTYPE html>${markup}`, {
     status: responseStatusCode,

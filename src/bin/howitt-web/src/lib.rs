@@ -75,8 +75,8 @@ mod runtime {
             .parse::<tokio_postgres::Config>()?;
         let (client, connection) = config.connect_raw(socket, PassthroughTls).await?;
         wasm_bindgen_futures::spawn_local(async move {
-            if connection.await.is_err() {
-                console_error!("PostgreSQL connection closed");
+            if let Err(error) = connection.await {
+                console_error!("PostgreSQL connection closed: {error:?}");
             }
         });
         let repos = Repos::from(PostgresRepos::new(PostgresClient::new(client)));

@@ -1,4 +1,4 @@
-import type { LinksFunction, MetaDescriptor } from "@remix-run/node";
+import type { LinksFunction, MetaDescriptor } from "@remix-run/cloudflare";
 import {
   Links,
   Meta,

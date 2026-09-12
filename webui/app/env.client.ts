@@ -1,5 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+declare global {
+  interface Window {
+    __ENV__: { API_BASE_URL: string };
+  }
+}
 
 export function getApiBaseUrl(): string {
-  return (window as any).__ENV__.API_BASE_URL ?? "https://api.howittplains.net";
+  return window.__ENV__.API_BASE_URL;
 }

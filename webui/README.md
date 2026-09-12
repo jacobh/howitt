@@ -1,53 +1,43 @@
-# Welcome to Remix!
+# Howitt web UI
 
-- [Remix Docs](https://remix.run/docs)
+React/Remix frontend deployed to **https://howitt-webui.jacob-e2e.workers.dev**.
 
-## Development
+## Worker configuration
 
-From your terminal:
+`wrangler.toml` defines the `howitt-webui` Worker, build, static assets, public API URL and `API` service binding to `howitt-web`.
 
-```sh
-npm run dev
-```
+- Browser GraphQL and login requests use `API_BASE_URL`, injected into HTML from Wrangler configuration.
+- Server-side Apollo requests use the `API` service binding and forward the viewer's token from the incoming cookie. No API signing secret or database credentials belong in this Worker.
+- Personalized HTML uses `Cache-Control: private, no-store`; static assets are served separately by Cloudflare.
+- `remote = true` means local development also connects to the **live API**. Login/signup and mutations are real operations; use read-only queries unless intentionally changing production data.
+- The water page still uses the existing `ts-api.howittplains.net` service; this migration does not move that API.
 
-This starts your app in development mode, rebuilding assets on file changes.
+## Development and deployment
 
-## Deployment
-
-First, build your app for production:
-
-```sh
-npm run build
-```
-
-Then run the app in production mode:
+From `webui/`, with Bun and the existing Wrangler login:
 
 ```sh
-npm start
+bun install --frozen-lockfile
+bun run dev             # Vite development server, port 3000
+bun run start           # Built Worker in local workerd
+bun run typecheck
+bun run lint
+bun run test
+bun run check:worker    # Build + Wrangler dry-run
+bun run deploy:worker   # Build + publish
 ```
 
-Now you'll need to pick a host to deploy it to.
+Stop local development processes before deploying; both builds write to `build/`.
+Wrangler runs using its Node shebang, not Bun's runtime. `nodejs_compat` supports the existing SSR dependencies.
 
-### DIY
+The frontend Worker is approximately **948 KiB gzip**. Workers Paid was enabled by the account owner during migration; its CPU allowance is useful for SSR and the Rust API's uncached computation. The account plan is shared, not billed separately per Worker. The combined PlanetScale/Workers baseline is US$10/month before taxes or usage overages, not a hard spending cap.
 
-If you're familiar with deploying node applications, the built-in Remix app server is production-ready.
+## Validation and cutover
 
-Make sure to deploy the output of `remix build`
+Deployed 2026-09-12: frontend version `ea78e524-685b-44c2-81de-0225948b747d`, backend compatibility-fix version `1fe98cd6-78fa-4cb1-bfd7-9b106437ca45`.
 
-- `build/`
-- `public/build/`
+Type checking, ESLint, the Apollo fetch/auth regression test, and deployment builds pass. Live browser checks cover the route list, individual route details, map rendering and server-rendered route data via the service binding. Live signup or other database writes are not part of smoke testing.
 
-### Using a Template
+The former Express server, Dockerfile and webui K3s CI matrix entries were removed. Existing Kubernetes workloads and production-domain ingress remain untouched. No custom domain or automatic Cloudflare CI deployment is configured.
 
-When you ran `npx create-remix@latest` there were a few choices for hosting. You can run that again to create a new project, then copy over your `app/` folder to the new project that's pre-configured for your target server.
-
-```sh
-cd ..
-# create a new project, and pick a pre-configured host
-npx create-remix@latest
-cd my-new-remix-app
-# remove the new project's app (not the old one!)
-rm -rf app
-# copy your app over
-cp -R ../my-old-remix-app/app app
-```
+Backend integration exposed a Hyperdrive incompatibility with named PostgreSQL prepared statements while result caching is disabled. All repository operations now use typed unnamed statements; local tests cover row codecs, writes, transactions/rollback, native reconnect and the real Wasm API.

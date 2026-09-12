@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use howitt::models::filters::TemporalFilter;
 use howitt::models::ride::{RideFilter, RideId};
+use tokio_postgres::types::Type;
 
 use howitt::models::user::UserId;
 use howitt::models::{ride::Ride, Model};
@@ -72,48 +73,36 @@ impl Repo for PostgresRideRepo {
             RideFilter::Ids(ids) => {
                 let uuids: Vec<_> = ids.into_iter().map(Uuid::from).collect();
 
-                conn.query(
+                conn.query_typed(
                     r#"select * from rides where id = ANY($1)"#,
-                    &[
-                        &uuids,
-                    ],
+                    &[(&uuids, Type::UUID_ARRAY)],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUser {
                 user_id,
                 started_at: Some(TemporalFilter::Before {before, last}),
             } => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from rides where user_id = $1 and started_at < $2 order by started_at desc limit $3"#,
-                    &[
-                        user_id.as_uuid(),
-                        &before,
-                        &(last.unwrap_or(100_000) as i64),
-                    ],
+                    &[(user_id.as_uuid(), Type::UUID), (&before, Type::TIMESTAMPTZ), (&(last.unwrap_or(100_000) as i64), Type::INT8)],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUser {
                 user_id,
                 started_at: Some(TemporalFilter::After {after, first}),
             } => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from rides where user_id = $1 and started_at > $2 order by started_at asc limit $3"#,
-                    &[
-                        user_id.as_uuid(),
-                        &after,
-                        &(first.unwrap_or(100_000) as i64),
-                    ],
+                    &[(user_id.as_uuid(), Type::UUID), (&after, Type::TIMESTAMPTZ), (&(first.unwrap_or(100_000) as i64), Type::INT8)],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUser {
                 user_id,
                 started_at: None,
             } => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from rides where user_id = $1"#,
-                    &[
-                        user_id.as_uuid(),
-                    ],
+                    &[(user_id.as_uuid(), Type::UUID)],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForUserWithDate { user_id, date } => {
@@ -128,21 +117,17 @@ impl Repo for PostgresRideRepo {
                     .unwrap()
                     .with_timezone(&Utc);
 
-                conn.query(
+                conn.query_typed(
                     r#"select * from rides
                     where user_id = $1
                     and started_at >= $2
                     and started_at < $3
                     order by started_at asc"#,
-                    &[
-                        user_id.as_uuid(),
-                        &start_of_day,
-                        &end_of_day,
-                    ],
+                    &[(user_id.as_uuid(), Type::UUID), (&start_of_day, Type::TIMESTAMPTZ), (&end_of_day, Type::TIMESTAMPTZ)],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::ForTrip(trip_id) => {
-                conn.query(
+                conn.query_typed(
                     r#"
                     SELECT r.*
                     FROM rides r
@@ -150,24 +135,19 @@ impl Repo for PostgresRideRepo {
                     WHERE tr.trip_id = $1
                     ORDER BY r.started_at ASC
                     "#,
-                    &[
-                        trip_id.as_uuid(),
-                    ],
+                    &[(trip_id.as_uuid(), Type::UUID)],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::RwgpsId(rwgps_id) => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from rides where (external_ref->'id'->'Rwgps'->'Trip')::int = $1"#,
-                    &[
-                        &(rwgps_id as i32),
-                    ],
+                    &[(&(rwgps_id as i32), Type::INT4)],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
             RideFilter::All => {
-                conn.query(
+                conn.query_typed(
                     r#"select * from rides"#,
-                    &[
-                    ],
+                    &[],
                 ).await?.iter().map(RideRow::try_from).collect::<Result<Vec<_>, _>>()?
             }
         };
@@ -179,7 +159,7 @@ impl Repo for PostgresRideRepo {
         let conn = self.client.acquire().await?;
 
         Ok(conn
-            .query(r#"select * from rides"#, &[])
+            .query_typed(r#"select * from rides"#, &[])
             .await?
             .iter()
             .map(RideRow::try_from)
@@ -193,7 +173,10 @@ impl Repo for PostgresRideRepo {
 
         Ok(Ride::try_from(RideRow::try_from(
             &conn
-                .query_one(r#"select * from rides where id = $1"#, &[&(id.as_uuid())])
+                .query_typed_one(
+                    r#"select * from rides where id = $1"#,
+                    &[(&(id.as_uuid()), Type::UUID)],
+                )
                 .await?,
         )?)?)
     }
@@ -201,7 +184,7 @@ impl Repo for PostgresRideRepo {
     async fn put(&self, ride: Ride) -> Result<(), PostgresRepoError> {
         let conn = self.client.acquire().await?;
 
-        conn.execute(
+        conn.execute_typed(
             r#"insert into rides (
                 id,
                 name,
@@ -219,14 +202,17 @@ impl Repo for PostgresRideRepo {
                 started_at = EXCLUDED.started_at,
                 finished_at = EXCLUDED.finished_at"#,
             &[
-                ride.id.as_uuid(),
-                &ride.name,
-                &Utc::now(),
-                &ride.external_ref.map(serde_json::to_value).transpose()?,
-                &(ride.distance as i32),
-                &ride.started_at,
-                &ride.finished_at,
-                ride.user_id.as_uuid(),
+                (ride.id.as_uuid(), Type::UUID),
+                (&ride.name, Type::VARCHAR),
+                (&Utc::now(), Type::TIMESTAMPTZ),
+                (
+                    &ride.external_ref.map(serde_json::to_value).transpose()?,
+                    Type::JSONB,
+                ),
+                (&(ride.distance as i32), Type::INT4),
+                (&ride.started_at, Type::TIMESTAMPTZ),
+                (&ride.finished_at, Type::TIMESTAMPTZ),
+                (ride.user_id.as_uuid(), Type::UUID),
             ],
         )
         .await?;

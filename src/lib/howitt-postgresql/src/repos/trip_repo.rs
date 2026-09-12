@@ -5,6 +5,7 @@ use howitt::models::user::UserId;
 use howitt::models::{media::MediaId, ride::RideId};
 use howitt::repos::Repo;
 use itertools::Itertools;
+use tokio_postgres::types::Type;
 use uuid::Uuid;
 
 use crate::{PostgresClient, PostgresRepoError};
@@ -92,7 +93,7 @@ impl Repo for PostgresTripRepo {
 
         let trips = match filter {
             TripFilter::User(user_id) => conn
-                .query(
+                .query_typed(
                     r#"
                         SELECT
                             t.*,
@@ -102,14 +103,14 @@ impl Repo for PostgresTripRepo {
                         INNER JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1
                     "#,
-                    &[&(user_id.as_uuid())],
+                    &[(&(user_id.as_uuid()), Type::UUID)],
                 )
                 .await?
                 .iter()
                 .map(TripRow::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
             TripFilter::WithUserAndSlug { user_id, slug } => conn
-                .query(
+                .query_typed(
                     r#"
                         SELECT
                             t.*,
@@ -119,14 +120,14 @@ impl Repo for PostgresTripRepo {
                         INNER JOIN trip_relations tr ON tr.id = t.id
                         WHERE user_id = $1 AND slug = $2
                     "#,
-                    &[&(user_id.as_uuid()), &(slug)],
+                    &[(&(user_id.as_uuid()), Type::UUID), (&(slug), Type::VARCHAR)],
                 )
                 .await?
                 .iter()
                 .map(TripRow::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
             TripFilter::All => conn
-                .query(
+                .query_typed(
                     r#"
                         SELECT
                             t.*,
@@ -142,7 +143,7 @@ impl Repo for PostgresTripRepo {
                 .map(TripRow::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
             TripFilter::Published => conn
-                .query(
+                .query_typed(
                     r#"
                         SELECT
                             t.*,
@@ -172,7 +173,7 @@ impl Repo for PostgresTripRepo {
 
         Ok(Trip::try_from(TripRow::try_from(
             &conn
-                .query_one(
+                .query_typed_one(
                     r#"
                 SELECT
                     t.*,
@@ -182,7 +183,7 @@ impl Repo for PostgresTripRepo {
                 INNER JOIN trip_relations tr ON tr.id = t.id
                 WHERE t.id = $1
             "#,
-                    &[&(id.as_uuid())],
+                    &[(&(id.as_uuid()), Type::UUID)],
                 )
                 .await?,
         )?)?)
@@ -192,7 +193,7 @@ impl Repo for PostgresTripRepo {
         let mut conn = self.client.acquire().await?;
         let tx = conn.transaction().await?;
 
-        tx.execute(
+        tx.execute_typed(
             r#"
                 INSERT INTO trips (
                     id,
@@ -215,35 +216,38 @@ impl Repo for PostgresTripRepo {
                     is_published = EXCLUDED.is_published
             "#,
             &[
-                trip.id.as_uuid(),
-                &trip.name,
-                &trip.slug,
-                &trip.year,
-                &trip.description,
-                &trip.created_at,
-                trip.user_id.as_uuid(),
-                &serde_json::to_value(&trip.notes)?,
-                &trip.is_published,
+                (trip.id.as_uuid(), Type::UUID),
+                (&trip.name, Type::VARCHAR),
+                (&trip.slug, Type::VARCHAR),
+                (&trip.year, Type::INT4),
+                (&trip.description, Type::TEXT),
+                (&trip.created_at, Type::TIMESTAMPTZ),
+                (trip.user_id.as_uuid(), Type::UUID),
+                (&serde_json::to_value(&trip.notes)?, Type::JSONB),
+                (&trip.is_published, Type::BOOL),
             ],
         )
         .await?;
 
         // Update ride associations
-        tx.execute(
+        tx.execute_typed(
             r#"
             DELETE FROM trip_rides
             WHERE trip_id = $1
             AND ride_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
         "#,
             &[
-                trip.id.as_uuid(),
-                &trip.ride_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+                (trip.id.as_uuid(), Type::UUID),
+                (
+                    &trip.ride_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+                    Type::UUID_ARRAY,
+                ),
             ],
         )
         .await?;
 
         for ride_id in trip.ride_ids {
-            tx.execute(
+            tx.execute_typed(
                 r#"
                 INSERT INTO trip_rides (
                     trip_id,
@@ -251,27 +255,33 @@ impl Repo for PostgresTripRepo {
                 ) VALUES ($1, $2)
                 ON CONFLICT (trip_id, ride_id) DO NOTHING
             "#,
-                &[trip.id.as_uuid(), ride_id.as_uuid()],
+                &[
+                    (trip.id.as_uuid(), Type::UUID),
+                    (ride_id.as_uuid(), Type::UUID),
+                ],
             )
             .await?;
         }
 
         // Update media associations
-        tx.execute(
+        tx.execute_typed(
             r#"
             DELETE FROM trip_media
             WHERE trip_id = $1
             AND media_id NOT IN (SELECT * FROM UNNEST($2::uuid[]))
         "#,
             &[
-                trip.id.as_uuid(),
-                &trip.media_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+                (trip.id.as_uuid(), Type::UUID),
+                (
+                    &trip.media_ids.iter().map(|id| *id.as_uuid()).collect_vec(),
+                    Type::UUID_ARRAY,
+                ),
             ],
         )
         .await?;
 
         for media_id in trip.media_ids {
-            tx.execute(
+            tx.execute_typed(
                 r#"
                 INSERT INTO trip_media (
                     trip_id,
@@ -279,7 +289,10 @@ impl Repo for PostgresTripRepo {
                 ) VALUES ($1, $2)
                 ON CONFLICT (trip_id, media_id) DO NOTHING
             "#,
-                &[trip.id.as_uuid(), media_id.as_uuid()],
+                &[
+                    (trip.id.as_uuid(), Type::UUID),
+                    (media_id.as_uuid(), Type::UUID),
+                ],
             )
             .await?;
         }
