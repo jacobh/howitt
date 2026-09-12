@@ -36,12 +36,22 @@ assert.equal(viewer.data.viewer.profile.username, "worker-test");
 const route = await graphql('{ routeWithSlug(slug: "test-route") { name } }');
 assert.equal(route.errors, undefined, JSON.stringify(route));
 assert.equal(route.data.routeWithSlug.name, "Test route");
-const timezones = await graphql("{ rides { name tz } trips { media { path tz } } }");
+// Exercise concurrent cold lookups for both datasets, then reuse completed data
+// on a new HTTP request without sharing any request-bound I/O.
+const timezoneAliases = Array.from({ length: 63 }, (_, index) => `tz${index}: tz`).join(" ");
+const timezoneQuery = `{ rides { name tz ${timezoneAliases} } trips { media { path tz ${timezoneAliases} } } }`;
+const timezones = await graphql(timezoneQuery);
 assert.equal(timezones.errors, undefined, JSON.stringify(timezones));
 assert.equal(timezones.data.rides[0].tz, "Australia/Melbourne");
 const boundaryMedia = timezones.data.trips[0].media.find((item: { path: string }) => item.path === "boundary.jpg");
 assert.equal(boundaryMedia.tz, "Australia/Adelaide");
-console.log("Wasm timezone assets: preindex and full polygon fallback passed");
+for (const item of [...timezones.data.rides, ...timezones.data.trips[0].media]) {
+  const values = Object.entries(item).filter(([key]) => key.startsWith("tz"));
+  assert.equal(values.length, 64);
+  assert(values.every(([, value]) => value === item.tz));
+}
+assert.deepEqual(await graphql(timezoneQuery), timezones);
+console.log("Wasm timezone assets: 64 concurrent lookups per object, polygon fallback and cross-request reuse passed");
 
 // Warm real local KV, then remove the disposable source rows. A fresh HTTP
 // request must still return the same derived values, proving persistent hits.
