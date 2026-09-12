@@ -42,6 +42,26 @@ assert.equal(timezones.data.rides[0].tz, "Australia/Melbourne");
 const boundaryMedia = timezones.data.trips[0].media.find((item: { path: string }) => item.path === "boundary.jpg");
 assert.equal(boundaryMedia.tz, "Australia/Adelaide");
 console.log("Wasm timezone assets: preindex and full polygon fallback passed");
+
+// Warm real local KV, then remove the disposable source rows. A fresh HTTP
+// request must still return the same derived values, proving persistent hits.
+const cachedQuery = '{ routeWithSlug(slug: "test-route") { pointsCount pointsJson elevationPointsJson distancePointsJson elevationAscentM elevationDescentM } rides { id pointsJson(detailLevel: HIGH) } trips { id legs { elevationPointsJson } } }';
+const warm = await graphql(cachedQuery);
+assert.equal(warm.errors, undefined, JSON.stringify(warm));
+assert(warm.data.rides.length > 0);
+assert(warm.data.trips.length > 0);
+const testDatabase = new URL(process.env.HOWITT_TEST_DATABASE_URL ?? "");
+assert.equal(testDatabase.hostname, "127.0.0.1");
+assert(testDatabase.pathname.startsWith("/howitt_workers_test_"));
+const sql = new Bun.SQL(testDatabase.toString());
+await sql.begin(async (transaction) => {
+  await transaction`delete from ride_points`;
+  await transaction`delete from route_points`;
+});
+await sql.close();
+const cached = await graphql(cachedQuery);
+assert.deepEqual(cached, warm);
+console.log("Local Wasm KV: route geometry/profiles/totals, ride geometry and trip elevation survive source removal across HTTP requests");
 const sync = await graphql("mutation { initiateRwgpsHistorySync { id } }");
 assert.equal(sync.errors[0].extensions.code, "BACKGROUND_JOBS_DISABLED");
 const signup = await timedFetch(`${base}/auth/signup`, {

@@ -5,6 +5,12 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 preview_urls = false
 
+[observability]
+enabled = true
+
+[observability.traces]
+enabled = true
+
 [build]
 command = "bun run build"
 

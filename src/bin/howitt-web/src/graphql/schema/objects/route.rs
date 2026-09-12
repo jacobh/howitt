@@ -5,7 +5,6 @@ use howitt::{
         media::MediaFilter,
         point::{
             delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
-            progress::{DistanceElevationProgress, DistanceProgress, Progress},
             ElevationPoint,
         },
         route::RouteId,
@@ -237,13 +236,7 @@ impl Route {
             .await?
             .ok_or(anyhow!("Points not found"))?;
 
-        // Convert points to progress and get final values for elevation gain
-        let points = route_points.iter_elevation_points().cloned().collect_vec();
-        let progress = DistanceElevationProgress::last_from_points(points)
-            .map(|p| p.elevation_gain_m)
-            .unwrap_or(0.0);
-
-        Ok(progress)
+        Ok(route_points.elevation_ascent_m)
     }
 
     async fn elevation_descent_m<'ctx>(
@@ -259,13 +252,7 @@ impl Route {
             .await?
             .ok_or(anyhow!("Points not found"))?;
 
-        // Convert points to progress and get final values for elevation loss
-        let points = route_points.iter_elevation_points().cloned().collect_vec();
-        let progress = DistanceElevationProgress::last_from_points(points)
-            .map(|p| p.elevation_loss_m)
-            .unwrap_or(0.0);
-
-        Ok(progress)
+        Ok(route_points.elevation_descent_m)
     }
     async fn termini(&self) -> Vec<Terminus> {
         self.0
@@ -346,7 +333,7 @@ impl Route {
             .await?
             .ok_or(anyhow!("Points not found"))?;
 
-        Ok(route_points.iter_geo_points().count())
+        Ok(route_points.route_points.points.len())
     }
 
     async fn points<'ctx>(
@@ -363,6 +350,7 @@ impl Route {
             .ok_or(anyhow!("Points not found"))?;
 
         Ok(route_points
+            .route_points
             .iter_geo_points()
             .map(howitt::models::point::Point::into_x_y_vec)
             .collect())
@@ -387,6 +375,7 @@ impl Route {
 
         // Get just the elevation values from each point
         Ok(route_points
+            .route_points
             .iter_elevation_points()
             .map(|p| p.elevation)
             .collect())
@@ -405,12 +394,7 @@ impl Route {
             .await?
             .ok_or(anyhow!("Points not found"))?;
 
-        // Get elevation points and convert to distance progress
-        let points = route_points.iter_elevation_points().cloned().collect_vec();
-        let progress = DistanceProgress::from_points(points);
-
-        // Extract just the distance values
-        Ok(progress.into_iter().map(|p| p.distance_m).collect())
+        Ok(route_points.distance_points.clone())
     }
 
     pub async fn elevation_points_json<'ctx>(
@@ -439,7 +423,7 @@ impl Route {
             .await?
             .ok_or(anyhow!("Points not found"))?;
 
-        let points = route_points.iter_elevation_points().cloned().collect_vec();
+        let points = route_points.route_points.points.clone();
         let pois = point_of_interest_repo.all().await?;
 
         let cuesheet = generate_cuesheet(&points, &pois);

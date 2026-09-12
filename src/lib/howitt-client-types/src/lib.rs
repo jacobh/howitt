@@ -47,11 +47,17 @@ pub trait HttpClient {
 }
 
 #[async_trait::async_trait]
-pub trait RedisClient {
+/// Optional storage for derived values; never an authoritative data source.
+pub trait CacheStore {
     const ENABLED: bool = true;
 
     type Error: std::error::Error + Send + Sync + 'static;
 
     async fn get_bytes(&self, key: &str) -> Result<Option<bytes::Bytes>, Self::Error>;
-    async fn set_bytes(&self, key: &str, bytes: bytes::Bytes) -> Result<(), Self::Error>;
+    async fn set_bytes(
+        &self,
+        key: &str,
+        bytes: bytes::Bytes,
+        ttl: std::time::Duration,
+    ) -> Result<(), Self::Error>;
 }

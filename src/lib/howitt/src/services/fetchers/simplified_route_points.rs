@@ -1,4 +1,4 @@
-use howitt_client_types::RedisClient;
+use howitt_client_types::CacheStore;
 
 use crate::{
     ext::rayon::rayon_spawn_blocking,
@@ -12,21 +12,26 @@ use crate::{
 
 use super::cache::CacheFetcher;
 
-pub struct SimplifiedRoutePointsFetcher<Redis: RedisClient> {
+pub struct SimplifiedRoutePointsFetcher<Cache: CacheStore> {
     pub route_points_repo: RoutePointsRepo,
-    pub cache_fetcher: CacheFetcher<Redis>,
+    pub cache_fetcher: CacheFetcher<Cache>,
 }
 
-impl<Redis: RedisClient> SimplifiedRoutePointsFetcher<Redis> {
-    pub fn new(route_points_repo: RoutePointsRepo, redis_client: Redis) -> Self {
+impl<Cache: CacheStore> SimplifiedRoutePointsFetcher<Cache> {
+    pub fn new(route_points_repo: RoutePointsRepo, cache: Cache) -> Self {
         Self {
             route_points_repo,
-            cache_fetcher: CacheFetcher::new(redis_client),
+            cache_fetcher: CacheFetcher::new(cache),
         }
     }
 
     fn key(id: RouteId, detail_level: &DetailLevel) -> String {
-        [id.to_string(), "POINTS".to_string(), detail_level.to_string()].join("#")
+        [
+            id.to_string(),
+            "POINTS".to_string(),
+            detail_level.to_string(),
+        ]
+        .join("#")
     }
 
     pub async fn fetch(
@@ -42,7 +47,7 @@ impl<Redis: RedisClient> SimplifiedRoutePointsFetcher<Redis> {
 
                 tracing::info!(route_id = ?id, points_count = points.len(), "starting points simplification");
 
-                let points = 
+                let points =
                     rayon_spawn_blocking(move || simplify_points_v2(points, detail_level)).await;
 
                 tracing::info!(route_id = ?id, points_count = points.len(), "completed points simplification");

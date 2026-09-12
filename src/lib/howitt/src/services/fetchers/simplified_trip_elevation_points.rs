@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use derive_more::derive::Display;
 use geo::{CoordsIter, LineString, SimplifyVw};
-use howitt_client_types::RedisClient;
+use howitt_client_types::CacheStore;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -38,18 +38,18 @@ impl Default for ElevationPointsParams {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DistanceElevation(pub f64, pub f64);
 
-pub struct SimplifiedTripElevationPointsFetcher<Redis: RedisClient> {
+pub struct SimplifiedTripElevationPointsFetcher<Cache: CacheStore> {
     pub ride_repo: RideRepo,
     pub ride_points_repo: RidePointsRepo,
-    pub cache_fetcher: CacheFetcher<Redis>,
+    pub cache_fetcher: CacheFetcher<Cache>,
 }
 
-impl<Redis: RedisClient> SimplifiedTripElevationPointsFetcher<Redis> {
-    pub fn new(ride_repo: RideRepo, ride_points_repo: RidePointsRepo, redis_client: Redis) -> Self {
+impl<Cache: CacheStore> SimplifiedTripElevationPointsFetcher<Cache> {
+    pub fn new(ride_repo: RideRepo, ride_points_repo: RidePointsRepo, cache: Cache) -> Self {
         Self {
             ride_repo,
             ride_points_repo,
-            cache_fetcher: CacheFetcher::new(redis_client),
+            cache_fetcher: CacheFetcher::new(cache),
         }
     }
 

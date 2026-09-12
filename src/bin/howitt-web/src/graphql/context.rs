@@ -1,5 +1,5 @@
 use crate::timezone::TimezoneLookup;
-use async_graphql::dataloader::DataLoader;
+use async_graphql::dataloader::{DataLoader, HashMapCache};
 use howitt::{
     repos::Repos,
     services::{
@@ -9,17 +9,17 @@ use howitt::{
 };
 
 use super::loaders::{
-    ride_loader::RideLoader, route_points_loader::RoutePointsLoader, user_loader::UserLoader,
+    ride_loader::RideLoader, route_data_loader::RouteDataLoader, user_loader::UserLoader,
 };
 
 pub struct SchemaData {
     pub repos: Repos,
-    pub simplified_ride_points_fetcher: SimplifiedRidePointsFetcher<crate::cache::Uncached>,
+    pub simplified_ride_points_fetcher: SimplifiedRidePointsFetcher<crate::cache::WorkerCache>,
     pub simplified_trip_elevation_points_fetcher:
-        SimplifiedTripElevationPointsFetcher<crate::cache::Uncached>,
+        SimplifiedTripElevationPointsFetcher<crate::cache::WorkerCache>,
     pub ride_loader: DataLoader<RideLoader>,
     pub user_loader: DataLoader<UserLoader>,
-    pub route_points_loader: DataLoader<RoutePointsLoader>,
+    pub route_points_loader: DataLoader<RouteDataLoader<crate::cache::WorkerCache>, HashMapCache>,
     pub tz_finder: TimezoneLookup,
 }
 

@@ -120,13 +120,18 @@ impl RedisClient {
 }
 
 #[async_trait::async_trait]
-impl howitt_client_types::RedisClient for RedisClient {
+impl howitt_client_types::CacheStore for RedisClient {
     type Error = redis::RedisError;
 
     async fn get_bytes(&self, key: &str) -> Result<Option<bytes::Bytes>, Self::Error> {
         Ok(self.conn().get(key).await?)
     }
-    async fn set_bytes(&self, key: &str, bytes: bytes::Bytes) -> Result<(), Self::Error> {
-        Ok(self.conn().set(key, bytes.to_vec()).await?)
+    async fn set_bytes(
+        &self,
+        key: &str,
+        bytes: bytes::Bytes,
+        ttl: std::time::Duration,
+    ) -> Result<(), Self::Error> {
+        self.conn().set_ex(key, bytes.to_vec(), ttl.as_secs()).await
     }
 }

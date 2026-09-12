@@ -46,12 +46,11 @@ mod runtime {
     use crate::graphql::{
         context::SchemaData,
         loaders::{
-            ride_loader::RideLoader, route_points_loader::RoutePointsLoader,
-            user_loader::UserLoader,
+            ride_loader::RideLoader, route_data_loader::RouteDataLoader, user_loader::UserLoader,
         },
         schema::build_schema,
     };
-    use async_graphql::dataloader::DataLoader;
+    use async_graphql::dataloader::{DataLoader, HashMapCache};
     use howitt::{
         repos::Repos,
         services::{
@@ -82,6 +81,7 @@ mod runtime {
         let repos = Repos::from(PostgresRepos::new(PostgresClient::new(client)));
         let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
         let user_signup_service = UserSignupService::new(repos.user_repo.clone());
+        let cache = cache::WorkerCache::new(env.kv("DERIVED_CACHE")?);
         let schema = build_schema(SchemaData {
             ride_loader: DataLoader::new(
                 RideLoader::new(repos.ride_repo.clone()),
@@ -91,18 +91,19 @@ mod runtime {
                 UserLoader::new(repos.user_repo.clone()),
                 wasm_bindgen_futures::spawn_local,
             ),
-            route_points_loader: DataLoader::new(
-                RoutePointsLoader::new(repos.route_points_repo.clone()),
+            route_points_loader: DataLoader::with_cache(
+                RouteDataLoader::new(repos.route_points_repo.clone(), cache.clone()),
                 wasm_bindgen_futures::spawn_local,
+                HashMapCache::default(),
             ),
             simplified_ride_points_fetcher: SimplifiedRidePointsFetcher::new(
                 repos.ride_points_repo.clone(),
-                cache::Uncached,
+                cache.clone(),
             ),
             simplified_trip_elevation_points_fetcher: SimplifiedTripElevationPointsFetcher::new(
                 repos.ride_repo.clone(),
                 repos.ride_points_repo.clone(),
-                cache::Uncached,
+                cache,
             ),
             repos,
             tz_finder: timezone::TimezoneLookup::new(env.get_binding("ASSETS")?),

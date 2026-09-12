@@ -56,7 +56,26 @@ Before any body processing, OAuth exchange, upload, database write or enqueue:
 - `POST /upload/media`, `POST /webhooks/rwgps`, and `GET /auth/rwgps/callback` return HTTP 503 with `BACKGROUND_JOBS_DISABLED`.
 - GraphQL `initiateRwgpsHistorySync` and `viewer.rwgpsAuthRequestUrl` return the same explicit error code.
 
-Existing media remains readable. Other GraphQL mutations and username/password authentication remain available. Derived ride/route results are computed directly; the disabled-cache adapter performs neither Redis I/O nor unnecessary cache serialization. No queues or replacement persistent cache have been introduced.
+Existing media remains readable. Other GraphQL mutations and username/password authentication remain available. Background queues are still disabled. Derived-data caching now uses Workers KV, as described below.
+
+## Derived-data cache (Workers KV)
+
+`wrangler.toml` binds `DERIVED_CACHE` to namespace `5de58615f5114086b708a9387f518552`. No KV secrets or API tokens are needed in the Worker. The namespace contains disposable derived values only, never authoritative records or session credentials.
+
+- Shared `howitt_client_types::CacheStore` replaces the Redis-named trait; it supports byte reads and writes with a TTL. The native Redis implementation remains available and now uses `SET EX`.
+- `CacheFetcher` uses bincode payloads, the `derived-v1:` key prefix, and a fixed **one-hour expiry**. Bump the prefix when changing serialization or derived-data algorithms. Changes to source GPS data can remain stale until expiry; no write-through invalidation is implemented.
+- The API caches **full-resolution route GPS data and calculated distance/elevation profiles and totals**, simplified ride geometry, and trip elevation profiles. Route fields retain their original point counts, ordering and values; they do not switch to the simplified-route algorithm. Cues use the cached GPS points but still fetch current POIs and generate cues normally.
+- `RouteDataLoader` checks KV for all requested routes, then fetches all misses in one batched PostgreSQL query. A request-scoped GraphQL `HashMapCache` shares the resulting `Arc<RouteData>` across route fields, avoiding repeated KV lookups and copying large point arrays. No request-local state or I/O handles survive the request.
+- Cache hits skip computation. Read failures, invalid cached bytes, serialization failures and write failures return freshly computed data instead of failing the request. Source/database/computation errors still propagate. In particular, KV's one-write-per-second-per-key limit does not cause API failures on concurrent misses. Concurrent misses may still duplicate computation.
+- KV is eventually consistent; a write (or even a cached miss) may not immediately become visible elsewhere. It is not suitable here for authorization or other correctness-critical state. Authorization remains outside the cache.
+- KV bindings are request-scoped. Binary get/put is implemented directly using workers-rs 0.8.5, with its Send wrappers for Axum/async-graphql compatibility.
+- Workers Paid is enabled. Its included KV allowance is 10 million reads, 1 million writes and 1 GB storage per month; excess operations/storage are billable. This is not a hard spending cap.
+
+Initial KV deployment: API version `4dce5940-4754-49c7-b955-dbc7b936daa8`. Live read-only GraphQL smoke queries for a four-ride trip returned identical results on repeat. Remote KV inspection confirmed five versioned entries (four ride geometries and one trip elevation profile), each expiring approximately one hour after creation. No production database writes were performed.
+
+Route caching deployment: API version `873edc62-8963-448d-987c-2b611a9391e4`. A live Alpine Way query covering all geometry/profile fields and totals produced the same SHA-256 before deployment, on a cold cache, and on a warm cache (`c2cdd54b23ca1e8d92904824fda1366aecec61ca4f4465c0d4274ec28d853264`, 519 original points). The frontend route-list browser check passed, and remote KV inspection confirmed 62 versioned route-data entries with one-hour expiry.
+
+Validation: eight shared cache tests cover hits, expiry/version arguments, misses, corrupt bytes, failed reads/writes/serialization, source errors and disabled-cache bypass. Four route-data tests verify empty/single/multi-point semantics, one database batch for cold misses, mixed-hit batches, and serialized cache reuse across independent loaders. `cargo check -p howitt_clients` checks the native Redis implementation; API tests and the Wasm dry-run pass. `scripts/test-worker-local.sh` now creates isolated local KV state as well as a disposable PostgreSQL database. It proves real Wasm KV hits across HTTP requests by warming derived values, deleting the disposable source GPS rows, and asserting identical subsequent results. The harness removes both owned resources on exit. Never run its deletion check against production.
 
 ## Timezone data, size and CPU limitations
 
@@ -64,7 +83,7 @@ Embedding the original global tzf dataset produced an 8.6 MiB compressed Worker,
 
 Timezone lookup preserves `tzf-rs 0.4.11`'s preindex/polygon/coordinate-shift order. The preindex is loaded lazily only when a timezone field is requested; full polygons are loaded only for a preindex miss. Parsed immutable data is cached per isolate, not per request. No in-flight I/O or request bindings are shared between requests. Asset/decode failures are errors, not guessed timezones.
 
-Measured dry-run after this change: approximately **1.75 MiB gzip** (6.25 MiB raw), plus separate static assets. Local workerd successfully handles both preindex and polygon-fallback queries. This proves functionality, **not production Free-tier CPU compliance**. A native benchmark measured roughly 24 ms for cold preindex initialization and 56 ms including polygons; Argon2 authentication and uncached route simplification are also CPU-heavy. Local Wrangler request times include database/asset waits and cannot establish billed CPU. Benchmark actual request CPU and memory before promising the sub-$10 hosting target. No paid-plan upgrade is assumed.
+Measured dry-run after this change: approximately **1.75 MiB gzip** (6.25 MiB raw), plus separate static assets. Local workerd successfully handles both preindex and polygon-fallback queries. This proves functionality, **not production Free-tier CPU compliance**. A native benchmark measured roughly 24 ms for cold preindex initialization and 56 ms including polygons; Argon2 authentication and uncached route simplification are also CPU-heavy. Local Wrangler request times include database/asset waits and cannot establish billed CPU. Benchmark actual request CPU and memory before promising the sub-$10 hosting target. The account owner subsequently enabled Workers Paid during frontend deployment; the original Free-tier CPU caveat above is retained as historical context.
 
 ## Native infrastructure and cutover
 
