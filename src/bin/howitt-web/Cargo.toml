@@ -19,7 +19,7 @@ howitt = { path = "../../lib/howitt" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }
 rwgps_types = { path = "../../lib/rwgps-types" }
 anyhow = "=1.0.104"
-geo = "=0.29.3"
+geo = "=0.33.1"
 chrono = "=0.4.45"
 chrono-tz = "=0.10.4"
 serde = { version = "=1.0.229", features = ["derive"] }

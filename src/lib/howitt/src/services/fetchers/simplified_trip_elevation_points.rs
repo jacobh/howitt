@@ -116,7 +116,7 @@ impl<Cache: CacheStore> SimplifiedTripElevationPointsFetcher<Cache> {
                     .collect();
 
                 let simplified =
-                    SimplifyVw::simplify_vw(&distance_elevation_coords, &params.epsilon);
+                    SimplifyVw::simplify_vw(&distance_elevation_coords, params.epsilon);
 
                 tracing::info!("Simplified to {} points", simplified.coords_count());
 

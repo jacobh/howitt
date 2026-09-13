@@ -10,8 +10,8 @@ pub struct TransformParams {
 }
 
 pub fn geo_to_euclidean(TransformParams { origin, point }: TransformParams) -> Point<f64> {
-    let distance = Geodesic::distance(origin, point);
-    let bearing = Geodesic::bearing(origin, point);
+    let distance = Geodesic.distance(origin, point);
+    let bearing = Geodesic.bearing(origin, point);
     let bearing_radians = bearing.to_radians();
     let x = distance * bearing_radians.sin();
     let y = distance * bearing_radians.cos();
@@ -20,13 +20,13 @@ pub fn geo_to_euclidean(TransformParams { origin, point }: TransformParams) -> P
 
 pub fn euclidean_to_geo(TransformParams { origin, point }: TransformParams) -> Point<f64> {
     // Get distance between origin and point using Euclidean distance
-    let distance = Euclidean::distance(Point::new(0.0, 0.0), point);
+    let distance = Euclidean.distance(Point::new(0.0, 0.0), point);
 
     // Calculate bearing by getting angle between points
     let bearing = (90.0 - point.y().atan2(point.x()).to_degrees()).rem_euclid(360.0);
 
     // Use geodesic destination to get final geo point
-    Geodesic::destination(origin, bearing, distance)
+    Geodesic.destination(origin, bearing, distance)
 }
 
 pub fn iter_geo_to_euclidean<'a>(

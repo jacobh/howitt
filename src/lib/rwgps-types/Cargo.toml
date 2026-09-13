@@ -9,7 +9,7 @@ edition = "2024"
 serde = "=1.0.229"
 serde-aux = "=4.7.0"
 chrono = { version = "=0.4.45", features = ["serde"] }
-geo = "=0.29.3"
+geo = "=0.33.1"
 gpx = "=0.10.0"
 serde_json = "=1.0.151"
 derive_more = { version = "=2.1.1", features = ["full"] }

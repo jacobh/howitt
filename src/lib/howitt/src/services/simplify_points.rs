@@ -56,7 +56,7 @@ pub fn simplify_points_v2<P: Point>(points: Vec<P>, detail_level: DetailLevel) -
     let euclidean_linestring = LineString::from(euclidean_points);
 
     // Simplify the euclidean linestring
-    let simplified_linestring = SimplifyVw::simplify_vw(&euclidean_linestring, &epsilon);
+    let simplified_linestring = SimplifyVw::simplify_vw(&euclidean_linestring, epsilon);
 
     // Use HashMap lookup with ordered x,y coordinates
     simplified_linestring

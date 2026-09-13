@@ -18,7 +18,7 @@ pub trait AccumulatingDelta<P>: Sized {
 pub struct DistanceDelta(pub f64);
 impl<P: Point> Delta<P> for DistanceDelta {
     fn delta(value1: &P, value2: &P) -> Self {
-        let distance = Haversine::distance(*value1.as_geo_point(), *value2.as_geo_point());
+        let distance = Haversine.distance(*value1.as_geo_point(), *value2.as_geo_point());
         DistanceDelta(distance)
     }
 }
@@ -44,7 +44,7 @@ impl<P: Point> AccumulatingDelta<P> for DistanceDelta {
 pub struct BearingDelta(pub f64);
 impl<P: Point> Delta<P> for BearingDelta {
     fn delta(value1: &P, value2: &P) -> Self {
-        let bearing = Haversine::bearing(*value1.as_geo_point(), *value2.as_geo_point());
+        let bearing = Haversine.bearing(*value1.as_geo_point(), *value2.as_geo_point());
         BearingDelta(bearing)
     }
 }

@@ -57,7 +57,7 @@ where
                     (
                         i,
                         point,
-                        Haversine::distance(*point.as_geo_point(), poi.point),
+                        Haversine.distance(*point.as_geo_point(), poi.point),
                     )
                 })
                 .filter(|(_, _, distance)| max_distance_m >= *distance)
