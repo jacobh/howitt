@@ -26,7 +26,7 @@ howitt_client_types = { path = "../howitt-client-types" }
 howitt-observability = { path = "../howitt-observability" }
 csaps = { path = "../csaps" }
 futures = "=0.3.34"
-ordered-float = "=4.6.0"
+ordered-float = "=5.5.0"
 toml = "=0.8.19"
 once_cell = "=1.21.4"
 tokio = { version = "=1.53.1", features = ["rt", "sync"] }
