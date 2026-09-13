@@ -16,7 +16,7 @@ rwgps = { path = "../../lib/rwgps" }
 rwgps_types = { path = "../../lib/rwgps-types" }
 toml = "=0.8.19"
 serde_json = "=1.0.151"
-inquire = "=0.7.5"
+inquire = "=0.9.4"
 tokio = { version = "=1.53.1", features = ["full"] }
 gpx = "=0.10.0"
 itertools = "=0.15.0"
