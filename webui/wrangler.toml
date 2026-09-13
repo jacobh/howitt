@@ -5,6 +5,10 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 preview_urls = false
 
+routes = [
+  { pattern = "howittplains.net", custom_domain = true }
+]
+
 [observability]
 enabled = true
 
@@ -18,7 +22,7 @@ command = "bun run build"
 directory = "./build/client"
 
 [vars]
-API_BASE_URL = "https://howitt-web.jacob-e2e.workers.dev"
+API_BASE_URL = "https://api.howittplains.net"
 
 [[services]]
 binding = "API"
