@@ -44,7 +44,6 @@ tokio-postgres = { version = "=0.7.18", default-features = false, features = ["j
 wasm-bindgen-futures = "=0.4.78"
 futures-timer = { version = "=3.0.4", features = ["wasm-bindgen"] }
 getrandom = { version = "=0.4.3", features = ["wasm_js"] }
-ring = { version = "=0.17.14", features = ["wasm32_unknown_unknown_js"] }
 
 [dev-dependencies]
 tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["registry"] }

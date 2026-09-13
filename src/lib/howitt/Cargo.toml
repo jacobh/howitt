@@ -37,7 +37,7 @@ url = { version = "=2.5.8", features = ["serde"] }
 almost = "=0.2.0"
 bytes = "=1.12.1"
 argon2 = "=0.6.0"
-jsonwebtoken = { version = "=9.3.0", default-features = false }
+jsonwebtoken = { version = "=11.0.0", default-features = false, features = ["rust_crypto"] }
 regex = "=1.13.1"
 sanitize-filename = "=0.6.0"
 tracing = "=0.1.44"
@@ -53,4 +53,5 @@ rayon = "=1.12.0"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "=1.26.1", features = ["js"] }
 getrandom = { version = "=0.4.3", features = ["wasm_js"] }
-ring = { version = "=0.17.14", features = ["wasm32_unknown_unknown_js"] }
+# jsonwebtoken's rust_crypto provider still uses rand 0.8/getrandom 0.2.
+getrandom_02 = { package = "getrandom", version = "=0.2.15", features = ["js"] }
