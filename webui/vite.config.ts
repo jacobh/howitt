@@ -16,9 +16,6 @@ export default defineConfig({
   ],
   resolve: {
     tsconfigPaths: true,
-    alias: {
-      lodash: "lodash-es",
-    },
   },
   optimizeDeps: {
     exclude: ["ionicons"],

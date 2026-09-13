@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@apollo/client/react";
-import { sortBy } from "lodash";
+import { sortBy } from "es-toolkit";
 import { gql } from "~/__generated__/gql";
 import { Link } from "react-router";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
@@ -31,10 +31,9 @@ export function POIList({ username }: POIListProps): React.ReactElement {
     variables: { username },
   });
 
-  const pois = sortBy(
-    data?.userWithUsername?.pointsOfInterest ?? [],
-    (poi) => poi.name,
-  );
+  const pois = sortBy(data?.userWithUsername?.pointsOfInterest ?? [], [
+    (poi): string => poi.name,
+  ]);
 
   if (loading) {
     return <LoadingSpinnerSidebarContent />;

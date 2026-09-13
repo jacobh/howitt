@@ -8,7 +8,6 @@ import OlMap from "ol/Map";
 import { Track } from "../types";
 import { ROUTE_STYLES, RIDE_STYLES } from "../index";
 import { isNotNil } from "~/services/isNotNil";
-import { some } from "lodash";
 
 interface UseTrackLayersProps {
   map: OlMap | undefined;
@@ -30,8 +29,7 @@ export function useTrackLayers({ map, tracks }: UseTrackLayersProps): void {
         const layerTrackId = vectorLayer.getProperties().trackId;
 
         if (isNotNil(layerTrackId)) {
-          const isLayerTrackInCurrentRender = some(
-            tracks,
+          const isLayerTrackInCurrentRender = tracks.some(
             (track) => track.id === layerTrackId,
           );
 

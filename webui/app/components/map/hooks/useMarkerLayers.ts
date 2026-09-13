@@ -7,7 +7,6 @@ import OlMap from "ol/Map";
 import { Style, Circle, Stroke, Fill } from "ol/style";
 import { Marker } from "../types";
 import { isNotNil } from "~/services/isNotNil";
-import { some } from "lodash";
 
 interface UseMarkerLayersProps {
   map: OlMap | undefined;
@@ -53,8 +52,7 @@ export function useMarkerLayers({ map, markers }: UseMarkerLayersProps): void {
         const layerMarkerId = vectorLayer.getProperties().markerId;
 
         if (isNotNil(layerMarkerId)) {
-          const isLayerMarkerInCurrentRender = some(
-            markers,
+          const isLayerMarkerInCurrentRender = markers.some(
             (marker) => marker.id === layerMarkerId,
           );
 

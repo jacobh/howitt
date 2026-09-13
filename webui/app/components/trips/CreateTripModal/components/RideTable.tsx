@@ -2,7 +2,7 @@ import { css } from "@emotion/react";
 import { gql } from "~/__generated__";
 import { useMemo } from "react";
 import { useQuery } from "@apollo/client/react";
-import { orderBy } from "lodash";
+import { orderBy } from "es-toolkit";
 import { tableContainerCss, tableCss } from "~/components/ui/Table";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
@@ -56,7 +56,7 @@ export function RideTable({
 
   const rides = useMemo(() => {
     const unsortedRides = data?.userWithUsername?.rides ?? [];
-    return orderBy(unsortedRides, (ride) => ride.startedAt, "desc");
+    return orderBy(unsortedRides, [(ride): string => ride.startedAt], ["desc"]);
   }, [data]);
 
   if (loading) {

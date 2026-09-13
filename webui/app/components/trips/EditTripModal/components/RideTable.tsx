@@ -2,7 +2,7 @@ import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useState, useMemo } from "react";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { orderBy } from "lodash";
+import { orderBy } from "es-toolkit";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { tableContainerCss, tableCss } from "~/components/ui/Table";
 
@@ -111,7 +111,7 @@ export function RideTable({
 
   const rides = useMemo(() => {
     const unsortedRides = allRidesData?.userWithUsername?.rides ?? [];
-    return orderBy(unsortedRides, (ride) => ride.startedAt, "desc");
+    return orderBy(unsortedRides, [(ride): string => ride.startedAt], ["desc"]);
   }, [allRidesData]);
 
   if (loading || updatingRides) {

@@ -1,4 +1,4 @@
-import { every, uniq } from "lodash";
+import { uniq } from "es-toolkit";
 import type { BikeSpec } from "~/__generated__/schema-types";
 import { DataTable } from "~/components/DataTable";
 import { isNotNil } from "~/services/isNotNil";
@@ -11,7 +11,7 @@ function formatTyreWidth(mm: number): string {
 }
 
 function formatTyreWidths(widths?: number[]): string {
-  return uniq(widths)
+  return uniq(widths ?? [])
     .map((width) => formatTyreWidth(width))
     .join(" ~ ");
 }
@@ -24,13 +24,13 @@ function formatTravel(mm: number): string {
 }
 
 function formatTravels(travels?: number[]): string {
-  return uniq(travels)
+  return uniq(travels ?? [])
     .map((travel) => formatTravel(travel))
     .join(" ~ ");
 }
 
 function isRigid(travels?: number[]): boolean {
-  return every(travels ?? [], (t) => t === 0);
+  return (travels ?? []).every((travel) => travel === 0);
 }
 
 interface Props {

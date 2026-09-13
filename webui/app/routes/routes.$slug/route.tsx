@@ -16,7 +16,7 @@ import { makeMqs } from "~/styles/mediaQueries";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { DataTable } from "~/components/DataTable";
-import { capitalize } from "lodash";
+import { capitalize } from "es-toolkit";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
 import { useMemo } from "react";

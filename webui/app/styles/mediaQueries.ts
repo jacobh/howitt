@@ -1,5 +1,5 @@
 import { SerializedStyles, css } from "@emotion/react";
-import { isNil, zip } from "lodash";
+import { isNil, zip } from "es-toolkit";
 
 const breakpoints = [0, 640, 768, 1024, 1280, 1536, 1920];
 

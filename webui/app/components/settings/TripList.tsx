@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { sortBy } from "lodash";
+import { sortBy } from "es-toolkit";
 import { gql } from "~/__generated__/gql";
 import { Link } from "react-router";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";

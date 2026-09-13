@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useQuery } from "@apollo/client/react";
-import { sortBy } from "lodash";
+import { sortBy } from "es-toolkit";
 import { gql } from "~/__generated__/gql";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
 import { tableContainerCss, tableCss } from "../ui/Table";
@@ -29,10 +29,9 @@ export function RouteList({ username }: RouteListProps): React.ReactElement {
     variables: { username },
   });
 
-  const routes = sortBy(
-    data?.userWithUsername?.routes ?? [],
-    (route) => route.name,
-  );
+  const routes = sortBy(data?.userWithUsername?.routes ?? [], [
+    (route): string => route.name,
+  ]);
 
   if (loading) {
     return <LoadingSpinnerSidebarContent />;
