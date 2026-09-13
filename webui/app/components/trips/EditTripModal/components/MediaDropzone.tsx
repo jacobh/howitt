@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import { useCallback } from "react";
-import { useDropzone } from "react-dropzone-esm";
+import { useDropzone } from "react-dropzone";
 import Cookies from "js-cookie";
 import { getApiBaseUrl } from "~/env.client";
 import { tokens } from "~/styles/tokens";

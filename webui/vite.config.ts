@@ -18,7 +18,6 @@ export default defineConfig({
     tsconfigPaths: true,
     alias: {
       lodash: "lodash-es",
-      "react-dropzone": "react-dropzone-esm",
     },
   },
   optimizeDeps: {
