@@ -54,4 +54,4 @@ rayon = "=1.12.0"
 uuid = { version = "=1.26.1", features = ["js"] }
 getrandom = { version = "=0.4.3", features = ["wasm_js"] }
 # jsonwebtoken's rust_crypto provider still uses rand 0.8/getrandom 0.2.
-getrandom_02 = { package = "getrandom", version = "=0.2.15", features = ["js"] }
+getrandom_02 = { package = "getrandom", version = "=0.2.17", features = ["js"] }
