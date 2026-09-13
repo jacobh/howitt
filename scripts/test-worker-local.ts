@@ -101,8 +101,8 @@ assert(rwgpsAuthUrl.searchParams.get("state"));
 const route = await graphql('{ routeWithSlug(slug: "test-route") { name } }');
 assert.equal(route.errors, undefined, JSON.stringify(route));
 assert.equal(route.data.routeWithSlug.name, "Test route");
-// Exercise concurrent cold lookups for both datasets, then reuse completed data
-// on a new HTTP request without sharing any request-bound I/O.
+// Exercise concurrent cold lookups, including the polygon fallback within the
+// dataset, then reuse completed data without sharing request-bound I/O.
 const timezoneAliases = Array.from(
   { length: 63 },
   (_, index) => `tz${index}: tz`,

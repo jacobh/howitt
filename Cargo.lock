@@ -303,6 +303,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-once-cell"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4288f83726785267c6f2ef073a3d83dc3f9b81464e9f99898240cced85fce35a"
+
+[[package]]
 name = "async-trait"
 version = "0.1.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -925,7 +931,7 @@ name = "csaps"
 version = "0.3.0"
 dependencies = [
  "almost",
- "itertools 0.15.0",
+ "itertools",
  "ndarray",
  "sprs",
  "sprs-ldl",
@@ -1476,12 +1482,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e0f1c7c3a72c66fd80abe965175f7523475c0489a87d3ff9d6e8c87d87a9d2d"
 
 [[package]]
-name = "fixedbitset"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ce7134b9999ecaf8bcd65542e436736ef32ddca1b3e06094cb6ec5755203b80"
-
-[[package]]
 name = "flate2"
 version = "1.0.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1738,9 +1738,12 @@ dependencies = [
 
 [[package]]
 name = "geometry-rs"
-version = "0.3.3"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8a0b4dc167f84f57bd3744e8a87efead6abb3fa1cebd25b49920c5088d41330"
+checksum = "794fbaf8ce24464265e001a7a1dc819e401a303127c0cb714538e21ebe077c77"
+dependencies = [
+ "rtree_rs",
+]
 
 [[package]]
 name = "getrandom"
@@ -2015,7 +2018,7 @@ dependencies = [
  "howitt_client_types",
  "howitt_derive",
  "insta",
- "itertools 0.15.0",
+ "itertools",
  "jsonwebtoken",
  "md5",
  "num",
@@ -2055,7 +2058,7 @@ dependencies = [
  "howitt_clients",
  "howitt_jobs",
  "inquire",
- "itertools 0.15.0",
+ "itertools",
  "mapbox-geocoding",
  "open-meteo",
  "prettytable-rs",
@@ -2093,7 +2096,7 @@ dependencies = [
  "geo",
  "howitt",
  "howitt-observability",
- "itertools 0.15.0",
+ "itertools",
  "native-tls",
  "postgres-native-tls",
  "serde_json",
@@ -2113,6 +2116,7 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "async-graphql-axum",
+ "async-once-cell",
  "async-trait",
  "axum",
  "axum-macros",
@@ -2129,7 +2133,7 @@ dependencies = [
  "howitt-postgresql",
  "howitt_client_types",
  "http",
- "itertools 0.15.0",
+ "itertools",
  "reqwest",
  "ring",
  "rwgps_types",
@@ -2660,15 +2664,6 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
@@ -3021,12 +3016,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "multimap"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
-
-[[package]]
 name = "multiversion"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3301,7 +3290,7 @@ dependencies = [
  "http-body-util",
  "humantime",
  "hyper",
- "itertools 0.15.0",
+ "itertools",
  "md-5",
  "nix",
  "parking_lot",
@@ -3555,16 +3544,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "petgraph"
-version = "0.6.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c5cc86750666a3ed20bdaf5ca2a0344f9c67674cae0515bec2da16fbaa47db"
-dependencies = [
- "fixedbitset",
- "indexmap 2.14.2",
-]
-
-[[package]]
 name = "phc"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3756,14 +3735,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "prettyplease"
-version = "0.2.29"
+name = "pqueue"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6924ced06e1f7dfe3fa48d57b9f74f55d8915f5036121bef647ef4b204895fac"
-dependencies = [
- "proc-macro2",
- "syn 2.0.119",
-]
+checksum = "a2145d14f09d5fc7fe7134b556146599c2929af5b1f1e3a0ecc9d582a9b85e4d"
 
 [[package]]
 name = "prettytable-rs"
@@ -3804,58 +3779,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "prost"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c0fef6c4230e4ccf618a35c59d7ede15dea37de8427500f50aff708806e42ec"
-dependencies = [
- "bytes",
- "prost-derive",
-]
-
-[[package]]
-name = "prost-build"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
-dependencies = [
- "heck",
- "itertools 0.13.0",
- "log",
- "multimap",
- "once_cell",
- "petgraph",
- "prettyplease",
- "prost",
- "prost-types",
- "regex",
- "syn 2.0.119",
- "tempfile",
-]
-
-[[package]]
-name = "prost-derive"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "157c5a9d7ea5c2ed2d9fb8f495b64759f7816c7eaea54ba3978f0d63000162e3"
-dependencies = [
- "anyhow",
- "itertools 0.13.0",
- "proc-macro2",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
-name = "prost-types"
-version = "0.13.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc2f1e56baa61e93533aebc21af4d2134b70f66275e0fcdf3cbe43d77ff7e8fc"
-dependencies = [
- "prost",
 ]
 
 [[package]]
@@ -4319,6 +4242,15 @@ dependencies = [
  "num-traits",
  "serde",
  "smallvec",
+]
+
+[[package]]
+name = "rtree_rs"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7787960e978c1c675fd6b8eb7d56b9c7162aec55c41d368add6f3ff39251b96e"
+dependencies = [
+ "pqueue",
 ]
 
 [[package]]
@@ -5524,23 +5456,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20"
 
 [[package]]
-name = "tzf-rel"
-version = "0.0.2025-c"
+name = "tzf-dist"
+version = "0.0.2026-c-tzb1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43ecf4f6cd5b2e02a0a7765f05c3a68c0897549c952a906d693b30df316879d8"
+checksum = "4b578c3f4c607c9f31ae5c7cb0eb6c98359e172ab9517bb5683c3794fe42e78a"
 
 [[package]]
 name = "tzf-rs"
-version = "0.4.11"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "395b7648e560b0a6436eb426626bcf6e7ee7c341470a2a2c03fc412181e92a7e"
+checksum = "2ab42bc90915f50806d2cc0b4b475fe9cbdb9333bd42ff3a9b44dfc0ee4c3e55"
 dependencies = [
- "anyhow",
- "bytes",
  "geometry-rs",
- "prost",
- "prost-build",
- "tzf-rel",
+ "tzf-dist",
 ]
 
 [[package]]
