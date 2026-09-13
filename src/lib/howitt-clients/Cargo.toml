@@ -8,7 +8,7 @@ edition = "2024"
 [dependencies]
 howitt_client_types = { path = "../howitt-client-types" }
 reqwest = "=0.12.12"
-derive_more = { version = "=1.0.0", features = ["full"] }
+derive_more = { version = "=2.1.1", features = ["full"] }
 async-trait = "=0.1.92"
 url = "=2.5.8"
 thiserror = "=2.0.20"

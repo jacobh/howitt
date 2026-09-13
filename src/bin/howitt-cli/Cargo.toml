@@ -25,7 +25,7 @@ ulid = "=1.1.4"
 chrono = "=0.4.45"
 uuid = { version = "=1.26.1", features = ["v7"] }
 chrono-tz = "=0.10.4"
-derive_more = { version = "=1.0.0", features = ["full"] }
+derive_more = { version = "=2.1.1", features = ["full"] }
 mapbox-geocoding = { path = "../../lib/mapbox-geocoding" }
 open-meteo = { path = "../../lib/open-meteo" }
 serde_yaml = "=0.9.34"

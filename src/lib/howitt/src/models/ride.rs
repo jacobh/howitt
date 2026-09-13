@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use derive_more::From;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{external_ref::ExternalRef, point::TemporalElevationPoint};
