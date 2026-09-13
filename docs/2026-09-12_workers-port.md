@@ -49,14 +49,16 @@ Deployment command: `bun run deploy:worker`.
 - Python urllib requests were blocked upstream with Cloudflare 1010; browser requests succeeded.
 - No database writes, production-domain cutover, or paid-plan upgrade were performed. Live login/password hashing and cold timezone CPU/memory remain unvalidated.
 
-## Deliberately disabled functionality
+## Functionality disabled in the first deployment
 
 Before any body processing, OAuth exchange, upload, database write or enqueue:
 
-- `POST /upload/media`, `POST /webhooks/rwgps`, and `GET /auth/rwgps/callback` return HTTP 503 with `BACKGROUND_JOBS_DISABLED`.
-- GraphQL `initiateRwgpsHistorySync` and `viewer.rwgpsAuthRequestUrl` return the same explicit error code.
+- `POST /upload/media`, `POST /webhooks/rwgps`, and `GET /auth/rwgps/callback` returned HTTP 503 with `BACKGROUND_JOBS_DISABLED`.
+- GraphQL `initiateRwgpsHistorySync` and `viewer.rwgpsAuthRequestUrl` returned the same explicit error code.
 
-Existing media remains readable. Other GraphQL mutations and username/password authentication remain available. Background queues are still disabled. Derived-data caching now uses Workers KV, as described below.
+The later Cloudflare Queues migration restored the RWGPS endpoints and GraphQL
+operations. Media upload remains disabled; existing media remains readable.
+Derived-data caching uses Workers KV, as described below.
 
 ## Derived-data cache (Workers KV)
 

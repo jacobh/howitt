@@ -17,6 +17,9 @@ enabled = true
 [observability.traces]
 enabled = true
 
+[vars]
+RWGPS_REDIRECT_URI = "https://api.howittplains.net/auth/rwgps/callback"
+
 [build]
 command = "bash scripts/build-worker.sh"
 
@@ -28,6 +31,10 @@ id = "324c2bb0ba3d4ac9b1fce0618ccbae4d"
 [[kv_namespaces]]
 binding = "DERIVED_CACHE"
 id = "5de58615f5114086b708a9387f518552"
+
+[[queues.producers]]
+binding = "JOBS"
+queue = "howitt-jobs"
 
 # Public upstream timezone polygons are assets, not part of the Wasm upload.
 [assets]

@@ -1,6 +1,8 @@
 use anyhow::anyhow;
 use async_graphql::{Context, Object};
+use chrono::Utc;
 use howitt::services::user::auth::Login;
+use url::Url;
 
 use crate::graphql::context::SchemaData;
 
@@ -45,7 +47,26 @@ impl Viewer {
         &self,
         ctx: &Context<'ctx>,
     ) -> Result<String, async_graphql::Error> {
-        let _ = ctx;
-        Err(crate::handlers::disabled::graphql_error())
+        let SchemaData {
+            rwgps_client_id,
+            rwgps_redirect_uri,
+            user_auth_service,
+            ..
+        } = ctx.data()?;
+        let Login { token, .. } = user_auth_service.generate_login(
+            self.0.session.user_id,
+            Utc::now(),
+            chrono::Duration::minutes(20),
+        )?;
+        Ok(Url::parse_with_params(
+            "https://ridewithgps.com/oauth/authorize",
+            &[
+                ("client_id", rwgps_client_id.as_str()),
+                ("redirect_uri", rwgps_redirect_uri.as_str()),
+                ("response_type", "code"),
+                ("state", token.as_str()),
+            ],
+        )?
+        .to_string())
     }
 }

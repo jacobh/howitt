@@ -69,10 +69,11 @@ workflow does not provision or migrate them:
 - The active `howittplains.net` zone and API/frontend custom domains. Wrangler
   reconciles the configured domains during deployment; do not independently
   reassign them. See [Cloudflare Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
-- `JWT_SECRET` already stored as a **Worker secret on `howitt-web`**. Preserve
-  its value; it is not a build secret. Existing Worker secrets persist through
-  deployments and are not uploaded by this workflow. The jobs Worker loads RWGPS
-  credentials from the database; the frontend needs no runtime secrets.
+- `JWT_SECRET`, `RWGPS_CLIENT_ID`, and `RWGPS_CLIENT_SECRET` stored as **Worker
+  secrets on `howitt-web`**. Preserve their values; they are not build secrets.
+  Existing Worker secrets persist through deployments and are not uploaded by
+  this workflow. The jobs Worker loads each user's RWGPS access token from the
+  database; the frontend needs no runtime secrets.
 - Disable any duplicate Workers Builds or other deployment automation before
   adopting this workflow. GitHub concurrency does not serialize external deploys.
 

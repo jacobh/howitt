@@ -4,7 +4,7 @@ const timedFetch = (url: string, init: RequestInit = {}) =>
   fetch(url, { ...init, signal: AbortSignal.timeout(10_000) });
 // Wrangler builds the Wasm module before listening; retry readiness only.
 let ready = false;
-for (let attempt = 0; attempt < 45; attempt++) {
+for (let attempt = 0; attempt < 90; attempt++) {
   const response = await timedFetch(`${base}/upload/media`, {
     method: "POST",
   }).catch(() => undefined);
@@ -18,11 +18,7 @@ assert(
   ready,
   "Local Worker did not start; inspect /tmp/howitt-local-worker.log",
 );
-for (const [method, path] of [
-  ["POST", "/upload/media"],
-  ["POST", "/webhooks/rwgps"],
-  ["GET", "/auth/rwgps/callback"],
-]) {
+for (const [method, path] of [["POST", "/upload/media"]]) {
   const response = await timedFetch(base + path, {
     method,
     headers: { origin: "https://howittplains.net" },
@@ -31,6 +27,39 @@ for (const [method, path] of [
   assert.equal(response.headers.get("access-control-allow-origin"), "*");
   assert.equal((await response.json()).code, "BACKGROUND_JOBS_DISABLED");
 }
+const invalidCallback = await timedFetch(
+  `${base}/auth/rwgps/callback?code=unused&state=invalid`,
+);
+assert.equal(invalidCallback.status, 400);
+
+const webhookBody = JSON.stringify({
+  notifications: [
+    {
+      user_id: 81,
+      item_type: "route",
+      item_id: 314,
+      item_user_id: 81,
+      item_url: "https://ridewithgps.com/routes/314.json",
+      action: "updated",
+      collection: null,
+    },
+  ],
+});
+const signature = new Bun.CryptoHasher("sha256", "local-rwgps-secret")
+  .update(webhookBody)
+  .digest("hex");
+const rejectedWebhook = await timedFetch(`${base}/webhooks/rwgps`, {
+  method: "POST",
+  headers: { "x-rwgps-signature": "00".repeat(32) },
+  body: webhookBody,
+});
+assert.equal(rejectedWebhook.status, 401);
+const acceptedWebhook = await timedFetch(`${base}/webhooks/rwgps`, {
+  method: "POST",
+  headers: { "x-rwgps-signature": signature },
+  body: webhookBody,
+});
+assert.equal(acceptedWebhook.status, 200);
 const loginResponse = await timedFetch(`${base}/auth/login`, {
   method: "POST",
   headers: { "content-type": "application/json" },
@@ -57,6 +86,18 @@ async function graphql(query: string) {
 const viewer = await graphql("{ viewer { id profile { username } } }");
 assert.equal(viewer.errors, undefined, JSON.stringify(viewer));
 assert.equal(viewer.data.viewer.profile.username, "worker-test");
+const rwgpsAuth = await graphql("{ viewer { rwgpsAuthRequestUrl } }");
+assert.equal(rwgpsAuth.errors, undefined, JSON.stringify(rwgpsAuth));
+const rwgpsAuthUrl = new URL(rwgpsAuth.data.viewer.rwgpsAuthRequestUrl);
+assert.equal(rwgpsAuthUrl.origin, "https://ridewithgps.com");
+assert.equal(rwgpsAuthUrl.pathname, "/oauth/authorize");
+assert.equal(rwgpsAuthUrl.searchParams.get("client_id"), "local-rwgps-client");
+assert.equal(
+  rwgpsAuthUrl.searchParams.get("redirect_uri"),
+  "https://api.howittplains.net/auth/rwgps/callback",
+);
+assert.equal(rwgpsAuthUrl.searchParams.get("response_type"), "code");
+assert(rwgpsAuthUrl.searchParams.get("state"));
 const route = await graphql('{ routeWithSlug(slug: "test-route") { name } }');
 assert.equal(route.errors, undefined, JSON.stringify(route));
 assert.equal(route.data.routeWithSlug.name, "Test route");
@@ -110,7 +151,8 @@ console.log(
   "Local Wasm KV: route geometry/profiles/totals, ride geometry and trip elevation survive source removal across HTTP requests",
 );
 const sync = await graphql("mutation { initiateRwgpsHistorySync { id } }");
-assert.equal(sync.errors[0].extensions.code, "BACKGROUND_JOBS_DISABLED");
+assert.equal(sync.errors, undefined, JSON.stringify(sync));
+assert.equal(sync.data.initiateRwgpsHistorySync.id, viewer.data.viewer.id);
 const signup = await timedFetch(`${base}/auth/signup`, {
   method: "POST",
   headers: { "content-type": "application/json" },
@@ -124,7 +166,7 @@ const signupBody = await signup.json();
 assert.equal(signupBody.error, null, JSON.stringify(signupBody));
 assert.equal(typeof signupBody.token, "string");
 console.log(
-  "Local Wasm Worker: disabled routes, JWT login, signup, GraphQL auth/DataLoader, repository query and disabled mutation passed",
+  "Local Wasm Worker: media disabled, signed RWGPS webhook, OAuth URL/state, callback state rejection, queued history sync, JWT login, signup and GraphQL passed",
 );
 const telemetry = await timedFetch(
   `${base}/cdn-cgi/local/explorer/api/local/observability/query`,
@@ -180,7 +222,7 @@ assert(
   resolvers.some(
     (span) =>
       span.name === "graphql.resolve Mutation.initiateRwgpsHistorySync" &&
-      span.attributes["graphql.outcome"] === "error",
+      span.attributes["graphql.outcome"] === "ok",
   ),
 );
 assert(

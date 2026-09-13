@@ -31,6 +31,9 @@ export HOWITT_TEST_DATABASE_URL="postgresql://$PG_USER:local-only@127.0.0.1:5432
 cargo test -p howitt-postgresql --test worker_compatibility --test connection_pool -- --ignored --nocapture
 
 export CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="$HOWITT_TEST_DATABASE_URL"
-bun run dev:worker --local --persist-to "$state_dir" --ip 127.0.0.1 --port 8789 --log-level info --var JWT_SECRET:local-test-signing-key > /tmp/howitt-local-worker.log 2>&1 &
+bun run dev:worker --local --persist-to "$state_dir" --ip 127.0.0.1 --port 8789 --log-level info \
+  --var JWT_SECRET:local-test-signing-key \
+  --var RWGPS_CLIENT_ID:local-rwgps-client \
+  --var RWGPS_CLIENT_SECRET:local-rwgps-secret > /tmp/howitt-local-worker.log 2>&1 &
 worker_pid=$!
 bun scripts/test-worker-local.ts

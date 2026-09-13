@@ -1,4 +1,4 @@
-use crate::timezone::TimezoneLookup;
+use crate::{jobs::DynJobQueue, timezone::TimezoneLookup};
 use async_graphql::dataloader::{DataLoader, HashMapCache};
 use howitt::{
     repos::Repos,
@@ -26,6 +26,10 @@ pub struct SchemaData {
     pub trip_media_loader: DataLoader<TripMediaLoader, HashMapCache>,
     pub route_points_loader: DataLoader<RouteDataLoader<crate::cache::WorkerCache>, HashMapCache>,
     pub tz_finder: TimezoneLookup,
+    pub jobs: DynJobQueue,
+    pub rwgps_client_id: String,
+    pub rwgps_redirect_uri: String,
+    pub user_auth_service: howitt::services::user::auth::UserAuthService,
 }
 
 pub struct RequestData {

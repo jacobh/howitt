@@ -3,8 +3,9 @@
 `howitt-worker` is a Rust/Wasm queue consumer, separate from `howitt-web`.
 It supports RWGPS webhook fan-out, individual route/trip sync, history discovery,
 and media location inference. Image transformations belong to the separate
-Cloudflare Images task. The old Apalis runtime and image processor are removed;
-the disabled web upload/OAuth/webhook endpoints remain disabled.
+Cloudflare Images task. The old Apalis runtime and image processor are removed.
+The web Worker publishes signed RWGPS webhooks and user-requested history syncs
+to `howitt-jobs`; media uploads remain disabled.
 
 ## Local verification
 
@@ -82,6 +83,11 @@ The CLI sends this object as `body` with `content_type: "json"` to the
 Credentials are resolved from the user's current database connection at execution
 time and are never embedded in queue payloads.
 
+The web Worker also requires `RWGPS_CLIENT_ID` and `RWGPS_CLIENT_SECRET` Worker
+secrets. Its public `RWGPS_REDIRECT_URI` variable is committed in `wrangler.toml`.
+The client secret verifies webhook HMAC-SHA256 signatures and authenticates OAuth
+code exchange; it must never be committed or exposed in logs.
+
 ## Delivery and recovery
 
 - A message is acknowledged only after its handler and every child publication
@@ -105,5 +111,5 @@ time and are never embedded in queue payloads.
 The existing history selection fetches up to 1,000 routes and 5,000 trips per user;
 it is not a paginated full-account export. Consumer concurrency is an initial
 bound, not a per-user RWGPS rate limiter. Monitor upstream throttling and queue
-age before raising it. Restoring web producers, adding durable DB-to-queue outbox
-delivery, and Cloudflare Images integration are outside this change.
+age before raising it. Adding durable DB-to-queue outbox delivery and Cloudflare
+Images integration are outside this change.

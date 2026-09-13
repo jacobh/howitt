@@ -10,15 +10,20 @@ mod cache;
 mod extractors;
 mod graphql;
 mod handlers;
+mod jobs;
 mod timezone;
 pub use graphql::observability::ResolverTracing;
 
 fn disabled_routes() -> Router {
     Router::new()
-        .route("/auth/rwgps/callback", get(handlers::disabled::handler))
         .route("/upload/media", post(handlers::disabled::handler))
-        .route("/webhooks/rwgps", post(handlers::disabled::handler))
         .layer(cors())
+}
+
+fn webhook_router(state: app_state::RwgpsWebhookState) -> Router {
+    Router::new()
+        .route("/webhooks/rwgps", post(handlers::rwgps::webhook_handler))
+        .with_state(state)
 }
 
 fn cors() -> CorsLayer {
@@ -36,6 +41,10 @@ fn router(state: app_state::AppState) -> Router {
         )
         .route("/auth/login", post(handlers::auth::login_handler))
         .route("/auth/signup", post(handlers::auth::signup_handler))
+        .route(
+            "/auth/rwgps/callback",
+            get(handlers::rwgps::auth_callback_handler),
+        )
         .with_state(state)
         .merge(disabled_routes())
         .layer(cors())
@@ -63,6 +72,7 @@ mod runtime {
         },
     };
     use howitt_postgresql::{PostgresPool, PostgresRepos};
+    use std::sync::Arc;
     use tower::Service;
     use worker::*;
 
@@ -70,9 +80,23 @@ mod runtime {
     // Loading immediately avoids its panicking timer while retaining caching.
     const DATALOADER_MAX_BATCH_SIZE: usize = 1;
 
+    fn rwgps_config(env: &Env) -> anyhow::Result<app_state::RwgpsConfig> {
+        Ok(app_state::RwgpsConfig {
+            client_id: env.secret("RWGPS_CLIENT_ID")?.to_string(),
+            client_secret: env.secret("RWGPS_CLIENT_SECRET")?.to_string(),
+            redirect_uri: env.var("RWGPS_REDIRECT_URI")?.to_string(),
+        })
+    }
+
+    fn job_queue(env: &Env) -> anyhow::Result<jobs::DynJobQueue> {
+        Ok(Arc::new(jobs::CloudflareJobQueue::new(env.queue("JOBS")?)))
+    }
+
     async fn state(env: &Env) -> anyhow::Result<app_state::AppState> {
         // No insecure fallback: missing secrets must fail closed.
         let jwt_secret = env.secret("JWT_SECRET")?.to_string();
+        let rwgps = rwgps_config(env)?;
+        let jobs = job_queue(env)?;
         let pool = PostgresPool::from_hyperdrive(env.hyperdrive("HYPERDRIVE")?)?;
         let repos = Repos::from(PostgresRepos::new(pool));
         let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
@@ -118,13 +142,20 @@ mod runtime {
                 repos.ride_points_repo.clone(),
                 cache,
             ),
-            repos,
+            repos: repos.clone(),
             tz_finder: timezone::TimezoneLookup::new(env.get_binding("ASSETS")?),
+            jobs: jobs.clone(),
+            rwgps_client_id: rwgps.client_id.clone(),
+            rwgps_redirect_uri: rwgps.redirect_uri.clone(),
+            user_auth_service: user_auth_service.clone(),
         });
         Ok(app_state::AppState {
             schema,
             user_auth_service,
             user_signup_service,
+            repos,
+            jobs,
+            rwgps,
         })
     }
 
@@ -134,12 +165,26 @@ mod runtime {
         env: Env,
         _ctx: worker::Context,
     ) -> worker::Result<http::Response<axum::body::Body>> {
-        // These routes cannot need a database or any secrets in this first pass.
         if matches!(
             (req.method().as_str(), req.uri().path()),
-            ("POST", "/upload/media" | "/webhooks/rwgps") | ("GET", "/auth/rwgps/callback")
+            ("POST", "/upload/media")
         ) {
             return Ok(disabled_routes().call(req).await?);
+        }
+        // Acknowledge signed webhooks without opening a database connection. RWGPS
+        // expects a response within one second and does not retry failed delivery.
+        if matches!(
+            (req.method().as_str(), req.uri().path()),
+            ("POST", "/webhooks/rwgps")
+        ) {
+            let rwgps = rwgps_config(&env)
+                .map_err(|_| worker::Error::RustError("RWGPS configuration failed".into()))?;
+            let state = app_state::RwgpsWebhookState {
+                client_secret: rwgps.client_secret,
+                jobs: job_queue(&env)
+                    .map_err(|_| worker::Error::RustError("Queue configuration failed".into()))?,
+            };
+            return Ok(webhook_router(state).call(req).await?);
         }
         let state = state(&env)
             .await

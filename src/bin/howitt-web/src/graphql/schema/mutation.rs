@@ -1,5 +1,6 @@
 use async_graphql::*;
 use chrono::{DateTime, Datelike, Utc};
+use howitt::jobs::{Job, rwgps::RwgpsJob};
 use howitt::models::media::MediaId;
 use howitt::models::point_of_interest::{PointOfInterest as PoiModel, PointOfInterestId};
 use howitt::models::ride::{RideFilter, RideId};
@@ -416,7 +417,21 @@ impl Mutation {
     }
 
     async fn initiate_rwgps_history_sync(&self, ctx: &Context<'_>) -> Result<Viewer, Error> {
-        let _ = ctx;
-        Err(crate::handlers::disabled::graphql_error())
+        let SchemaData { repos, jobs, .. } = ctx.data()?;
+        let RequestData { login } = ctx.data()?;
+        let login = login
+            .as_ref()
+            .ok_or_else(|| Error::new("Authentication required"))?
+            .clone();
+        let user = repos.user_repo.get(login.session.user_id).await?;
+        if user.rwgps_connection.is_none() {
+            return Err(Error::new("No RWGPS connection found"));
+        }
+        jobs.publish(vec![Job::Rwgps(RwgpsJob::SyncHistory {
+            user_id: login.session.user_id,
+        })])
+        .await
+        .map_err(|_| Error::new("Failed to enqueue RWGPS history sync"))?;
+        Ok(Viewer(login))
     }
 }
