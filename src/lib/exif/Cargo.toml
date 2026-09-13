@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 geo = "=0.29.3"
 chrono = "=0.4.45"
-thiserror = "=2.0.11"
+thiserror = "=2.0.20"
 nom-exif = "=2.3.0"

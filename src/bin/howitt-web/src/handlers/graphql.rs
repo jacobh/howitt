@@ -21,20 +21,15 @@ pub async fn graphiql_handler() -> impl IntoResponse {
     Html(
         async_graphql::http::GraphiQLSource::build()
             .endpoint("/")
+            .version("4.1.2")
             .finish()
-            // This template uses React 17 and the GraphiQL UMD global. Newer
-            // GraphiQL releases no longer provide that bundle at the same path.
             .replace(
-                "https://unpkg.com/graphiql/",
-                "https://unpkg.com/graphiql@2.4.7/",
+                "https://unpkg.com/react@18/",
+                "https://unpkg.com/react@18.3.1/",
             )
             .replace(
-                "https://unpkg.com/react@17/",
-                "https://unpkg.com/react@17.0.2/",
-            )
-            .replace(
-                "https://unpkg.com/react-dom@17/",
-                "https://unpkg.com/react-dom@17.0.2/",
+                "https://unpkg.com/react-dom@18/",
+                "https://unpkg.com/react-dom@18.3.1/",
             ),
     )
 }
@@ -51,17 +46,17 @@ mod tests {
             .unwrap();
         let html = std::str::from_utf8(&body).unwrap();
         for asset in [
-            "graphiql@2.4.7/graphiql.min.js",
-            "graphiql@2.4.7/graphiql.min.css",
-            "react@17.0.2/umd/react.development.js",
-            "react-dom@17.0.2/umd/react-dom.development.js",
+            "graphiql@4.1.2/graphiql.min.js",
+            "graphiql@4.1.2/graphiql.min.css",
+            "react@18.3.1/umd/react.development.js",
+            "react-dom@18.3.1/umd/react-dom.development.js",
         ] {
             assert!(
                 html.contains(&format!("https://unpkg.com/{asset}")),
                 "Missing pinned asset: {asset}"
             );
         }
-        assert!(!html.contains("https://unpkg.com/graphiql/"));
+        assert!(!html.contains("https://unpkg.com/graphiql@4/"));
         assert!(html.contains("createUrl('/')"));
     }
 }

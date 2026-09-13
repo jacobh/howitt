@@ -11,8 +11,8 @@ axum = { version = "=0.8.1", default-features = false, features = ["json", "quer
 axum-macros = "=0.5.0"
 tower = { version = "=0.5.2", default-features = false, features = ["util"] }
 tower-http = { version = "=0.6.2", default-features = false, features = ["cors"] }
-async-graphql-axum = { git = "https://github.com/async-graphql/async-graphql.git", rev = "2197ddde76246136be8c3a0b9a892d5ae1762eb7" }
-async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", rev = "2197ddde76246136be8c3a0b9a892d5ae1762eb7", default-features = false, features = ["uuid", "chrono", "url", "dataloader", "graphiql"] }
+async-graphql-axum = "=7.2.1"
+async-graphql = { version = "=7.2.1", default-features = false, features = ["uuid", "chrono", "url", "dataloader", "graphiql"] }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
 howitt-observability = { path = "../../lib/howitt-observability" }
 howitt = { path = "../../lib/howitt" }
@@ -25,7 +25,7 @@ chrono-tz = "=0.10.1"
 serde = { version = "=1.0.229", features = ["derive"] }
 derive_more = { version = "=1.0.0", features = ["full"] }
 itertools = "=0.14.0"
-thiserror = "=2.0.11"
+thiserror = "=2.0.20"
 url = "=2.5.4"
 serde_json = "=1.0.151"
 async-trait = "=0.1.92"

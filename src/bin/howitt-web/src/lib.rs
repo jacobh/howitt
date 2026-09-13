@@ -66,6 +66,10 @@ mod runtime {
     use tower::Service;
     use worker::*;
 
+    // async-graphql 7.2.1's batching delay is not implemented for wasm32.
+    // Loading immediately avoids its panicking timer while retaining caching.
+    const DATALOADER_MAX_BATCH_SIZE: usize = 1;
+
     async fn state(env: &Env) -> anyhow::Result<app_state::AppState> {
         // No insecure fallback: missing secrets must fail closed.
         let jwt_secret = env.secret("JWT_SECRET")?.to_string();
@@ -79,27 +83,32 @@ mod runtime {
                 RideLoader::new(repos.ride_repo.clone()),
                 howitt_observability::spawn_local,
                 HashMapCache::default(),
-            ),
+            )
+            .max_batch_size(DATALOADER_MAX_BATCH_SIZE),
             user_loader: DataLoader::with_cache(
                 UserLoader::new(repos.user_repo.clone()),
                 howitt_observability::spawn_local,
                 HashMapCache::default(),
-            ),
+            )
+            .max_batch_size(DATALOADER_MAX_BATCH_SIZE),
             trip_rides_loader: DataLoader::with_cache(
                 TripRidesLoader(repos.ride_repo.clone()),
                 howitt_observability::spawn_local,
                 HashMapCache::default(),
-            ),
+            )
+            .max_batch_size(DATALOADER_MAX_BATCH_SIZE),
             trip_media_loader: DataLoader::with_cache(
                 TripMediaLoader(repos.media_repo.clone()),
                 howitt_observability::spawn_local,
                 HashMapCache::default(),
-            ),
+            )
+            .max_batch_size(DATALOADER_MAX_BATCH_SIZE),
             route_points_loader: DataLoader::with_cache(
                 RouteDataLoader::new(repos.route_points_repo.clone(), cache.clone()),
                 howitt_observability::spawn_local,
                 HashMapCache::default(),
-            ),
+            )
+            .max_batch_size(DATALOADER_MAX_BATCH_SIZE),
             simplified_ride_points_fetcher: SimplifiedRidePointsFetcher::new(
                 repos.ride_points_repo.clone(),
                 cache.clone(),
