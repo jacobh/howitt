@@ -1,9 +1,6 @@
 #![feature(async_closure)]
 
-use apalis_redis::RedisStorage;
 use clap::{Parser, Subcommand};
-use howitt::jobs::Job;
-use howitt_jobs::storage::LockFreeStorage;
 use howitt_postgresql::{PostgresPool, PostgresRepos};
 
 mod commands;
@@ -43,7 +40,6 @@ enum Commands {
 pub struct Context {
     pub postgres_pool: PostgresPool,
     pub repos: PostgresRepos,
-    pub job_storage: LockFreeStorage<Job>,
 }
 
 impl Context {
@@ -54,17 +50,9 @@ impl Context {
         )
         .await?;
 
-        let conn = apalis_redis::connect(
-            std::env::var("REDIS_URL").unwrap_or(String::from("redis://127.0.0.1:6379/")),
-        )
-        .await?;
-
-        let job_storage = RedisStorage::new(conn);
-
         Ok(Self {
             repos: PostgresRepos::new(postgres_pool.clone()),
             postgres_pool,
-            job_storage: LockFreeStorage::new(job_storage),
         })
     }
 }

@@ -1,8 +1,12 @@
+#[cfg(target_arch = "wasm32")]
+mod hyperdrive;
 mod pool;
 mod repos;
+mod rwgps_sync;
 mod traced_client;
 pub use pool::{ConnectionFactory, PostgresPool};
 pub use repos::*;
+pub use rwgps_sync::PostgresRwgpsSyncStore;
 pub use traced_client::{PostgresConnection, PostgresTransaction};
 
 impl PostgresPool {

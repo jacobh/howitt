@@ -10,6 +10,11 @@ if [[ "$(uname -s)" == Darwin ]]; then
 fi
 
 cd "$(dirname "$0")/.."
-cargo metadata --format-version 1 --locked | bun scripts/prepare-timezone-assets.ts
-cd src/bin/howitt-web
+target="${1:-howitt-web}"
+case "$target" in
+  howitt-web) cargo metadata --format-version 1 --locked | bun scripts/prepare-timezone-assets.ts ;;
+  howitt-worker) ;;
+  *) echo "Unknown Worker target: $target" >&2; exit 1 ;;
+esac
+cd "src/bin/$target"
 worker-build --profile worker --locked

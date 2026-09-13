@@ -62,45 +62,14 @@ mod runtime {
             user::{auth::UserAuthService, signup::UserSignupService},
         },
     };
-    use howitt_postgresql::{ConnectionFactory, PostgresPool, PostgresRepoError, PostgresRepos};
+    use howitt_postgresql::{PostgresPool, PostgresRepos};
     use tower::Service;
-    use worker::{postgres_tls::PassthroughTls, *};
-
-    struct HyperdriveConnectionFactory {
-        host: String,
-        port: u16,
-        config: tokio_postgres::Config,
-    }
-
-    #[async_trait::async_trait]
-    impl ConnectionFactory for HyperdriveConnectionFactory {
-        async fn connect(&self) -> Result<tokio_postgres::Client, PostgresRepoError> {
-            worker::send::SendFuture::new(async {
-                let socket = Socket::builder()
-                    .secure_transport(SecureTransport::StartTls)
-                    .connect(&self.host, self.port)
-                    .map_err(|error| PostgresRepoError::Connection(error.to_string()))?;
-                let (client, connection) = self.config.connect_raw(socket, PassthroughTls).await?;
-                howitt_observability::spawn_local(async move {
-                    if let Err(error) = connection.await {
-                        console_error!("PostgreSQL connection closed: {error:?}");
-                    }
-                });
-                Ok(client)
-            })
-            .await
-        }
-    }
+    use worker::*;
 
     async fn state(env: &Env) -> anyhow::Result<app_state::AppState> {
         // No insecure fallback: missing secrets must fail closed.
         let jwt_secret = env.secret("JWT_SECRET")?.to_string();
-        let hyperdrive = env.hyperdrive("HYPERDRIVE")?;
-        let pool = PostgresPool::new(HyperdriveConnectionFactory {
-            host: hyperdrive.host(),
-            port: hyperdrive.port(),
-            config: hyperdrive.connection_string().parse()?,
-        });
+        let pool = PostgresPool::from_hyperdrive(env.hyperdrive("HYPERDRIVE")?)?;
         let repos = Repos::from(PostgresRepos::new(pool));
         let user_auth_service = UserAuthService::new(repos.user_repo.clone(), jwt_secret);
         let user_signup_service = UserSignupService::new(repos.user_repo.clone());

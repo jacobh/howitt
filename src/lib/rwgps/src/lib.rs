@@ -11,6 +11,20 @@ mod reqwest_ext;
 use reqwest_ext::{ResponseExt, SerdeDebugError};
 use tokio::sync::{Semaphore, SemaphorePermit};
 
+#[cfg(target_arch = "wasm32")]
+macro_rules! send_future {
+    ($future:expr) => {
+        worker::send::SendFuture::new($future)
+    };
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+macro_rules! send_future {
+    ($future:expr) => {
+        $future
+    };
+}
+
 #[derive(Error, Debug)]
 #[error("RWGPS API Error {:?}", _0)]
 pub enum RwgpsError {
@@ -34,7 +48,7 @@ impl RwgpsClient {
         }
     }
 
-    async fn acquire_semaphore_permit(&self) -> SemaphorePermit {
+    async fn acquire_semaphore_permit(&self) -> SemaphorePermit<'_> {
         self.semaphore.acquire().await.unwrap()
     }
 
@@ -54,10 +68,12 @@ impl RwgpsClient {
         if let Some(creds) = credentials {
             match creds {
                 Credentials::Token(token_creds) => {
-                    request = request.header(
-                        "Authorization",
-                        format!("Bearer {}", token_creds.auth_token),
-                    );
+                    request = request
+                        .query(&[("apikey", "howitt"), ("version", "2")])
+                        .header(
+                            "Authorization",
+                            format!("Bearer {}", token_creds.auth_token),
+                        );
                 }
                 _ => {
                     request = request.query(&creds.to_query());
@@ -72,7 +88,12 @@ impl RwgpsClient {
             };
         }
 
-        let response = request.send().await?.json_debug().await?;
+        let response = request
+            .send()
+            .await?
+            .error_for_status()?
+            .json_debug()
+            .await?;
 
         Ok(response)
     }
@@ -185,28 +206,28 @@ impl rwgps_types::client::AuthenticatedRwgpsClient for AuthenticatedRwgpsClient 
     type Error = RwgpsError;
 
     async fn user_info(&self) -> Result<rwgps_types::AuthenticatedUserDetailResponse, RwgpsError> {
-        self.user_info().await
+        send_future!(self.user_info()).await
     }
 
     async fn user_routes(
         &self,
         user_id: usize,
     ) -> Result<Vec<rwgps_types::RouteSummary>, RwgpsError> {
-        self.user_routes(user_id).await
+        send_future!(self.user_routes(user_id)).await
     }
 
     async fn user_trips(
         &self,
         user_id: usize,
     ) -> Result<Vec<rwgps_types::TripSummary>, RwgpsError> {
-        self.user_trips(user_id).await
+        send_future!(self.user_trips(user_id)).await
     }
 
     async fn route(&self, route_id: usize) -> Result<rwgps_types::Route, RwgpsError> {
-        self.route(route_id).await
+        send_future!(self.route(route_id)).await
     }
 
     async fn trip(&self, trip_id: usize) -> Result<rwgps_types::Trip, RwgpsError> {
-        self.trip(trip_id).await
+        send_future!(self.trip(trip_id)).await
     }
 }

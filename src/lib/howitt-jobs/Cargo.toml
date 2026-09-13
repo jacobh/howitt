@@ -5,12 +5,14 @@ edition = "2021"
 
 [dependencies]
 anyhow = "=1.0.95"
-apalis-core = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2" }
-apalis = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2", features = [
-    "limit",
-    "timeout",
-] }
-apalis-redis = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2" }
-tokio = { version = "=1.43.0", features = ["full"] }
-thiserror = "=2.0.11"
 howitt = { path = "../howitt" }
+serde_json = "=1.0.151"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+reqwest = { version = "=0.12.12", default-features = false, features = ["json", "native-tls"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+worker = { version = "=0.8.5", features = ["queue"] }
+
+[dev-dependencies]
+tokio = { version = "=1.43.0", features = ["macros", "rt"] }

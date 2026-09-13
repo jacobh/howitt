@@ -5,15 +5,17 @@ use howitt::{
         ride::{Ride, RideId},
         user::UserRwgpsConnection,
     },
-    repos::{RidePointsRepo, RideRepo},
+    repos::RideRepo,
 };
 use rwgps_types::{client::AuthenticatedRwgpsClient, credentials::Credentials};
 use tracing;
 
+use super::persistence::DynRwgpsSyncStore;
+
 pub struct SyncTripParams<RwgpsClient> {
     pub client: RwgpsClient,
     pub ride_repo: RideRepo,
-    pub ride_points_repo: RidePointsRepo,
+    pub store: DynRwgpsSyncStore,
     pub rwgps_trip_id: usize,
     pub connection: UserRwgpsConnection,
 }
@@ -24,7 +26,7 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
         rwgps_trip_id,
         connection,
         ride_repo,
-        ride_points_repo,
+        store,
     }: SyncTripParams<RwgpsClient>,
 ) -> Result<(), anyhow::Error> {
     tracing::info!(
@@ -37,6 +39,13 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
     let existing_ride = ride_repo
         .find_model(howitt::models::ride::RideFilter::RwgpsId(rwgps_trip_id))
         .await?;
+
+    anyhow::ensure!(
+        existing_ride
+            .as_ref()
+            .is_none_or(|ride| ride.user_id == connection.user_id),
+        "RWGPS trip belongs to another user"
+    );
 
     tracing::info!(
         ride_exists = existing_ride.is_some(),
@@ -104,14 +113,10 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
             existing_ride.started_at = started_at;
             existing_ride.finished_at = finished_at;
 
-            ride_repo.put(existing_ride.clone()).await?;
-
-            ride_points_repo
-                .put(howitt::models::ride::RidePoints {
-                    id: existing_ride.id,
-                    points,
-                })
-                .await?;
+            store
+                .save_trip(existing_ride, points)
+                .await
+                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
             tracing::info!("Successfully updated ride and points");
         }
         None => {
@@ -133,10 +138,10 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
             };
 
             // Save new ride and points
-            ride_repo.put(ride).await?;
-            ride_points_repo
-                .put(howitt::models::ride::RidePoints { id, points })
-                .await?;
+            store
+                .save_trip(ride, points)
+                .await
+                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
             tracing::info!(ride_id = %id, "Successfully created new ride");
         }
     }

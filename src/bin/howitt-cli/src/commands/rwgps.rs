@@ -18,6 +18,18 @@ use rwgps_types::{client::RwgpsClient, credentials::Credentials};
 pub enum RwgpsCommands {
     Info(InfoArgs),
     EnqHistorySync(EnqHistorySync),
+    EnqRouteSync {
+        #[arg(long)]
+        user_id: uuid::Uuid,
+        #[arg(long)]
+        rwgps_route_id: usize,
+    },
+    EnqTripSync {
+        #[arg(long)]
+        user_id: uuid::Uuid,
+        #[arg(long)]
+        rwgps_trip_id: usize,
+    },
     HistorySyncDryRun(HistorySyncDryRun),
 }
 
@@ -49,11 +61,32 @@ pub async fn handle(
                 ride_repo,
                 ..
             },
-        job_storage,
         ..
     }: Context,
 ) -> Result<(), anyhow::Error> {
     match command {
+        RwgpsCommands::EnqRouteSync {
+            user_id,
+            rwgps_route_id,
+        } => {
+            howitt_jobs::enqueue(Job::Rwgps(RwgpsJob::SyncRoute {
+                user_id: UserId::from(*user_id),
+                rwgps_route_id: *rwgps_route_id,
+            }))
+            .await?;
+            println!("Enqueued RWGPS route {rwgps_route_id}");
+        }
+        RwgpsCommands::EnqTripSync {
+            user_id,
+            rwgps_trip_id,
+        } => {
+            howitt_jobs::enqueue(Job::Rwgps(RwgpsJob::SyncTrip {
+                user_id: UserId::from(*user_id),
+                rwgps_trip_id: *rwgps_trip_id,
+            }))
+            .await?;
+            println!("Enqueued RWGPS trip {rwgps_trip_id}");
+        }
         RwgpsCommands::Info(InfoArgs { user_id }) => {
             let user_id = UserId::from(uuid::Uuid::parse_str(user_id)?);
 
@@ -90,25 +123,11 @@ pub async fn handle(
         }
         RwgpsCommands::EnqHistorySync(EnqHistorySync { user_id }) => {
             let user_id = UserId::from(uuid::Uuid::parse_str(user_id)?);
-
-            // Fetch user from repo
-            let user = user_repo.get(user_id).await?;
-
-            // Get RWGPS connection
-            let rwgps_connection = user
-                .rwgps_connection
-                .ok_or_else(|| anyhow::anyhow!("User has no RWGPS connection"))?;
-
-            // Enqueue the sync job
-            job_storage
-                .push(Job::from(RwgpsJob::SyncHistory {
-                    connection: rwgps_connection,
-                }))
-                .await?;
+            howitt_jobs::enqueue(Job::Rwgps(RwgpsJob::SyncHistory { user_id })).await?;
 
             println!(
                 "Successfully enqueued RWGPS history sync job for user {}",
-                user.username
+                user_id
             );
         }
         RwgpsCommands::HistorySyncDryRun(HistorySyncDryRun { user_id }) => {

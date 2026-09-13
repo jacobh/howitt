@@ -17,7 +17,6 @@ pub async fn handle(
                 route_points_repo,
                 point_of_interest_repo,
             },
-        job_storage,
     }: Context,
 ) -> Result<(), anyhow::Error> {
     Ok(())

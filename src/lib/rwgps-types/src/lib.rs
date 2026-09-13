@@ -155,6 +155,7 @@ pub struct Route {
     pub user_id: usize,
     pub pavement_type: Value,
     pub pavement_type_id: Value,
+    #[serde(default)]
     pub recreation_type_ids: Vec<Value>,
     pub visibility: i64,
     pub created_at: chrono::DateTime<chrono::Utc>,
@@ -163,8 +164,8 @@ pub struct Route {
     pub description: Option<String>,
     pub first_lng: f64,
     pub first_lat: f64,
-    pub last_lat: f64,
-    pub last_lng: f64,
+    pub last_lat: Option<f64>,
+    pub last_lng: Option<f64>,
     pub bounding_box: Vec<Point>,
     pub locality: Option<String>,
     pub postal_code: Option<String>,
@@ -499,7 +500,7 @@ pub struct Gear {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Photo {
     pub id: usize,
-    pub group_membership_id: usize,
+    pub group_membership_id: Option<usize>,
     pub caption: Option<String>,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub position: Option<i64>,

@@ -5,7 +5,7 @@ use howitt::{
         route::{Route, RouteFilter, RouteId},
         user::UserRwgpsConnection,
     },
-    repos::{RoutePointsRepo, RouteRepo},
+    repos::RouteRepo,
     services::{
         simplify_points::{simplify_points_v2, DetailLevel},
         slug::generate_slug,
@@ -14,10 +14,12 @@ use howitt::{
 use rwgps_types::{client::AuthenticatedRwgpsClient, credentials::Credentials};
 use tracing;
 
+use super::persistence::DynRwgpsSyncStore;
+
 pub struct SyncRouteParams<RwgpsClient> {
     pub client: RwgpsClient,
     pub route_repo: RouteRepo,
-    pub route_points_repo: RoutePointsRepo,
+    pub store: DynRwgpsSyncStore,
     pub rwgps_route_id: usize,
     pub connection: UserRwgpsConnection,
 }
@@ -28,7 +30,7 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
         rwgps_route_id,
         connection,
         route_repo,
-        route_points_repo,
+        store,
     }: SyncRouteParams<RwgpsClient>,
 ) -> Result<(), anyhow::Error> {
     tracing::info!(
@@ -43,6 +45,13 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
         .await?
         .into_iter()
         .next();
+
+    anyhow::ensure!(
+        existing_route
+            .as_ref()
+            .is_none_or(|route| route.user_id == connection.user_id),
+        "RWGPS route belongs to another user"
+    );
 
     tracing::info!(
         route_exists = existing_route.is_some(),
@@ -98,14 +107,10 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
             existing_route.distance = rwgps_route.distance.unwrap_or(0.0);
             existing_route.sample_points = Some(sample_points);
 
-            route_repo.put(existing_route.clone()).await?;
-
-            route_points_repo
-                .put(howitt::models::route::RoutePoints {
-                    id: existing_route.id,
-                    points,
-                })
-                .await?;
+            store
+                .save_route(existing_route, points)
+                .await
+                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
             tracing::info!("Successfully updated route and points");
         }
         None => {
@@ -129,10 +134,10 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
             };
 
             // Save new route and points
-            route_repo.put(route).await?;
-            route_points_repo
-                .put(howitt::models::route::RoutePoints { id, points })
-                .await?;
+            store
+                .save_route(route, points)
+                .await
+                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
             tracing::info!(route_id = %id, "Successfully created new route");
         }
     }

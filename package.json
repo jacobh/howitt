@@ -1,6 +1,8 @@
 {
   "dependencies": {},
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20260911.1",
+    "miniflare": "5.20260911.0-alpha",
     "wrangler": "^4.131.1"
   },
   "scripts": {
@@ -8,6 +10,10 @@
     "dev:worker": "wrangler dev",
     "deploy:worker": "wrangler deploy",
     "check:worker": "wrangler deploy --dry-run",
+    "build:jobs": "bash scripts/build-worker.sh howitt-worker",
+    "dev:jobs": "wrangler dev --config wrangler.jobs.toml",
+    "check:jobs": "wrangler deploy --config wrangler.jobs.toml --dry-run",
+    "deploy:jobs": "wrangler deploy --config wrangler.jobs.toml",
     "test:observability": "bun test scripts/tests/resolver-tracing.test.ts"
   }
 }

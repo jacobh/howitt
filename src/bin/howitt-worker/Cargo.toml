@@ -3,30 +3,20 @@ name = "howitt-worker"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 anyhow = "=1.0.95"
-apalis = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2", features = [
-    "limit",
-    "timeout",
-] }
-apalis-redis = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2" }
 howitt = { path = "../../lib/howitt" }
-howitt_clients = { path = "../../lib/howitt-clients" }
 howitt_jobs = { path = "../../lib/howitt-jobs" }
-howitt_client_types = { path = "../../lib/howitt-client-types" }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
-tokio = { version = "=1.43.0", features = ["full"] }
-tracing = "=0.1.41"
-tracing-subscriber = "=0.3.19"
-image = { version = "=0.25.5", default-features = false, features = [
-    "rayon",
-    "jpeg",
-    "webp",
-] }
-webp = "=0.3.0"
-libwebp-sys = "=0.9.6"
-thiserror = "=2.0.11"
 rwgps = { path = "../../lib/rwgps" }
 rwgps_types = { path = "../../lib/rwgps-types" }
-infer = "=0.16.0"
-libheif-rs = "=1.1.0"
+serde_json = "=1.0.151"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+worker = { version = "=0.8.5", features = ["queue"] }
+
+[dev-dependencies]
+tokio = { version = "=1.43.0", features = ["macros", "rt"] }

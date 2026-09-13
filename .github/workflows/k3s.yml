@@ -19,10 +19,6 @@ jobs:
                 image_name: ${{ github.repository }}-ts-api
                 context: ts-api
                 dockerfile: Dockerfile
-              - name: worker
-                image_name: ${{ github.repository }}-worker
-                context: .
-                dockerfile: howitt-worker.Dockerfile
 
         permissions:
           contents: read
@@ -81,9 +77,6 @@ jobs:
           deployment:
             - name: ts-api
               file: howitt-ts-api.yaml
-              is_deployment: true
-            - name: worker
-              file: howitt-worker.yaml
               is_deployment: true
             - name: ingress
               file: ingress.yml
