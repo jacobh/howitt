@@ -1,5 +1,5 @@
 import { every, uniq } from "lodash";
-import type { BikeSpec } from "~/__generated__/graphql";
+import type { BikeSpec } from "~/__generated__/schema-types";
 import { DataTable } from "~/components/DataTable";
 import { isNotNil } from "~/services/isNotNil";
 

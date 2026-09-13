@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/client/react/hooks/useMutation";
+import { useMutation } from "@apollo/client/react";
 import { css } from "@emotion/react";
 import { useNavigate } from "@remix-run/react";
 import { gql } from "~/__generated__";

@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useQuery } from "@apollo/client/react";
 import { Link } from "@remix-run/react";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__";

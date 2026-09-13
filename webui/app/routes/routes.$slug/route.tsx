@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useQuery } from "@apollo/client/react";
 import { Link, useParams } from "@remix-run/react";
 import { gql } from "~/__generated__";
 import { BikeSpecContent } from "./BikeSpec";

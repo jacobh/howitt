@@ -18,12 +18,12 @@ test("SSR uses the supplied backend fetch and forwards the viewer token", async 
     },
   });
 
-  const result = await client.query({
+  const result = await client.query<{ viewer: { id: string } | null }>({
     query: parse("{ viewer { id } }"),
     fetchPolicy: "network-only",
   });
 
-  assert.equal(result.data.viewer, null);
+  assert.deepEqual(result.data, { viewer: null });
   assert.equal(requests.length, 1);
   assert.equal(requests[0]?.url, "https://backend.example/");
   assert.equal(requests[0]?.authorization, "Bearer synthetic-test-token");

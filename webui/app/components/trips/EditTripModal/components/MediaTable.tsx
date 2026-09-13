@@ -93,7 +93,8 @@ export function MediaTable({
   const sortedMedia = useMemo(() => {
     return [...trip.media].sort((a, b) => {
       return (
-        new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime()
+        new Date(b.capturedAt ?? b.createdAt).getTime() -
+        new Date(a.capturedAt ?? a.createdAt).getTime()
       );
     });
   }, [trip.media]);

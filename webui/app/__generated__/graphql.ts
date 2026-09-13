@@ -1,97 +1,24 @@
 /* eslint-disable */
-import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
-export type MakeEmpty<
-  T extends { [key: string]: unknown },
-  K extends keyof T,
-> = { [_ in K]?: never };
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> =
   | T
   | {
       [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never;
     };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: { input: string; output: string };
-  String: { input: string; output: string };
-  Boolean: { input: boolean; output: boolean };
-  Int: { input: number; output: number };
-  Float: { input: number; output: number };
-  /**
-   * Implement the DateTime<Utc> scalar
-   *
-   * The input/output is a string in RFC3339 format.
-   */
-  DateTime: { input: any; output: any };
-  IsoDate: { input: any; output: any };
-  MediaId: { input: any; output: any };
-  PointOfInterestId: { input: any; output: any };
-  RideId: { input: any; output: any };
-  RouteId: { input: any; output: any };
-  TripId: { input: any; output: any };
-  /**
-   * A UUID is a unique 128-bit number, stored as 16 octets. UUIDs are parsed as
-   * Strings within GraphQL. UUIDs are used to assign unique identifiers to
-   * entities without requiring a central allocating authority.
-   *
-   * # References
-   *
-   * * [Wikipedia: Universally Unique Identifier](http://en.wikipedia.org/wiki/Universally_unique_identifier)
-   * * [RFC4122: A Universally Unique IDentifier (UUID) URN Namespace](http://tools.ietf.org/html/rfc4122)
-   */
-  UUID: { input: any; output: any };
-  /** URL is a String implementing the [URL Standard](http://url.spec.whatwg.org/) */
-  Url: { input: any; output: any };
-  UserId: { input: any; output: any };
-};
-
-export type BikeSpec = {
-  __typename?: "BikeSpec";
-  frontSuspension: Array<Scalars["Float"]["output"]>;
-  rearSuspension: Array<Scalars["Float"]["output"]>;
-  tyreWidth: Array<Scalars["Float"]["output"]>;
-};
-
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type CreatePointOfInterestInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
-  name: Scalars["String"]["input"];
-  point: Array<Scalars["Float"]["input"]>;
+  description?: string | null | undefined;
+  name: string;
+  point: Array<number>;
   pointOfInterestType: PointOfInterestType;
 };
 
-export type CreatePointOfInterestOutput = {
-  __typename?: "CreatePointOfInterestOutput";
-  pointOfInterest: PointOfInterest;
-};
-
 export type CreateTripInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
-  name: Scalars["String"]["input"];
-  rideIds: Array<Scalars["RideId"]["input"]>;
-};
-
-export type CreateTripOutput = {
-  __typename?: "CreateTripOutput";
-  trip: Trip;
-};
-
-export type Cue = {
-  __typename?: "Cue";
-  destination: Scalars["String"]["output"];
-  distanceMeters: Scalars["Float"]["output"];
-  elevationAscentMeters: Scalars["Float"]["output"];
-  elevationDescentMeters: Scalars["Float"]["output"];
-  origin: Scalars["String"]["output"];
+  description?: string | null | undefined;
+  name: string;
+  rideIds: Array<string>;
 };
 
 export enum DifficultyRating {
@@ -107,139 +34,6 @@ export enum Direction {
   PrimarlityAsRouted = "PRIMARLITY_AS_ROUTED",
 }
 
-export type ElevationPath = {
-  /** Array of distance points */
-  distancePoints: Array<Scalars["Float"]["output"]>;
-  /** Array of distance points */
-  distancePointsJson: Scalars["String"]["output"];
-  /** Array of elevation points */
-  elevationPoints: Array<Scalars["Float"]["output"]>;
-  /** Array of elevation points */
-  elevationPointsJson: Scalars["String"]["output"];
-};
-
-export type ExternalRef = {
-  __typename?: "ExternalRef";
-  canonicalUrl: Scalars["Url"]["output"];
-};
-
-export enum ImageMode {
-  Fill = "FILL",
-  Fit = "FIT",
-}
-
-export type ImageSize = {
-  __typename?: "ImageSize";
-  height: Scalars["Int"]["output"];
-  jpegUrl: Scalars["String"]["output"];
-  mode: ImageMode;
-  webpUrl: Scalars["String"]["output"];
-  width: Scalars["Int"]["output"];
-};
-
-export type ImageSizes = {
-  __typename?: "ImageSizes";
-  fill300: ImageSize;
-  fill600: ImageSize;
-  fit800: ImageSize;
-  fit1200: ImageSize;
-  fit1600: ImageSize;
-  fit2000: ImageSize;
-  fit2400: ImageSize;
-};
-
-export type Media = TemporalContentBlock & {
-  __typename?: "Media";
-  capturedAt?: Maybe<Scalars["DateTime"]["output"]>;
-  contentAt: Scalars["DateTime"]["output"];
-  createdAt: Scalars["DateTime"]["output"];
-  id: Scalars["MediaId"]["output"];
-  imageSizes: ImageSizes;
-  path: Scalars["String"]["output"];
-  point?: Maybe<Array<Scalars["Float"]["output"]>>;
-  rides: Array<Ride>;
-  tz?: Maybe<Scalars["String"]["output"]>;
-  user: UserProfile;
-};
-
-export type MediaTarget = {
-  media: Array<Media>;
-};
-
-export type Mutation = {
-  __typename?: "Mutation";
-  clearRwgpsConnection: Viewer;
-  createPointOfInterest: CreatePointOfInterestOutput;
-  createTrip: CreateTripOutput;
-  initiateRwgpsHistorySync: Viewer;
-  updatePointOfInterest: UpdatePointOfInterestOutput;
-  updateTrip: UpdateTripOutput;
-  updateTripMedia: TripMediaOutput;
-  updateTripRides: TripRidesOutput;
-};
-
-export type MutationCreatePointOfInterestArgs = {
-  input: CreatePointOfInterestInput;
-};
-
-export type MutationCreateTripArgs = {
-  input: CreateTripInput;
-};
-
-export type MutationUpdatePointOfInterestArgs = {
-  input: UpdatePointOfInterestInput;
-};
-
-export type MutationUpdateTripArgs = {
-  input: UpdateTripInput;
-};
-
-export type MutationUpdateTripMediaArgs = {
-  input: UpdateTripMediaInput;
-};
-
-export type MutationUpdateTripRidesArgs = {
-  input: UpdateTripRidesInput;
-};
-
-export type NearbyRoute = {
-  __typename?: "NearbyRoute";
-  closestTerminus: Terminus;
-  closestTerminusDelta: PointDelta;
-  delta: PointDelta;
-};
-
-export type Note = TemporalContentBlock & {
-  __typename?: "Note";
-  contentAt: Scalars["DateTime"]["output"];
-  ride?: Maybe<Ride>;
-  text: Scalars["String"]["output"];
-};
-
-export enum Poicondition {
-  AllGood = "ALL_GOOD",
-  Issue = "ISSUE",
-}
-
-export type PointDelta = {
-  __typename?: "PointDelta";
-  bearing: Scalars["Float"]["output"];
-  distance: Scalars["Float"]["output"];
-  elevationGain: Scalars["Float"]["output"];
-};
-
-export type PointOfInterest = MediaTarget & {
-  __typename?: "PointOfInterest";
-  description?: Maybe<Scalars["String"]["output"]>;
-  id: Scalars["PointOfInterestId"]["output"];
-  media: Array<Media>;
-  name: Scalars["String"]["output"];
-  point: Array<Scalars["Float"]["output"]>;
-  pointOfInterestType: PointOfInterestType;
-  slug: Scalars["String"]["output"];
-  visits: Array<PointOfInterestVisit>;
-};
-
 export enum PointOfInterestType {
   Campsite = "CAMPSITE",
   Generic = "GENERIC",
@@ -248,138 +42,21 @@ export enum PointOfInterestType {
   WaterSource = "WATER_SOURCE",
 }
 
-export type PointOfInterestVisit = {
-  __typename?: "PointOfInterestVisit";
-  comment?: Maybe<Scalars["String"]["output"]>;
-  condition?: Maybe<Poicondition>;
-  confirmation: VisitConfirmation;
-  media: Array<Media>;
-  pointOfInterest: PointOfInterest;
-  user: UserProfile;
-  visitedAt: Scalars["DateTime"]["output"];
-};
-
 export enum PointsDetail {
   High = "HIGH",
   Low = "LOW",
   Medium = "MEDIUM",
 }
 
-export type Query = {
-  __typename?: "Query";
-  pointOfInterestWithSlug?: Maybe<PointOfInterest>;
-  pointsOfInterest: Array<PointOfInterest>;
-  publicUsers: Array<UserProfile>;
-  publishedTrips: Array<Trip>;
-  queryRoutes: Array<Route>;
-  rides: Array<Ride>;
-  route?: Maybe<Route>;
-  routeWithSlug?: Maybe<Route>;
-  routes: Array<Route>;
-  starredRoutes: Array<Route>;
-  trip?: Maybe<Trip>;
-  trips: Array<Trip>;
-  userWithUsername?: Maybe<UserProfile>;
-  viewer?: Maybe<Viewer>;
-};
-
-export type QueryPointOfInterestWithSlugArgs = {
-  slug: Scalars["String"]["input"];
-};
-
-export type QueryQueryRoutesArgs = {
-  input: QueryRoutesInput;
-};
-
-export type QueryRouteArgs = {
-  id: Scalars["RouteId"]["input"];
-};
-
-export type QueryRouteWithSlugArgs = {
-  slug: Scalars["String"]["input"];
-};
-
-export type QueryTripArgs = {
-  id: Scalars["TripId"]["input"];
-};
-
-export type QueryUserWithUsernameArgs = {
-  username: Scalars["String"]["input"];
-};
-
 export type QueryRouteFilters = {
-  hasAllTags?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  hasSomeTags?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  isPublished?: InputMaybe<Scalars["Boolean"]["input"]>;
+  hasAllTags?: Array<string> | null | undefined;
+  hasSomeTags?: Array<string> | null | undefined;
+  isPublished?: boolean | null | undefined;
 };
 
 export type QueryRoutesInput = {
   filters: Array<QueryRouteFilters>;
 };
-
-export type Ride = ElevationPath &
-  MediaTarget &
-  TemporalContentBlock & {
-    __typename?: "Ride";
-    contentAt: Scalars["DateTime"]["output"];
-    date: Scalars["IsoDate"]["output"];
-    distance: Scalars["Float"]["output"];
-    distancePoints: Array<Scalars["Float"]["output"]>;
-    distancePointsJson: Scalars["String"]["output"];
-    elevationPoints: Array<Scalars["Float"]["output"]>;
-    elevationPointsJson: Scalars["String"]["output"];
-    finishedAt: Scalars["DateTime"]["output"];
-    id: Scalars["RideId"]["output"];
-    media: Array<Media>;
-    name: Scalars["String"]["output"];
-    points: Array<Array<Scalars["Float"]["output"]>>;
-    pointsJson: Scalars["String"]["output"];
-    startedAt: Scalars["DateTime"]["output"];
-    tz?: Maybe<Scalars["String"]["output"]>;
-    user: UserProfile;
-  };
-
-export type RidePointsArgs = {
-  detailLevel: PointsDetail;
-};
-
-export type RidePointsJsonArgs = {
-  detailLevel: PointsDetail;
-};
-
-export type Route = ElevationPath &
-  MediaTarget & {
-    __typename?: "Route";
-    cues: Array<Cue>;
-    description?: Maybe<Scalars["String"]["output"]>;
-    direction?: Maybe<Direction>;
-    distance: Scalars["Float"]["output"];
-    distancePoints: Array<Scalars["Float"]["output"]>;
-    distancePointsJson: Scalars["String"]["output"];
-    elevationAscentM: Scalars["Float"]["output"];
-    elevationDescentM: Scalars["Float"]["output"];
-    elevationPoints: Array<Scalars["Float"]["output"]>;
-    elevationPointsJson: Scalars["String"]["output"];
-    externalRef?: Maybe<ExternalRef>;
-    id: Scalars["RouteId"]["output"];
-    idealBike?: Maybe<BikeSpec>;
-    isMetaComplete: Scalars["Boolean"]["output"];
-    media: Array<Media>;
-    minimumBike?: Maybe<BikeSpec>;
-    name: Scalars["String"]["output"];
-    physicalDifficulty?: Maybe<DifficultyRating>;
-    points: Array<Array<Scalars["Float"]["output"]>>;
-    pointsCount: Scalars["Int"]["output"];
-    pointsJson: Scalars["String"]["output"];
-    samplePoints: Array<Array<Scalars["Float"]["output"]>>;
-    samplePointsCount: Scalars["Int"]["output"];
-    scouted?: Maybe<Scouted>;
-    slug: Scalars["String"]["output"];
-    tags?: Maybe<Array<Scalars["String"]["output"]>>;
-    technicalDifficulty?: Maybe<DifficultyRating>;
-    termini: Array<Terminus>;
-    user: UserProfile;
-  };
 
 export enum Scouted {
   No = "NO",
@@ -387,170 +64,48 @@ export enum Scouted {
   Yes = "YES",
 }
 
-export enum SlopeEnd {
-  Downhill = "DOWNHILL",
-  Flat = "FLAT",
-  Uphill = "UPHILL",
-}
-
-export type TemporalContentBlock = {
-  /** Timestamp associated with this content */
-  contentAt: Scalars["DateTime"]["output"];
-};
-
-export type Terminus = {
-  __typename?: "Terminus";
-  bearing: Scalars["Float"]["output"];
-  distanceFromStart: Scalars["Float"]["output"];
-  elevationGainFromStart: Scalars["Float"]["output"];
-  end: TerminusEnd;
-  nearbyRoutes: Array<NearbyRoute>;
-  point: Array<Scalars["Float"]["output"]>;
-  route: Route;
-  slopeEnd: SlopeEnd;
-};
-
-export enum TerminusEnd {
-  End = "END",
-  Start = "START",
-}
-
-export type Trip = MediaTarget & {
-  __typename?: "Trip";
-  description?: Maybe<Scalars["String"]["output"]>;
-  id: Scalars["TripId"]["output"];
-  isPublished: Scalars["Boolean"]["output"];
-  legs: Array<TripLeg>;
-  media: Array<Media>;
-  name: Scalars["String"]["output"];
-  notes: Array<Note>;
-  rides: Array<Ride>;
-  slug: Scalars["String"]["output"];
-  temporalContentBlocks: Array<TemporalContentBlock>;
-  tz?: Maybe<Scalars["String"]["output"]>;
-  user: UserProfile;
-  year: Scalars["Int"]["output"];
-};
-
-export type TripLeg = ElevationPath & {
-  __typename?: "TripLeg";
-  distancePoints: Array<Scalars["Float"]["output"]>;
-  distancePointsJson: Scalars["String"]["output"];
-  elevationPoints: Array<Scalars["Float"]["output"]>;
-  elevationPointsJson: Scalars["String"]["output"];
-  rides: Array<Ride>;
-  tz?: Maybe<Scalars["String"]["output"]>;
-};
-
-export type TripMediaOutput = {
-  __typename?: "TripMediaOutput";
-  trip?: Maybe<Trip>;
-};
-
 export type TripNoteInput = {
-  text: Scalars["String"]["input"];
-  timestamp: Scalars["DateTime"]["input"];
-};
-
-export type TripRidesOutput = {
-  __typename?: "TripRidesOutput";
-  trip?: Maybe<Trip>;
+  text: string;
+  timestamp: string;
 };
 
 export type UpdatePointOfInterestInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
-  name: Scalars["String"]["input"];
-  point: Array<Scalars["Float"]["input"]>;
-  pointOfInterestId: Scalars["PointOfInterestId"]["input"];
+  description?: string | null | undefined;
+  name: string;
+  point: Array<number>;
+  pointOfInterestId: string;
   pointOfInterestType: PointOfInterestType;
 };
 
-export type UpdatePointOfInterestOutput = {
-  __typename?: "UpdatePointOfInterestOutput";
-  pointOfInterest?: Maybe<PointOfInterest>;
-};
-
 export type UpdateTripInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
-  isPublished: Scalars["Boolean"]["input"];
-  name: Scalars["String"]["input"];
+  description?: string | null | undefined;
+  isPublished: boolean;
+  name: string;
   notes: Array<TripNoteInput>;
-  tripId: Scalars["TripId"]["input"];
+  tripId: string;
 };
 
 export type UpdateTripMediaInput = {
-  mediaIds: Array<Scalars["MediaId"]["input"]>;
-  tripId: Scalars["TripId"]["input"];
-};
-
-export type UpdateTripOutput = {
-  __typename?: "UpdateTripOutput";
-  trip?: Maybe<Trip>;
+  mediaIds: Array<string>;
+  tripId: string;
 };
 
 export type UpdateTripRidesInput = {
-  rideIds: Array<Scalars["RideId"]["input"]>;
-  tripId: Scalars["TripId"]["input"];
+  rideIds: Array<string>;
+  tripId: string;
 };
-
-export type UserProfile = {
-  __typename?: "UserProfile";
-  email?: Maybe<Scalars["String"]["output"]>;
-  id: Scalars["UserId"]["output"];
-  pointsOfInterest: Array<PointOfInterest>;
-  recentRides: Array<Ride>;
-  rides: Array<Ride>;
-  ridesWithDate: Array<Ride>;
-  routes: Array<Route>;
-  tripWithSlug?: Maybe<Trip>;
-  trips: Array<Trip>;
-  username: Scalars["String"]["output"];
-};
-
-export type UserProfileRidesWithDateArgs = {
-  date: Scalars["IsoDate"]["input"];
-};
-
-export type UserProfileTripWithSlugArgs = {
-  slug: Scalars["String"]["input"];
-};
-
-export type UserRwgpsConnection = {
-  __typename?: "UserRwgpsConnection";
-  createdAt: Scalars["DateTime"]["output"];
-  id: Scalars["UUID"]["output"];
-  rwgpsUserId: Scalars["Int"]["output"];
-  updatedAt: Scalars["DateTime"]["output"];
-};
-
-export type Viewer = {
-  __typename?: "Viewer";
-  id: Scalars["String"]["output"];
-  profile: UserProfile;
-  rwgpsAuthRequestUrl: Scalars["String"]["output"];
-  rwgpsConnection?: Maybe<UserRwgpsConnection>;
-};
-
-export enum VisitConfirmation {
-  Confirmed = "CONFIRMED",
-  Pending = "PENDING",
-  Rejected = "REJECTED",
-}
 
 type ElevationPath_Ride_Fragment = {
-  __typename?: "Ride";
   elevationPointsJson: string;
   distancePointsJson: string;
 } & { " $fragmentName"?: "ElevationPath_Ride_Fragment" };
 
 type ElevationPath_Route_Fragment = {
-  __typename?: "Route";
   elevationPointsJson: string;
   distancePointsJson: string;
 } & { " $fragmentName"?: "ElevationPath_Route_Fragment" };
 
 type ElevationPath_TripLeg_Fragment = {
-  __typename?: "TripLeg";
   elevationPointsJson: string;
   distancePointsJson: string;
 } & { " $fragmentName"?: "ElevationPath_TripLeg_Fragment" };
@@ -561,9 +116,8 @@ export type ElevationPathFragment =
   | ElevationPath_TripLeg_Fragment;
 
 export type ViewerInfoFragment = {
-  __typename?: "Viewer";
   id: string;
-  profile: { __typename?: "UserProfile"; username: string };
+  profile: { username: string };
 } & { " $fragmentName"?: "ViewerInfoFragment" };
 
 export type CreatePointOfInterestMutationVariables = Exact<{
@@ -571,23 +125,15 @@ export type CreatePointOfInterestMutationVariables = Exact<{
 }>;
 
 export type CreatePointOfInterestMutation = {
-  __typename?: "Mutation";
   createPointOfInterest: {
-    __typename?: "CreatePointOfInterestOutput";
-    pointOfInterest: {
-      __typename?: "PointOfInterest";
-      id: any;
-      name: string;
-      slug: string;
-    };
+    pointOfInterest: { id: string; name: string; slug: string };
   };
 };
 
 export type EditPoiFragment = {
-  __typename?: "PointOfInterest";
-  id: any;
+  id: string;
   name: string;
-  description?: string | null;
+  description: string | null;
   point: Array<number>;
   pointOfInterestType: PointOfInterestType;
 } & { " $fragmentName"?: "EditPoiFragment" };
@@ -597,14 +143,11 @@ export type UpdatePointOfInterestMutationVariables = Exact<{
 }>;
 
 export type UpdatePointOfInterestMutation = {
-  __typename?: "Mutation";
   updatePointOfInterest: {
-    __typename?: "UpdatePointOfInterestOutput";
-    pointOfInterest?: {
-      __typename?: "PointOfInterest";
-      id: any;
+    pointOfInterest: {
+      id: string;
       name: string;
-      description?: string | null;
+      description: string | null;
       point: Array<number>;
       pointOfInterestType: PointOfInterestType;
     } | null;
@@ -612,29 +155,26 @@ export type UpdatePointOfInterestMutation = {
 };
 
 export type RideItemFragment = {
-  __typename?: "Ride";
-  id: any;
-  date: any;
-  tz?: string | null;
+  id: string;
+  date: string;
+  tz: string | null;
   distance: number;
-  startedAt: any;
-  finishedAt: any;
-  user: { __typename?: "UserProfile"; username: string };
+  startedAt: string;
+  finishedAt: string;
+  user: { username: string };
 } & { " $fragmentName"?: "RideItemFragment" };
 
 export type RideSummaryFragment = {
-  __typename?: "Ride";
-  id: any;
+  id: string;
   name: string;
   distance: number;
-  startedAt: any;
-  finishedAt: any;
-  tz?: string | null;
+  startedAt: string;
+  finishedAt: string;
+  tz: string | null;
 } & { " $fragmentName"?: "RideSummaryFragment" };
 
 export type RouteItemFragment = ({
-  __typename?: "Route";
-  id: any;
+  id: string;
   name: string;
   slug: string;
   distance: number;
@@ -646,23 +186,19 @@ export type RouteItemFragment = ({
 };
 
 export type RouteVitalsFragment = {
-  __typename?: "Route";
   distance: number;
   elevationAscentM: number;
   elevationDescentM: number;
 } & { " $fragmentName"?: "RouteVitalsFragment" };
 
 export type AllPoIsQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
+  username: string;
 }>;
 
 export type AllPoIsQuery = {
-  __typename?: "Query";
-  userWithUsername?: {
-    __typename?: "UserProfile";
+  userWithUsername: {
     pointsOfInterest: Array<{
-      __typename?: "PointOfInterest";
-      id: any;
+      id: string;
       name: string;
       slug: string;
       pointOfInterestType: PointOfInterestType;
@@ -671,36 +207,30 @@ export type AllPoIsQuery = {
 };
 
 export type SettingsRideListQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
+  username: string;
 }>;
 
 export type SettingsRideListQuery = {
-  __typename?: "Query";
-  userWithUsername?: {
-    __typename?: "UserProfile";
+  userWithUsername: {
     rides: Array<{
-      __typename?: "Ride";
-      id: any;
+      id: string;
       name: string;
-      startedAt: any;
-      finishedAt: any;
+      startedAt: string;
+      finishedAt: string;
       distance: number;
-      date: any;
+      date: string;
     }>;
   } | null;
 };
 
 export type AllRoutesQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
+  username: string;
 }>;
 
 export type AllRoutesQuery = {
-  __typename?: "Query";
-  userWithUsername?: {
-    __typename?: "UserProfile";
+  userWithUsername: {
     routes: Array<{
-      __typename?: "Route";
-      id: any;
+      id: string;
       name: string;
       slug: string;
       distance: number;
@@ -711,16 +241,13 @@ export type AllRoutesQuery = {
 };
 
 export type AllTripsQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
+  username: string;
 }>;
 
 export type AllTripsQuery = {
-  __typename?: "Query";
-  userWithUsername?: {
-    __typename?: "UserProfile";
+  userWithUsername: {
     trips: Array<{
-      __typename?: "Trip";
-      id: any;
+      id: string;
       name: string;
       year: number;
       isPublished: boolean;
@@ -730,19 +257,16 @@ export type AllTripsQuery = {
 };
 
 export type AllRidesQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
+  username: string;
 }>;
 
 export type AllRidesQuery = {
-  __typename?: "Query";
-  userWithUsername?: {
-    __typename?: "UserProfile";
+  userWithUsername: {
     rides: Array<{
-      __typename?: "Ride";
-      id: any;
+      id: string;
       name: string;
-      startedAt: any;
-      finishedAt: any;
+      startedAt: string;
+      finishedAt: string;
       distance: number;
     }>;
   } | null;
@@ -753,59 +277,41 @@ export type CreateTripMutationVariables = Exact<{
 }>;
 
 export type CreateTripMutation = {
-  __typename?: "Mutation";
   createTrip: {
-    __typename?: "CreateTripOutput";
     trip: {
-      __typename?: "Trip";
-      id: any;
+      id: string;
       name: string;
       slug: string;
       year: number;
-      user: { __typename?: "UserProfile"; username: string };
+      user: { username: string };
     };
   };
 };
 
 export type TripMediaFragment = {
-  __typename?: "Trip";
-  id: any;
+  id: string;
   media: Array<{
-    __typename?: "Media";
-    id: any;
+    id: string;
     path: string;
-    createdAt: any;
-    capturedAt?: any | null;
-    imageSizes: {
-      __typename?: "ImageSizes";
-      fill600: { __typename?: "ImageSize"; webpUrl: string };
-    };
+    createdAt: string;
+    capturedAt: string | null;
+    imageSizes: { fill600: { webpUrl: string } };
   }>;
 } & { " $fragmentName"?: "TripMediaFragment" };
 
-export type TripPoisFragment = {
-  __typename?: "Trip";
-  id: any;
-  user: { __typename?: "UserProfile"; username: string };
-} & { " $fragmentName"?: "TripPoisFragment" };
+export type TripPoisFragment = { id: string; user: { username: string } } & {
+  " $fragmentName"?: "TripPoisFragment";
+};
 
 export type TripRidesForPoiQueryVariables = Exact<{
-  tripId: Scalars["TripId"]["input"];
+  tripId: string;
 }>;
 
 export type TripRidesForPoiQuery = {
-  __typename?: "Query";
-  trip?: {
-    __typename?: "Trip";
-    id: any;
+  trip: {
+    id: string;
     legs: Array<{
-      __typename?: "TripLeg";
-      rides: Array<{
-        __typename?: "Ride";
-        id: any;
-        name: string;
-        pointsJson: string;
-      }>;
+      rides: Array<{ id: string; name: string; pointsJson: string }>;
     }>;
   } | null;
 };
@@ -815,28 +321,19 @@ export type CreateTripPointOfInterestMutationVariables = Exact<{
 }>;
 
 export type CreateTripPointOfInterestMutation = {
-  __typename?: "Mutation";
   createPointOfInterest: {
-    __typename?: "CreatePointOfInterestOutput";
-    pointOfInterest: {
-      __typename?: "PointOfInterest";
-      id: any;
-      name: string;
-      slug: string;
-    };
+    pointOfInterest: { id: string; name: string; slug: string };
   };
 };
 
 export type TripRidesFragment = {
-  __typename?: "Trip";
-  id: any;
-  user: { __typename?: "UserProfile"; username: string };
+  id: string;
+  user: { username: string };
   rides: Array<{
-    __typename?: "Ride";
-    id: any;
+    id: string;
     name: string;
-    startedAt: any;
-    finishedAt: any;
+    startedAt: string;
+    finishedAt: string;
     distance: number;
   }>;
 } & { " $fragmentName"?: "TripRidesFragment" };
@@ -846,36 +343,26 @@ export type UpdateTripRidesMutationVariables = Exact<{
 }>;
 
 export type UpdateTripRidesMutation = {
-  __typename?: "Mutation";
   updateTripRides: {
-    __typename?: "TripRidesOutput";
-    trip?: {
-      __typename?: "Trip";
-      id: any;
-      rides: Array<{ __typename?: "Ride"; id: any }>;
-    } | null;
+    trip: { id: string; rides: Array<{ id: string }> } | null;
   };
 };
 
 export type EditTripFragment = ({
-  __typename?: "Trip";
-  id: any;
+  id: string;
   name: string;
-  description?: string | null;
+  description: string | null;
   isPublished: boolean;
-  media: Array<{ __typename?: "Media"; id: any }>;
+  media: Array<{ id: string }>;
   temporalContentBlocks: Array<
     | {
         __typename: "Media";
-        contentAt: any;
-        mediaId: any;
-        imageSizes: {
-          __typename?: "ImageSizes";
-          fit1200: { __typename?: "ImageSize"; webpUrl: string };
-        };
+        contentAt: string;
+        mediaId: string;
+        imageSizes: { fit1200: { webpUrl: string } };
       }
-    | { __typename: "Note"; text: string; contentAt: any }
-    | { __typename: "Ride"; name: string; contentAt: any; rideId: any }
+    | { __typename: "Note"; text: string; contentAt: string }
+    | { __typename: "Ride"; name: string; contentAt: string; rideId: string }
   >;
 } & {
   " $fragmentRefs"?: {
@@ -890,15 +377,8 @@ export type UpdateTripMutationVariables = Exact<{
 }>;
 
 export type UpdateTripMutation = {
-  __typename?: "Mutation";
   updateTrip: {
-    __typename?: "UpdateTripOutput";
-    trip?: {
-      __typename?: "Trip";
-      id: any;
-      name: string;
-      description?: string | null;
-    } | null;
+    trip: { id: string; name: string; description: string | null } | null;
   };
 };
 
@@ -907,90 +387,66 @@ export type UpdateTripMediaMutationVariables = Exact<{
 }>;
 
 export type UpdateTripMediaMutation = {
-  __typename?: "Mutation";
-  updateTripMedia: {
-    __typename?: "TripMediaOutput";
-    trip?: { __typename?: "Trip"; id: any } | null;
-  };
+  updateTripMedia: { trip: { id: string } | null };
 };
 
 export type TripItemFragment = {
-  __typename?: "Trip";
-  id: any;
+  id: string;
   name: string;
   year: number;
   slug: string;
-  legs: Array<{
-    __typename?: "TripLeg";
-    rides: Array<{ __typename?: "Ride"; startedAt: any }>;
-  }>;
-  user: { __typename?: "UserProfile"; username: string };
+  legs: Array<{ rides: Array<{ startedAt: string }> }>;
+  user: { username: string };
 } & { " $fragmentName"?: "TripItemFragment" };
 
 export type LoginViewerInfoQueryVariables = Exact<{ [key: string]: never }>;
 
 export type LoginViewerInfoQuery = {
-  __typename?: "Query";
-  viewer?:
-    | ({
-        __typename?: "Viewer";
-        id: string;
-        profile: { __typename?: "UserProfile"; username: string };
-      } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
+  viewer:
+    | ({ id: string; profile: { username: string } } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
     | null;
 };
 
 export type PoiQueryQueryVariables = Exact<{
-  slug: Scalars["String"]["input"];
+  slug: string;
 }>;
 
 export type PoiQueryQuery = {
-  __typename?: "Query";
-  pointOfInterestWithSlug?:
+  pointOfInterestWithSlug:
     | ({
-        __typename?: "PointOfInterest";
-        id: any;
+        id: string;
         name: string;
         point: Array<number>;
-        description?: string | null;
+        description: string | null;
         pointOfInterestType: PointOfInterestType;
-        media: Array<{
-          __typename?: "Media";
-          id: any;
-          point?: Array<number> | null;
-        }>;
+        media: Array<{ id: string; point: Array<number> | null }>;
       } & { " $fragmentRefs"?: { EditPoiFragment: EditPoiFragment } })
     | null;
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
+  viewer: {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  } | null;
 };
 
 export type PoIsQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type PoIsQueryQuery = {
-  __typename?: "Query";
   pointsOfInterest: Array<
     {
-      __typename?: "PointOfInterest";
-      id: any;
+      id: string;
       name: string;
       point: Array<number>;
       pointOfInterestType: PointOfInterestType;
     } & { " $fragmentRefs"?: { PoiItemFragment: PoiItemFragment } }
   >;
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
+  viewer: {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  } | null;
 };
 
 export type PoiItemFragment = {
-  __typename?: "PointOfInterest";
-  id: any;
+  id: string;
   name: string;
   point: Array<number>;
   slug: string;
@@ -998,29 +454,19 @@ export type PoiItemFragment = {
 } & { " $fragmentName"?: "PoiItemFragment" };
 
 export type RidesWithDateQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
-  date: Scalars["IsoDate"]["input"];
+  username: string;
+  date: string;
   detailLevel: PointsDetail;
 }>;
 
 export type RidesWithDateQuery = {
-  __typename?: "Query";
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
-  userWithUsername?: {
-    __typename?: "UserProfile";
+  viewer: {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  } | null;
+  userWithUsername: {
     username: string;
     ridesWithDate: Array<
-      {
-        __typename?: "Ride";
-        id: any;
-        date: any;
-        tz?: string | null;
-        pointsJson: string;
-      } & {
+      { id: string; date: string; tz: string | null; pointsJson: string } & {
         " $fragmentRefs"?: {
           RideSummaryFragment: RideSummaryFragment;
           ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
@@ -1031,35 +477,29 @@ export type RidesWithDateQuery = {
 };
 
 export type UserProfileQueryQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
+  username: string;
   detailLevel: PointsDetail;
 }>;
 
 export type UserProfileQueryQuery = {
-  __typename?: "Query";
-  userWithUsername?: {
-    __typename?: "UserProfile";
-    id: any;
+  userWithUsername: {
+    id: string;
     username: string;
     recentRides: Array<
-      { __typename?: "Ride"; id: any; date: any; pointsJson: string } & {
+      { id: string; date: string; pointsJson: string } & {
         " $fragmentRefs"?: { RideItemFragment: RideItemFragment };
       }
     >;
     trips: Array<
       {
-        __typename?: "Trip";
-        id: any;
+        id: string;
         name: string;
-        legs: Array<{
-          __typename?: "TripLeg";
-          rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
-        }>;
+        legs: Array<{ rides: Array<{ id: string; pointsJson: string }> }>;
       } & { " $fragmentRefs"?: { TripItemFragment: TripItemFragment } }
     >;
   } | null;
-  viewer?:
-    | ({ __typename?: "Viewer"; id: string } & {
+  viewer:
+    | ({ id: string } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
       })
     | null;
@@ -1067,29 +507,26 @@ export type UserProfileQueryQuery = {
 
 type ContentBlock_Media_Fragment = {
   __typename: "Media";
-  capturedAt?: any | null;
-  tz?: string | null;
-  contentAt: any;
-  mediaId: any;
-  imageSizes: {
-    __typename?: "ImageSizes";
-    fit1600: { __typename?: "ImageSize"; webpUrl: string };
-  };
-  rides: Array<{ __typename?: "Ride"; id: any }>;
+  capturedAt: string | null;
+  tz: string | null;
+  contentAt: string;
+  mediaId: string;
+  imageSizes: { fit1600: { webpUrl: string } };
+  rides: Array<{ id: string }>;
 } & { " $fragmentName"?: "ContentBlock_Media_Fragment" };
 
 type ContentBlock_Note_Fragment = {
   __typename: "Note";
   text: string;
-  contentAt: any;
-  ride?: { __typename?: "Ride"; id: any } | null;
+  contentAt: string;
+  ride: { id: string } | null;
 } & { " $fragmentName"?: "ContentBlock_Note_Fragment" };
 
 type ContentBlock_Ride_Fragment = ({
   __typename: "Ride";
-  tz?: string | null;
-  contentAt: any;
-  rideId: any;
+  tz: string | null;
+  contentAt: string;
+  rideId: string;
 } & { " $fragmentRefs"?: { RideItemFragment: RideItemFragment } }) & {
   " $fragmentName"?: "ContentBlock_Ride_Fragment";
 };
@@ -1100,37 +537,29 @@ export type ContentBlockFragment =
   | ContentBlock_Ride_Fragment;
 
 export type TripQueryQueryVariables = Exact<{
-  username: Scalars["String"]["input"];
-  slug: Scalars["String"]["input"];
+  username: string;
+  slug: string;
   detailLevel: PointsDetail;
 }>;
 
 export type TripQueryQuery = {
-  __typename?: "Query";
-  viewer?:
-    | ({ __typename?: "Viewer"; id: string } & {
+  viewer:
+    | ({ id: string } & {
         " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
       })
     | null;
-  userWithUsername?: {
-    __typename?: "UserProfile";
+  userWithUsername: {
     username: string;
-    tripWithSlug?:
+    tripWithSlug:
       | ({
-          __typename?: "Trip";
-          id: any;
+          id: string;
           name: string;
-          user: { __typename?: "UserProfile"; id: any };
-          media: Array<{
-            __typename?: "Media";
-            id: any;
-            point?: Array<number> | null;
-          }>;
+          user: { id: string };
+          media: Array<{ id: string; point: Array<number> | null }>;
           legs: Array<
             {
-              __typename?: "TripLeg";
               rides: Array<
-                { __typename?: "Ride"; id: any; pointsJson: string } & {
+                { id: string; pointsJson: string } & {
                   " $fragmentRefs"?: {
                     ElevationPath_Ride_Fragment: ElevationPath_Ride_Fragment;
                   };
@@ -1143,21 +572,21 @@ export type TripQueryQuery = {
             }
           >;
           temporalContentBlocks: Array<
-            | ({ __typename?: "Media" } & {
+            | {
                 " $fragmentRefs"?: {
                   ContentBlock_Media_Fragment: ContentBlock_Media_Fragment;
                 };
-              })
-            | ({ __typename?: "Note" } & {
+              }
+            | {
                 " $fragmentRefs"?: {
                   ContentBlock_Note_Fragment: ContentBlock_Note_Fragment;
                 };
-              })
-            | ({ __typename?: "Ride" } & {
+              }
+            | {
                 " $fragmentRefs"?: {
                   ContentBlock_Ride_Fragment: ContentBlock_Ride_Fragment;
                 };
-              })
+              }
           >;
         } & { " $fragmentRefs"?: { EditTripFragment: EditTripFragment } })
       | null;
@@ -1167,35 +596,27 @@ export type TripQueryQuery = {
 export type PublicUsersQueryVariables = Exact<{ [key: string]: never }>;
 
 export type PublicUsersQuery = {
-  __typename?: "Query";
   publicUsers: Array<
-    { __typename?: "UserProfile"; id: any } & {
+    { id: string } & {
       " $fragmentRefs"?: { UserItemFragment: UserItemFragment };
     }
   >;
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
+  viewer: {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  } | null;
 };
 
-export type UserItemFragment = {
-  __typename?: "UserProfile";
-  id: any;
-  username: string;
-} & { " $fragmentName"?: "UserItemFragment" };
+export type UserItemFragment = { id: string; username: string } & {
+  " $fragmentName"?: "UserItemFragment";
+};
 
 export type NearbyRoutesInfoFragment = {
-  __typename?: "Terminus";
   bearing: number;
   nearbyRoutes: Array<{
-    __typename?: "NearbyRoute";
-    delta: { __typename?: "PointDelta"; distance: number; bearing: number };
+    delta: { distance: number; bearing: number };
     closestTerminus: {
-      __typename?: "Terminus";
       bearing: number;
-      route: { __typename?: "Route"; id: any } & {
+      route: { id: string } & {
         " $fragmentRefs"?: { RouteItemFragment: RouteItemFragment };
       };
     };
@@ -1203,50 +624,41 @@ export type NearbyRoutesInfoFragment = {
 } & { " $fragmentName"?: "NearbyRoutesInfoFragment" };
 
 export type RouteQueryQueryVariables = Exact<{
-  slug: Scalars["String"]["input"];
+  slug: string;
 }>;
 
 export type RouteQueryQuery = {
-  __typename?: "Query";
-  routeWithSlug?:
+  routeWithSlug:
     | ({
-        __typename?: "Route";
-        id: any;
+        id: string;
         name: string;
         slug: string;
-        tags?: Array<string> | null;
+        tags: Array<string> | null;
         distance: number;
         elevationAscentM: number;
         elevationDescentM: number;
         pointsJson: string;
-        description?: string | null;
-        technicalDifficulty?: DifficultyRating | null;
-        physicalDifficulty?: DifficultyRating | null;
-        scouted?: Scouted | null;
-        direction?: Direction | null;
-        externalRef?: { __typename?: "ExternalRef"; canonicalUrl: any } | null;
-        minimumBike?: {
-          __typename?: "BikeSpec";
+        description: string | null;
+        technicalDifficulty: DifficultyRating | null;
+        physicalDifficulty: DifficultyRating | null;
+        scouted: Scouted | null;
+        direction: Direction | null;
+        externalRef: { canonicalUrl: string } | null;
+        minimumBike: {
           tyreWidth: Array<number>;
           frontSuspension: Array<number>;
           rearSuspension: Array<number>;
         } | null;
-        idealBike?: {
-          __typename?: "BikeSpec";
+        idealBike: {
           tyreWidth: Array<number>;
           frontSuspension: Array<number>;
           rearSuspension: Array<number>;
         } | null;
         termini: Array<
           {
-            __typename?: "Terminus";
             bearing: number;
             nearbyRoutes: Array<{
-              __typename?: "NearbyRoute";
-              closestTerminus: {
-                __typename?: "Terminus";
-                route: { __typename?: "Route"; id: any; pointsJson: string };
-              };
+              closestTerminus: { route: { id: string; pointsJson: string } };
             }>;
           } & {
             " $fragmentRefs"?: {
@@ -1261,11 +673,9 @@ export type RouteQueryQuery = {
         };
       })
     | null;
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
+  viewer: {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  } | null;
 };
 
 export type HomeQueryQueryVariables = Exact<{
@@ -1273,17 +683,14 @@ export type HomeQueryQueryVariables = Exact<{
 }>;
 
 export type HomeQueryQuery = {
-  __typename?: "Query";
   queryRoutes: Array<
-    { __typename?: "Route"; id: any; samplePoints: Array<Array<number>> } & {
+    { id: string; samplePoints: Array<Array<number>> } & {
       " $fragmentRefs"?: { RouteItemFragment: RouteItemFragment };
     }
   >;
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
+  viewer: {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  } | null;
 };
 
 export type HomeQueryPointOnlyQueryVariables = Exact<{
@@ -1291,78 +698,55 @@ export type HomeQueryPointOnlyQueryVariables = Exact<{
 }>;
 
 export type HomeQueryPointOnlyQuery = {
-  __typename?: "Query";
-  queryRoutes: Array<{ __typename?: "Route"; id: any; pointsJson: string }>;
+  queryRoutes: Array<{ id: string; pointsJson: string }>;
 };
 
 export type TripsQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type TripsQueryQuery = {
-  __typename?: "Query";
   publishedTrips: Array<
     {
-      __typename?: "Trip";
-      id: any;
+      id: string;
       name: string;
-      legs: Array<{
-        __typename?: "TripLeg";
-        rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
-      }>;
+      legs: Array<{ rides: Array<{ id: string; pointsJson: string }> }>;
     } & { " $fragmentRefs"?: { TripItemFragment: TripItemFragment } }
   >;
-  viewer?:
-    | ({
-        __typename?: "Viewer";
-        profile: { __typename?: "UserProfile"; id: any; username: string };
-      } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
+  viewer:
+    | ({ profile: { id: string; username: string } } & {
+        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+      })
     | null;
 };
 
 export type TripsQueryPointsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type TripsQueryPointsQuery = {
-  __typename?: "Query";
   publishedTrips: Array<{
-    __typename?: "Trip";
-    id: any;
-    legs: Array<{
-      __typename?: "TripLeg";
-      rides: Array<{ __typename?: "Ride"; id: any; pointsJson: string }>;
-    }>;
+    id: string;
+    legs: Array<{ rides: Array<{ id: string; pointsJson: string }> }>;
   }>;
 };
 
 export type ViewerQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type ViewerQueryQuery = {
-  __typename?: "Query";
-  viewer?:
-    | ({ __typename?: "Viewer" } & {
-        " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
-      })
-    | null;
+  viewer: {
+    " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
+  } | null;
 };
 
 export type SettingsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type SettingsQuery = {
-  __typename?: "Query";
-  viewer?:
+  viewer:
     | ({
-        __typename?: "Viewer";
         rwgpsAuthRequestUrl: string;
-        profile: {
-          __typename?: "UserProfile";
-          id: any;
-          username: string;
-          email?: string | null;
-        };
-        rwgpsConnection?: {
-          __typename?: "UserRwgpsConnection";
-          id: any;
+        profile: { id: string; username: string; email: string | null };
+        rwgpsConnection: {
+          id: string;
           rwgpsUserId: number;
-          createdAt: any;
-          updatedAt: any;
+          createdAt: string;
+          updatedAt: string;
         } | null;
       } & { " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment } })
     | null;
@@ -1373,8 +757,7 @@ export type InitiateRwgpsHistorySyncMutationVariables = Exact<{
 }>;
 
 export type InitiateRwgpsHistorySyncMutation = {
-  __typename?: "Mutation";
-  initiateRwgpsHistorySync: { __typename?: "Viewer" } & {
+  initiateRwgpsHistorySync: {
     " $fragmentRefs"?: { ViewerInfoFragment: ViewerInfoFragment };
   };
 };

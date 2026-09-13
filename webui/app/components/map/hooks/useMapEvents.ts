@@ -20,7 +20,7 @@ interface UseMapEventsProps {
 
 export function useMapEvents({ map, onEvent }: UseMapEventsProps): void {
   const handleClick = useCallback(
-    (event: MapBrowserEvent<MouseEvent>): void => {
+    (event: MapBrowserEvent): void => {
       if (!onEvent) {
         return;
       }

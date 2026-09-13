@@ -1,8 +1,7 @@
 import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useState, useMemo } from "react";
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
-import { useMutation } from "@apollo/client/react/hooks/useMutation";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { sortBy } from "lodash";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { tableContainerCss, tableCss } from "~/components/ui/Table";

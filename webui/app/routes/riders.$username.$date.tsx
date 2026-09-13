@@ -8,7 +8,7 @@ import {
 import { RideSummary } from "~/components/rides/RideSummary";
 import { Temporal } from "@js-temporal/polyfill";
 import { gql } from "~/__generated__";
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useQuery } from "@apollo/client/react";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRideTrack } from "~/components/map/types";
@@ -74,9 +74,7 @@ function UserProfileDate(): React.ReactElement {
       return undefined;
     }
 
-    const timeZone = Temporal.TimeZone.from(
-      firstRide.tz ?? "Australia/Melbourne",
-    );
+    const timeZone = firstRide.tz ?? "Australia/Melbourne";
 
     return Temporal.PlainDate.from(params.date).toLocaleString("en-US", {
       weekday: "long",

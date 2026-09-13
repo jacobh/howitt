@@ -4,11 +4,10 @@ import { useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { FormInputs, POIForm } from "~/components/pois/POIForm";
 import { tokens } from "~/styles/tokens";
-import { useMutation } from "@apollo/client/react/hooks/useMutation";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { SvgIcon } from "~/components/ui/SvgIcon";
 import { chevronDownOutline } from "ionicons/icons";
 import { buildRideTrack } from "~/components/map/types";
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
 
 export const TripPoisFragment = gql(`
   fragment tripPois on Trip {

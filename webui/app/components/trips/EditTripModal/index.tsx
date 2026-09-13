@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/client/react/hooks/useMutation";
+import { useMutation } from "@apollo/client/react";
 import { css } from "@emotion/react";
 import { useCallback, useState } from "react";
 import { FragmentType, gql, useFragment } from "~/__generated__";

@@ -1,4 +1,4 @@
-import { PointOfInterestType } from "~/__generated__/graphql";
+import type { PointOfInterestType } from "~/__generated__/graphql";
 
 export interface Track {
   id: string;

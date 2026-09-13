@@ -215,7 +215,7 @@ export function ContentBlock({
       <div>
         <img src={media.imageSizes.fit1600.webpUrl} css={mediaStyles} alt="" />
         <div css={mediaCaptionStyles}>
-          {Temporal.Instant.from(media.capturedAt)
+          {Temporal.Instant.from(media.capturedAt ?? media.contentAt)
             .toZonedDateTimeISO(media.tz ?? "Australia/Melbourne")
             .toLocaleString(undefined, {
               hour: "2-digit",

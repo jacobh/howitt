@@ -48,12 +48,8 @@ export function RideItem({ ride: rideFragment }: Props): React.ReactNode {
       const endTime = Temporal.Instant.from(ride.finishedAt);
       const duration = startTime.until(endTime);
 
-      const timeZone = Temporal.TimeZone.from(ride.tz ?? "Australia/Melbourne");
-
-      const zonedDateTime = startTime.toZonedDateTime({
-        timeZone,
-        calendar: "iso8601",
-      });
+      const timeZone = ride.tz ?? "Australia/Melbourne";
+      const zonedDateTime = startTime.toZonedDateTimeISO(timeZone);
 
       const formattedDate = zonedDateTime.toLocaleString("en-US", {
         day: "numeric",

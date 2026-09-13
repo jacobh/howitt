@@ -1,8 +1,10 @@
-import { createHttpLink } from "@apollo/client/link/http/createHttpLink";
-import { ApolloClient } from "@apollo/client/core/ApolloClient";
-import { NormalizedCacheObject } from "@apollo/client/cache/inmemory/types";
-import { InMemoryCache } from "@apollo/client/cache/inmemory/inMemoryCache";
-import { setContext } from "@apollo/client/link/context";
+import {
+  ApolloClient,
+  HttpLink,
+  InMemoryCache,
+  type NormalizedCacheObject,
+} from "@apollo/client";
+import { SetContextLink } from "@apollo/client/link/context";
 import possibleTypes from "../__generated__/fragment-types.json";
 
 interface CreateApolloClientOptions {
@@ -19,13 +21,13 @@ export function createApolloClient({
   graphqlUrl,
   fetch,
   getToken,
-}: CreateApolloClientOptions): ApolloClient<NormalizedCacheObject> {
-  const httpLink = createHttpLink({
+}: CreateApolloClientOptions): ApolloClient {
+  const httpLink = new HttpLink({
     uri: graphqlUrl,
     fetch,
   });
 
-  const authLink = setContext((_, { headers }) => {
+  const authLink = new SetContextLink(({ headers }) => {
     const token = getToken();
 
     return {

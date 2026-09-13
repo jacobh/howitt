@@ -1,4 +1,4 @@
-import { ApolloProvider } from "@apollo/client/react/context/ApolloProvider";
+import { ApolloProvider } from "@apollo/client/react";
 import { RemixBrowser } from "@remix-run/react";
 import React, { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";

@@ -5,7 +5,7 @@ import {
   Nav,
   SidebarContainer,
 } from "~/components/layout";
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useQuery } from "@apollo/client/react";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { useCallback, useMemo, useState } from "react";

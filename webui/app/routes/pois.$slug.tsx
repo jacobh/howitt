@@ -1,5 +1,5 @@
 import { useParams } from "@remix-run/react";
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useQuery } from "@apollo/client/react";
 import { gql } from "~/__generated__";
 import {
   Container,

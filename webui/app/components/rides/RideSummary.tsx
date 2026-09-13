@@ -28,17 +28,15 @@ export function RideSummary({ ride: rideFragment }: Props): React.ReactNode {
   const ride = useFragment(RideSummaryFragment, rideFragment);
 
   const items = useMemo(() => {
-    const timeZone = Temporal.TimeZone.from(ride.tz ?? "Australia/Melbourne");
+    const timeZone = ride.tz ?? "Australia/Melbourne";
 
-    const startTime = Temporal.Instant.from(ride.startedAt).toZonedDateTime({
+    const startTime = Temporal.Instant.from(ride.startedAt).toZonedDateTimeISO(
       timeZone,
-      calendar: "iso8601",
-    });
+    );
 
-    const endTime = Temporal.Instant.from(ride.finishedAt).toZonedDateTime({
+    const endTime = Temporal.Instant.from(ride.finishedAt).toZonedDateTimeISO(
       timeZone,
-      calendar: "iso8601",
-    });
+    );
 
     const duration = startTime.until(endTime);
     const distanceKm = ride.distance / 1000;

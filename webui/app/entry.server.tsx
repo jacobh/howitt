@@ -3,8 +3,8 @@ import createEmotionServer from "@emotion/server/create-instance";
 import { type AppLoadContext, type EntryContext } from "@remix-run/cloudflare";
 import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
-import { ApolloProvider } from "@apollo/client/react/context/ApolloProvider";
-import * as cookie from "cookie";
+import { ApolloProvider } from "@apollo/client/react";
+import { parseCookie } from "cookie";
 
 import { createEmotionCache } from "~/styles/createEmotionCache";
 import { ServerStyleContext } from "~/styles/server.context";
@@ -20,7 +20,7 @@ export default async function handleRequest(
   loadContext: AppLoadContext,
 ): Promise<Response> {
   const apiBaseUrl = loadContext.apiBaseUrl;
-  const cookieData = cookie.parse(request.headers.get("Cookie") ?? "");
+  const cookieData = parseCookie(request.headers.get("Cookie") ?? "");
 
   const queryClient = new QueryClient();
 

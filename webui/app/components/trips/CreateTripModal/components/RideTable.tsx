@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import { gql } from "~/__generated__";
 import { useMemo } from "react";
-import { useQuery } from "@apollo/client/react/hooks/useQuery";
+import { useQuery } from "@apollo/client/react";
 import { sortBy } from "lodash";
 import { tableContainerCss, tableCss } from "~/components/ui/Table";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
