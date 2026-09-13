@@ -3,6 +3,7 @@ import { Link } from "react-router";
 
 import { PropsWithChildren } from "react";
 import { makeMqs } from "~/styles/mediaQueries";
+import { tokens } from "~/styles/tokens";
 
 export { Nav } from "./Nav";
 
@@ -129,6 +130,11 @@ const sidebarTitleCss = css`
   display: flex;
 `;
 
+const sidebarDividerCss = css`
+  border: 0;
+  border-top: 1px solid ${tokens.colors.grey100};
+`;
+
 const sidebarChildrenCss = makeMqs([css``, css``, css``, css``, css``]);
 const titleSegmentCss = css`
   flex-shrink: 1;
@@ -165,7 +171,7 @@ export function SidebarContainer({
             </>
           ))}
         </h3>
-        <hr />
+        <hr css={sidebarDividerCss} />
         <div css={sidebarChildrenCss}>{children}</div>
       </div>
     </div>
