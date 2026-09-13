@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use howitt_client_types::{BucketClient, BucketName, HttpClient, HttpResponse, ObjectParams};
-use object_store::{ObjectStore, aws::AmazonS3};
+use object_store::{ObjectStore, ObjectStoreExt, aws::AmazonS3};
 use redis::{AsyncCommands, IntoConnectionInfo};
 
 #[derive(derive_more::Constructor, Debug)]
@@ -48,6 +48,7 @@ impl BucketClient for S3BucketClient {
             mode: object_store::PutMode::default(),
             tags: object_store::TagSet::default(),
             attributes,
+            extensions: Default::default(),
         };
 
         self.client

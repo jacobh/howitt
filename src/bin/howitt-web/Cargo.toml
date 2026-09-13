@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 axum = { version = "=0.8.9", default-features = false, features = ["json", "query", "macros"] }
 axum-macros = "=0.5.1"
 tower = { version = "=0.5.3", default-features = false, features = ["util"] }
-tower-http = { version = "=0.6.2", default-features = false, features = ["cors"] }
+tower-http = { version = "=0.7.1", default-features = false, features = ["cors"] }
 async-graphql-axum = "=7.2.1"
 async-graphql = { version = "=7.2.1", default-features = false, features = ["uuid", "chrono", "url", "dataloader", "graphiql"] }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
@@ -36,7 +36,7 @@ futures = "=0.3.34"
 tzf-rs = { version = "=0.4.11", default-features = false }
 hex = "=0.4.3"
 ring = { version = "=0.17.14", features = ["wasm32_unknown_unknown_js"] }
-reqwest = { version = "=0.12.12", default-features = false, features = ["json"] }
+reqwest = { version = "=0.13.5", default-features = false, features = ["json"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 worker = { version = "=0.8.5", features = ["http", "axum", "tokio-postgres", "queue"] }
