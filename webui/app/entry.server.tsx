@@ -11,7 +11,7 @@ import { parseCookie } from "cookie";
 
 import { createEmotionCache } from "~/styles/createEmotionCache";
 import { ServerStyleContext } from "~/styles/server.context";
-import { getDataFromTree } from "@apollo/client/react/ssr";
+import { prerenderStatic } from "@apollo/client/react/ssr";
 import { createApolloClient } from "./services/apollo";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cloudflareContext } from "./cloudflare";
@@ -54,7 +54,11 @@ export default async function handleRequest(
     serverHandoffStream: undefined,
   };
 
-  await getDataFromTree(renderApp(contextWithoutHandoffStream));
+  await prerenderStatic({
+    tree: renderApp(contextWithoutHandoffStream),
+    renderFunction: renderToString,
+    ignoreResults: true,
+  });
 
   const html = renderToString(
     <ServerStyleContext.Provider value={null}>

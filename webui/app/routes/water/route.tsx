@@ -14,7 +14,7 @@ import { NearbyFeaturesResponse, WaterFeaturesResponse } from "./schema";
 import { buildMarker } from "~/components/map/types";
 import { match } from "ts-pattern";
 import { PointOfInterestType } from "~/__generated__/graphql";
-import { useCallback, useMemo, useState } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import { isNotNil } from "~/services/isNotNil";
 import { MapEvent, MapEventCoords } from "~/components/map/hooks/useMapEvents";
 import { DataTable } from "~/components/DataTable";
@@ -133,15 +133,14 @@ export default function Water(): React.ReactElement {
               <></>
             )}
             {nearbyData?.features.map((feature) => (
-              <>
+              <Fragment key={feature.properties.id}>
                 <h3>{feature.properties.name}</h3>
                 {feature.properties.waterBeta.map((topic) => (
-                  // eslint-disable-next-line react/jsx-key
-                  <div css={{ margin: "16px 0" }}>
+                  <div key={topic.topic_id} css={{ margin: "16px 0" }}>
                     <p css={{ margin: "8px 0" }}>{topic.general_notes}</p>
-                    {topic.observations.map((observation) => (
-                      // eslint-disable-next-line react/jsx-key
+                    {topic.observations.map((observation, index) => (
                       <DataTable
+                        key={`${observation.date}-${index}`}
                         items={[
                           { name: "Date", value: observation.date },
                           { name: "Season", value: observation.season },
@@ -159,7 +158,7 @@ export default function Water(): React.ReactElement {
                     ))}
                   </div>
                 ))}
-              </>
+              </Fragment>
             ))}
           </div>
         )}

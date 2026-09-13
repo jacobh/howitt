@@ -7,6 +7,5 @@ export interface PrimaryMapContext {
 }
 
 export const PrimaryMapContext = createContext<PrimaryMapContext>({
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   setMap: () => {},
 });

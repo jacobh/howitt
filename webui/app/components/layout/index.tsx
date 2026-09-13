@@ -185,7 +185,7 @@ export function MapContainer({
   return (
     <>
       {isOverlayActive && (
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+        // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
         <div css={mapOverlayMaskCss} onClick={onDismissOverlay} />
       )}
       <div css={mapContainerCss} className={isOverlayActive ? "overlay" : ""}>

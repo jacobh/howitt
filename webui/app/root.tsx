@@ -88,7 +88,7 @@ const Document = withEmotionCache(
       const tags = emotionCache.sheet.tags;
       emotionCache.sheet.flush();
       tags.forEach((tag) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line typescript/no-explicit-any
         (emotionCache.sheet as any)._insertTag(tag);
       });
 
@@ -108,7 +108,6 @@ const Document = withEmotionCache(
             <style
               key={key}
               data-emotion={`${key} ${ids.join(" ")}`}
-              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: css }}
             />
           ))}

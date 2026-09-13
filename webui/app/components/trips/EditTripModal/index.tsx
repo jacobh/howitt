@@ -235,7 +235,7 @@ export function EditTripModal({
   );
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent): void => {
+    (e: React.SubmitEvent<HTMLFormElement>): void => {
       e.preventDefault();
 
       // Extract notes from localContentBlocks

@@ -47,7 +47,7 @@ export function useMap({
     }
 
     console.log("[useMap] Creating new map instance");
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // oxlint-disable-next-line react/rules-of-hooks
     useGeographic();
 
     const newMap = new OlMap({
