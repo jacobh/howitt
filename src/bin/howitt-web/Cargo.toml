@@ -43,7 +43,8 @@ worker = { version = "=0.8.5", features = ["http", "axum", "tokio-postgres", "qu
 tokio-postgres = { version = "=0.7.18", default-features = false, features = ["js"] }
 wasm-bindgen-futures = "=0.4.78"
 futures-timer = { version = "=3.0.4", features = ["wasm-bindgen"] }
-getrandom = { version = "=0.2.15", features = ["js"] }
+getrandom = { version = "=0.4.3", features = ["wasm_js"] }
+ring = { version = "=0.17.14", features = ["wasm32_unknown_unknown_js"] }
 
 [dev-dependencies]
 tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["registry"] }

@@ -1855,7 +1855,7 @@ dependencies = [
  "either",
  "futures",
  "geo",
- "getrandom 0.2.15",
+ "getrandom 0.4.3",
  "gpx",
  "howitt-observability",
  "howitt_client_types",
@@ -1969,7 +1969,7 @@ dependencies = [
  "futures",
  "futures-timer",
  "geo",
- "getrandom 0.2.15",
+ "getrandom 0.4.3",
  "hex",
  "howitt",
  "howitt-observability",
@@ -5232,11 +5232,11 @@ checksum = "2896d95c02a80c6d6a5d6e953d479f5ddf2dfdb6a244441010e373ac0fb88971"
 
 [[package]]
 name = "ulid"
-version = "1.1.4"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f294bff79170ed1c5633812aff1e565c35d993a36e757f9bc0accf5eec4e6045"
+checksum = "947dde63b6d514cc5e044edad4e0ca7261afd1099d16c83d942cb2b2f348689c"
 dependencies = [
- "rand 0.8.8",
+ "rand 0.10.2",
  "serde",
  "web-time",
 ]

@@ -30,3 +30,23 @@ pub fn uuid_into_ulid(uuid: Uuid) -> ulid::Ulid {
 pub fn ulid_into_uuid(ulid: ulid::Ulid) -> Uuid {
     Uuid::from_bytes(ulid.to_bytes())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generate_ulid_is_deterministic() {
+        let datetime = Utc.with_ymd_and_hms(2024, 2, 3, 4, 5, 6).unwrap();
+        let ulid = generate_ulid(Some(datetime), ("route", 42_u64)).unwrap();
+
+        assert_eq!(ulid.to_string(), "01HNPJ8DAG7VNGGJJS2AY65AYA");
+    }
+
+    #[test]
+    fn uuid_conversion_preserves_all_bits() {
+        let uuid = Uuid::from_u128(0x0123456789abcdef_fedcba9876543210);
+
+        assert_eq!(ulid_into_uuid(uuid_into_ulid(uuid)), uuid);
+    }
+}

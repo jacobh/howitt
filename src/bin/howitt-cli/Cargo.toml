@@ -21,7 +21,7 @@ tokio = { version = "=1.53.1", features = ["full"] }
 gpx = "=0.10.0"
 itertools = "=0.15.0"
 prettytable-rs = "=0.10.0"
-ulid = "=1.1.4"
+ulid = "=3.0.0"
 chrono = "=0.4.45"
 uuid = { version = "=1.26.1", features = ["v7"] }
 chrono-tz = "=0.10.4"
