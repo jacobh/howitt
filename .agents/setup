@@ -56,7 +56,9 @@ for directory in . webui ts-api cdk; do
 done
 step cargo fetch --locked
 if ! cargo install --list | grep -qx 'worker-build v0.8.5:'; then
-  step cargo install worker-build --version 0.8.5 --locked
+  # 0.8.5 has no prebuilt Linux binaries for cargo-binstall. Compile this build
+  # driver without optimization or debug symbols; application profiles are unchanged.
+  step env CARGO_PROFILE_DEV_DEBUG=0 cargo install worker-build --version 0.8.5 --locked --debug
 fi
 
 # Persist paths for Amp and supervised services, not just this setup process.
