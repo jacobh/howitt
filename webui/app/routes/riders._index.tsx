@@ -68,12 +68,12 @@ export default function Users(): React.ReactElement {
     <Container>
       <Nav viewer={data?.viewer} />
       <SidebarContainer titleSegments={[{ name: "Riders", linkTo: "/riders" }]}>
-        {!loading ? (
+        {loading ? (
+          <LoadingSpinnerSidebarContent />
+        ) : (
           data?.publicUsers.map((user) => (
             <UserItem key={user.id} user={user} />
           ))
-        ) : (
-          <LoadingSpinnerSidebarContent />
         )}
       </SidebarContainer>
       <MapContainer>

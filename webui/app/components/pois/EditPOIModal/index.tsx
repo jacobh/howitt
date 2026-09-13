@@ -70,6 +70,8 @@ export function EditPOIModal({
         input: {
           pointOfInterestId: poi.id,
           name: data.name,
+          // GraphQL null clears an existing description; undefined would omit it.
+          // oxlint-disable-next-line unicorn/no-null
           description: data.description || null,
           point: [data.location.longitude, data.location.latitude],
           pointOfInterestType: data.pointOfInterestType,

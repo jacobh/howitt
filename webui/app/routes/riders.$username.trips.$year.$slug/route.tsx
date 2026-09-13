@@ -23,6 +23,7 @@ import LineString from "ol/geom/LineString";
 import { PointsDetail } from "~/__generated__/graphql";
 import { InfoBox } from "~/components/ui/InfoBox";
 import { buttonStyles } from "~/components/ui/Button";
+import { isNotNil } from "~/services/isNotNil";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $detailLevel: PointsDetail!) {
@@ -153,18 +154,15 @@ export default function TripDetail(): React.ReactElement {
     if (!trip?.media) return [];
 
     return trip.media
-      .filter(
-        (media): media is typeof media & { point: number[] } =>
-          media.point != null,
+      .filter((media): media is typeof media & { point: number[] } =>
+        isNotNil(media.point),
       )
       .filter((media) => visibleMediaIds.has(media.id))
-      .map(
-        (media): Marker => ({
-          id: media.id,
-          point: [media.point[0], media.point[1]],
-          style: hoveredMediaIds.has(media.id) ? "highlighted" : "default",
-        }),
-      );
+      .map((media): Marker => ({
+        id: media.id,
+        point: [media.point[0], media.point[1]],
+        style: hoveredMediaIds.has(media.id) ? "highlighted" : "default",
+      }));
   }, [trip, visibleMediaIds, hoveredMediaIds]);
 
   const isOwnTrip =

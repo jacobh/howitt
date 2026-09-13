@@ -43,7 +43,7 @@ export function NearbyRoutes({
   const { nearbyRoutes } = terminus;
 
   if (terminus.nearbyRoutes.length === 0) {
-    return null;
+    return;
   }
 
   return (

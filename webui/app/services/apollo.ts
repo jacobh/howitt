@@ -40,6 +40,8 @@ export function createApolloClient({
 
   return new ApolloClient({
     ssrMode,
+    // ApolloLink.concat composes links; this is not Array.prototype.concat.
+    // oxlint-disable-next-line unicorn/prefer-spread
     link: authLink.concat(httpLink),
     cache: new InMemoryCache({
       possibleTypes: possibleTypes.possibleTypes,

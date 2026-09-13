@@ -11,7 +11,9 @@ function formatTyreWidth(mm: number): string {
 }
 
 function formatTyreWidths(widths?: number[]): string {
-  return uniq(widths).map(formatTyreWidth).join(" ~ ");
+  return uniq(widths)
+    .map((width) => formatTyreWidth(width))
+    .join(" ~ ");
 }
 
 function formatTravel(mm: number): string {
@@ -22,7 +24,9 @@ function formatTravel(mm: number): string {
 }
 
 function formatTravels(travels?: number[]): string {
-  return uniq(travels).map(formatTravel).join(" ~ ");
+  return uniq(travels)
+    .map((travel) => formatTravel(travel))
+    .join(" ~ ");
 }
 
 function isRigid(travels?: number[]): boolean {
@@ -37,19 +41,19 @@ interface Props {
 export function BikeSpecContent({ title, bikeSpec }: Props): React.ReactNode {
   const tableItems = [
     { name: "Tyre Width", value: formatTyreWidths(bikeSpec.tyreWidth) },
-    !isRigid(bikeSpec.frontSuspension)
-      ? {
+    isRigid(bikeSpec.frontSuspension)
+      ? undefined
+      : {
           name: "Front Suspension",
           value: formatTravels(bikeSpec.frontSuspension),
-        }
-      : undefined,
-    !isRigid(bikeSpec.rearSuspension)
-      ? {
+        },
+    isRigid(bikeSpec.rearSuspension)
+      ? undefined
+      : {
           name: "Rear Suspension",
           value: formatTravels(bikeSpec.rearSuspension),
-        }
-      : undefined,
-  ].filter(isNotNil);
+        },
+  ].filter((item) => isNotNil(item));
 
   return <DataTable title={title} items={tableItems} />;
 }

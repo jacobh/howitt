@@ -61,7 +61,7 @@ export default async function handleRequest(
   });
 
   const html = renderToString(
-    <ServerStyleContext.Provider value={null}>
+    <ServerStyleContext.Provider value={undefined}>
       {renderApp(contextWithoutHandoffStream)}
     </ServerStyleContext.Provider>,
   );
@@ -76,14 +76,14 @@ export default async function handleRequest(
         dangerouslySetInnerHTML={{
           __html: `window.__APOLLO_STATE__=${JSON.stringify(
             initialState,
-          ).replace(/</g, "\\u003c")}`, // The replace call escapes the < character to prevent cross-site scripting attacks that are possible via the presence of </script> in a string literal
+          ).replaceAll("<", String.raw`\u003c`)}`, // The replace call escapes the < character to prevent cross-site scripting attacks that are possible via the presence of </script> in a string literal
         }}
       />
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__ENV__=${JSON.stringify({
             API_BASE_URL: apiBaseUrl,
-          }).replace(/</g, "\\u003c")}`,
+          }).replaceAll("<", String.raw`\u003c`)}`,
         }}
       />
     </ServerStyleContext.Provider>,

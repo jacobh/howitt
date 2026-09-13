@@ -44,7 +44,7 @@ const titleCss = css`
 export function DataTable({ items, title }: Props): React.ReactNode {
   return (
     <div>
-      {isNotNil(title) ? <p css={titleCss}>{title}</p> : null}
+      {isNotNil(title) && <p css={titleCss}>{title}</p>}
       <table css={dataTableCss}>
         <tbody>
           {items.map(({ name, value }) => (

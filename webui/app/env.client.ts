@@ -5,5 +5,5 @@ declare global {
 }
 
 export function getApiBaseUrl(): string {
-  return window.__ENV__.API_BASE_URL;
+  return (globalThis as typeof globalThis & Window).__ENV__.API_BASE_URL;
 }

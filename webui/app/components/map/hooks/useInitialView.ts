@@ -44,7 +44,7 @@ export function useInitialView({
       return;
     }
 
-    let initialBounds: Extent | undefined = undefined;
+    let initialBounds: Extent | undefined;
 
     // Calculate bounds for tracks
     for (const track of tracks) {
@@ -53,15 +53,15 @@ export function useInitialView({
         initialView.trackIds.includes(track.id)
       ) {
         const lineString = new LineString(track.points);
-        if (!initialBounds) {
-          initialBounds = lineString.getExtent();
-        } else {
+        if (initialBounds) {
           initialBounds = [
             Math.min(initialBounds[0], lineString.getExtent()[0]),
             Math.min(initialBounds[1], lineString.getExtent()[1]),
             Math.max(initialBounds[2], lineString.getExtent()[2]),
             Math.max(initialBounds[3], lineString.getExtent()[3]),
           ];
+        } else {
+          initialBounds = lineString.getExtent();
         }
       }
     }

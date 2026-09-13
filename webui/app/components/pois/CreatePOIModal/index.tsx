@@ -41,7 +41,7 @@ export function CreatePOIModal({ isOpen, onClose }: Props): React.ReactElement {
       variables: {
         input: {
           name: data.name,
-          description: data.description || null,
+          description: data.description || undefined,
           point: [data.location.longitude, data.location.latitude],
           pointOfInterestType: data.pointOfInterestType,
         },

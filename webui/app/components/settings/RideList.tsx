@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client/react";
 import { Link } from "react-router";
-import { sortBy } from "lodash";
+import { orderBy } from "lodash";
 import { gql } from "~/__generated__";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
 import { tableContainerCss, tableCss } from "../ui/Table";
@@ -29,10 +29,11 @@ export function RideList({ username }: RideListProps): React.ReactElement {
     variables: { username },
   });
 
-  const rides = sortBy(
+  const rides = orderBy(
     data?.userWithUsername?.rides ?? [],
     (ride) => ride.startedAt,
-  ).reverse();
+    "desc",
+  );
 
   if (loading) {
     return <LoadingSpinnerSidebarContent />;

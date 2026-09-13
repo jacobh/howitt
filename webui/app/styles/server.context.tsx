@@ -7,5 +7,5 @@ export interface ServerStyleContextData {
 }
 
 export const ServerStyleContext = createContext<
-  null | ServerStyleContextData[]
->(null);
+  ServerStyleContextData[] | undefined
+>(undefined);

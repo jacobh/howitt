@@ -74,7 +74,7 @@ export default function Water(): React.ReactElement {
 
   const markers = useMemo(() => {
     const nearbyFeatureIds = new Set(
-      nearbyData?.features.map(({ properties: { id } }) => id) ?? [],
+      nearbyData?.features.map(({ properties: { id } }) => id),
     );
 
     const features = indexData?.features ?? [];
@@ -98,7 +98,7 @@ export default function Water(): React.ReactElement {
           })
           .otherwise(() => undefined),
       )
-      .filter(isNotNil);
+      .filter((marker) => isNotNil(marker));
   }, [indexData, nearbyData]);
 
   const onMapEvent = useCallback(

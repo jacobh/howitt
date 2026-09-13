@@ -105,7 +105,7 @@ export function CreateTripModal({
         variables: {
           input: {
             name: data.name,
-            description: data.description || null,
+            description: data.description || undefined,
             rideIds: data.rideIds,
           },
         },
@@ -159,7 +159,7 @@ export function CreateTripModal({
               username={username}
               selectedRideIds={new Set(value)}
               onSelectionChange={(rideIds): void => {
-                onChange(Array.from(rideIds));
+                onChange([...rideIds]);
               }}
             />
           )}

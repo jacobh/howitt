@@ -135,11 +135,7 @@ export interface ContentBlockEvent {
   rideIds: string[];
   mediaIds: string[];
   eventType:
-    | "visibleStart"
-    | "visibleEnd"
-    | "hoverStart"
-    | "hoverEnd"
-    | "click";
+    "visibleStart" | "visibleEnd" | "hoverStart" | "hoverEnd" | "click";
   contentType: "Ride" | "Media" | "Note";
 }
 
@@ -196,7 +192,9 @@ export function ContentBlock({
         <div css={rideMapStyles}>
           <MapComponent
             interactive={false}
-            tracks={[rideIdRideMap.get(ride.rideId)].filter(isNotNil)}
+            tracks={[rideIdRideMap.get(ride.rideId)].filter((track) =>
+              isNotNil(track),
+            )}
             initialView={{
               type: "tracks",
               trackIds: [ride.rideId],

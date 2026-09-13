@@ -48,7 +48,7 @@ export function TripItem({ trip: tripFragment }: Props): React.ReactNode {
 
   const formattedDate = useMemo(() => {
     const firstRide = trip.legs.at(0)?.rides.at(0);
-    if (!firstRide) return null;
+    if (!firstRide) return;
 
     const startTime = Temporal.Instant.from(firstRide.startedAt);
     const date = startTime.toZonedDateTimeISO("Australia/Melbourne");

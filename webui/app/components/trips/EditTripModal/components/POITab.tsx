@@ -137,7 +137,7 @@ export function POITab({ trip: tripFragment }: Props): React.ReactElement {
         variables: {
           input: {
             name: data.name,
-            description: data.description || null,
+            description: data.description || undefined,
             point: [data.location.longitude, data.location.latitude],
             pointOfInterestType: data.pointOfInterestType,
           },

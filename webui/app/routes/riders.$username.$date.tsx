@@ -71,7 +71,7 @@ function UserProfileDate(): React.ReactElement {
     const firstRide = data?.userWithUsername?.ridesWithDate?.at(0);
 
     if (!params.date || !firstRide) {
-      return undefined;
+      return;
     }
 
     const timeZone = firstRide.tz ?? "Australia/Melbourne";

@@ -73,8 +73,8 @@ export function MediaDropzone({
         }
 
         onUploadComplete();
-      } catch (error) {
-        console.error("Upload failed:", error);
+      } catch (err) {
+        console.error("Upload failed:", err);
       } finally {
         setUploading(false);
       }

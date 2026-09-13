@@ -17,7 +17,7 @@ import OlMap from "ol/Map";
 
 export const meta = (): MetaDescriptor[] => [
   {
-    charset: "utf-8",
+    charset: "utf8",
   },
   {
     title: "Howitt Plains",
@@ -87,10 +87,10 @@ const Document = withEmotionCache(
       // re-inject tags
       const tags = emotionCache.sheet.tags;
       emotionCache.sheet.flush();
-      tags.forEach((tag) => {
+      for (const tag of tags) {
         // oxlint-disable-next-line typescript/no-explicit-any
         (emotionCache.sheet as any)._insertTag(tag);
-      });
+      }
 
       // reset cache to re-apply global styles
       clientStyleData.reset();
@@ -101,7 +101,7 @@ const Document = withEmotionCache(
     return (
       <html lang="en">
         <head>
-          {title ? <title>{title}</title> : null}
+          {title && <title>{title}</title>}
           <Meta />
           <Links />
           {serverStyleData?.map(({ key, ids, css }) => (

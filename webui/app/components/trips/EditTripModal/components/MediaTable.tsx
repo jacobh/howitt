@@ -5,6 +5,7 @@ import { ThumbnailImage } from "./ThumbnailImage";
 import { useMemo } from "react";
 import { tableContainerCss, tableCss } from "~/components/ui/Table";
 import { tokens } from "~/styles/tokens";
+import { orderBy } from "lodash";
 
 export const TripMediaFragment = gql(`
   fragment tripMedia on Trip {
@@ -91,12 +92,11 @@ export function MediaTable({
   const trip = useFragment(TripMediaFragment, tripFragment);
 
   const sortedMedia = useMemo(() => {
-    return [...trip.media].sort((a, b) => {
-      return (
-        new Date(b.capturedAt ?? b.createdAt).getTime() -
-        new Date(a.capturedAt ?? a.createdAt).getTime()
-      );
-    });
+    return orderBy(
+      trip.media,
+      (media) => new Date(media.capturedAt ?? media.createdAt).getTime(),
+      "desc",
+    );
   }, [trip.media]);
 
   return (

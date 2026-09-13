@@ -119,7 +119,7 @@ export default function Route(): React.ReactElement {
     ...nearbyRoutes.map((nearby) =>
       buildRouteTrack(nearby.closestTerminus.route, "muted"),
     ),
-  ].filter(isNotNil);
+  ].filter((track) => isNotNil(track));
 
   const initialView = useMemo(
     () =>
@@ -134,7 +134,7 @@ export default function Route(): React.ReactElement {
     { name: "Direction", value: route?.direction },
   ]
     .map(({ name, value }) => (isNotNil(value) ? { name, value } : undefined))
-    .filter(isNotNil)
+    .filter((item) => isNotNil(item))
     .map(({ name, value }) => ({ name, value: capitalize(value) }));
 
   return (
@@ -185,20 +185,20 @@ export default function Route(): React.ReactElement {
               ) : (
                 <></>
               )}
-              {route.description ? (
+              {route.description && (
                 <section css={contentSectionCss}>
                   <p>{route.description}</p>
                 </section>
-              ) : null}
+              )}
               <section css={contentSectionCss}>
                 <ElevationProfile data={route} />
               </section>
 
-              {tableItems.length > 0 ? (
+              {tableItems.length > 0 && (
                 <section css={contentSectionCss}>
                   <DataTable title="Overview" items={tableItems} />
                 </section>
-              ) : null}
+              )}
 
               {route.minimumBike ? (
                 <section css={contentSectionCss}>
@@ -226,13 +226,13 @@ export default function Route(): React.ReactElement {
           ) : (
             <></>
           )}
-          {nearbyRoutes.length > 0 ? (
+          {nearbyRoutes.length > 0 && (
             <section css={contentSectionCss}>
               {route?.termini.map((terminus) => (
                 <NearbyRoutes key={terminus.bearing} terminus={terminus} />
               ))}
             </section>
-          ) : null}
+          )}
         </div>
       </SidebarContainer>
       <MapContainer>

@@ -246,15 +246,17 @@ export function EditTripModal({
               timestamp: note.contentAt,
               text: note.text,
             }))
-            .otherwise(() => null),
+            .otherwise(() => undefined),
         )
-        .filter(isNotNil);
+        .filter((note) => isNotNil(note));
 
       updateTrip({
         variables: {
           input: {
             tripId: trip.id,
             name,
+            // GraphQL null clears an existing description; undefined would omit it.
+            // oxlint-disable-next-line unicorn/no-null
             description: description || null,
             isPublished,
             notes,

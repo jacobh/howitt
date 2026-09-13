@@ -67,11 +67,11 @@ export function RouteItem({
         <div css={routeVitalsCss}>
           <RouteVitals route={route} />
         </div>
-        {searchParams.has("debug") && route.isMetaComplete ? (
+        {searchParams.has("debug") && route.isMetaComplete && (
           <span>
             <span css={routeSubtitleArrowCss}>&#x2713;</span>
           </span>
-        ) : null}
+        )}
       </div>
     </div>
   );

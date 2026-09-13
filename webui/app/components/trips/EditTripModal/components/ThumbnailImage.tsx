@@ -17,9 +17,7 @@ function useCheckImage(url: string): {
 
     const checkImage = (): void => {
       const img = new Image();
-      img.onload = (): void => {
-        setIsReady(true);
-      };
+      img.addEventListener("load", () => setIsReady(true), { once: true });
       img.src = url;
 
       if (!isReady) {

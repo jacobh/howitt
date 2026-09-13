@@ -38,10 +38,10 @@ function Client(): React.ReactNode {
 
   const client = createApolloClient({
     graphqlUrl: getApiBaseUrl(),
-    fetch: window.fetch.bind(window),
+    fetch: globalThis.fetch.bind(globalThis),
     getToken: () => Cookies.get("token"),
     // oxlint-disable-next-line typescript/no-explicit-any
-    initialState: (window as any).__APOLLO_STATE__,
+    initialState: (globalThis as any).__APOLLO_STATE__,
   });
 
   return (
