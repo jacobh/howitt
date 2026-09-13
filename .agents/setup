@@ -46,9 +46,10 @@ step rustup override set "$toolchain"
 step rustup component add rustfmt clippy
 step rustup target add wasm32-unknown-unknown
 
-if ! command -v bun >/dev/null || [[ "$(bun --version)" != 1.3.10 ]]; then
+bun_version="$(<.bun-version)"
+if ! command -v bun >/dev/null || [[ "$(bun --version)" != "$bun_version" ]]; then
   step curl --fail --silent --show-error --retry 3 https://bun.com/install -o /tmp/howitt-bun-install.sh
-  step bash /tmp/howitt-bun-install.sh bun-v1.3.10
+  step bash /tmp/howitt-bun-install.sh "bun-v$bun_version"
   rm /tmp/howitt-bun-install.sh
 fi
 for directory in . webui ts-api cdk; do

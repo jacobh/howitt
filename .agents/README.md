@@ -1,9 +1,10 @@
 # Howitt in Amp orbs
 
-`.agents/setup` installs Bun 1.3.10, nightly-2026-06-15 Rust (with rustfmt,
-Clippy and the Wasm target), worker-build 0.8.5, native build libraries, and
-dependencies for the root, webui, ts-api and CDK packages. Cargo sources are
-prefetched; application compilation stays on demand to keep setup short.
+`.agents/setup` installs the Bun version pinned in `.bun-version`,
+nightly-2026-06-15 Rust (with rustfmt, Clippy and the Wasm target), worker-build
+0.8.5, native build libraries, and dependencies for the root, webui, ts-api and
+CDK packages. Cargo sources are prefetched; application compilation stays on
+demand to keep setup short.
 The Rust override and login-shell paths are orb-local, not developer-machine
 configuration. CDK's Bun lockfile was imported from its existing npm lockfile;
 all four JavaScript installs use frozen lockfiles.
