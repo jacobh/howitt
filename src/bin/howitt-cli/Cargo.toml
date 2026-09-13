@@ -14,7 +14,7 @@ anyhow = "=1.0.104"
 rayon = "=1.12.0"
 rwgps = { path = "../../lib/rwgps" }
 rwgps_types = { path = "../../lib/rwgps-types" }
-toml = "=0.8.19"
+toml = "=1.1.6+spec-1.1.0"
 serde_json = "=1.0.151"
 inquire = "=0.9.4"
 tokio = { version = "=1.53.1", features = ["full"] }

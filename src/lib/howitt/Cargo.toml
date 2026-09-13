@@ -27,7 +27,7 @@ howitt-observability = { path = "../howitt-observability" }
 csaps = { path = "../csaps" }
 futures = "=0.3.34"
 ordered-float = "=5.5.0"
-toml = "=0.8.19"
+toml = "=1.1.6+spec-1.1.0"
 once_cell = "=1.21.4"
 tokio = { version = "=1.53.1", features = ["rt", "sync"] }
 either = { version = "=1.18.0", features = ["serde"] }
