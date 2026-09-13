@@ -1,37 +1,22 @@
 ---
-source: howitt/src/models/point/delta.rs
+source: src/lib/howitt/src/models/point/delta.rs
 expression: "(points, deltas)"
 ---
 (
     [
         TemporalElevationPoint {
             datetime: 1970-01-01T00:16:40Z,
-            point: Point(
-                Coord {
-                    x: 145.0,
-                    y: -37.0,
-                },
-            ),
+            point: POINT(145.0 -37.0),
             elevation: 100.0,
         },
         TemporalElevationPoint {
             datetime: 1970-01-01T00:33:20Z,
-            point: Point(
-                Coord {
-                    x: 145.1,
-                    y: -37.1,
-                },
-            ),
+            point: POINT(145.1 -37.1),
             elevation: 200.0,
         },
         TemporalElevationPoint {
             datetime: 1970-01-01T00:58:20Z,
-            point: Point(
-                Coord {
-                    x: 145.2,
-                    y: -37.2,
-                },
-            ),
+            point: POINT(145.2 -37.2),
             elevation: 150.0,
         },
     ],

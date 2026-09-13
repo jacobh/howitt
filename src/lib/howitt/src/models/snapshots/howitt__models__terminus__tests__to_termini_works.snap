@@ -1,26 +1,16 @@
 ---
-source: howitt/src/models/terminus.rs
+source: src/lib/howitt/src/models/terminus.rs
 expression: result
 ---
 (
     Terminus {
         termini: Termini {
             first_point: ElevationPoint {
-                point: Point(
-                    Coord {
-                        x: 146.60587,
-                        y: -37.2154,
-                    },
-                ),
+                point: POINT(146.60587 -37.2154),
                 elevation: 1100.0,
             },
             last_point: ElevationPoint {
-                point: Point(
-                    Coord {
-                        x: 146.68021,
-                        y: -37.20515,
-                    },
-                ),
+                point: POINT(146.68021 -37.20515),
                 elevation: 1400.0,
             },
         },
@@ -29,21 +19,11 @@ expression: result
     Terminus {
         termini: Termini {
             first_point: ElevationPoint {
-                point: Point(
-                    Coord {
-                        x: 146.60587,
-                        y: -37.2154,
-                    },
-                ),
+                point: POINT(146.60587 -37.2154),
                 elevation: 1100.0,
             },
             last_point: ElevationPoint {
-                point: Point(
-                    Coord {
-                        x: 146.68021,
-                        y: -37.20515,
-                    },
-                ),
+                point: POINT(146.68021 -37.20515),
                 elevation: 1400.0,
             },
         },

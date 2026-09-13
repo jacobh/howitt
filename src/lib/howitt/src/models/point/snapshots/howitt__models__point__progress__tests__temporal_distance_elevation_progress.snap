@@ -1,5 +1,5 @@
 ---
-source: howitt/src/models/point/progress.rs
+source: src/lib/howitt/src/models/point/progress.rs
 expression: progress
 ---
 [
@@ -13,12 +13,7 @@ expression: progress
         elevation_loss_m: 0.0,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T00:56:36Z,
-            point: Point(
-                Coord {
-                    x: 146.577011,
-                    y: -37.207081,
-                },
-            ),
+            point: POINT(146.577011 -37.207081),
             elevation: 1448.0,
         },
     },
@@ -32,12 +27,7 @@ expression: progress
         elevation_loss_m: 0.0,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T01:15:55Z,
-            point: Point(
-                Coord {
-                    x: 146.5802,
-                    y: -37.197559,
-                },
-            ),
+            point: POINT(146.5802 -37.197559),
             elevation: 1537.2,
         },
     },
@@ -51,12 +41,7 @@ expression: progress
         elevation_loss_m: 0.0,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T01:35:31Z,
-            point: Point(
-                Coord {
-                    x: 146.591812,
-                    y: -37.195274,
-                },
-            ),
+            point: POINT(146.591812 -37.195274),
             elevation: 1591.4,
         },
     },
@@ -70,12 +55,7 @@ expression: progress
         elevation_loss_m: 33.30000000000018,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T02:05:32Z,
-            point: Point(
-                Coord {
-                    x: 146.604782,
-                    y: -37.215446,
-                },
-            ),
+            point: POINT(146.604782 -37.215446),
             elevation: 1558.1,
         },
     },
@@ -89,12 +69,7 @@ expression: progress
         elevation_loss_m: 138.4000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T02:24:41Z,
-            point: Point(
-                Coord {
-                    x: 146.613174,
-                    y: -37.206764,
-                },
-            ),
+            point: POINT(146.613174 -37.206764),
             elevation: 1453.0,
         },
     },
@@ -108,12 +83,7 @@ expression: progress
         elevation_loss_m: 177.20000000000005,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T02:26:47Z,
-            point: Point(
-                Coord {
-                    x: 146.615189,
-                    y: -37.211834,
-                },
-            ),
+            point: POINT(146.615189 -37.211834),
             elevation: 1414.2,
         },
     },
@@ -127,12 +97,7 @@ expression: progress
         elevation_loss_m: 362.4000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T02:34:06Z,
-            point: Point(
-                Coord {
-                    x: 146.625626,
-                    y: -37.21172,
-                },
-            ),
+            point: POINT(146.625626 -37.21172),
             elevation: 1229.0,
         },
     },
@@ -146,12 +111,7 @@ expression: progress
         elevation_loss_m: 434.0,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T02:36:59Z,
-            point: Point(
-                Coord {
-                    x: 146.621872,
-                    y: -37.215477,
-                },
-            ),
+            point: POINT(146.621872 -37.215477),
             elevation: 1157.4,
         },
     },
@@ -165,12 +125,7 @@ expression: progress
         elevation_loss_m: 543.2,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T03:06:59Z,
-            point: Point(
-                Coord {
-                    x: 146.632965,
-                    y: -37.211624,
-                },
-            ),
+            point: POINT(146.632965 -37.211624),
             elevation: 1048.2,
         },
     },
@@ -184,12 +139,7 @@ expression: progress
         elevation_loss_m: 595.0000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T03:22:38Z,
-            point: Point(
-                Coord {
-                    x: 146.644836,
-                    y: -37.216881,
-                },
-            ),
+            point: POINT(146.644836 -37.216881),
             elevation: 996.4,
         },
     },
@@ -203,12 +153,7 @@ expression: progress
         elevation_loss_m: 595.0000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T04:34:16Z,
-            point: Point(
-                Coord {
-                    x: 146.662094,
-                    y: -37.201038,
-                },
-            ),
+            point: POINT(146.662094 -37.201038),
             elevation: 1304.8,
         },
     },
@@ -222,12 +167,7 @@ expression: progress
         elevation_loss_m: 595.0000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T05:04:13Z,
-            point: Point(
-                Coord {
-                    x: 146.66188,
-                    y: -37.211628,
-                },
-            ),
+            point: POINT(146.66188 -37.211628),
             elevation: 1482.6,
         },
     },
@@ -241,12 +181,7 @@ expression: progress
         elevation_loss_m: 595.0000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T05:32:38Z,
-            point: Point(
-                Coord {
-                    x: 146.681244,
-                    y: -37.204636,
-                },
-            ),
+            point: POINT(146.681244 -37.204636),
             elevation: 1580.0,
         },
     },
@@ -260,12 +195,7 @@ expression: progress
         elevation_loss_m: 611.6,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T05:51:19Z,
-            point: Point(
-                Coord {
-                    x: 146.69574,
-                    y: -37.213554,
-                },
-            ),
+            point: POINT(146.69574 -37.213554),
             elevation: 1563.4,
         },
     },
@@ -279,12 +209,7 @@ expression: progress
         elevation_loss_m: 756.6,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T06:05:28Z,
-            point: Point(
-                Coord {
-                    x: 146.691177,
-                    y: -37.201672,
-                },
-            ),
+            point: POINT(146.691177 -37.201672),
             elevation: 1418.4,
         },
     },
@@ -298,12 +223,7 @@ expression: progress
         elevation_loss_m: 818.8000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T06:09:16Z,
-            point: Point(
-                Coord {
-                    x: 146.695526,
-                    y: -37.204445,
-                },
-            ),
+            point: POINT(146.695526 -37.204445),
             elevation: 1356.2,
         },
     },
@@ -317,12 +237,7 @@ expression: progress
         elevation_loss_m: 889.0000000000001,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T06:12:33Z,
-            point: Point(
-                Coord {
-                    x: 146.699158,
-                    y: -37.199127,
-                },
-            ),
+            point: POINT(146.699158 -37.199127),
             elevation: 1286.0,
         },
     },
@@ -336,12 +251,7 @@ expression: progress
         elevation_loss_m: 1019.2000000000002,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T06:45:48Z,
-            point: Point(
-                Coord {
-                    x: 146.6996,
-                    y: -37.204128,
-                },
-            ),
+            point: POINT(146.6996 -37.204128),
             elevation: 1155.8,
         },
     },
@@ -355,12 +265,7 @@ expression: progress
         elevation_loss_m: 1061.6,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T06:49:39Z,
-            point: Point(
-                Coord {
-                    x: 146.703659,
-                    y: -37.197807,
-                },
-            ),
+            point: POINT(146.703659 -37.197807),
             elevation: 1113.4,
         },
     },
@@ -374,12 +279,7 @@ expression: progress
         elevation_loss_m: 1141.2,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T07:02:36Z,
-            point: Point(
-                Coord {
-                    x: 146.693695,
-                    y: -37.192905,
-                },
-            ),
+            point: POINT(146.693695 -37.192905),
             elevation: 1033.8,
         },
     },
@@ -393,12 +293,7 @@ expression: progress
         elevation_loss_m: 1141.2,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T08:12:55Z,
-            point: Point(
-                Coord {
-                    x: 146.707153,
-                    y: -37.177982,
-                },
-            ),
+            point: POINT(146.707153 -37.177982),
             elevation: 1323.8,
         },
     },
@@ -412,12 +307,7 @@ expression: progress
         elevation_loss_m: 1412.2,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T08:44:45Z,
-            point: Point(
-                Coord {
-                    x: 146.738373,
-                    y: -37.185024,
-                },
-            ),
+            point: POINT(146.738373 -37.185024),
             elevation: 1052.8,
         },
     },
@@ -431,12 +321,7 @@ expression: progress
         elevation_loss_m: 1822.8,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T09:13:37Z,
-            point: Point(
-                Coord {
-                    x: 146.760941,
-                    y: -37.154312,
-                },
-            ),
+            point: POINT(146.760941 -37.154312),
             elevation: 642.2,
         },
     },
@@ -450,12 +335,7 @@ expression: progress
         elevation_loss_m: 1960.6,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T09:30:56Z,
-            point: Point(
-                Coord {
-                    x: 146.775742,
-                    y: -37.16959,
-                },
-            ),
+            point: POINT(146.775742 -37.16959),
             elevation: 504.4,
         },
     },
@@ -469,12 +349,7 @@ expression: progress
         elevation_loss_m: 1975.0,
         point: TemporalElevationPoint {
             datetime: 2024-12-23T09:37:55Z,
-            point: Point(
-                Coord {
-                    x: 146.782104,
-                    y: -37.168179,
-                },
-            ),
+            point: POINT(146.782104 -37.168179),
             elevation: 490.0,
         },
     },

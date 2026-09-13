@@ -1,5 +1,5 @@
 ---
-source: howitt/src/models/point/progress.rs
+source: src/lib/howitt/src/models/point/progress.rs
 expression: progress
 ---
 [
@@ -8,12 +8,7 @@ expression: progress
         elevation_gain_m: 0.0,
         elevation_loss_m: 0.0,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 145.691096,
-                    y: -37.753237,
-                },
-            ),
+            point: POINT(145.691096 -37.753237),
             elevation: 165.2988459925286,
         },
     },
@@ -22,12 +17,7 @@ expression: progress
         elevation_gain_m: 447.6181675875989,
         elevation_loss_m: 0.0,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 145.814544,
-                    y: -37.767714,
-                },
-            ),
+            point: POINT(145.814544 -37.767714),
             elevation: 612.9170135801276,
         },
     },
@@ -36,12 +26,7 @@ expression: progress
         elevation_gain_m: 729.4198518118146,
         elevation_loss_m: 0.0,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 145.92525,
-                    y: -37.827911,
-                },
-            ),
+            point: POINT(145.92525 -37.827911),
             elevation: 894.7186978043433,
         },
     },
@@ -50,12 +35,7 @@ expression: progress
         elevation_gain_m: 729.4198518118146,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 145.915082,
-                    y: -37.773948,
-                },
-            ),
+            point: POINT(145.915082 -37.773948),
             elevation: 762.6816635972889,
         },
     },
@@ -64,12 +44,7 @@ expression: progress
         elevation_gain_m: 744.7894986081473,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 145.943995,
-                    y: -37.759184,
-                },
-            ),
+            point: POINT(145.943995 -37.759184),
             elevation: 778.0513103936215,
         },
     },
@@ -78,12 +53,7 @@ expression: progress
         elevation_gain_m: 884.6697811937406,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.021946,
-                    y: -37.775163,
-                },
-            ),
+            point: POINT(146.021946 -37.775163),
             elevation: 917.9315929792149,
         },
     },
@@ -92,12 +62,7 @@ expression: progress
         elevation_gain_m: 958.375136112778,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.089115,
-                    y: -37.753413,
-                },
-            ),
+            point: POINT(146.089115 -37.753413),
             elevation: 991.6369478982523,
         },
     },
@@ -106,12 +71,7 @@ expression: progress
         elevation_gain_m: 1045.3162263235317,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.135018,
-                    y: -37.788326,
-                },
-            ),
+            point: POINT(146.135018 -37.788326),
             elevation: 1078.578038109006,
         },
     },
@@ -120,12 +80,7 @@ expression: progress
         elevation_gain_m: 1066.1277947193062,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.163214,
-                    y: -37.747364,
-                },
-            ),
+            point: POINT(146.163214 -37.747364),
             elevation: 1099.3896065047804,
         },
     },
@@ -134,12 +89,7 @@ expression: progress
         elevation_gain_m: 1146.1332403584763,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.130649,
-                    y: -37.643917,
-                },
-            ),
+            point: POINT(146.130649 -37.643917),
             elevation: 1179.3950521439506,
         },
     },
@@ -148,12 +98,7 @@ expression: progress
         elevation_gain_m: 1188.5457613438962,
         elevation_loss_m: 132.03703420705438,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.187036,
-                    y: -37.58,
-                },
-            ),
+            point: POINT(146.187036 -37.58),
             elevation: 1221.8075731293704,
         },
     },
@@ -162,12 +107,7 @@ expression: progress
         elevation_gain_m: 1188.5457613438962,
         elevation_loss_m: 273.4099058337615,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.250525,
-                    y: -37.610493,
-                },
-            ),
+            point: POINT(146.250525 -37.610493),
             elevation: 1080.4347015026633,
         },
     },
@@ -176,12 +116,7 @@ expression: progress
         elevation_gain_m: 1188.5457613438962,
         elevation_loss_m: 324.6894893835499,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.301191,
-                    y: -37.59269,
-                },
-            ),
+            point: POINT(146.301191 -37.59269),
             elevation: 1029.155117952875,
         },
     },
@@ -190,12 +125,7 @@ expression: progress
         elevation_gain_m: 1232.070609408017,
         elevation_loss_m: 324.6894893835499,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.3677,
-                    y: -37.629382,
-                },
-            ),
+            point: POINT(146.3677 -37.629382),
             elevation: 1072.6799660169956,
         },
     },
@@ -204,12 +134,7 @@ expression: progress
         elevation_gain_m: 1491.3002359619236,
         elevation_loss_m: 324.6894893835499,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.39131,
-                    y: -37.601278,
-                },
-            ),
+            point: POINT(146.39131 -37.601278),
             elevation: 1331.9095925709023,
         },
     },
@@ -218,12 +143,7 @@ expression: progress
         elevation_gain_m: 1491.3002359619236,
         elevation_loss_m: 526.4350911278018,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.464612,
-                    y: -37.621102,
-                },
-            ),
+            point: POINT(146.464612 -37.621102),
             elevation: 1130.1639908266504,
         },
     },
@@ -232,12 +152,7 @@ expression: progress
         elevation_gain_m: 1598.014873220737,
         elevation_loss_m: 526.4350911278018,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.500166,
-                    y: -37.560111,
-                },
-            ),
+            point: POINT(146.500166 -37.560111),
             elevation: 1236.8786280854638,
         },
     },
@@ -246,12 +161,7 @@ expression: progress
         elevation_gain_m: 1598.014873220737,
         elevation_loss_m: 621.3383188915823,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.397056,
-                    y: -37.460475,
-                },
-            ),
+            point: POINT(146.397056 -37.460475),
             elevation: 1141.9754003216833,
         },
     },
@@ -260,12 +170,7 @@ expression: progress
         elevation_gain_m: 1681.3756910357883,
         elevation_loss_m: 621.3383188915823,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.430459,
-                    y: -37.411493,
-                },
-            ),
+            point: POINT(146.430459 -37.411493),
             elevation: 1225.3362181367347,
         },
     },
@@ -274,12 +179,7 @@ expression: progress
         elevation_gain_m: 1831.909290583506,
         elevation_loss_m: 621.3383188915823,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.429612,
-                    y: -37.34351,
-                },
-            ),
+            point: POINT(146.429612 -37.34351),
             elevation: 1375.8698176844523,
         },
     },
@@ -288,12 +188,7 @@ expression: progress
         elevation_gain_m: 1831.909290583506,
         elevation_loss_m: 1000.6807609520498,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.411502,
-                    y: -37.373503,
-                },
-            ),
+            point: POINT(146.411502 -37.373503),
             elevation: 996.5273756239848,
         },
     },
@@ -302,12 +197,7 @@ expression: progress
         elevation_gain_m: 1831.909290583506,
         elevation_loss_m: 1507.4549284819695,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.332764,
-                    y: -37.309352,
-                },
-            ),
+            point: POINT(146.332764 -37.309352),
             elevation: 489.753208094065,
         },
     },
@@ -316,12 +206,7 @@ expression: progress
         elevation_gain_m: 1831.909290583506,
         elevation_loss_m: 1590.9006785092774,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.259814,
-                    y: -37.317304,
-                },
-            ),
+            point: POINT(146.259814 -37.317304),
             elevation: 406.307458066757,
         },
     },
@@ -330,12 +215,7 @@ expression: progress
         elevation_gain_m: 1831.909290583506,
         elevation_loss_m: 1643.0597226168386,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.217512,
-                    y: -37.288147,
-                },
-            ),
+            point: POINT(146.217512 -37.288147),
             elevation: 354.1484139591959,
         },
     },
@@ -344,12 +224,7 @@ expression: progress
         elevation_gain_m: 1831.909290583506,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.139432,
-                    y: -37.303228,
-                },
-            ),
+            point: POINT(146.139432 -37.303228),
             elevation: 302.9304389010903,
         },
     },
@@ -358,12 +233,7 @@ expression: progress
         elevation_gain_m: 1834.4271585333327,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.146744,
-                    y: -37.266132,
-                },
-            ),
+            point: POINT(146.146744 -37.266132),
             elevation: 305.44830685091694,
         },
     },
@@ -372,12 +242,7 @@ expression: progress
         elevation_gain_m: 1852.5755386278047,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.11898,
-                    y: -37.233163,
-                },
-            ),
+            point: POINT(146.11898 -37.233163),
             elevation: 323.5966869453891,
         },
     },
@@ -386,12 +251,7 @@ expression: progress
         elevation_gain_m: 1889.4523322149284,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.242319,
-                    y: -37.23992,
-                },
-            ),
+            point: POINT(146.242319 -37.23992),
             elevation: 360.47348053251284,
         },
     },
@@ -400,12 +260,7 @@ expression: progress
         elevation_gain_m: 1997.599103190314,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.356789,
-                    y: -37.187204,
-                },
-            ),
+            point: POINT(146.356789 -37.187204),
             elevation: 468.6202515078985,
         },
     },
@@ -414,12 +269,7 @@ expression: progress
         elevation_gain_m: 2122.275696350195,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.425025,
-                    y: -37.197405,
-                },
-            ),
+            point: POINT(146.425025 -37.197405),
             elevation: 593.2968446677794,
         },
     },
@@ -428,12 +278,7 @@ expression: progress
         elevation_gain_m: 2590.09193637344,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.440833,
-                    y: -37.239275,
-                },
-            ),
+            point: POINT(146.440833 -37.239275),
             elevation: 1061.1130846910244,
         },
     },
@@ -442,12 +287,7 @@ expression: progress
         elevation_gain_m: 3145.2413215575525,
         elevation_loss_m: 1694.2776976749442,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.591895,
-                    y: -37.195311,
-                },
-            ),
+            point: POINT(146.591895 -37.195311),
             elevation: 1616.262469875137,
         },
     },
@@ -456,12 +296,7 @@ expression: progress
         elevation_gain_m: 3145.2413215575525,
         elevation_loss_m: 1717.779427330682,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.605054,
-                    y: -37.215589,
-                },
-            ),
+            point: POINT(146.605054 -37.215589),
             elevation: 1592.7607402193992,
         },
     },
@@ -470,12 +305,7 @@ expression: progress
         elevation_gain_m: 3145.2413215575525,
         elevation_loss_m: 1719.8900421018975,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.69375,
-                    y: -37.212396,
-                },
-            ),
+            point: POINT(146.69375 -37.212396),
             elevation: 1590.6501254481836,
         },
     },
@@ -484,12 +314,7 @@ expression: progress
         elevation_gain_m: 3145.2413215575525,
         elevation_loss_m: 1939.4393418108416,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.707242,
-                    y: -37.178017,
-                },
-            ),
+            point: POINT(146.707242 -37.178017),
             elevation: 1371.1008257392396,
         },
     },
@@ -498,12 +323,7 @@ expression: progress
         elevation_gain_m: 3145.2413215575525,
         elevation_loss_m: 2209.827849542985,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.73849,
-                    y: -37.185055,
-                },
-            ),
+            point: POINT(146.73849 -37.185055),
             elevation: 1100.712318007096,
         },
     },
@@ -512,12 +332,7 @@ expression: progress
         elevation_gain_m: 3145.2413215575525,
         elevation_loss_m: 2604.8778438520717,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.76097,
-                    y: -37.15443,
-                },
-            ),
+            point: POINT(146.76097 -37.15443),
             elevation: 705.6623236980092,
         },
     },
@@ -526,12 +341,7 @@ expression: progress
         elevation_gain_m: 3145.2413215575525,
         elevation_loss_m: 2716.476151484422,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.785282,
-                    y: -37.167522,
-                },
-            ),
+            point: POINT(146.785282 -37.167522),
             elevation: 594.064016065659,
         },
     },
@@ -540,12 +350,7 @@ expression: progress
         elevation_gain_m: 3527.2790275983566,
         elevation_loss_m: 2716.476151484422,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.799424,
-                    y: -37.113838,
-                },
-            ),
+            point: POINT(146.799424 -37.113838),
             elevation: 976.1017221064632,
         },
     },
@@ -554,12 +359,7 @@ expression: progress
         elevation_gain_m: 3527.2790275983566,
         elevation_loss_m: 2736.668897797399,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.841945,
-                    y: -37.101877,
-                },
-            ),
+            point: POINT(146.841945 -37.101877),
             elevation: 955.9089757934864,
         },
     },
@@ -568,12 +368,7 @@ expression: progress
         elevation_gain_m: 3699.702818826482,
         elevation_loss_m: 2736.668897797399,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.832009,
-                    y: -37.070078,
-                },
-            ),
+            point: POINT(146.832009 -37.070078),
             elevation: 1128.3327670216117,
         },
     },
@@ -582,12 +377,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 2736.668897797399,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.889833,
-                    y: -37.054334,
-                },
-            ),
+            point: POINT(146.889833 -37.054334),
             elevation: 1254.2326424244602,
         },
     },
@@ -596,12 +386,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 2818.0654471249063,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.878378,
-                    y: -37.024011,
-                },
-            ),
+            point: POINT(146.878378 -37.024011),
             elevation: 1172.8360930969532,
         },
     },
@@ -610,12 +395,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 3305.334233300192,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.916532,
-                    y: -37.011648,
-                },
-            ),
+            point: POINT(146.916532 -37.011648),
             elevation: 685.5673069216674,
         },
     },
@@ -624,12 +404,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 3432.8253558507845,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.934499,
-                    y: -36.978547,
-                },
-            ),
+            point: POINT(146.934499 -36.978547),
             elevation: 558.076184371075,
         },
     },
@@ -638,12 +413,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 3511.1827444384244,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.925271,
-                    y: -36.9308,
-                },
-            ),
+            point: POINT(146.925271 -36.9308),
             elevation: 479.71879578343504,
         },
     },
@@ -652,12 +422,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 3585.5051930152995,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.851485,
-                    y: -36.846183,
-                },
-            ),
+            point: POINT(146.851485 -36.846183),
             elevation: 405.39634720656016,
         },
     },
@@ -666,12 +431,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 3640.812390117017,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.852624,
-                    y: -36.779067,
-                },
-            ),
+            point: POINT(146.852624 -36.779067),
             elevation: 350.0891501048425,
         },
     },
@@ -680,12 +440,7 @@ expression: progress
         elevation_gain_m: 3825.6026942293306,
         elevation_loss_m: 3714.4929724852136,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.907633,
-                    y: -36.700651,
-                },
-            ),
+            point: POINT(146.907633 -36.700651),
             elevation: 276.40856773664586,
         },
     },
@@ -694,12 +449,7 @@ expression: progress
         elevation_gain_m: 3854.208271012876,
         elevation_loss_m: 3714.4929724852136,
         point: ElevationPoint {
-            point: Point(
-                Coord {
-                    x: 146.956456,
-                    y: -36.727756,
-                },
-            ),
+            point: POINT(146.956456 -36.727756),
             elevation: 305.0141445201914,
         },
     },
