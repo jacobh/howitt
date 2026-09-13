@@ -15,9 +15,6 @@ enabled = true
 [observability.traces]
 enabled = true
 
-[build]
-command = "bun run build"
-
 [assets]
 directory = "./build/client"
 

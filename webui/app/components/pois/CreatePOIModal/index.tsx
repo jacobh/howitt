@@ -1,6 +1,6 @@
 import { useMutation } from "@apollo/client/react";
 import { css } from "@emotion/react";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate } from "react-router";
 import { gql } from "~/__generated__";
 import { Modal } from "../../Modal";
 import { POIForm, FormInputs } from "../POIForm";

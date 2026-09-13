@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 
 import { PropsWithChildren } from "react";
 import { makeMqs } from "~/styles/mediaQueries";

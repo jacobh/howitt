@@ -1,14 +1,23 @@
-import { createRequestHandler } from "@remix-run/cloudflare";
-import * as build from "./build/server/index.js";
-import type { WebuiEnv } from "./load-context";
+import { createRequestHandler, RouterContextProvider } from "react-router";
+import { cloudflareContext, type WebuiEnv } from "./app/cloudflare";
 
-const handleRequest = createRequestHandler(build, "production");
+const handleRequest = createRequestHandler(
+  () => import("virtual:react-router/server-build"),
+  import.meta.env.MODE,
+);
 
 export default {
-  fetch(request: Request, env: WebuiEnv): Promise<Response> {
-    return handleRequest(request, {
-      apiBaseUrl: env.API_BASE_URL,
-      apiFetch: env.API.fetch.bind(env.API),
+  fetch(
+    request: Request,
+    env: WebuiEnv,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
+    const context = new RouterContextProvider();
+    context.set(cloudflareContext, {
+      env,
+      ctx,
     });
+
+    return handleRequest(request, context);
   },
-};
+} satisfies ExportedHandler<WebuiEnv>;

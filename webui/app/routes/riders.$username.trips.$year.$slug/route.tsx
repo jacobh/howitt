@@ -1,4 +1,4 @@
-import { useParams } from "@remix-run/react";
+import { useParams } from "react-router";
 import {
   Container,
   MapContainer,
@@ -165,7 +165,7 @@ export default function TripDetail(): React.ReactElement {
           style: hoveredMediaIds.has(media.id) ? "highlighted" : "default",
         }),
       );
-  }, [trip?.media, visibleMediaIds, hoveredMediaIds]);
+  }, [trip, visibleMediaIds, hoveredMediaIds]);
 
   const isOwnTrip =
     data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;

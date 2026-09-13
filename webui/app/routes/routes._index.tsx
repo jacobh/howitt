@@ -12,7 +12,7 @@ import { RouteItem } from "~/components/routes/RouteItem";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { isNotNil } from "~/services/isNotNil";
-import { useSearchParams } from "@remix-run/react";
+import { useSearchParams } from "react-router";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { buildRouteTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";

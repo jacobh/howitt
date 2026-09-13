@@ -1,7 +1,7 @@
 import { ApolloProvider } from "@apollo/client/react";
-import { RemixBrowser } from "@remix-run/react";
 import React, { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
+import { HydratedRouter } from "react-router/dom";
 import { CacheProvider } from "@emotion/react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -49,7 +49,7 @@ function Client(): React.ReactNode {
       <ApolloProvider client={client}>
         <ClientStyleCacheProvider>
           <StrictMode>
-            <RemixBrowser />
+            <HydratedRouter />
           </StrictMode>
         </ClientStyleCacheProvider>
       </ApolloProvider>

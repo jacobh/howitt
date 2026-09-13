@@ -1,8 +1,11 @@
 import { CacheProvider } from "@emotion/react";
 import createEmotionServer from "@emotion/server/create-instance";
-import { type AppLoadContext, type EntryContext } from "@remix-run/cloudflare";
-import { RemixServer } from "@remix-run/react";
-import { renderToString } from "react-dom/server";
+import { renderToReadableStream, renderToString } from "react-dom/server";
+import {
+  ServerRouter,
+  type EntryContext,
+  type RouterContextProvider,
+} from "react-router";
 import { ApolloProvider } from "@apollo/client/react";
 import { parseCookie } from "cookie";
 
@@ -11,15 +14,17 @@ import { ServerStyleContext } from "~/styles/server.context";
 import { getDataFromTree } from "@apollo/client/react/ssr";
 import { createApolloClient } from "./services/apollo";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { cloudflareContext } from "./cloudflare";
 
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext,
-  loadContext: AppLoadContext,
+  routerContext: EntryContext,
+  loadContext: RouterContextProvider,
 ): Promise<Response> {
-  const apiBaseUrl = loadContext.apiBaseUrl;
+  const { env } = loadContext.get(cloudflareContext);
+  const apiBaseUrl = env.API_BASE_URL;
   const cookieData = parseCookie(request.headers.get("Cookie") ?? "");
 
   const queryClient = new QueryClient();
@@ -27,37 +32,42 @@ export default async function handleRequest(
   const client = createApolloClient({
     ssrMode: true,
     graphqlUrl: apiBaseUrl,
-    fetch: loadContext.apiFetch,
+    fetch: env.API.fetch.bind(env.API),
     getToken: () => cookieData.token,
   });
 
   const styleCache = createEmotionCache();
   const { extractCriticalToChunks } = createEmotionServer(styleCache);
 
-  const App = (
+  const renderApp = (context: EntryContext): React.ReactElement => (
     <QueryClientProvider client={queryClient}>
       <ApolloProvider client={client}>
         <CacheProvider value={styleCache}>
-          <RemixServer context={remixContext} url={request.url} />
+          <ServerRouter context={context} url={request.url} />
         </CacheProvider>
       </ApolloProvider>
     </QueryClientProvider>
   );
 
-  await getDataFromTree(App);
+  const contextWithoutHandoffStream = {
+    ...routerContext,
+    serverHandoffStream: undefined,
+  };
+
+  await getDataFromTree(renderApp(contextWithoutHandoffStream));
 
   const html = renderToString(
     <ServerStyleContext.Provider value={null}>
-      {App}
+      {renderApp(contextWithoutHandoffStream)}
     </ServerStyleContext.Provider>,
   );
 
   const initialState = client.extract();
   const chunks = extractCriticalToChunks(html);
 
-  const markup = renderToString(
+  const markupStream = await renderToReadableStream(
     <ServerStyleContext.Provider value={chunks.styles}>
-      {App}
+      {renderApp(routerContext)}
       <script
         dangerouslySetInnerHTML={{
           __html: `window.__APOLLO_STATE__=${JSON.stringify(
@@ -73,7 +83,14 @@ export default async function handleRequest(
         }}
       />
     </ServerStyleContext.Provider>,
+    {
+      onError(error): void {
+        responseStatusCode = 500;
+        console.error(error);
+      },
+    },
   );
+  const markup = await new Response(markupStream).text();
 
   responseHeaders.set("Content-Type", "text/html; charset=utf-8");
   // HTML contains viewer-specific Apollo state and versioned asset URLs.

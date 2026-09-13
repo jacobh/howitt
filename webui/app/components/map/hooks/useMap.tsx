@@ -24,7 +24,8 @@ export function useMap({
   mapElementRef,
   interactive = true,
 }: UseMapProps): { map: OlMap | undefined } {
-  const [map, setMap] = useState<OlMap | undefined>(undefined);
+  const [createdMap, setCreatedMap] = useState<OlMap | undefined>(undefined);
+  const map = existingMapInstance ?? createdMap;
 
   useEffect(() => {
     console.log("[useMap] useMap useEffect triggered", {
@@ -35,7 +36,6 @@ export function useMap({
 
     if (existingMapInstance) {
       console.log("[useMap] Using existing map instance");
-      setMap(existingMapInstance);
       existingMapInstance.setTarget(mapElementRef.current ?? undefined);
       return;
     }
@@ -67,10 +67,10 @@ export function useMap({
     });
 
     console.log("[useMap] New map created", newMap);
-    setMap(newMap);
+    setCreatedMap(newMap);
     onNewMapInstance?.(newMap);
 
-    return () => {
+    return (): void => {
       console.log("[useMap] cleaning up", newMap);
       newMap.setTarget(undefined);
     };

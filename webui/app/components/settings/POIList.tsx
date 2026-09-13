@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { sortBy } from "lodash";
 import { gql } from "~/__generated__/gql";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
 import { tableContainerCss, tableCss } from "../ui/Table";
 import { buttonStyles } from "../ui/Button";

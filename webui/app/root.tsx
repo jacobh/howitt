@@ -1,16 +1,17 @@
-import type { LinksFunction, MetaDescriptor } from "@remix-run/cloudflare";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "@remix-run/react";
+  type LinksFunction,
+  type MetaDescriptor,
+} from "react-router";
 import { css, withEmotionCache } from "@emotion/react";
 import { useContext, useRef, useEffect, useState } from "react";
 import { ClientStyleContext } from "./styles/client.context";
 import { ServerStyleContext } from "./styles/server.context";
-import stylesheet from "./styles/__generated__/tailwind.css?url";
+import stylesheet from "./styles/tailwind.css?url";
 import { PrimaryMapContext } from "./components/map";
 import OlMap from "ol/Map";
 

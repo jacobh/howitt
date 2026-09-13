@@ -3,7 +3,7 @@ import { gql } from "../__generated__/gql";
 import { Container, Nav } from "~/components/layout";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 import { useState } from "react";
 import { InfoBox } from "~/components/ui/InfoBox";
 import { buttonStyles } from "~/components/ui/Button";

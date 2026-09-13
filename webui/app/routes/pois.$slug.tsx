@@ -1,4 +1,4 @@
-import { useParams } from "@remix-run/react";
+import { useParams } from "react-router";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "~/__generated__";
 import {

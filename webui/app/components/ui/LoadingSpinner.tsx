@@ -35,7 +35,7 @@ export function LoadingSpinnerSidebarContent(): React.ReactElement {
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 400);
-    return () => clearTimeout(timer);
+    return (): void => clearTimeout(timer);
   }, []);
 
   return <div css={spinnerWrapperCss}>{isVisible && <LoadingSpinner />}</div>;

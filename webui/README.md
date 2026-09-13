@@ -1,6 +1,6 @@
 # Howitt web UI
 
-React/Remix frontend deployed to **https://howittplains.net**.
+React Router frontend deployed to **https://howittplains.net**.
 
 ## Worker configuration
 

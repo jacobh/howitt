@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { formatDistance, formatDuration } from "~/services/format";
 import { Temporal } from "@js-temporal/polyfill";

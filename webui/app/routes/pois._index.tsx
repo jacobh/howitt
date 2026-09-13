@@ -14,7 +14,7 @@ import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { useMemo, useState } from "react";
 import { buildMarker } from "~/components/map/types";
 import { FragmentType, useFragment } from "~/__generated__";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 
 const POIsQuery = gql(`
   query POIsQuery {

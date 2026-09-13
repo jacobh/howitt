@@ -1,5 +1,5 @@
 import { SerializedStyles, css } from "@emotion/react";
-import { Link, useSearchParams } from "@remix-run/react";
+import { Link, useSearchParams } from "react-router";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { tokens } from "~/styles/tokens";
 import { RouteVitals, routeSubtitleArrowCss } from "./RouteVitals";

@@ -9,7 +9,7 @@ import {
 } from "~/components/layout";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 import { FragmentType, useFragment } from "~/__generated__";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";

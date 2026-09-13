@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client/react";
 import { css } from "@emotion/react";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate } from "react-router";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useCallback, useState } from "react";
@@ -147,7 +147,7 @@ export default function Login(): React.ReactElement {
         } else {
           setSignupError("Something went wrong, please try again");
         }
-      } catch (err) {
+      } catch {
         setSignupError("Failed to create account. Please try again.");
       } finally {
         setIsLoading(false);

@@ -7,7 +7,7 @@ import {
   SidebarContainer,
   Nav,
 } from "~/components/layout";
-import { useParams } from "@remix-run/react";
+import { useParams } from "react-router";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";

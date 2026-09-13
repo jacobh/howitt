@@ -50,7 +50,7 @@ export function useMapEvents({ map, onEvent }: UseMapEventsProps): void {
     map.on("click", handleClick);
 
     // Cleanup
-    return () => {
+    return (): void => {
       map.un("click", handleClick);
     };
   }, [map, handleClick]);

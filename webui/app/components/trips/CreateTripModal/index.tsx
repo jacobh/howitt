@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import { useCallback } from "react";
 import { gql } from "~/__generated__";
 import { Modal } from "../../Modal";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate } from "react-router";
 import { RideTable } from "./components/RideTable";
 import { Controller, useForm } from "react-hook-form";
 import { tokens } from "~/styles/tokens";

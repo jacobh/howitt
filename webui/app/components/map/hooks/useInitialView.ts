@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import View, { ViewOptions } from "ol/View";
 import OlMap from "ol/Map";
 import { Track } from "../types";
@@ -23,21 +23,24 @@ export function useInitialView({
   map,
   tracks,
   initialView,
-}: UseInitialViewProps): { isInitialViewSet: boolean } {
-  const [isInitialViewSet, setIsInitialViewSet] = useState(false);
+}: UseInitialViewProps): void {
+  const appliedViewRef = useRef<{
+    map: OlMap;
+    initialView: UseInitialViewProps["initialView"];
+  }>(undefined);
 
   useEffect(() => {
-    setIsInitialViewSet(false);
-  }, [initialView]);
-
-  useEffect(() => {
-    if (!map || isInitialViewSet) {
+    if (
+      !map ||
+      (appliedViewRef.current?.map === map &&
+        appliedViewRef.current.initialView === initialView)
+    ) {
       return;
     }
 
     if (initialView?.type === "view") {
       map.setView(new View({ ...initialView.view, enableRotation: false }));
-      setIsInitialViewSet(true);
+      appliedViewRef.current = { map, initialView };
       return;
     }
 
@@ -72,8 +75,6 @@ export function useInitialView({
       map.setView(new View(DEFAULT_VIEW));
     }
 
-    setIsInitialViewSet(true);
-  }, [map, initialView, isInitialViewSet, tracks]);
-
-  return { isInitialViewSet };
+    appliedViewRef.current = { map, initialView };
+  }, [map, initialView, tracks]);
 }

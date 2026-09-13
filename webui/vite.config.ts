@@ -1,46 +1,21 @@
-import {
-  vitePlugin as remix,
-  cloudflareDevProxyVitePlugin,
-} from "@remix-run/dev";
-import type { WebuiEnv } from "./load-context";
+import { cloudflare } from "@cloudflare/vite-plugin";
+import { reactRouter } from "@react-router/dev/vite";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 
-// declare module "@remix-run/node" {
-//   // or cloudflare, deno, etc.
-//   interface Future {
-//     v3_singleFetch: true;
-//   }
-// }
-
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   server: {
     port: 3000,
   },
   plugins: [
-    // The remote API proxy is for development, never credential-free CI builds.
-    command === "serve" &&
-      cloudflareDevProxyVitePlugin<WebuiEnv, Record<string, unknown>>({
-        getLoadContext: ({ context }) => ({
-          apiBaseUrl: context.cloudflare.env.API_BASE_URL,
-          apiFetch: context.cloudflare.env.API.fetch.bind(
-            context.cloudflare.env.API,
-          ),
-        }),
-      }),
-    remix({
-      future: {
-        v3_fetcherPersist: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-        v3_lazyRouteDiscovery: true,
-        // v3_singleFetch: true,
-        // v3_routeConfig: true,
-      },
+    cloudflare({
+      viteEnvironment: { name: "ssr" },
     }),
-    tsconfigPaths(),
+    tailwindcss(),
+    reactRouter(),
   ],
   resolve: {
+    tsconfigPaths: true,
     alias: {
       lodash: "lodash-es",
       "react-dropzone": "react-dropzone-esm",
@@ -49,4 +24,4 @@ export default defineConfig(({ command }) => ({
   optimizeDeps: {
     exclude: ["ionicons"],
   },
-}));
+});

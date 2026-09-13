@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { Link, useParams } from "@remix-run/react";
+import { Link, useParams } from "react-router";
 import { gql } from "~/__generated__";
 import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
