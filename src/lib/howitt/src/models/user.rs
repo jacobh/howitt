@@ -1,4 +1,3 @@
-use argon2::password_hash::PasswordHashString;
 use chrono::{DateTime, Utc, serde::ts_seconds};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -11,7 +10,7 @@ pub type UserId = ModelUuid<{ ModelName::User }>;
 pub struct User {
     pub id: UserId,
     pub username: String,
-    pub password: PasswordHashString,
+    pub password: String,
     pub email: String,
     pub created_at: DateTime<Utc>,
     pub rwgps_connection: Option<UserRwgpsConnection>,

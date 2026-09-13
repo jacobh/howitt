@@ -35,7 +35,7 @@ num = "=0.4.3"
 url = { version = "=2.5.8", features = ["serde"] }
 almost = "=0.2.0"
 bytes = "=1.12.1"
-argon2 = "=0.5.3"
+argon2 = "=0.6.0"
 jsonwebtoken = { version = "=9.3.0", default-features = false }
 regex = "=1.13.1"
 sanitize-filename = "=0.6.0"

@@ -1,5 +1,4 @@
 use argon2::PasswordHash;
-use argon2::password_hash::Encoding;
 use chrono::{DateTime, Utc};
 use howitt::ext::iter::ResultIterExt;
 use tokio_postgres::types::Type;
@@ -49,6 +48,8 @@ impl TryFrom<UserRow> for User {
     type Error = PostgresRepoError;
 
     fn try_from(row: UserRow) -> Result<Self, Self::Error> {
+        PasswordHash::new(&row.password).unwrap();
+
         let rwgps_connection = match (row.rwgps_id, row.rwgps_user_id, row.rwgps_access_token) {
             (Some(id), Some(user_id), Some(access_token)) => Some(UserRwgpsConnection {
                 id,
@@ -64,9 +65,7 @@ impl TryFrom<UserRow> for User {
         Ok(User {
             id: UserId::from(row.id),
             username: row.username,
-            password: PasswordHash::parse(&row.password, Encoding::default())
-                .unwrap()
-                .serialize(),
+            password: row.password,
             email: row.email,
             created_at: row.created_at,
             rwgps_connection,
