@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde = { version = "*", features = ["derive"] }
-reqwest = { version = "*", features = ["json"] }
-serde_urlencoded = "*"
-url = "*"
+serde = { version = "=1.0.229", features = ["derive"] }
+reqwest = { version = "=0.12.12", features = ["json"] }
+serde_urlencoded = "=0.7.1"
+url = "=2.5.4"

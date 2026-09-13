@@ -7,11 +7,11 @@ edition = "2021"
 
 [dependencies]
 howitt_client_types = { path = "../howitt-client-types" }
-reqwest = "*"
-derive_more = { version = "1", features = ["full"] }
-async-trait = "*"
-url = "*"
-thiserror = "*"
-bytes = "*"
-redis = { version = "*", features = ["aio", "tokio-comp"] }
-object_store = { version = "*", features = ["aws"] }
+reqwest = "=0.12.12"
+derive_more = { version = "=1.0.0", features = ["full"] }
+async-trait = "=0.1.92"
+url = "=2.5.4"
+thiserror = "=2.0.11"
+bytes = "=1.12.1"
+redis = { version = "=0.28.1", features = ["aio", "tokio-comp"] }
+object_store = { version = "=0.11.2", features = ["aws"] }

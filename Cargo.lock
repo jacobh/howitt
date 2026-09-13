@@ -156,7 +156,7 @@ checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 [[package]]
 name = "apalis"
 version = "0.6.4"
-source = "git+https://github.com/geofmureithi/apalis.git#060a7d260cc66714afe9ddc20012a569b00103a2"
+source = "git+https://github.com/geofmureithi/apalis.git?rev=060a7d260cc66714afe9ddc20012a569b00103a2#060a7d260cc66714afe9ddc20012a569b00103a2"
 dependencies = [
  "apalis-core",
  "futures",
@@ -171,7 +171,7 @@ dependencies = [
 [[package]]
 name = "apalis-core"
 version = "0.6.4"
-source = "git+https://github.com/geofmureithi/apalis.git#060a7d260cc66714afe9ddc20012a569b00103a2"
+source = "git+https://github.com/geofmureithi/apalis.git?rev=060a7d260cc66714afe9ddc20012a569b00103a2#060a7d260cc66714afe9ddc20012a569b00103a2"
 dependencies = [
  "futures",
  "futures-timer",
@@ -186,7 +186,7 @@ dependencies = [
 [[package]]
 name = "apalis-redis"
 version = "0.6.4"
-source = "git+https://github.com/geofmureithi/apalis.git#060a7d260cc66714afe9ddc20012a569b00103a2"
+source = "git+https://github.com/geofmureithi/apalis.git?rev=060a7d260cc66714afe9ddc20012a569b00103a2#060a7d260cc66714afe9ddc20012a569b00103a2"
 dependencies = [
  "apalis-core",
  "chrono",
@@ -263,7 +263,7 @@ checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 [[package]]
 name = "async-graphql"
 version = "7.0.13"
-source = "git+https://github.com/async-graphql/async-graphql.git#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
+source = "git+https://github.com/async-graphql/async-graphql.git?rev=2197ddde76246136be8c3a0b9a892d5ae1762eb7#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
 dependencies = [
  "async-graphql-derive",
  "async-graphql-parser",
@@ -298,7 +298,7 @@ dependencies = [
 [[package]]
 name = "async-graphql-axum"
 version = "7.0.13"
-source = "git+https://github.com/async-graphql/async-graphql.git#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
+source = "git+https://github.com/async-graphql/async-graphql.git?rev=2197ddde76246136be8c3a0b9a892d5ae1762eb7#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
 dependencies = [
  "async-graphql",
  "axum",
@@ -314,7 +314,7 @@ dependencies = [
 [[package]]
 name = "async-graphql-derive"
 version = "7.0.13"
-source = "git+https://github.com/async-graphql/async-graphql.git#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
+source = "git+https://github.com/async-graphql/async-graphql.git?rev=2197ddde76246136be8c3a0b9a892d5ae1762eb7#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
 dependencies = [
  "Inflector",
  "async-graphql-parser",
@@ -330,7 +330,7 @@ dependencies = [
 [[package]]
 name = "async-graphql-parser"
 version = "7.0.13"
-source = "git+https://github.com/async-graphql/async-graphql.git#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
+source = "git+https://github.com/async-graphql/async-graphql.git?rev=2197ddde76246136be8c3a0b9a892d5ae1762eb7#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
 dependencies = [
  "async-graphql-value",
  "pest",
@@ -341,7 +341,7 @@ dependencies = [
 [[package]]
 name = "async-graphql-value"
 version = "7.0.13"
-source = "git+https://github.com/async-graphql/async-graphql.git#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
+source = "git+https://github.com/async-graphql/async-graphql.git?rev=2197ddde76246136be8c3a0b9a892d5ae1762eb7#2197ddde76246136be8c3a0b9a892d5ae1762eb7"
 dependencies = [
  "bytes",
  "indexmap 2.7.1",

@@ -4,13 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1"
-apalis-core = { git = "https://github.com/geofmureithi/apalis.git" }
-apalis = { git = "https://github.com/geofmureithi/apalis.git", features = [
+anyhow = "=1.0.95"
+apalis-core = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2" }
+apalis = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2", features = [
     "limit",
     "timeout",
 ] }
-apalis-redis = { git = "https://github.com/geofmureithi/apalis.git" }
-tokio = { version = "1", features = ["full"] }
-thiserror = "*"
+apalis-redis = { git = "https://github.com/geofmureithi/apalis.git", rev = "060a7d260cc66714afe9ddc20012a569b00103a2" }
+tokio = { version = "=1.43.0", features = ["full"] }
+thiserror = "=2.0.11"
 howitt = { path = "../howitt" }

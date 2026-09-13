@@ -7,43 +7,43 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-axum = { version = "0.8", default-features = false, features = ["json", "query", "macros"] }
-axum-macros = "0.5"
-tower = { version = "0.5", default-features = false, features = ["util"] }
-tower-http = { version = "0.6", default-features = false, features = ["cors"] }
-async-graphql-axum = { git = "https://github.com/async-graphql/async-graphql.git" }
-async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", default-features = false, features = ["uuid", "chrono", "url", "dataloader", "graphiql"] }
+axum = { version = "=0.8.1", default-features = false, features = ["json", "query", "macros"] }
+axum-macros = "=0.5.0"
+tower = { version = "=0.5.2", default-features = false, features = ["util"] }
+tower-http = { version = "=0.6.2", default-features = false, features = ["cors"] }
+async-graphql-axum = { git = "https://github.com/async-graphql/async-graphql.git", rev = "2197ddde76246136be8c3a0b9a892d5ae1762eb7" }
+async-graphql = { git = "https://github.com/async-graphql/async-graphql.git", rev = "2197ddde76246136be8c3a0b9a892d5ae1762eb7", default-features = false, features = ["uuid", "chrono", "url", "dataloader", "graphiql"] }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
 howitt-observability = { path = "../../lib/howitt-observability" }
 howitt = { path = "../../lib/howitt" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }
 rwgps_types = { path = "../../lib/rwgps-types" }
-anyhow = "1"
-geo = "*"
-chrono = "*"
-chrono-tz = "*"
-serde = { version = "1", features = ["derive"] }
-derive_more = { version = "1", features = ["full"] }
-itertools = "*"
-thiserror = "*"
-url = "*"
-serde_json = "1"
-async-trait = "0.1"
-http = "1"
-tracing = "0.1"
-uuid = "1"
-futures = "0.3"
+anyhow = "=1.0.95"
+geo = "=0.29.3"
+chrono = "=0.4.45"
+chrono-tz = "=0.10.1"
+serde = { version = "=1.0.229", features = ["derive"] }
+derive_more = { version = "=1.0.0", features = ["full"] }
+itertools = "=0.14.0"
+thiserror = "=2.0.11"
+url = "=2.5.4"
+serde_json = "=1.0.151"
+async-trait = "=0.1.92"
+http = "=1.5.0"
+tracing = "=0.1.41"
+uuid = "=1.12.0"
+futures = "=0.3.31"
 tzf-rs = { version = "=0.4.11", default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 worker = { version = "=0.8.5", features = ["http", "axum", "tokio-postgres"] }
-tokio-postgres = { version = "0.7.18", default-features = false, features = ["js"] }
-wasm-bindgen-futures = "0.4"
-futures-timer = { version = "3", features = ["wasm-bindgen"] }
-getrandom = { version = "0.2", features = ["js"] }
-ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
+tokio-postgres = { version = "=0.7.18", default-features = false, features = ["js"] }
+wasm-bindgen-futures = "=0.4.78"
+futures-timer = { version = "=3.0.3", features = ["wasm-bindgen"] }
+getrandom = { version = "=0.2.15", features = ["js"] }
+ring = { version = "=0.17.8", features = ["wasm32_unknown_unknown_js"] }
 
 [dev-dependencies]
-tracing-subscriber = { version = "0.3", default-features = false, features = ["registry"] }
-test-case = "3.1.0"
-tokio = { version = "1", features = ["rt", "macros"] }
+tracing-subscriber = { version = "=0.3.19", default-features = false, features = ["registry"] }
+test-case = "=3.3.1"
+tokio = { version = "=1.43.0", features = ["rt", "macros"] }

@@ -6,15 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.12", default-features = false, features = [
+reqwest = { version = "=0.12.12", default-features = false, features = [
     "json",
     "native-tls-vendored",
 ] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "*"
-serde_path_to_error = "0.1"
-thiserror = "*"
-tokio = { version = "1", features = ["full"] }
-url = "*"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+serde_path_to_error = "=0.1.16"
+thiserror = "=2.0.11"
+tokio = { version = "=1.43.0", features = ["full"] }
+url = "=2.5.4"
 rwgps_types = { path = "../rwgps-types" }
-async-trait = "*"
+async-trait = "=0.1.92"
