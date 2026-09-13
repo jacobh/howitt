@@ -5,12 +5,12 @@ use howitt::{
     repos::Repo,
     services::{
         generate_cuesheet::generate_cuesheet,
-        simplify_points::{simplify_points_v2, DetailLevel},
+        simplify_points::{DetailLevel, simplify_points_v2},
     },
 };
 use howitt_postgresql::PostgresRepos;
 use itertools::Itertools;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 use uuid::Uuid;
 
 use crate::Context;

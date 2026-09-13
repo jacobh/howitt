@@ -1,9 +1,9 @@
 //! Resolver-only telemetry: schema metadata, never arguments, aliases or values.
 use async_graphql::{
+    QueryPathSegment, Response, ServerResult, Value,
     extensions::{
         Extension, ExtensionContext, ExtensionFactory, NextExecute, NextResolve, ResolveInfo,
     },
-    QueryPathSegment, Response, ServerResult, Value,
 };
 use std::sync::Arc;
 

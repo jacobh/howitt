@@ -5,13 +5,13 @@ use crate::ext::iter::ScanAllExt;
 use crate::models::{
     cuesheet::{Cue, CueStop, Cuesheet},
     point::{
-        progress::{DistanceElevationProgress, Progress},
         ElevationPoint,
+        progress::{DistanceElevationProgress, Progress},
     },
     point_of_interest::PointOfInterest,
 };
 
-use super::nearby::{nearby_points_of_interest, NearbyPointOfInterest};
+use super::nearby::{NearbyPointOfInterest, nearby_points_of_interest};
 
 pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> Cuesheet {
     let nearby_pois = nearby_points_of_interest(route, pois, 500.0);

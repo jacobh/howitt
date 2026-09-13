@@ -5,7 +5,7 @@ use howitt::models::ride::{RideFilter, RideId};
 use tokio_postgres::types::Type;
 
 use howitt::models::user::UserId;
-use howitt::models::{ride::Ride, Model};
+use howitt::models::{Model, ride::Ride};
 use howitt::repos::Repo;
 use uuid::Uuid;
 

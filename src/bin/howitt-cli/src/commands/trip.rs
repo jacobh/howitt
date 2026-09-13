@@ -13,7 +13,7 @@ use howitt::{
 use howitt_postgresql::PostgresRepos;
 use inquire::{MultiSelect, Select, Text};
 use itertools::Itertools;
-use prettytable::{row, Table};
+use prettytable::{Table, row};
 
 use crate::Context;
 

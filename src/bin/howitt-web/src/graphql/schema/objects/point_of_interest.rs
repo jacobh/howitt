@@ -1,6 +1,6 @@
 use async_graphql::{Context, Enum, Object};
 use howitt::{
-    models::{media::MediaFilter, point_of_interest::PointOfInterestId, Model},
+    models::{Model, media::MediaFilter, point_of_interest::PointOfInterestId},
     repos::Repos,
 };
 

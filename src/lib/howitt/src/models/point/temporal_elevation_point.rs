@@ -1,7 +1,7 @@
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::{point::Point, WithDatetime, WithElevation};
+use super::{WithDatetime, WithElevation, point::Point};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct TemporalElevationPoint {

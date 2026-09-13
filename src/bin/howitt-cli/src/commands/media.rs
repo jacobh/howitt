@@ -1,7 +1,7 @@
 use crate::Context;
 use clap::Subcommand;
 use howitt::{
-    jobs::{media::MediaJob, Job},
+    jobs::{Job, media::MediaJob},
     models::media::MediaId,
 };
 

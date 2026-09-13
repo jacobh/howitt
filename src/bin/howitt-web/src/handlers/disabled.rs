@@ -1,5 +1,5 @@
 use async_graphql::ErrorExtensions;
-use axum::{http::StatusCode, Json};
+use axum::{Json, http::StatusCode};
 
 pub const MESSAGE: &str = "Background jobs are disabled on this deployment";
 
@@ -23,7 +23,7 @@ pub async fn handler() -> (StatusCode, Json<serde_json::Value>) {
 #[cfg(test)]
 mod tests {
     use axum::{
-        body::{to_bytes, Body},
+        body::{Body, to_bytes},
         http::Request,
     };
     use tower::ServiceExt;

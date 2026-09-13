@@ -50,8 +50,8 @@ async fn disposable_pool() -> Result<PostgresPool, Box<dyn std::error::Error>> {
 
 #[tokio::test]
 #[ignore = "requires the disposable database created by scripts/test-worker-local.sh"]
-async fn route_deliveries_are_atomic_concurrent_and_stale_safe(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn route_deliveries_are_atomic_concurrent_and_stale_safe()
+-> Result<(), Box<dyn std::error::Error>> {
     let pool = disposable_pool().await?;
     let conn = pool.acquire().await?;
     let user_uuid = Uuid::from_u128(0x5257_4750_5300_0000_0000_0000_0000_0001);
@@ -105,8 +105,8 @@ async fn route_deliveries_are_atomic_concurrent_and_stale_safe(
         .await?
         .get(0);
     assert_eq!(persisted_points, serde_json::json!([[115.8, -31.9, 47.0]]));
-    assert!(a
-        .save_route(
+    assert!(
+        a.save_route(
             route(
                 14,
                 UserId::from(Uuid::from_u128(999)),
@@ -116,7 +116,8 @@ async fn route_deliveries_are_atomic_concurrent_and_stale_safe(
             vec![]
         )
         .await
-        .is_err());
+        .is_err()
+    );
     a.save_route(
         route(12, user_id, 987_654, now - Duration::seconds(1)),
         vec![],
@@ -160,17 +161,19 @@ async fn route_deliveries_are_atomic_concurrent_and_stale_safe(
         .get::<_, i32>(0),
         persisted_distance
     );
-    assert!(a
-        .save_route(route(15, user_id, 987_655, now), vec![point])
-        .await
-        .is_err());
-    assert!(conn
-        .query_typed_opt(
+    assert!(
+        a.save_route(route(15, user_id, 987_655, now), vec![point])
+            .await
+            .is_err()
+    );
+    assert!(
+        conn.query_typed_opt(
             "select id from routes where (external_ref->'id'->'Rwgps'->'Route')::int=987655",
             &[]
         )
         .await?
-        .is_none());
+        .is_none()
+    );
     assert_eq!(
         conn.query_typed_one(
             "select points from route_points where route_id=$1",
@@ -211,8 +214,8 @@ async fn route_deliveries_are_atomic_concurrent_and_stale_safe(
 
 #[tokio::test]
 #[ignore = "requires the disposable database created by scripts/test-jobs-local.sh"]
-async fn trip_deliveries_preserve_identity_and_rollback_points(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn trip_deliveries_preserve_identity_and_rollback_points()
+-> Result<(), Box<dyn std::error::Error>> {
     let pool = disposable_pool().await?;
     let conn = pool.acquire().await?;
     let user_uuid = Uuid::from_u128(0x5257_4750_5300_0000_0000_0000_0000_0002);

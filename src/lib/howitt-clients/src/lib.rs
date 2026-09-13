@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use howitt_client_types::{BucketClient, BucketName, HttpClient, HttpResponse, ObjectParams};
-use object_store::{aws::AmazonS3, ObjectStore};
+use object_store::{ObjectStore, aws::AmazonS3};
 use redis::{AsyncCommands, IntoConnectionInfo};
 
 #[derive(derive_more::Constructor, Debug)]

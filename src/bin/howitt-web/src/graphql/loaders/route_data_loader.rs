@@ -191,10 +191,11 @@ mod tests {
         assert_eq!(data.elevation_ascent_m, ascent);
         assert_eq!(data.elevation_descent_m, descent);
         assert_eq!(data.distance_points.len(), elevations.len());
-        assert!(data
-            .distance_points
-            .windows(2)
-            .all(|pair| pair[1] >= pair[0]));
+        assert!(
+            data.distance_points
+                .windows(2)
+                .all(|pair| pair[1] >= pair[0])
+        );
     }
 
     #[test]

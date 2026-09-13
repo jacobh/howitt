@@ -1,8 +1,8 @@
 use async_graphql::{Context, Enum, Object, SimpleObject};
 use chrono::{DateTime, Utc};
 use howitt::{
-    models::media::{ImageContentType, ImageSpec, MediaId, IMAGE_SPECS},
-    services::media::{generate_resized_media_key, GenerateResizedMediaKeyParams},
+    models::media::{IMAGE_SPECS, ImageContentType, ImageSpec, MediaId},
+    services::media::{GenerateResizedMediaKeyParams, generate_resized_media_key},
 };
 use itertools::Itertools;
 

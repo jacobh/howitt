@@ -5,16 +5,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{external_ref::ExternalRef, point::ElevationPoint},
-    services::nearby::{nearby_routes, NearbyRoute},
+    services::nearby::{NearbyRoute, nearby_routes},
 };
 
 use super::{
+    Model, ModelName, ModelUuid,
     external_ref::ExternallySourced,
     route_description::RouteDescription,
     tag::Tag,
     terminus::{Termini, TerminusEnd},
     user::UserId,
-    Model, ModelName, ModelUuid,
 };
 
 pub type RouteId = ModelUuid<{ ModelName::Route }>;

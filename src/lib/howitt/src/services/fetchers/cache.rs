@@ -1,5 +1,5 @@
 use howitt_client_types::CacheStore;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::time::Duration;
 
 // Bump the namespace when serialization or derived-data algorithms change.

@@ -1,8 +1,8 @@
 use itertools::Itertools;
 
 use crate::models::point::{
-    delta::{AccumulatingDelta, DistanceDelta},
     ElevationPoint,
+    delta::{AccumulatingDelta, DistanceDelta},
 };
 
 pub fn smooth_elevations(cum_distances: &[f64], elevations: &[f64]) -> Vec<f64> {

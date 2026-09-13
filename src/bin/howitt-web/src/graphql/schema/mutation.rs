@@ -8,7 +8,7 @@ use howitt::repos::Repos;
 use howitt::services::slug::generate_slug;
 
 use crate::graphql::context::{RequestData, SchemaData};
-use crate::graphql::schema::{point_of_interest::PointOfInterest, trip::Trip, ModelId};
+use crate::graphql::schema::{ModelId, point_of_interest::PointOfInterest, trip::Trip};
 
 use super::point_of_interest::PointOfInterestType;
 use super::viewer::Viewer;

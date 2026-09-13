@@ -1,5 +1,5 @@
 use crate::{ConnectionFactory, PostgresPool, PostgresRepoError};
-use worker::{postgres_tls::PassthroughTls, Hyperdrive, SecureTransport, Socket};
+use worker::{Hyperdrive, SecureTransport, Socket, postgres_tls::PassthroughTls};
 
 struct HyperdriveConnectionFactory {
     host: String,

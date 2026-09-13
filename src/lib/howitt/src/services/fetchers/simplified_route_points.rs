@@ -7,7 +7,7 @@ use crate::{
         route::{RouteId, RoutePoints},
     },
     repos::RoutePointsRepo,
-    services::simplify_points::{simplify_points_v2, DetailLevel},
+    services::simplify_points::{DetailLevel, simplify_points_v2},
 };
 
 use super::cache::CacheFetcher;

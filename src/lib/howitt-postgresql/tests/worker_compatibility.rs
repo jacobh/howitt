@@ -150,16 +150,20 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
     for filter in [RouteFilter::All, RouteFilter::Slug("test-route".into())] {
         assert_eq!(repos.route_repo.filter_models(filter).await?.len(), 1);
     }
-    assert!(repos
-        .route_repo
-        .filter_models(RouteFilter::RwgpsId(123))
-        .await?
-        .is_empty());
-    assert!(repos
-        .route_repo
-        .filter_models(RouteFilter::Starred)
-        .await?
-        .is_empty());
+    assert!(
+        repos
+            .route_repo
+            .filter_models(RouteFilter::RwgpsId(123))
+            .await?
+            .is_empty()
+    );
+    assert!(
+        repos
+            .route_repo
+            .filter_models(RouteFilter::Starred)
+            .await?
+            .is_empty()
+    );
     let description = repos.route_repo.all().await?.remove(0).description.unwrap();
     assert_eq!(
         description.technical_difficulty,
@@ -324,11 +328,13 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
     ] {
         assert_eq!(repos.ride_repo.filter_models(filter).await?.len(), 1);
     }
-    assert!(repos
-        .ride_repo
-        .filter_models(RideFilter::RwgpsId(123))
-        .await?
-        .is_empty());
+    assert!(
+        repos
+            .ride_repo
+            .filter_models(RideFilter::RwgpsId(123))
+            .await?
+            .is_empty()
+    );
     assert_eq!(repos.ride_repo.all().await?.len(), 1);
     assert_eq!(repos.ride_points_repo.all().await?.len(), 1);
     assert_eq!(repos.point_of_interest_repo.all().await?.len(), 1);
@@ -370,10 +376,12 @@ async fn repository_codecs_and_transactions() -> Result<(), Box<dyn std::error::
         .query_typed_one("select pg_backend_pid()", &[])
         .await?
         .get(0);
-    assert!(connection
-        .query_typed_one("select pg_terminate_backend(pg_backend_pid())", &[])
-        .await
-        .is_err());
+    assert!(
+        connection
+            .query_typed_one("select pg_terminate_backend(pg_backend_pid())", &[])
+            .await
+            .is_err()
+    );
     // A server's fatal response arrives before the driver closes its channel.
     // Observe actual closure before testing acquisition of a replacement.
     tokio::time::timeout(std::time::Duration::from_secs(2), async {

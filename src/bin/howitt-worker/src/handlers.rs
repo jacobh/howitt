@@ -1,6 +1,6 @@
 use anyhow::Context;
 use howitt::{
-    jobs::{media::MediaJob, rwgps::RwgpsJob, Job},
+    jobs::{Job, media::MediaJob, rwgps::RwgpsJob},
     models::user::{UserFilter, UserId, UserRwgpsConnection},
     repos::Repos,
     services::{
@@ -8,13 +8,13 @@ use howitt::{
         sync::rwgps_v2::{
             persistence::DynRwgpsSyncStore,
             select_historical_route_sync_candidates::{
-                select_historical_route_sync_candidates, SyncRouteHistoryParams,
+                SyncRouteHistoryParams, select_historical_route_sync_candidates,
             },
             select_historical_trip_sync_candidates::{
-                select_historical_trip_sync_candidates, SyncTripHistoryParams,
+                SyncTripHistoryParams, select_historical_trip_sync_candidates,
             },
-            sync_route::{sync_route, SyncRouteParams},
-            sync_trip::{sync_trip, SyncTripParams},
+            sync_route::{SyncRouteParams, sync_route},
+            sync_trip::{SyncTripParams, sync_trip},
         },
     },
 };

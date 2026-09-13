@@ -8,7 +8,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 use crate::graphql::schema::TemporalContentBlock;
-use crate::graphql::schema::{ride::Ride, ModelId};
+use crate::graphql::schema::{ModelId, ride::Ride};
 
 use super::media::Media;
 use super::note::Note;

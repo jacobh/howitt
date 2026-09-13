@@ -27,7 +27,7 @@ mod runtime {
     use howitt::{jobs::QueueMessage, repos::Repos};
     use howitt_postgresql::{PostgresPool, PostgresRepos, PostgresRwgpsSyncStore};
     use std::sync::Arc;
-    use worker::{event, Context, Env, MessageBatch, MessageExt, Result};
+    use worker::{Context, Env, MessageBatch, MessageExt, Result, event};
 
     #[event(queue)]
     async fn queue(batch: MessageBatch<serde_json::Value>, env: Env, _ctx: Context) -> Result<()> {

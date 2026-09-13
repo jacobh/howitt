@@ -1,15 +1,15 @@
 use ndarray::{
-    s, Array, Array1, ArrayView, ArrayView2, AsArray, Axis, Dimension, IntoDimension, Ix1, Ix2,
-    Slice,
+    Array, Array1, ArrayView, ArrayView2, AsArray, Axis, Dimension, IntoDimension, Ix1, Ix2, Slice,
+    s,
 };
 
 use almost;
 use itertools::Itertools;
 
 use crate::{
-    util::dim_from_vec,
     CsapsError::{ReshapeFrom2d, ReshapeTo2d},
     Real, Result,
+    util::dim_from_vec,
 };
 
 pub fn diff<'a, T: 'a, D, V>(data: V, axis: Option<Axis>) -> Array<T, D>
@@ -158,7 +158,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::ndarrayext::*;
-    use ndarray::{array, Array1, Axis, Ix1, Ix2, Ix3};
+    use ndarray::{Array1, Axis, Ix1, Ix2, Ix3, array};
     use std::f64;
 
     #[test]
@@ -402,7 +402,9 @@ mod tests {
 
     #[test]
     fn test_digitize_not_increased() {
-        let xi = array![1., 2., 1., 3., 3., 2., 1., 4., 5., 5., 4., 4., 3., 3., 2., 1.];
+        let xi = array![
+            1., 2., 1., 3., 3., 2., 1., 4., 5., 5., 4., 4., 3., 3., 2., 1.
+        ];
         let edges = array![f64::NEG_INFINITY, 2., 3., 4., 5., f64::INFINITY];
 
         let indices = digitize(&xi, &edges);

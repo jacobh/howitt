@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{point::Point, WithElevation};
+use super::{WithElevation, point::Point};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ElevationPoint {

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{delta::*, Point, WithDatetime, WithElevation};
+use super::{Point, WithDatetime, WithElevation, delta::*};
 
 pub trait Progress: Sized {
     type Point: Point;

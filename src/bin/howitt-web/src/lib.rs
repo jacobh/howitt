@@ -1,8 +1,8 @@
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
-use http::{header, Method};
+use http::{Method, header};
 use tower_http::cors::{Any, CorsLayer};
 
 mod app_state;

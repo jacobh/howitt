@@ -5,7 +5,7 @@ use howitt::repos::Repos;
 use itertools::Itertools;
 
 use crate::graphql::context::{RequestData, SchemaData};
-use crate::graphql::schema::{ride::Ride, route::Route, trip::Trip, IsoDate, ModelId};
+use crate::graphql::schema::{IsoDate, ModelId, ride::Ride, route::Route, trip::Trip};
 
 use super::point_of_interest::PointOfInterest;
 

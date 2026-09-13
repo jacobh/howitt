@@ -7,7 +7,7 @@ use crate::{
         ride::{RideId, RidePoints},
     },
     repos::RidePointsRepo,
-    services::simplify_points::{simplify_points_v2, DetailLevel},
+    services::simplify_points::{DetailLevel, simplify_points_v2},
 };
 
 use super::cache::CacheFetcher;

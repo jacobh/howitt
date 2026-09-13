@@ -5,7 +5,7 @@ use tokio_postgres::types::Type;
 
 use howitt::models::point_of_interest::PointOfInterestId;
 use howitt::models::user::UserId;
-use howitt::models::{point_of_interest::PointOfInterest, Model};
+use howitt::models::{Model, point_of_interest::PointOfInterest};
 use howitt::repos::Repo;
 use uuid::Uuid;
 

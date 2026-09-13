@@ -1,6 +1,6 @@
 use geo::{
-    algorithm::line_measures::metric_spaces::Geodesic, Bearing, Destination, Distance, Euclidean,
-    Point,
+    Bearing, Destination, Distance, Euclidean, Point,
+    algorithm::line_measures::metric_spaces::Geodesic,
 };
 
 #[derive(Clone)]

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{user::UserId, Model, ModelName, ModelUuid};
+use super::{Model, ModelName, ModelUuid, user::UserId};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum PointOfInterestType {

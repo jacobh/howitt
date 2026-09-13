@@ -3,8 +3,8 @@ use derive_more::derive::{Display, From};
 use serde::{Deserialize, Serialize};
 
 use super::{
-    point_of_interest::PointOfInterestId, ride::RideId, route::RouteId, trip::TripId, user::UserId,
-    Model, ModelName, ModelUuid,
+    Model, ModelName, ModelUuid, point_of_interest::PointOfInterestId, ride::RideId,
+    route::RouteId, trip::TripId, user::UserId,
 };
 
 pub type MediaId = ModelUuid<{ ModelName::Media }>;

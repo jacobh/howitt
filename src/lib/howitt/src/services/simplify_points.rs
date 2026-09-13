@@ -1,7 +1,7 @@
 use crate::services::euclidean::iter_geo_to_euclidean;
 use derive_more::derive::Display;
-use geo::prelude::*;
 use geo::LineString;
+use geo::prelude::*;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 

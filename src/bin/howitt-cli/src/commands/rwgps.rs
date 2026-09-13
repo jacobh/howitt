@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use crate::Context;
-use clap::{arg, Args, Subcommand};
-use howitt::jobs::rwgps::RwgpsJob;
+use clap::{Args, Subcommand};
 use howitt::jobs::Job;
+use howitt::jobs::rwgps::RwgpsJob;
 use howitt::services::sync::rwgps_v2::select_historical_route_sync_candidates::{
-    select_historical_route_sync_candidates, SyncRouteHistoryParams,
+    SyncRouteHistoryParams, select_historical_route_sync_candidates,
 };
 use howitt::services::sync::rwgps_v2::select_historical_trip_sync_candidates::{
-    select_historical_trip_sync_candidates, SyncTripHistoryParams,
+    SyncTripHistoryParams, select_historical_trip_sync_candidates,
 };
 use howitt::{models::user::UserId, repos::AnyhowRepo};
 use howitt_postgresql::PostgresRepos;

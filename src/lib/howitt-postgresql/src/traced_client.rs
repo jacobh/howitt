@@ -4,13 +4,13 @@ use howitt_observability::TraceSpan;
 use std::{
     ops::Deref,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
 };
 use tokio_postgres::{
-    types::{ToSql, Type},
     Error, GenericClient, Row, Transaction,
+    types::{ToSql, Type},
 };
 
 pub struct TracedClient<C> {

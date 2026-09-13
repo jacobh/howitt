@@ -1,4 +1,4 @@
-use super::{media::MediaId, ride::RideId, user::UserId, Model, ModelName, ModelUuid};
+use super::{Model, ModelName, ModelUuid, media::MediaId, ride::RideId, user::UserId};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 

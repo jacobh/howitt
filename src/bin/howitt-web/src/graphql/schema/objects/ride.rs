@@ -4,8 +4,8 @@ use howitt::{
     models::{
         media::MediaFilter,
         point::{
-            progress::{DistanceProgress, Progress},
             Point,
+            progress::{DistanceProgress, Progress},
         },
         ride::RideId,
     },
@@ -16,7 +16,7 @@ use itertools::Itertools;
 
 use crate::graphql::context::SchemaData;
 
-use crate::graphql::schema::{user::UserProfile, IsoDate, ModelId};
+use crate::graphql::schema::{IsoDate, ModelId, user::UserProfile};
 
 use super::media::Media;
 

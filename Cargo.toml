@@ -2,7 +2,7 @@
 
 members = ["src/*/*"]
 
-resolver = "2"
+resolver = "3"
 
 [profile.worker]
 inherits = "release"

@@ -9,7 +9,7 @@ pub async fn enqueue(env: &worker::Env, job: Job) -> worker::Result<()> {
 /// Read credentials only for queue commands, not for unrelated CLI operations.
 #[cfg(not(target_arch = "wasm32"))]
 pub async fn enqueue(job: Job) -> anyhow::Result<()> {
-    use anyhow::{ensure, Context};
+    use anyhow::{Context, ensure};
 
     let account =
         std::env::var("CLOUDFLARE_ACCOUNT_ID").context("Missing CLOUDFLARE_ACCOUNT_ID")?;

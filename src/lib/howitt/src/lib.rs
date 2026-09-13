@@ -1,5 +1,4 @@
 #![allow(incomplete_features)]
-#![feature(async_closure)]
 #![feature(adt_const_params)]
 #![feature(inherent_associated_types)]
 

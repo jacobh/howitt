@@ -1,6 +1,6 @@
 use std::iter::FromIterator;
 
-use ndarray::{s, Array1, Array2, Axis};
+use ndarray::{Array1, Array2, Axis, s};
 
 use sprs::{CsMat, Shape, TriMat};
 use sprs_ldl::LdlNumeric;
@@ -49,17 +49,9 @@ where
         let row_tail = || diag_row.slice(s![-(n as isize)..]);
 
         let diag = if offset >= 0 {
-            if rows >= cols {
-                row_tail()
-            } else {
-                row_head()
-            }
+            if rows >= cols { row_tail() } else { row_head() }
         } else {
-            if rows >= cols {
-                row_head()
-            } else {
-                row_tail()
-            }
+            if rows >= cols { row_head() } else { row_tail() }
         };
 
         for l in 0..n {

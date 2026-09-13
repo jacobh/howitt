@@ -6,9 +6,11 @@ type TestResult = Result<(), Box<dyn std::error::Error>>;
 async fn pool() -> Result<PostgresPool, Box<dyn std::error::Error>> {
     let url = std::env::var("HOWITT_TEST_DATABASE_URL")?;
     let config: tokio_postgres::Config = url.parse()?;
-    assert!(config
-        .get_dbname()
-        .is_some_and(|name| name.starts_with("howitt_workers_test_")));
+    assert!(
+        config
+            .get_dbname()
+            .is_some_and(|name| name.starts_with("howitt_workers_test_"))
+    );
     assert!(
         matches!(config.get_hosts(), [tokio_postgres::config::Host::Tcp(host)] if host == "127.0.0.1")
     );
@@ -171,10 +173,11 @@ async fn closed_connections_are_replaced_without_replaying_statements() -> TestR
     let pool = pool().await?;
     let conn = pool.acquire().await?;
     let original_pid = pid(&conn).await?;
-    assert!(conn
-        .query_typed_one("SELECT pg_terminate_backend(pg_backend_pid())", &[])
-        .await
-        .is_err());
+    assert!(
+        conn.query_typed_one("SELECT pg_terminate_backend(pg_backend_pid())", &[])
+            .await
+            .is_err()
+    );
     drop(conn);
     assert_ne!(pid(&pool.acquire().await?).await?, original_pid);
     Ok(())

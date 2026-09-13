@@ -1,12 +1,12 @@
 use crate::ext::futures::FuturesIteratorExt;
 use crate::models::{
+    Model,
     media::Media,
     point_of_interest::PointOfInterest,
     ride::{Ride, RidePoints},
     route::{Route, RoutePoints},
     trip::Trip,
     user::User,
-    Model,
 };
 use async_trait::async_trait;
 use std::sync::Arc;

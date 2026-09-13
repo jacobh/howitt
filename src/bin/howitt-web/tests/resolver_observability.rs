@@ -4,14 +4,14 @@ mod tests {
     use std::sync::Arc;
     use std::{collections::HashMap, sync::Mutex};
     use tracing::{
+        Subscriber,
         field::{Field, Visit},
         span::{Attributes, Id, Record},
-        Subscriber,
     };
     use tracing_subscriber::{
+        Layer,
         layer::{Context, SubscriberExt},
         registry::LookupSpan,
-        Layer,
     };
 
     #[derive(Debug, Default)]

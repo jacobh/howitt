@@ -2,7 +2,7 @@ use chrono_tz::Australia::Melbourne;
 use clap::{Args, Subcommand};
 use howitt::{
     repos::AnyhowRepo,
-    services::simplify_points::{simplify_points_v2, DetailLevel},
+    services::simplify_points::{DetailLevel, simplify_points_v2},
 };
 use howitt_postgresql::PostgresRepos;
 use serde_json::json;

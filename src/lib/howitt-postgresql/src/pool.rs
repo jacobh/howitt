@@ -1,14 +1,14 @@
 use std::{
     ops::{Deref, DerefMut},
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
 
 use async_trait::async_trait;
-use futures_util::future::{select, Either};
+use futures_util::future::{Either, select};
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 use tokio_postgres::Client;
 

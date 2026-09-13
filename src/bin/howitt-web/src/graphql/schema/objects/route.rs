@@ -4,8 +4,8 @@ use howitt::{
     models::{
         media::MediaFilter,
         point::{
-            delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
             ElevationPoint,
+            delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
         },
         route::RouteId,
         tag::Tag,
@@ -18,11 +18,11 @@ use itertools::Itertools;
 use crate::graphql::context::SchemaData;
 
 use crate::graphql::schema::{
+    ModelId,
     cue::Cue,
     external_ref::ExternalRef,
     geo::{PointDelta, SlopeEnd},
     user::UserProfile,
-    ModelId,
 };
 
 use super::media::Media;

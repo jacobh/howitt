@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     point::{
-        delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
         ElevationPoint, Point, WithElevation,
+        delta::{BearingDelta, Delta, DistanceDelta, ElevationDelta},
     },
     slope_end::SlopeEnd,
 };

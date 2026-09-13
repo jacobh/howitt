@@ -107,7 +107,7 @@ impl TimezoneLookup {
                 .asset("combined-with-oceans.reduce.preindex.pb")
                 .await?;
             Ok(Rc::new(FuzzyFinder::from_pb(
-                tzf_rs::gen::PreindexTimezones::try_from(bytes)?,
+                tzf_rs::r#gen::PreindexTimezones::try_from(bytes)?,
             )))
         })
         .await?;
@@ -117,9 +117,9 @@ impl TimezoneLookup {
         }
         let polygons = load_cached(&self.initialization, &POLYGONS, async {
             let bytes = self.asset("combined-with-oceans.reduce.pb").await?;
-            Ok(Rc::new(Finder::from_pb(tzf_rs::gen::Timezones::try_from(
-                bytes,
-            )?)))
+            Ok(Rc::new(Finder::from_pb(
+                tzf_rs::r#gen::Timezones::try_from(bytes)?,
+            )))
         })
         .await?;
         Ok(lookup(&polygons, &fuzzy, lng, lat).to_string())
@@ -130,9 +130,9 @@ impl TimezoneLookup {
 mod tests {
     use super::*;
     use futures::{
+        FutureExt,
         future::{join_all, poll_fn},
         lock::Mutex,
-        FutureExt,
     };
     use std::{
         cell::{Cell, RefCell},

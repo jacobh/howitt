@@ -5,7 +5,7 @@ use axum::{
     response::IntoResponse,
 };
 use howitt::services::user::auth::Login;
-use http::{header, request::Parts, StatusCode};
+use http::{StatusCode, header, request::Parts};
 
 use crate::{app_state::AppState, graphql::credentials::Credentials};
 

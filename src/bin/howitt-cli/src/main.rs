@@ -1,5 +1,3 @@
-#![feature(async_closure)]
-
 use clap::{Parser, Subcommand};
 use howitt_postgresql::{PostgresPool, PostgresRepos};
 

@@ -1,7 +1,7 @@
 use sanitize_filename::sanitize;
 
 use crate::models::{
-    media::{ImageSpec, ImageContentType, MediaId},
+    media::{ImageContentType, ImageSpec, MediaId},
     user::UserId,
 };
 
@@ -132,7 +132,7 @@ mod tests {
 
         let key = generate_resized_media_key(params);
         assert_eq!(
-            key, 
+            key,
             "resizes/user/9d25a949-c374-4f22-9ca8-1c17d4982384/media/7f9c24e5-2c44-4a8e-95d3-a515bf484018_fit_800x600.webp"
         );
     }

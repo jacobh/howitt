@@ -7,7 +7,7 @@ use howitt::{
     },
     repos::RouteRepo,
     services::{
-        simplify_points::{simplify_points_v2, DetailLevel},
+        simplify_points::{DetailLevel, simplify_points_v2},
         slug::generate_slug,
     },
 };
