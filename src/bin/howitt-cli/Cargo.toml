@@ -4,27 +4,27 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-clap = { version = "=4.5.26", features = ["derive"] }
+clap = { version = "=4.6.6", features = ["derive"] }
 howitt = { path = "../../lib/howitt" }
 howitt-postgresql = { path = "../../lib/howitt-postgresql" }
 howitt_clients = { path = "../../lib/howitt-clients" }
 howitt_client_types = { path = "../../lib/howitt-client-types" }
 howitt_jobs = { path = "../../lib/howitt-jobs" }
-anyhow = "=1.0.95"
-rayon = "=1.10.0"
+anyhow = "=1.0.104"
+rayon = "=1.12.0"
 rwgps = { path = "../../lib/rwgps" }
 rwgps_types = { path = "../../lib/rwgps-types" }
 toml = "=0.8.19"
 serde_json = "=1.0.151"
 inquire = "=0.7.5"
-tokio = { version = "=1.43.0", features = ["full"] }
+tokio = { version = "=1.53.1", features = ["full"] }
 gpx = "=0.10.0"
 itertools = "=0.14.0"
 prettytable-rs = "=0.10.0"
 ulid = "=1.1.4"
 chrono = "=0.4.45"
-uuid = { version = "=1.12.0", features = ["v7"] }
-chrono-tz = "=0.10.1"
+uuid = { version = "=1.26.1", features = ["v7"] }
+chrono-tz = "=0.10.4"
 derive_more = { version = "=1.0.0", features = ["full"] }
 mapbox-geocoding = { path = "../../lib/mapbox-geocoding" }
 open-meteo = { path = "../../lib/open-meteo" }

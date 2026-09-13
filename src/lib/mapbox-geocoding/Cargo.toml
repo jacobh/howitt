@@ -7,4 +7,4 @@ edition = "2024"
 serde = { version = "=1.0.229", features = ["derive"] }
 reqwest = { version = "=0.12.12", features = ["json"] }
 serde_urlencoded = "=0.7.1"
-url = "=2.5.4"
+url = "=2.5.8"

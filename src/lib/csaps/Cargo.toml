@@ -23,7 +23,7 @@ coveralls = { repository = "espdev/csaps-rs", branch = "master", service = "gith
 
 [dependencies]
 ndarray = "=0.16.1"
-sprs = "=0.11.2"
+sprs = "=0.11.5"
 sprs-ldl = "=0.10.0"
 almost = "=0.2.0"
 itertools = "=0.14.0"

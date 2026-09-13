@@ -1,8 +1,8 @@
 ---
-source: howitt/src/services/lerp.rs
-expression: result
+source: src/lib/howitt/src/services/lerp.rs
+expression: "serde_json::json!({ \"items\": result })"
 ---
-[
+items = [
     [
     5.0,
     'a',

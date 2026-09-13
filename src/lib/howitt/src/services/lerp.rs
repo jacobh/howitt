@@ -318,6 +318,6 @@ mod tests {
             .map(|(x, y)| (x.round2(), y))
             .collect_vec();
 
-        insta::assert_toml_snapshot!(result);
+        insta::assert_toml_snapshot!(serde_json::json!({ "items": result }));
     }
 }

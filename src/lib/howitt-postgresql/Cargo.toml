@@ -11,23 +11,23 @@ derive_more = { version = "=1.0.0", features = ["full"] }
 howitt = { path = "../howitt" }
 howitt-observability = { path = "../howitt-observability" }
 serde_json = "=1.0.151"
-uuid = "=1.12.0"
+uuid = "=1.26.1"
 itertools = "=0.14.0"
 thiserror = "=2.0.20"
 chrono = "=0.4.45"
 tokio-postgres = { version = "=0.7.18", default-features = false, features = ["with-uuid-1", "with-chrono-0_4", "with-serde_json-1"] }
-tokio = { version = "=1.43.0", default-features = false, features = ["sync"] }
-tracing = "=0.1.41"
+tokio = { version = "=1.53.1", default-features = false, features = ["sync"] }
+tracing = "=0.1.44"
 argon2 = "=0.5.3"
-chrono-tz = "=0.10.1"
-futures-util = "=0.3.31"
-futures-timer = { version = "=3.0.3", features = ["wasm-bindgen"] }
+chrono-tz = "=0.10.4"
+futures-util = "=0.3.34"
+futures-timer = { version = "=3.0.4", features = ["wasm-bindgen"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio-postgres = { version = "=0.7.18", features = ["runtime"] }
 postgres-native-tls = "=0.5.3"
-native-tls = "=0.2.12"
-tokio = { version = "=1.43.0", features = ["rt"] }
+native-tls = "=0.2.18"
+tokio = { version = "=1.53.1", features = ["rt"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 tokio-postgres = { version = "=0.7.18", default-features = false, features = ["js"] }
@@ -35,5 +35,5 @@ worker = { version = "=0.8.5", features = ["tokio-postgres"] }
 
 [dev-dependencies]
 test-case = "=3.3.1"
-tokio = { version = "=1.43.0", features = ["macros", "rt", "time"] }
+tokio = { version = "=1.53.1", features = ["macros", "rt", "time"] }
 geo = "=0.29.3"

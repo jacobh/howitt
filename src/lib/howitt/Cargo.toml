@@ -14,8 +14,8 @@ chrono = "=0.4.45"
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = { version = "=1.0.151" }
 itertools = "=0.14.0"
-uuid = { version = "=1.12.0", features = ["serde", "v7"] }
-anyhow = "=1.0.95"
+uuid = { version = "=1.26.1", features = ["serde", "v7"] }
+anyhow = "=1.0.104"
 async-trait = "=0.1.92"
 bincode = "=1.3.3"
 ulid = { version = "=1.1.4", features = ["serde"] }
@@ -25,31 +25,31 @@ rwgps_types = { path = "../rwgps-types" }
 howitt_client_types = { path = "../howitt-client-types" }
 howitt-observability = { path = "../howitt-observability" }
 csaps = { path = "../csaps" }
-futures = "=0.3.31"
+futures = "=0.3.34"
 ordered-float = "=4.6.0"
 toml = "=0.8.19"
-once_cell = "=1.20.2"
-tokio = { version = "=1.43.0", features = ["rt", "sync"] }
-either = { version = "=1.13.0", features = ["serde"] }
+once_cell = "=1.21.4"
+tokio = { version = "=1.53.1", features = ["rt", "sync"] }
+either = { version = "=1.18.0", features = ["serde"] }
 num = "=0.4.3"
-url = { version = "=2.5.4", features = ["serde"] }
+url = { version = "=2.5.8", features = ["serde"] }
 almost = "=0.2.0"
 bytes = "=1.12.1"
 argon2 = "=0.5.3"
 jsonwebtoken = { version = "=9.3.0", default-features = false }
-regex = "=1.11.1"
+regex = "=1.13.1"
 sanitize-filename = "=0.6.0"
-tracing = "=0.1.41"
-rustc-hash = "=2.1.0"
+tracing = "=0.1.44"
+rustc-hash = "=2.1.3"
 
 [dev-dependencies]
-insta = { version = "=1.42.0", features = ["toml"] }
+insta = { version = "=1.48.0", features = ["toml"] }
 test-case = "=3.3.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-rayon = "=1.10.0"
+rayon = "=1.12.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-uuid = { version = "=1.12.0", features = ["js"] }
+uuid = { version = "=1.26.1", features = ["js"] }
 getrandom = { version = "=0.2.15", features = ["js"] }
-ring = { version = "=0.17.8", features = ["wasm32_unknown_unknown_js"] }
+ring = { version = "=0.17.14", features = ["wasm32_unknown_unknown_js"] }
