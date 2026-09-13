@@ -12,7 +12,7 @@ Howitt is a web application for planning and tracking cycling/bikepacking routes
 - **Backend**: Rust with Axum web framework, GraphQL (async-graphql), PostgreSQL with PostGIS
 - **Frontend**: React 19 with Remix v2/Vite, TypeScript, Apollo Client, OpenLayers for maps
 - **API Gateway**: TypeScript server using Bun and Hono framework
-- **Infrastructure**: AWS CDK (S3, CloudFront, DynamoDB), Kubernetes
+- **Infrastructure**: Cloudflare Workers/Queues and AWS CDK (S3, CloudFront, DynamoDB)
 - **Runtime**: Bun for JavaScript/TypeScript services
 
 ### Project Structure
@@ -24,7 +24,6 @@ Howitt is a web application for planning and tracking cycling/bikepacking routes
 - `webui/` - React/Remix frontend application
 - `ts-api/` - TypeScript API gateway for water features
 - `cdk/` - AWS infrastructure as code
-- `k8s/` - Kubernetes manifests
 - `data/` - GPX routes, GTFS data, and other data files
 
 ### Key Concepts
@@ -87,11 +86,6 @@ cd cdk
 npm run cdk synth    # Synthesize CloudFormation
 npm run cdk deploy   # Deploy stack
 npm run cdk diff     # Compare with deployed
-
-# Kubernetes
-kubectl apply -f k8s/
-kubectl get deployments
-kubectl logs -f deployment/howitt-web-api
 ```
 
 ## Frontend Development (React/Remix)
@@ -280,33 +274,30 @@ Located in `/cdk/` directory:
    - CloudFront distribution for media delivery
    - S3 backups bucket with lifecycle rules
 
-### Kubernetes Infrastructure
-Located in `/k8s/` directory:
-
-#### Services
-1. **howitt-web-api**: Main Rust-based GraphQL API (port 8000)
-2. **howitt-ts-api**: TypeScript API service (port 80)
-3. **howitt-webui**: React/Remix web frontend (port 80)
-4. **howitt-worker**: Background job processor
-5. **howitt-db-backup**: Daily PostgreSQL backup job
-
-#### Ingress Configuration
-- Uses Traefik as ingress controller
-- cert-manager for Let's Encrypt SSL certificates
-- Domains:
-  - howittplains.net → webui
-  - api.howittplains.net → web-api
-  - ts-api.howittplains.net → ts-api
+### Cloudflare Infrastructure
+- `wrangler.toml`: Rust/Wasm API Worker at `api.howittplains.net`
+- `webui/wrangler.toml`: frontend Worker at `howittplains.net`
+- `wrangler.jobs.toml`: background jobs Worker consuming Cloudflare Queues
+- See `docs/cloudflare-jobs.md` and `webui/README.md` for verification and deployment.
+- The water page still depends on the separate `ts-api.howittplains.net` service.
+  Its source and standalone Dockerfile remain; deployment automation is not provided.
 
 ### Database Backup Strategy
-- **Daily**: Every day at 3 AM Brisbane time, 30-day retention
-- **Weekly**: Every Monday, 180-day retention
-- **Monthly**: 1st of each month, Glacier storage
+- `bash scripts/backup-db.sh` preserves the PostgreSQL-to-S3 backup operation.
+  It requires `DATABASE_URL`, AWS credentials, `pg_dump`, `zstd`, and the AWS CLI.
+  Obtain approval before running it against shared data or writing to S3.
+- The script uses UTC dates: every run uploads a daily backup, Mondays also upload
+  a weekly backup, and the first of the month also uploads a monthly backup.
+- CDK retains the backup bucket and its lifecycle rules: daily backups expire after
+  30 days, weekly after 180 days, and monthly transition to Glacier after one day.
+- No backup scheduler is defined in this repository. Removing deployment config
+  does not stop an existing backup job; confirm replacement scheduling separately
+  before retiring any live job.
 
 ### CI/CD Pipeline
 - **CDK Deployment**: Automatic on push to main
-- **Kubernetes Deployment**: Matrix build for all services
-- Docker images pushed to GitHub Container Registry
+- Cloudflare deployment commands remain in the root and frontend package scripts;
+  automatic Cloudflare CI deployment is not configured.
 
 ## Common Patterns & Conventions
 
@@ -337,7 +328,7 @@ Located in `/k8s/` directory:
 
 ### Environment Variables
 - **Development**: `.env` files (not committed)
-- **Production**: Kubernetes secrets and AWS Parameter Store
+- **Production**: Cloudflare Worker secrets/bindings and AWS Parameter Store
 - **Key variables**: 
   - DATABASE_URL, REDIS_URL
   - JWT_SECRET
@@ -405,29 +396,13 @@ cd webui && bun run dev         # Terminal 3
 cd ts-api && bun run dev        # Terminal 4
 ```
 
-### Port Forwarding for Kubernetes
-```bash
-kubectl port-forward service/howitt-web-api 8000:80
-kubectl port-forward service/howitt-webui 3000:80
-```
-
 ## Emergency Procedures
 
-### Rollback Deployment
-```bash
-kubectl rollout history deployment/howitt-web-api
-kubectl rollout undo deployment/howitt-web-api
-```
-
 ### Database Recovery
-1. Stop write traffic (scale down web-api and worker)
+Production recovery requires explicit approval; do not execute it as part of local verification.
+
+1. Pause write traffic and queue processing using the relevant hosting controls
 2. Download appropriate backup from S3
 3. Restore to new database instance
-4. Update DATABASE_URL secret
-5. Restart services
-
-### Emergency Scale Down
-```bash
-kubectl scale deployment/howitt-web-api --replicas=0
-kubectl scale deployment/howitt-web-api --replicas=1  # Scale back up
-```
+4. Update database connection configuration, including Hyperdrive and native client secrets
+5. Verify connectivity and resume write traffic and queue processing
