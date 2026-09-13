@@ -295,10 +295,9 @@ Located in `/cdk/` directory:
   before retiring any live job.
 
 ### CI/CD Pipeline
-- **CDK Deployment**: Automatic on push to main
-- **Cloudflare Workers**: `.github/workflows/cloudflare.yml` validates PRs and
-  deploys main through the `Production` environment. See
-  `docs/cloudflare-deployments.md` for required secrets and setup.
+- Pushes to `main`, including documentation-only changes, automatically deploy
+  Cloudflare Workers and CDK to production. Cloudflare PR runs validate only.
+- See `docs/cloudflare-deployments.md` for Cloudflare deployment setup and commands.
 
 ## Common Patterns & Conventions
 

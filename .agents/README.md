@@ -53,3 +53,8 @@ To verify setup changes, run `bash -n` and `shellcheck` on both lifecycle script
 then time `.agents/setup` twice and run `.agents/resume` from a fresh login shell.
 The scripts must retain their executable Git mode. Future orbs use these files
 only after they reach the project's default branch.
+
+## Shipping and CI deployments
+
+Pushes to `main` automatically deploy Cloudflare Workers and CDK to production;
+orb setup/resume does not. See [deployment guidance](../docs/cloudflare-deployments.md).
