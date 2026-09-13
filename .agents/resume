@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+# No installs, credentials, or service restarts on wake. Fail fast if the
+# snapshot is incomplete; supervised services keep their own lifecycle.
+for tool in cargo bun worker-build; do
+  command -v "$tool" >/dev/null
+done
+test -f "$HOME/.local/share/howitt-orb/postgres/PG_VERSION"

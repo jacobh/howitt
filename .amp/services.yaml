@@ -1,0 +1,7 @@
+services:
+  postgres:
+    command: exec /usr/lib/postgresql/15/bin/postgres -D "$HOME/.local/share/howitt-orb/postgres" -p "$PORT"
+    port: 5432
+  redis:
+    command: exec redis-server --bind 127.0.0.1 --port "$PORT" --save '' --appendonly no
+    port: 6379

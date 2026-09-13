@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+repo_root="$PWD"
+
+step() {
+  local started=$SECONDS
+  printf '\n==> %s\n' "$*"
+  "$@"
+  printf '==> Completed in %ss\n' "$((SECONDS - started))"
+}
+
+# Debian backports supplies libheif >= 1.18, required by Cargo.lock.
+packages=(build-essential pkg-config clang llvm cmake libssl-dev libzstd-dev
+  libwebp-dev libheif-dev postgresql-15 postgresql-15-postgis-3 redis-server uuid-runtime shellcheck)
+missing=()
+for package in "${packages[@]}"; do
+  if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -qx 'install ok installed'; then
+    missing+=("$package")
+  fi
+done
+if ((${#missing[@]})) || ! pkg-config --atleast-version=1.18 libheif; then
+  echo 'deb https://deb.debian.org/debian bookworm-backports main' |
+    sudo tee /etc/apt/sources.list.d/howitt-backports.list >/dev/null
+  step sudo apt-get update -qq
+  if ((${#missing[@]})); then
+    step sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing[@]}"
+  fi
+  step sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -t bookworm-backports libheif-dev
+fi
+
+export PATH="$HOME/.cargo/bin:$HOME/.bun/bin:$PATH"
+if ! command -v rustup >/dev/null; then
+  step curl --fail --silent --show-error --retry 3 https://sh.rustup.rs -o /tmp/howitt-rustup.sh
+  step sh /tmp/howitt-rustup.sh -y --profile minimal --default-toolchain none --no-modify-path
+  rm /tmp/howitt-rustup.sh
+fi
+# Pin the orb toolchain without changing the toolchain used outside orbs.
+# Newer nightlies change never-type fallback and break the locked apalis-redis.
+# Matches the developer's rustc 1.98.0-nightly (3daae5e42 2026-06-14).
+toolchain=nightly-2026-06-15
+if ! rustup toolchain list | grep -q "^$toolchain-"; then
+  step rustup toolchain install "$toolchain" --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+fi
+step rustup override set "$toolchain"
+step rustup component add rustfmt clippy
+step rustup target add wasm32-unknown-unknown
+
+if ! command -v bun >/dev/null || [[ "$(bun --version)" != 1.3.10 ]]; then
+  step curl --fail --silent --show-error --retry 3 https://bun.com/install -o /tmp/howitt-bun-install.sh
+  step bash /tmp/howitt-bun-install.sh bun-v1.3.10
+  rm /tmp/howitt-bun-install.sh
+fi
+for directory in . webui ts-api cdk; do
+  (cd "$directory"; step bun install --frozen-lockfile)
+done
+step cargo fetch --locked
+if ! cargo install --list | grep -qx 'worker-build v0.8.5:'; then
+  step cargo install worker-build --version 0.8.5 --locked
+fi
+
+# Persist paths for Amp and supervised services, not just this setup process.
+marker='# Howitt orb toolchain and disposable database tools'
+if ! grep -Fqx "$marker" "$HOME/.bash_profile" 2>/dev/null; then
+  cat >> "$HOME/.bash_profile" <<EOF
+
+$marker
+case "\$PWD/" in
+  "$repo_root/"*)
+    export PATH="\$HOME/.cargo/bin:\$HOME/.bun/bin:\$PATH"
+    export PG_BIN=/usr/lib/postgresql/15/bin
+    export PG_USER=howitt_orb
+    ;;
+esac
+EOF
+fi
+
+# A separate loopback-only cluster, never DATABASE_URL or a shared database.
+# Services own running processes; setup only initializes the on-disk cluster.
+pgdata="$HOME/.local/share/howitt-orb/postgres"
+if [[ ! -f "$pgdata/PG_VERSION" ]]; then
+  mkdir -p "$pgdata"
+  step /usr/lib/postgresql/15/bin/initdb -D "$pgdata" -U howitt_orb --auth-local=trust --auth-host=trust
+  cat >> "$pgdata/postgresql.conf" <<'EOF'
+
+# Disposable orb databases only. Do not use these settings in production.
+listen_addresses = '127.0.0.1'
+unix_socket_directories = '/tmp'
+fsync = off
+synchronous_commit = off
+full_page_writes = off
+EOF
+fi
+echo 'Setup ready. Run amp orb services ensure for local PostgreSQL/PostGIS and Redis.'
