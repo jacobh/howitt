@@ -1,4 +1,4 @@
-use itertools::{Itertools, Position};
+use itertools::Itertools;
 
 use crate::ext::iter::ScanAllExt;
 
@@ -19,10 +19,7 @@ pub fn generate_cuesheet(route: &[ElevationPoint], pois: &[PointOfInterest]) -> 
     let partitioned_points = route
         .iter()
         .with_position()
-        .map(|(position, point)| match position {
-            Position::First | Position::Middle => (point, false),
-            Position::Last | Position::Only => (point, true),
-        })
+        .map(|(position, point)| (point, position.is_last()))
         .scan_all(vec![], |state, (point, is_last)| {
             state.push(point);
 

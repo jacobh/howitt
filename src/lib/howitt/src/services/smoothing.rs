@@ -29,18 +29,15 @@ fn filter_duplicate_points(points: Vec<ElevationPoint>) -> Vec<ElevationPoint> {
 
     std::iter::zip(points, deltas)
         .with_position()
-        .filter_map(
-            |(position, (point, DistanceDelta(distance)))| match position {
-                itertools::Position::First | itertools::Position::Only => Some(point),
-                itertools::Position::Middle | itertools::Position::Last => {
-                    if almost::zero(distance) {
-                        None
-                    } else {
-                        Some(point)
-                    }
-                }
-            },
-        )
+        .filter_map(|(position, (point, DistanceDelta(distance)))| {
+            if position.is_first() {
+                Some(point)
+            } else if almost::zero(distance) {
+                None
+            } else {
+                Some(point)
+            }
+        })
         .collect_vec()
 }
 

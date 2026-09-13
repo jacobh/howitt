@@ -12,7 +12,7 @@ howitt = { path = "../howitt" }
 howitt-observability = { path = "../howitt-observability" }
 serde_json = "=1.0.151"
 uuid = "=1.26.1"
-itertools = "=0.14.0"
+itertools = "=0.15.0"
 thiserror = "=2.0.20"
 chrono = "=0.4.45"
 tokio-postgres = { version = "=0.7.18", default-features = false, features = ["with-uuid-1", "with-chrono-0_4", "with-serde_json-1"] }
