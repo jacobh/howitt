@@ -7,6 +7,6 @@ edition = "2024"
 
 [dependencies]
 thiserror = "=2.0.20"
-zip = "=2.2.2"
+zip = "=8.6.0"
 csv = "=1.4.0"
 serde = { version = "=1.0.229", features = ["derive"] }
