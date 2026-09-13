@@ -1,0 +1,106 @@
+name: Cloudflare Workers
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never interrupt a production rollout between Workers. PR runs are independent.
+concurrency:
+  group: cloudflare-${{ github.ref == 'refs/heads/main' && 'production' || github.ref }}
+  cancel-in-progress: false
+
+env:
+  WRANGLER_SEND_METRICS: "false"
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          # Keep aligned with .agents/setup and worker-build's locked version.
+          toolchain: nightly-2026-06-15
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: cloudflare-wasm
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm cmake pkg-config libssl-dev
+          if ! cargo install --list | grep -qx 'worker-build v0.8.5:'; then
+            CARGO_PROFILE_DEV_DEBUG=0 cargo install worker-build --version 0.8.5 --locked --debug
+          fi
+      - name: Install locked dependencies
+        run: |
+          bun install --frozen-lockfile
+          bun install --frozen-lockfile --cwd webui
+      - name: Test observability
+        run: bun run test:observability
+      - name: Check frontend
+        working-directory: webui
+        run: |
+          bun run typecheck
+          bun run lint
+          bun run test
+      - name: Build and dry-run all Workers
+        run: |
+          bun run check:jobs
+          bun run check:worker
+          (cd webui && bun run check:worker)
+
+  deploy:
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: Production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-06-15
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: cloudflare-wasm
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm cmake pkg-config libssl-dev
+          if ! cargo install --list | grep -qx 'worker-build v0.8.5:'; then
+            CARGO_PROFILE_DEV_DEBUG=0 cargo install worker-build --version 0.8.5 --locked --debug
+          fi
+      - name: Install locked dependencies
+        run: |
+          bun install --frozen-lockfile
+          bun install --frozen-lockfile --cwd webui
+      - name: Deploy consumer, API, then frontend
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo 'Missing CLOUDFLARE_ACCOUNT_ID'; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo 'Missing CLOUDFLARE_API_TOKEN'; exit 1; }
+          bun run deploy:jobs
+          bun run deploy:worker
+          (cd webui && bun run deploy:worker)

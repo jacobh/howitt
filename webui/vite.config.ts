@@ -13,19 +13,21 @@ import tsconfigPaths from "vite-tsconfig-paths";
 //   }
 // }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   server: {
     port: 3000,
   },
   plugins: [
-    cloudflareDevProxyVitePlugin<WebuiEnv, Record<string, unknown>>({
-      getLoadContext: ({ context }) => ({
-        apiBaseUrl: context.cloudflare.env.API_BASE_URL,
-        apiFetch: context.cloudflare.env.API.fetch.bind(
-          context.cloudflare.env.API,
-        ),
+    // The remote API proxy is for development, never credential-free CI builds.
+    command === "serve" &&
+      cloudflareDevProxyVitePlugin<WebuiEnv, Record<string, unknown>>({
+        getLoadContext: ({ context }) => ({
+          apiBaseUrl: context.cloudflare.env.API_BASE_URL,
+          apiFetch: context.cloudflare.env.API.fetch.bind(
+            context.cloudflare.env.API,
+          ),
+        }),
       }),
-    }),
     remix({
       future: {
         v3_fetcherPersist: true,
@@ -47,4 +49,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["ionicons"],
   },
-});
+}));

@@ -296,8 +296,9 @@ Located in `/cdk/` directory:
 
 ### CI/CD Pipeline
 - **CDK Deployment**: Automatic on push to main
-- Cloudflare deployment commands remain in the root and frontend package scripts;
-  automatic Cloudflare CI deployment is not configured.
+- **Cloudflare Workers**: `.github/workflows/cloudflare.yml` validates PRs and
+  deploys main through the `Production` environment. See
+  `docs/cloudflare-deployments.md` for required secrets and setup.
 
 ## Common Patterns & Conventions
 

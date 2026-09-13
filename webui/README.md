@@ -38,6 +38,6 @@ Deployed 2026-09-12: frontend version `ea78e524-685b-44c2-81de-0225948b747d`, ba
 
 Type checking, ESLint, the Apollo fetch/auth regression test, and deployment builds pass. Live browser checks cover the route list, individual route details, map rendering and server-rendered route data via the service binding. Live signup or other database writes are not part of smoke testing.
 
-The former Express server, Dockerfile and webui K3s CI matrix entries were removed. The frontend Worker uses `howittplains.net` and the backend Worker uses `api.howittplains.net` as custom domains; automatic Cloudflare CI deployment is not configured.
+The former Express server, Dockerfile and webui K3s CI matrix entries were removed. The frontend Worker uses `howittplains.net` and the backend Worker uses `api.howittplains.net` as custom domains. GitHub Actions validates PRs and deploys main through the `Production` environment; see [deployment setup](../docs/cloudflare-deployments.md) for secrets, approval requirements and rollout behavior.
 
 Backend integration exposed a Hyperdrive incompatibility with named PostgreSQL prepared statements while result caching is disabled. All repository operations now use typed unnamed statements; local tests cover row codecs, writes, transactions/rollback, native reconnect and the real Wasm API.
