@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   server: {
+    allowedHosts: [".onamp.dev"],
     port: 3000,
   },
   plugins: [

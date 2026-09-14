@@ -18,8 +18,8 @@ import { tokens } from "~/styles/tokens";
 import { DataTable } from "~/components/DataTable";
 import { capitalize } from "es-toolkit";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
-import { buildRouteTrack } from "~/components/map/types";
-import { useMemo } from "react";
+import { buildRouteTrack, Marker } from "~/components/map/types";
+import { useMemo, useState } from "react";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const RouteQuery = gql(`
@@ -101,6 +101,9 @@ const tagLinkCss = css`
 
 export default function Route(): React.ReactElement {
   const params = useParams();
+  const [hoveredPointIndex, setHoveredPointIndex] = useState<
+    number | undefined
+  >();
 
   const { data, loading } = useQuery(RouteQuery, {
     variables: { slug: params.slug ?? "" },
@@ -114,18 +117,41 @@ export default function Route(): React.ReactElement {
     ),
   );
 
-  const tracks = [
-    route ? buildRouteTrack(route) : undefined,
-    ...nearbyRoutes.map((nearby) =>
-      buildRouteTrack(nearby.closestTerminus.route, "muted"),
-    ),
-  ].filter((track) => isNotNil(track));
+  const tracks = useMemo(
+    () =>
+      [
+        route ? buildRouteTrack(route) : undefined,
+        ...(route?.termini ?? []).flatMap((terminus) =>
+          terminus.nearbyRoutes
+            .filter(
+              (nearby) => nearby.closestTerminus.route.id !== route?.id,
+            )
+            .map((nearby) =>
+              buildRouteTrack(nearby.closestTerminus.route, "muted"),
+            ),
+        ),
+      ].filter((track) => isNotNil(track)),
+    [route],
+  );
 
   const initialView = useMemo(
     () =>
       route ? { type: "tracks" as const, trackIds: [route.id] } : undefined,
     [route],
   );
+
+  const markers = useMemo((): Marker[] => {
+    if (!route || hoveredPointIndex === undefined) {
+      return [];
+    }
+
+    const point = tracks.find(({ id }) => id === route.id)?.points[
+      hoveredPointIndex
+    ];
+    return point
+      ? [{ id: "elevation-profile", point, style: "elevation" }]
+      : [];
+  }, [route, hoveredPointIndex, tracks]);
 
   const tableItems = [
     { name: "Technical Difficulty", value: route?.technicalDifficulty },
@@ -191,7 +217,10 @@ export default function Route(): React.ReactElement {
                 </section>
               )}
               <section css={contentSectionCss}>
-                <ElevationProfile data={route} />
+                <ElevationProfile
+                  data={route}
+                  onPointHover={setHoveredPointIndex}
+                />
               </section>
 
               {tableItems.length > 0 && (
@@ -236,7 +265,11 @@ export default function Route(): React.ReactElement {
         </div>
       </SidebarContainer>
       <MapContainer>
-        <PrimaryMap tracks={tracks} initialView={initialView} />
+        <PrimaryMap
+          tracks={tracks}
+          markers={markers}
+          initialView={initialView}
+        />
       </MapContainer>
     </Container>
   );

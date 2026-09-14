@@ -11,8 +11,8 @@ import { gql } from "~/__generated__";
 import { useQuery } from "@apollo/client/react";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { PrimaryMap } from "~/components/map/PrimaryMap";
-import { buildRideTrack } from "~/components/map/types";
-import { useMemo } from "react";
+import { buildRideTrack, Marker } from "~/components/map/types";
+import { useMemo, useState } from "react";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { PointsDetail } from "~/__generated__/graphql";
 
@@ -37,6 +37,9 @@ const RidesWithDateQuery = gql(`
 
 function UserProfileDate(): React.ReactElement {
   const params = useParams();
+  const [hoveredPoint, setHoveredPoint] = useState<
+    { rideId: string; pointIndex: number } | undefined
+  >();
 
   const { data, loading } = useQuery(RidesWithDateQuery, {
     variables: {
@@ -65,6 +68,28 @@ function UserProfileDate(): React.ReactElement {
         : undefined,
     [data],
   );
+
+  const rides =
+    data2?.userWithUsername?.ridesWithDate ??
+    data?.userWithUsername?.ridesWithDate;
+
+  const tracks = useMemo(
+    () => rides?.map((ride) => buildRideTrack(ride)) ?? [],
+    [rides],
+  );
+
+  const markers = useMemo((): Marker[] => {
+    if (!hoveredPoint) {
+      return [];
+    }
+
+    const point = tracks.find(({ id }) => id === hoveredPoint.rideId)?.points[
+      hoveredPoint.pointIndex
+    ];
+    return point
+      ? [{ id: "elevation-profile", point, style: "elevation" }]
+      : [];
+  }, [hoveredPoint, tracks]);
 
   // Format the date for display using Temporal
   const displayDate = useMemo(() => {
@@ -115,7 +140,16 @@ function UserProfileDate(): React.ReactElement {
               data.userWithUsername.ridesWithDate.map((ride) => (
                 <div key={ride.id}>
                   <div css={{ marginTop: "12px" }}>
-                    <ElevationProfile data={ride} />
+                    <ElevationProfile
+                      data={ride}
+                      onPointHover={(pointIndex): void =>
+                        setHoveredPoint(
+                          pointIndex === undefined
+                            ? undefined
+                            : { rideId: ride.id, pointIndex },
+                        )
+                      }
+                    />
                   </div>
                   <RideSummary ride={ride} />
                 </div>
@@ -133,10 +167,8 @@ function UserProfileDate(): React.ReactElement {
       <MapContainer>
         <PrimaryMap
           initialView={initialView}
-          tracks={(
-            data2?.userWithUsername?.ridesWithDate ??
-            data?.userWithUsername?.ridesWithDate
-          )?.map((ride) => buildRideTrack(ride))}
+          tracks={tracks}
+          markers={markers}
         />
       </MapContainer>
     </Container>

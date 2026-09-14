@@ -35,6 +35,13 @@ const MARKER_STYLES = {
       radius: 16,
     }),
   }),
+  elevation: new Style({
+    image: new Circle({
+      fill: new Fill({ color: "#ffffff" }),
+      stroke: new Stroke({ color: "#7164c7", width: 3 }),
+      radius: 7,
+    }),
+  }),
 };
 
 export function useMarkerLayers({ map, markers }: UseMarkerLayersProps): void {

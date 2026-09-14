@@ -11,7 +11,7 @@ export interface Marker {
   id: string;
   point: [number, number];
   label?: string;
-  style?: "default" | "muted" | "highlighted";
+  style?: "default" | "muted" | "highlighted" | "elevation";
 }
 
 type TrackLike = { id: string; pointsJson: string };
