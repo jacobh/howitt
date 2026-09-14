@@ -14,12 +14,6 @@ mod jobs;
 mod timezone;
 pub use graphql::observability::ResolverTracing;
 
-fn disabled_routes() -> Router {
-    Router::new()
-        .route("/upload/media", post(handlers::disabled::handler))
-        .layer(cors())
-}
-
 fn webhook_router(state: app_state::RwgpsWebhookState) -> Router {
     Router::new()
         .route("/webhooks/rwgps", post(handlers::rwgps::webhook_handler))
@@ -45,8 +39,13 @@ fn router(state: app_state::AppState) -> Router {
             "/auth/rwgps/callback",
             get(handlers::rwgps::auth_callback_handler),
         )
+        .route(
+            "/upload/media",
+            post(handlers::media::handler).layer(axum::extract::DefaultBodyLimit::max(
+                handlers::media::MAX_FILE_BYTES + 16_384,
+            )),
+        )
         .with_state(state)
-        .merge(disabled_routes())
         .layer(cors())
 }
 
@@ -156,6 +155,21 @@ mod runtime {
             repos,
             jobs,
             rwgps,
+            images: if env
+                .var("IMAGES_UPLOADS_ENABLED")
+                .ok()
+                .map(|v| v.to_string())
+                .as_deref()
+                == Some("true")
+            {
+                Some(handlers::media::ImagesConfig::new(
+                    env.var("IMAGES_ACCOUNT_ID")?.to_string(),
+                    env.var("IMAGES_DELIVERY_HASH")?.to_string(),
+                    env.secret("IMAGES_API_TOKEN")?.to_string(),
+                )?)
+            } else {
+                None
+            },
         })
     }
 
@@ -165,12 +179,6 @@ mod runtime {
         env: Env,
         _ctx: worker::Context,
     ) -> worker::Result<http::Response<axum::body::Body>> {
-        if matches!(
-            (req.method().as_str(), req.uri().path()),
-            ("POST", "/upload/media")
-        ) {
-            return Ok(disabled_routes().call(req).await?);
-        }
         // Acknowledge signed webhooks without opening a database connection. RWGPS
         // expects a response within one second and does not retry failed delivery.
         if matches!(

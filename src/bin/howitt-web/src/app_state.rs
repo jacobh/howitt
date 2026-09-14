@@ -24,4 +24,5 @@ pub struct AppState {
     pub repos: Repos,
     pub jobs: DynJobQueue,
     pub rwgps: RwgpsConfig,
+    pub images: Option<crate::handlers::media::ImagesConfig>,
 }

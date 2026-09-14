@@ -19,6 +19,11 @@ enabled = true
 
 [vars]
 RWGPS_REDIRECT_URI = "https://api.howittplains.net/auth/rwgps/callback"
+# Enable only after Images provisioning and delivery checks; see docs/cloudflare-images.md.
+IMAGES_UPLOADS_ENABLED = "true"
+IMAGES_ACCOUNT_ID = "e2edbea059cd231b81084fe93feb3c6a"
+IMAGES_DELIVERY_HASH = "Ff51WMNEsryRxxLlG-yVXA"
+# IMAGES_API_TOKEN is a Worker secret, never a var or committed credential.
 
 [build]
 command = "bash scripts/build-worker.sh"

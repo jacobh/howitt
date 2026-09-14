@@ -8,7 +8,7 @@ for (let attempt = 0; attempt < 90; attempt++) {
   const response = await timedFetch(`${base}/upload/media`, {
     method: "POST",
   }).catch(() => undefined);
-  if (response?.status === 503) {
+  if (response?.status === 401) {
     ready = true;
     break;
   }
@@ -18,15 +18,6 @@ assert(
   ready,
   "Local Worker did not start; inspect /tmp/howitt-local-worker.log",
 );
-for (const [method, path] of [["POST", "/upload/media"]]) {
-  const response = await timedFetch(base + path, {
-    method,
-    headers: { origin: "https://howittplains.net" },
-  });
-  assert.equal(response.status, 503);
-  assert.equal(response.headers.get("access-control-allow-origin"), "*");
-  assert.equal((await response.json()).code, "BACKGROUND_JOBS_DISABLED");
-}
 const invalidCallback = await timedFetch(
   `${base}/auth/rwgps/callback?code=unused&state=invalid`,
 );

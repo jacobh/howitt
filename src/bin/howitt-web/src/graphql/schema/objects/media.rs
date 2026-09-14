@@ -88,6 +88,20 @@ impl Media {
         let (width, height) = spec.dimensions().dimensions();
         let mode = ImageMode::from(spec);
 
+        use howitt::services::media::keys::cloudflare_image_url;
+        if let (Some(jpeg_url), Some(webp_url)) = (
+            cloudflare_image_url(&self.0.path, spec, ImageContentType::Jpeg),
+            cloudflare_image_url(&self.0.path, spec, ImageContentType::Webp),
+        ) {
+            return ImageSize {
+                width,
+                height,
+                mode,
+                jpeg_url,
+                webp_url,
+            };
+        }
+
         let jpeg_key = generate_resized_media_key(GenerateResizedMediaKeyParams {
             media_id: self.0.id,
             user_id: self.0.user_id,

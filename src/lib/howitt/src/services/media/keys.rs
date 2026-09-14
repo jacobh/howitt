@@ -5,6 +5,40 @@ use crate::models::{
     user::UserId,
 };
 
+/// Provider-qualified locator for new uploads. Legacy paths remain S3 keys.
+/// The delivery hash is public, unlike the account API credential.
+pub fn cloudflare_image_path(hash: &str, id: &str) -> Option<String> {
+    let valid = |part: &str| {
+        !part.is_empty()
+            && part.len() <= 64
+            && part
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+    };
+    (valid(hash) && valid(id)).then(|| format!("cloudflare-images://{hash}/{id}"))
+}
+
+pub fn cloudflare_image_url(
+    path: &str,
+    spec: &ImageSpec,
+    format: ImageContentType,
+) -> Option<String> {
+    let (hash, id) = path.strip_prefix("cloudflare-images://")?.split_once('/')?;
+    cloudflare_image_path(hash, id)?;
+    let (width, height) = spec.dimensions().dimensions();
+    let fit = match spec {
+        ImageSpec::Fit(_) => "scale-down",
+        ImageSpec::Fill(_) => "cover",
+    };
+    let format = match format {
+        ImageContentType::Jpeg => "jpeg",
+        ImageContentType::Webp => "webp",
+    };
+    Some(format!(
+        "https://imagedelivery.net/{hash}/{id}/width={width},height={height},fit={fit},format={format},quality=85,metadata=none"
+    ))
+}
+
 pub struct GenerateMediaKeyParams {
     pub media_id: MediaId,
     pub user_id: UserId,
@@ -55,6 +89,47 @@ mod tests {
     use crate::models::media::ImageDimensions;
 
     use super::*;
+
+    #[test]
+    fn cloudflare_urls_preserve_dimensions_modes_and_explicit_formats() {
+        let path = cloudflare_image_path("public_hash", "image-id").unwrap();
+        assert_eq!(
+            cloudflare_image_url(
+                &path,
+                &ImageSpec::Fit(ImageDimensions::Rectangle {
+                    width: 1200,
+                    height: 800
+                }),
+                ImageContentType::Jpeg
+            )
+            .unwrap(),
+            "https://imagedelivery.net/public_hash/image-id/width=1200,height=800,fit=scale-down,format=jpeg,quality=85,metadata=none"
+        );
+        assert_eq!(
+            cloudflare_image_url(
+                &path,
+                &ImageSpec::Fill(ImageDimensions::Square(300)),
+                ImageContentType::Webp
+            )
+            .unwrap(),
+            "https://imagedelivery.net/public_hash/image-id/width=300,height=300,fit=cover,format=webp,quality=85,metadata=none"
+        );
+        for path in [
+            "originals/legacy.jpg",
+            "cloudflare-images://hash/../other",
+            "cloudflare-images://hash/id?metadata=keep",
+            "cloudflare-images:///id",
+        ] {
+            assert!(
+                cloudflare_image_url(
+                    path,
+                    &ImageSpec::Fill(ImageDimensions::Square(300)),
+                    ImageContentType::Jpeg
+                )
+                .is_none()
+            );
+        }
+    }
 
     #[test]
     fn test_generate_media_key() {
