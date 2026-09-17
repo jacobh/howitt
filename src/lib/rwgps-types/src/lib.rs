@@ -162,8 +162,12 @@ pub struct Route {
     pub updated_at: chrono::DateTime<chrono::Utc>,
     pub name: String,
     pub description: Option<String>,
-    pub first_lng: f64,
-    pub first_lat: f64,
+    #[serde(
+        flatten,
+        serialize_with = "first_point::serialize",
+        deserialize_with = "deserialize_first_point"
+    )]
+    pub first_point: Option<Point>,
     pub last_lat: Option<f64>,
     pub last_lng: Option<f64>,
     pub bounding_box: Vec<Point>,
@@ -268,8 +272,12 @@ pub struct Trip {
     pub departed_at: chrono::DateTime<chrono::Utc>,
     pub name: String,
     pub description: Option<String>,
-    pub first_lng: f64,
-    pub first_lat: f64,
+    #[serde(
+        flatten,
+        serialize_with = "first_point::serialize",
+        deserialize_with = "deserialize_first_point"
+    )]
+    pub first_point: Option<Point>,
     #[serde(
         flatten,
         serialize_with = "last_point::serialize",
@@ -323,7 +331,28 @@ struct NullablePoint {
     lng: Option<f64>,
 }
 
+serde_with::with_prefix!(first_point "first_");
 serde_with::with_prefix!(last_point "last_");
+
+fn deserialize_first_point<'de, D>(deserializer: D) -> Result<Option<Point>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match first_point::deserialize::<Option<NullablePoint>, D>(deserializer)? {
+        Some(NullablePoint {
+            lat: Some(lat),
+            lng: Some(lng),
+        }) => Ok(Some(Point { lat, lng })),
+        None
+        | Some(NullablePoint {
+            lat: None,
+            lng: None,
+        }) => Ok(None),
+        _ => Err(serde::de::Error::custom(
+            "first_lat and first_lng must both be present or absent",
+        )),
+    }
+}
 
 fn deserialize_last_point<'de, D>(deserializer: D) -> Result<Option<Point>, D::Error>
 where
