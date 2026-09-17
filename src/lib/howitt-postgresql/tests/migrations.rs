@@ -96,7 +96,11 @@ async fn migration_safety_contract() {
     ));
 
     reset(&pool).await;
-    assert!(run_migrations(&pool, FAILING_MIGRATIONS).await.is_err());
+    let error = run_migrations(&pool, FAILING_MIGRATIONS).await.unwrap_err();
+    assert_eq!(
+        error.database_diagnostic(),
+        Some(("execute", Some(2), Some("42883")))
+    );
     let row = pool
         .acquire()
         .await

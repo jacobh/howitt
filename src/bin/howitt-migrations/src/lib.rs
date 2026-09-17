@@ -34,9 +34,40 @@ mod runtime {
             | MigrationError::HistoryGap { .. }
             | MigrationError::BaselineHistoryNotEmpty
             | MigrationError::InvalidBaseline(_) => (409, error.to_string()),
-            MigrationError::Repository(_) | MigrationError::Postgres(_) => {
-                worker::console_error!("migration.failed kind=database");
-                (500, "Database migration failed".to_owned())
+            MigrationError::Database { .. } => {
+                let (phase, version, sqlstate) = error
+                    .database_diagnostic()
+                    .expect("database error has a diagnostic");
+                worker::console_error!(
+                    "migration.failed kind=database phase={} version={} sqlstate={}",
+                    phase,
+                    version
+                        .map(|version| format!("V{version:04}"))
+                        .unwrap_or_else(|| "none".to_owned()),
+                    sqlstate.unwrap_or("none")
+                );
+                let message = match (phase, version, sqlstate) {
+                    ("commit", _, _) => {
+                        "Database migration commit failed; outcome is unknown".to_owned()
+                    }
+                    (_, Some(version), Some(sqlstate)) => format!(
+                        "Database migration failed at V{version:04} during {phase} (SQLSTATE {sqlstate})"
+                    ),
+                    (_, Some(version), None) => {
+                        format!("Database migration failed at V{version:04} during {phase}")
+                    }
+                    (_, None, Some(sqlstate)) => {
+                        format!("Database migration failed during {phase} (SQLSTATE {sqlstate})")
+                    }
+                    (_, None, None) => format!("Database migration failed during {phase}"),
+                };
+                (500, message)
+            }
+            MigrationError::Repository(_) => {
+                worker::console_error!(
+                    "migration.failed kind=database phase=acquire version=none sqlstate=none"
+                );
+                (500, "Database connection acquisition failed".to_owned())
             }
         };
         Response::error(message, status)

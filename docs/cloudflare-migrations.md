@@ -5,15 +5,24 @@ every `src/lib/howitt-postgresql/migrations/VNNNN__description.sql` file at buil
 time, orders it by numeric version, and connects through the same production
 `HYPERDRIVE` binding as the API and jobs Workers.
 
-Each invocation opens one PostgreSQL transaction, takes a transaction-scoped
-advisory lock, validates the complete applied history, and then executes and
-records every pending migration before committing. The
+Each invocation opens one PostgreSQL transaction, takes an exclusive lock on the
+migration history table, validates the complete applied history, and then
+executes and records every pending migration before committing. First-use table
+creation handles the race between concurrent initial invocations. The
 `howitt_schema_migrations` table records version, name, SHA-256 checksum,
 execution mode (`applied` or `baseline`), and timestamp. A failed statement rolls
 back its DDL and history record together. Concurrent invocations serialize on the
 database lock; the second invocation rechecks history and becomes a no-op.
 Unknown versions, a history gap, changed names, and checksum drift fail closed.
 Never edit or rename an applied migration; add a new migration instead.
+
+The lock deliberately uses standard PostgreSQL table locking because Hyperdrive
+does not support advisory locks. Hyperdrive also terminates any statement that
+runs longer than 60 seconds; the Worker's `cpu_ms` setting does not extend that
+database limit. A concurrent invocation waiting longer than the limit can fail
+and should be retried after inspecting the ledger. Design migrations so each
+statement completes within 60 seconds. A migration requiring a longer statement
+needs a separately reviewed direct-database procedure rather than this Worker.
 
 ## Authentication and exposure
 
@@ -132,7 +141,10 @@ committed from the HTTP result alone. Inspect `howitt_schema_migrations` and the
 schema, then safely retry `/apply`; committed versions replay as no-ops and an
 uncommitted transaction leaves no history. A checksum/history conflict requires
 investigation, not manual ledger editing. PostgreSQL rolls back statement errors
-before commit, but there are deliberately no automatic down migrations after a
-successful commit. Recover a committed destructive change from the reviewed
-backup or apply a separately reviewed forward repair. Rotate the admin token and
-disable the Worker endpoint if invocation credentials may be compromised.
+before commit. Responses explicitly identify bounded phase, migration version,
+and SQLSTATE when available without exposing SQL or database messages; a commit
+failure is marked outcome-unknown. There are deliberately no automatic down
+migrations after a successful commit. Recover a committed destructive change
+from the reviewed backup or apply a separately reviewed forward repair. Rotate
+the admin token and disable the Worker endpoint if invocation credentials may be
+compromised.

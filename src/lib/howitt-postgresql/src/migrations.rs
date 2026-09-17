@@ -2,15 +2,24 @@ use crate::{PostgresPool, PostgresRepoError};
 use sha2::{Digest, Sha256};
 use tokio_postgres::types::Type;
 
-const LOCK_ID: i64 = 7_219_016_446_955_526_757;
-const CREATE_HISTORY: &str = r#"
-CREATE TABLE IF NOT EXISTS howitt_schema_migrations (
-    version BIGINT PRIMARY KEY CHECK (version > 0),
-    name TEXT NOT NULL,
-    checksum TEXT NOT NULL CHECK (length(checksum) = 64),
-    execution_mode TEXT NOT NULL CHECK (execution_mode IN ('applied', 'baseline')),
-    applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-)"#;
+const INITIALIZE_AND_LOCK_HISTORY: &str = r#"
+DO $migration_history$
+BEGIN
+    CREATE TABLE IF NOT EXISTS howitt_schema_migrations (
+        version BIGINT PRIMARY KEY CHECK (version > 0),
+        name TEXT NOT NULL,
+        checksum TEXT NOT NULL CHECK (length(checksum) = 64),
+        execution_mode TEXT NOT NULL CHECK (execution_mode IN ('applied', 'baseline')),
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+EXCEPTION
+    -- Concurrent first invocations can both observe the table as absent. The
+    -- loser continues after the winner commits, then takes the table lock below.
+    WHEN duplicate_table OR unique_violation THEN NULL;
+END
+$migration_history$;
+LOCK TABLE howitt_schema_migrations IN EXCLUSIVE MODE
+"#;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Migration {
@@ -39,8 +48,13 @@ pub struct BaselineResult {
 pub enum MigrationError {
     #[error(transparent)]
     Repository(#[from] PostgresRepoError),
-    #[error(transparent)]
-    Postgres(#[from] tokio_postgres::Error),
+    #[error("database migration failed during {phase}")]
+    Database {
+        phase: &'static str,
+        version: Option<i64>,
+        #[source]
+        source: tokio_postgres::Error,
+    },
     #[error("migration history contains unknown version V{0:04}")]
     UnknownVersion(i64),
     #[error("migration V{version:04} name differs from the bundled migration")]
@@ -59,6 +73,35 @@ pub enum MigrationError {
     InvalidBaseline(i64),
 }
 
+impl MigrationError {
+    fn database(
+        phase: &'static str,
+        version: Option<i64>,
+    ) -> impl FnOnce(tokio_postgres::Error) -> Self {
+        move |source| Self::Database {
+            phase,
+            version,
+            source,
+        }
+    }
+
+    pub fn database_diagnostic(&self) -> Option<(&'static str, Option<i64>, Option<&str>)> {
+        let Self::Database {
+            phase,
+            version,
+            source,
+        } = self
+        else {
+            return None;
+        };
+        Some((
+            phase,
+            *version,
+            source.as_db_error().map(|error| error.code().code()),
+        ))
+    }
+}
+
 fn checksum(sql: &str) -> String {
     format!("{:x}", Sha256::digest(sql.as_bytes()))
 }
@@ -72,16 +115,10 @@ fn validate_bundle(migrations: &[Migration]) -> Result<(), MigrationError> {
     Ok(())
 }
 
-async fn lock_and_initialize(
+async fn initialize_and_lock(
     transaction: &crate::PostgresTransaction<'_>,
 ) -> Result<(), tokio_postgres::Error> {
-    transaction
-        .query_typed_one(
-            "SELECT pg_advisory_xact_lock($1)",
-            &[(&LOCK_ID, Type::INT8)],
-        )
-        .await?;
-    transaction.batch_execute(CREATE_HISTORY).await
+    transaction.batch_execute(INITIALIZE_AND_LOCK_HISTORY).await
 }
 
 async fn validate_history(
@@ -93,7 +130,8 @@ async fn validate_history(
             "SELECT version, name, checksum FROM howitt_schema_migrations ORDER BY version",
             &[],
         )
-        .await?;
+        .await
+        .map_err(MigrationError::database("validate_history", None))?;
     for (index, row) in rows.iter().enumerate() {
         let version = row.get::<_, i64>(0);
         let migration = migrations
@@ -142,13 +180,19 @@ pub async fn run_migrations(
 ) -> Result<MigrationResult, MigrationError> {
     validate_bundle(migrations)?;
     let mut connection = pool.acquire().await?;
-    let transaction = connection.transaction().await?;
-    lock_and_initialize(&transaction).await?;
+    let transaction = connection
+        .transaction()
+        .await
+        .map_err(MigrationError::database("begin", None))?;
+    initialize_and_lock(&transaction)
+        .await
+        .map_err(MigrationError::database("initialize_lock", None))?;
     validate_history(&transaction, migrations).await?;
 
     let rows = transaction
         .query_typed("SELECT version FROM howitt_schema_migrations", &[])
-        .await?;
+        .await
+        .map_err(MigrationError::database("read_history", None))?;
     let applied = rows
         .iter()
         .map(|row| row.get::<_, i64>(0))
@@ -156,12 +200,20 @@ pub async fn run_migrations(
     let mut applied_versions = Vec::new();
     for migration in migrations {
         if !applied.contains(&migration.version) {
-            transaction.batch_execute(migration.sql).await?;
-            record(&transaction, migration, "applied").await?;
+            transaction
+                .batch_execute(migration.sql)
+                .await
+                .map_err(MigrationError::database("execute", Some(migration.version)))?;
+            record(&transaction, migration, "applied")
+                .await
+                .map_err(MigrationError::database("record", Some(migration.version)))?;
             applied_versions.push(migration.version);
         }
     }
-    transaction.commit().await?;
+    transaction
+        .commit()
+        .await
+        .map_err(MigrationError::database("commit", None))?;
     Ok(MigrationResult { applied_versions })
 }
 
@@ -178,8 +230,13 @@ pub async fn baseline_migrations(
         return Err(MigrationError::InvalidBaseline(through));
     }
     let mut connection = pool.acquire().await?;
-    let transaction = connection.transaction().await?;
-    lock_and_initialize(&transaction).await?;
+    let transaction = connection
+        .transaction()
+        .await
+        .map_err(MigrationError::database("begin", None))?;
+    initialize_and_lock(&transaction)
+        .await
+        .map_err(MigrationError::database("initialize_lock", None))?;
     if validate_history(&transaction, migrations).await? != 0 {
         return Err(MigrationError::BaselineHistoryNotEmpty);
     }
@@ -189,10 +246,18 @@ pub async fn baseline_migrations(
         .iter()
         .filter(|migration| migration.version <= through)
     {
-        record(&transaction, migration, "baseline").await?;
+        record(&transaction, migration, "baseline")
+            .await
+            .map_err(MigrationError::database(
+                "record_baseline",
+                Some(migration.version),
+            ))?;
         recorded_versions.push(migration.version);
     }
-    transaction.commit().await?;
+    transaction
+        .commit()
+        .await
+        .map_err(MigrationError::database("commit", None))?;
     Ok(BaselineResult { recorded_versions })
 }
 
