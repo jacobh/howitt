@@ -21,6 +21,37 @@ fn route_detail_accepts_current_activity_and_sparse_course_point_shapes() {
 }
 
 #[test]
+fn route_detail_accepts_nullable_or_omitted_country_code() {
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/route-detail.json")).unwrap();
+
+    let response: RouteResponse = serde_json::from_value(fixture.clone()).unwrap();
+    assert_eq!(response.route.country_code.as_deref(), Some("US"));
+
+    let mut null_country_code = fixture.clone();
+    null_country_code["route"]["country_code"] = serde_json::Value::Null;
+    let response: RouteResponse = serde_json::from_value(null_country_code).unwrap();
+    assert_eq!(response.route.country_code, None);
+
+    let mut omitted_country_code = fixture;
+    omitted_country_code["route"]
+        .as_object_mut()
+        .unwrap()
+        .remove("country_code");
+    let response: RouteResponse = serde_json::from_value(omitted_country_code).unwrap();
+    assert_eq!(response.route.country_code, None);
+}
+
+#[test]
+fn route_detail_rejects_malformed_country_code() {
+    let mut fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/route-detail.json")).unwrap();
+    fixture["route"]["country_code"] = serde_json::json!(["US"]);
+
+    serde_json::from_value::<RouteResponse>(fixture).unwrap_err();
+}
+
+#[test]
 fn route_detail_accepts_null_or_omitted_bounding_box_coordinate_pairs() {
     let mut fixture: serde_json::Value =
         serde_json::from_str(include_str!("fixtures/route-detail.json")).unwrap();
@@ -76,6 +107,58 @@ fn trip_detail_accepts_omitted_last_coordinates() {
     );
     assert_eq!(response.trip.last_point, None);
     assert_eq!(response.trip.metrics.grade, None);
+}
+
+#[test]
+fn trip_detail_accepts_supported_elevation_metric_shapes() {
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/trip-detail.json")).unwrap();
+
+    let response: TripResponse = serde_json::from_value(fixture.clone()).unwrap();
+    assert_eq!(response.trip.metrics.ele, None);
+
+    let mut null_elevation = fixture.clone();
+    null_elevation["trip"]["metrics"]["ele"] = serde_json::Value::Null;
+    let response: TripResponse = serde_json::from_value(null_elevation).unwrap();
+    assert_eq!(response.trip.metrics.ele, None);
+
+    let mut empty_elevation = fixture.clone();
+    empty_elevation["trip"]["metrics"]["ele"] = serde_json::json!({});
+    let response: TripResponse = serde_json::from_value(empty_elevation).unwrap();
+    assert_eq!(response.trip.metrics.ele, None);
+
+    let mut populated_elevation = fixture;
+    populated_elevation["trip"]["metrics"]["ele"] = serde_json::json!({
+        "max": 412.5,
+        "min": 103.25,
+        "_min": 103.25,
+        "_max": 412.5,
+        "min_i": 7,
+        "max_i": 29,
+        "_avg": 251.75,
+        "avg": 250.5
+    });
+    let response: TripResponse = serde_json::from_value(populated_elevation).unwrap();
+    let elevation = response.trip.metrics.ele.unwrap();
+    assert_eq!(elevation.max, 412.5);
+    assert_eq!(elevation.min_i, Some(7.0));
+    assert_eq!(elevation.avg2, 250.5);
+}
+
+#[test]
+fn trip_detail_rejects_malformed_elevation_metrics() {
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/trip-detail.json")).unwrap();
+
+    for malformed in [
+        serde_json::json!([]),
+        serde_json::json!(false),
+        serde_json::json!({ "max": 412.5 }),
+    ] {
+        let mut response = fixture.clone();
+        response["trip"]["metrics"]["ele"] = malformed;
+        serde_json::from_value::<TripResponse>(response).unwrap_err();
+    }
 }
 
 #[test]

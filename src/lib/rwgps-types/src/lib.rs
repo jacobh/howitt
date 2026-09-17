@@ -175,7 +175,7 @@ pub struct Route {
     pub locality: Option<String>,
     pub postal_code: Option<String>,
     pub administrative_area: Option<String>,
-    pub country_code: String,
+    pub country_code: Option<String>,
     pub privacy_code: Value,
     pub user: User,
     pub has_course_points: bool,
@@ -416,6 +416,7 @@ pub struct Metrics {
     pub parent_type: Option<String>,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(default, deserialize_with = "deserialize_optional_elevation")]
     pub ele: Option<Elevation>,
     #[serde(default, deserialize_with = "deserialize_default_from_empty_object")]
     pub grade: Option<Grade>,
@@ -434,6 +435,19 @@ pub struct Metrics {
     pub watts: Option<Value>,
     pub cad: Option<Value>,
     pub hr: Option<Value>,
+}
+
+fn deserialize_optional_elevation<'de, D>(deserializer: D) -> Result<Option<Elevation>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match Option::<Value>::deserialize(deserializer)? {
+        None => Ok(None),
+        Some(Value::Object(fields)) if fields.is_empty() => Ok(None),
+        Some(value) => Elevation::deserialize(value)
+            .map(Some)
+            .map_err(serde::de::Error::custom),
+    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
