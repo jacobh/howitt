@@ -100,5 +100,5 @@ bun run check:worker
 Dry-runs validate builds/bundles, not live token permissions, account ownership,
 resource existence, or GitHub environment settings. The first real run needs
 separate approval and should be reviewed in Actions and Cloudflare. No deployment,
-secret changes, database migrations, backup scheduling, CDK changes, or migration
-of the separate `ts-api.howittplains.net` service are part of local verification.
+secret changes, database migrations, backup scheduling, or CDK changes are part
+of local verification.

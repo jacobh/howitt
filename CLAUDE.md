@@ -11,7 +11,6 @@ Howitt is a web application for planning and tracking cycling/bikepacking routes
 ### Technology Stack
 - **Backend**: Rust with Axum web framework, GraphQL (async-graphql), PostgreSQL with PostGIS
 - **Frontend**: React 19 with Remix v2/Vite, TypeScript, Apollo Client, OpenLayers for maps
-- **API Gateway**: TypeScript server using Bun and Hono framework
 - **Infrastructure**: Cloudflare Workers/Queues and AWS CDK (S3, CloudFront, DynamoDB)
 - **Runtime**: Bun for JavaScript/TypeScript services
 
@@ -22,7 +21,6 @@ Howitt is a web application for planning and tracking cycling/bikepacking routes
   - `howitt-postgresql/` - Database layer with PostGIS integration
   - `rwgps/` - RideWithGPS API client
 - `webui/` - React/Remix frontend application
-- `ts-api/` - TypeScript API gateway for water features
 - `cdk/` - AWS infrastructure as code
 - `data/` - GPX routes, GTFS data, and other data files
 
@@ -44,14 +42,6 @@ bun run lint         # Run ESLint
 bun run gql-codegen  # Regenerate GraphQL types after schema changes
 bun run gql-watch    # Watch mode for GraphQL changes
 bun run format       # Format code with Prettier
-```
-
-### TypeScript API (ts-api)
-```bash
-cd ts-api
-bun run dev    # Start on port 3001
-bun run serve  # Start on port 80
-tsc --noEmit   # Type checking (use directly, never with npx)
 ```
 
 ### Rust Backend
@@ -172,39 +162,6 @@ const containerCss = css`
 - **Map Integration**: Primary map context via React Context
 - **TypeScript**: Strict mode enabled, use `~/*` for `app/*` imports, never use `!` operator
 
-## TypeScript API Gateway
-
-### Overview
-The ts-api is a lightweight TypeScript API gateway built with Bun and the Hono framework. It serves as a specialized API layer for water-related features, providing GeoJSON endpoints that integrate with the PostGIS database.
-
-### Technology Stack
-- **Runtime**: Bun (v1.2.10+)
-- **Framework**: Hono (v4.7.7) - lightweight web framework
-- **Type Safety**: Zod (v4.0.0-beta) for runtime validation
-- **Pattern Matching**: ts-pattern (v5.7.0) for exhaustive pattern matching
-- **Compression**: Custom polyfill for CompressionStream support
-
-### API Endpoints
-
-#### 1. GET /api/water-features
-Returns all water features with observation counts as a GeoJSON FeatureCollection.
-
-#### 2. GET /api/water-features/query
-Returns nearby water features based on location with detailed water observations.
-- **Query Parameters**:
-  - `origin`: Required, format "lon,lat" (e.g., "149.123,-35.456")
-  - `radius`: Optional, search radius in meters (default: 1000)
-  - `limit`: Optional, maximum results (default: 100)
-
-#### 3. GET /api/now
-Simple health check endpoint returning current ISO timestamp.
-
-### Database Integration
-- Direct PostgreSQL/PostGIS connection using Bun's SQL template tag
-- Uses `ST_AsGeoJSON()` for geometry conversion
-- Uses `ST_Distance()` and `ST_DWithin()` for proximity searches
-- Coordinates are in EPSG:4326 (WGS84)
-
 ## Rust Backend
 
 ### Binary Crates (`src/bin/`)
@@ -279,8 +236,6 @@ Located in `/cdk/` directory:
 - `webui/wrangler.toml`: frontend Worker at `howittplains.net`
 - `wrangler.jobs.toml`: background jobs Worker consuming Cloudflare Queues
 - See `docs/cloudflare-jobs.md` and `webui/README.md` for verification and deployment.
-- The water page still depends on the separate `ts-api.howittplains.net` service.
-  Its source and standalone Dockerfile remain; deployment automation is not provided.
 
 ### Database Backup Strategy
 - `bash scripts/backup-db.sh` preserves the PostgreSQL-to-S3 backup operation.
@@ -393,7 +348,6 @@ cargo run --bin howitt-cli -- migrate
 cargo run --bin howitt-web      # Terminal 1
 cargo run --bin howitt-worker   # Terminal 2
 cd webui && bun run dev         # Terminal 3
-cd ts-api && bun run dev        # Terminal 4
 ```
 
 ## Emergency Procedures

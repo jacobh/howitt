@@ -52,7 +52,7 @@ if ! command -v bun >/dev/null || [[ "$(bun --version)" != "$bun_version" ]]; th
   step bash /tmp/howitt-bun-install.sh "bun-v$bun_version"
   rm /tmp/howitt-bun-install.sh
 fi
-for directory in . webui ts-api cdk; do
+for directory in . webui cdk; do
   (cd "$directory"; step bun install --frozen-lockfile)
 done
 step cargo fetch --locked

@@ -10,7 +10,6 @@ React Router frontend deployed to **https://howittplains.net**.
 - Server-side Apollo requests use the `API` service binding and forward the viewer's token from the incoming cookie. No API signing secret or database credentials belong in this Worker.
 - Personalized HTML uses `Cache-Control: private, no-store`; static assets are served separately by Cloudflare.
 - `remote = true` means local development also connects to the **live API**. Login/signup and mutations are real operations; use read-only queries unless intentionally changing production data.
-- The water page still uses the existing `ts-api.howittplains.net` service; this migration does not move that API.
 
 ## Development and deployment
 
