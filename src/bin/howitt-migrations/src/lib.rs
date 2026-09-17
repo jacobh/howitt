@@ -73,83 +73,6 @@ mod runtime {
         Response::error(message, status)
     }
 
-    async fn status_response(pool: &PostgresPool) -> Result<Response> {
-        let connection = pool
-            .acquire()
-            .await
-            .map_err(|_| worker::Error::RustError("Database inspection failed".into()))?;
-        let tables = connection
-            .query_typed(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name",
-                &[],
-            )
-            .await
-            .map_err(|_| worker::Error::RustError("Database inspection failed".into()))?
-            .iter()
-            .map(|row| row.get::<_, String>(0))
-            .collect::<Vec<_>>();
-        let history_exists = connection
-            .query_typed_one(
-                "SELECT to_regclass('public.howitt_schema_migrations') IS NOT NULL",
-                &[],
-            )
-            .await
-            .map_err(|_| worker::Error::RustError("Database inspection failed".into()))?
-            .get::<_, bool>(0);
-        let history = if history_exists {
-            connection
-                .query_typed(
-                    "SELECT version, name, execution_mode FROM howitt_schema_migrations ORDER BY version",
-                    &[],
-                )
-                .await
-                .map_err(|_| worker::Error::RustError("Database inspection failed".into()))?
-                .iter()
-                .map(|row| {
-                    serde_json::json!({
-                        "version": row.get::<_, i64>(0),
-                        "name": row.get::<_, String>(1),
-                        "executionMode": row.get::<_, String>(2),
-                    })
-                })
-                .collect::<Vec<_>>()
-        } else {
-            Vec::new()
-        };
-        let refinery_history_exists = tables
-            .iter()
-            .any(|table| table == "refinery_schema_history");
-        let refinery_history = if refinery_history_exists {
-            connection
-                .query_typed(
-                    "SELECT version, name FROM refinery_schema_history ORDER BY version",
-                    &[],
-                )
-                .await
-                .map_err(|_| worker::Error::RustError("Database inspection failed".into()))?
-                .iter()
-                .map(|row| {
-                    serde_json::json!({
-                        "version": row.get::<_, i32>(0),
-                        "name": row.get::<_, String>(1),
-                    })
-                })
-                .collect::<Vec<_>>()
-        } else {
-            Vec::new()
-        };
-
-        Response::from_json(&serde_json::json!({
-            "status": "ok",
-            "latestBundledVersion": bundled_migrations().last().map(|migration| migration.version),
-            "publicTables": tables,
-            "migrationHistoryExists": history_exists,
-            "migrationHistory": history,
-            "refineryHistoryExists": refinery_history_exists,
-            "refineryHistory": refinery_history,
-        }))
-    }
-
     #[event(fetch)]
     async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<Response> {
         let secret = env.secret("MIGRATION_ADMIN_TOKEN")?.to_string();
@@ -164,7 +87,6 @@ mod runtime {
         let pool = PostgresPool::from_hyperdrive(env.hyperdrive("HYPERDRIVE")?)
             .map_err(|_| worker::Error::RustError("Database configuration failed".into()))?;
         match request.path().as_str() {
-            "/status" => status_response(&pool).await,
             "/apply" => match run_migrations(&pool, bundled_migrations()).await {
                 Ok(result) => {
                     worker::console_log!(

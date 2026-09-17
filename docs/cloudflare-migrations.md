@@ -27,9 +27,8 @@ needs a separately reviewed direct-database procedure rather than this Worker.
 ## Authentication and exposure
 
 The Worker has a `workers.dev` endpoint so an operator can invoke it without
-adding an application route. It accepts only authenticated `POST /status`,
-`POST /apply`, and `POST /baseline` requests. Every request, including unknown
-paths, must supply
+adding an application route. It accepts only authenticated `POST /apply` and
+`POST /baseline` requests. Every request, including unknown paths, must supply
 `Authorization: Bearer <MIGRATION_ADMIN_TOKEN>`; the token is a dedicated Worker
 secret and is compared in constant time. There is no browser CORS policy, cookie
 authentication, GET action, scheduled trigger, queue trigger, or API service
@@ -94,16 +93,6 @@ baselining, inspect the live schema against every migration through `V0025`,
 confirm `water_beta` and `osm_features` still exist, confirm `V0026` has not run,
 and check for `howitt_schema_migrations` or another pre-existing migration ledger.
 Stop and reconcile any contradictory history rather than replacing it.
-
-The authenticated status endpoint returns public table names, the bundled latest
-version, and version/name metadata from both the current ledger and a legacy
-`refinery_schema_history` ledger when present. It does not return application
-rows, SQL, checksums, credentials, or database errors:
-
-```sh
-curl --fail-with-body --request POST "$MIGRATION_URL/status" \
-  --header "Authorization: Bearer $MIGRATION_ADMIN_TOKEN"
-```
 
 With the approved token and the exact URL from deployment in shell variables,
 record the reviewed existing schema without executing its SQL:
