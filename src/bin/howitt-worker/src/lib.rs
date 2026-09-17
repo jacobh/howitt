@@ -2,24 +2,26 @@ pub mod handlers;
 
 // Classify failures without logging error bodies, URLs, or database values.
 #[cfg(any(target_arch = "wasm32", test))]
-fn failure_kind(error: &anyhow::Error) -> &'static str {
-    if error.to_string() == "User has no RWGPS connection" {
-        return "missing_rwgps_connection";
-    }
+fn failure_diagnostic(error: &anyhow::Error) -> String {
     if let Some(error) = error.downcast_ref::<rwgps::RwgpsError>() {
         return match error {
-            rwgps::RwgpsError::Reqwest(_) => "rwgps_request",
-            rwgps::RwgpsError::Url(_) => "rwgps_url",
-            rwgps::RwgpsError::SerdeDebug(_) => "rwgps_response",
+            rwgps::RwgpsError::Reqwest(_) => "kind=rwgps_request".into(),
+            rwgps::RwgpsError::Url(_) => "kind=rwgps_url".into(),
+            rwgps::RwgpsError::SerdeDebug(error) => {
+                format!("kind=rwgps_response {}", error.safe_diagnostic())
+            }
         };
+    }
+    if error.to_string() == "User has no RWGPS connection" {
+        return "kind=missing_rwgps_connection".into();
     }
     if error
         .downcast_ref::<howitt_postgresql::PostgresRepoError>()
         .is_some()
     {
-        return "database";
+        return "kind=database".into();
     }
-    "processing"
+    "kind=processing".into()
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -59,9 +61,9 @@ mod runtime {
                 .await
                 .map_err(|error| {
                     worker::console_error!(
-                        "job.failure_kind message_id={} kind={}",
+                        "job.failure_kind message_id={} {}",
                         message.id(),
-                        super::failure_kind(&error)
+                        super::failure_diagnostic(&error)
                     );
                     worker::Error::RustError("Job processing failed".into())
                 })?;
@@ -95,16 +97,19 @@ mod runtime {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn failure_kind_does_not_include_error_details() {
+    fn failure_diagnostic_does_not_include_error_details() {
         assert_eq!(
-            super::failure_kind(&anyhow::anyhow!("User has no RWGPS connection")),
-            "missing_rwgps_connection"
+            super::failure_diagnostic(&anyhow::anyhow!("User has no RWGPS connection")),
+            "kind=missing_rwgps_connection"
         );
         assert_eq!(
-            super::failure_kind(&anyhow::anyhow!("secret-token")),
-            "processing"
+            super::failure_diagnostic(&anyhow::anyhow!("secret-token")),
+            "kind=processing"
         );
         let error = howitt_postgresql::PostgresRepoError::Connection("secret-host".into());
-        assert_eq!(super::failure_kind(&anyhow::Error::new(error)), "database");
+        assert_eq!(
+            super::failure_diagnostic(&anyhow::Error::new(error)),
+            "kind=database"
+        );
     }
 }
