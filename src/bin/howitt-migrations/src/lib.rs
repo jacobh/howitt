@@ -85,6 +85,28 @@ mod runtime {
         } else {
             Vec::new()
         };
+        let refinery_history_exists = tables
+            .iter()
+            .any(|table| table == "refinery_schema_history");
+        let refinery_history = if refinery_history_exists {
+            connection
+                .query_typed(
+                    "SELECT version, name FROM refinery_schema_history ORDER BY version",
+                    &[],
+                )
+                .await
+                .map_err(|_| worker::Error::RustError("Database inspection failed".into()))?
+                .iter()
+                .map(|row| {
+                    serde_json::json!({
+                        "version": row.get::<_, i32>(0),
+                        "name": row.get::<_, String>(1),
+                    })
+                })
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
 
         Response::from_json(&serde_json::json!({
             "status": "ok",
@@ -92,6 +114,8 @@ mod runtime {
             "publicTables": tables,
             "migrationHistoryExists": history_exists,
             "migrationHistory": history,
+            "refineryHistoryExists": refinery_history_exists,
+            "refineryHistory": refinery_history,
         }))
     }
 

@@ -87,8 +87,9 @@ and check for `howitt_schema_migrations` or another pre-existing migration ledge
 Stop and reconcile any contradictory history rather than replacing it.
 
 The authenticated status endpoint returns public table names, the bundled latest
-version, and migration-ledger metadata without returning application rows, SQL,
-checksums, credentials, or database errors:
+version, and version/name metadata from both the current ledger and a legacy
+`refinery_schema_history` ledger when present. It does not return application
+rows, SQL, checksums, credentials, or database errors:
 
 ```sh
 curl --fail-with-body --request POST "$MIGRATION_URL/status" \
