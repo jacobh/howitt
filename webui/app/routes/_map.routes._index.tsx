@@ -2,18 +2,13 @@ import { DEFAULT_INITIAL_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "../__generated__/gql";
 import { useMemo, useState } from "react";
-import {
-  Container,
-  MapContainer,
-  SidebarContainer,
-  Nav,
-} from "~/components/layout";
+import { SidebarContainer } from "~/components/layout";
 import { RouteItem } from "~/components/routes/RouteItem";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { isNotNil } from "~/services/isNotNil";
 import { useSearchParams } from "react-router";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { buildRouteTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { match, P } from "ts-pattern";
@@ -129,9 +124,10 @@ export default function Routes(): React.ReactElement {
     [baseRouteTracks, hoveredRouteId],
   );
 
+  usePrimaryMapContent({ tracks, initialView: DEFAULT_INITIAL_VIEW });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer
         titleSegments={
           isNotNil(tags)
@@ -157,9 +153,6 @@ export default function Routes(): React.ReactElement {
           </div>
         ))}
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap tracks={tracks} initialView={DEFAULT_INITIAL_VIEW} />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

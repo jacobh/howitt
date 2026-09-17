@@ -1,16 +1,11 @@
 import { useParams } from "react-router";
-import {
-  Container,
-  MapContainer,
-  Nav,
-  SidebarContainer,
-} from "~/components/layout";
+import { SidebarContainer } from "~/components/layout";
 import { RideSummary } from "~/components/rides/RideSummary";
 import { Temporal } from "@js-temporal/polyfill";
 import { gql } from "~/__generated__";
 import { useQuery } from "@apollo/client/react";
 import { ElevationProfile } from "~/components/ElevationProfile";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { buildRideTrack, Marker } from "~/components/map/types";
 import { useMemo, useState } from "react";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
@@ -100,9 +95,10 @@ function UserProfileDate(): React.ReactElement {
     return formatLongDate(Temporal.PlainDate.from(params.date));
   }, [params.date, data]);
 
+  usePrimaryMapContent({ initialView, tracks, markers });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer
         titleSegments={[
           { name: "Riders", linkTo: "/riders" },
@@ -154,14 +150,7 @@ function UserProfileDate(): React.ReactElement {
           <h3>User not found</h3>
         )}
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap
-          initialView={initialView}
-          tracks={tracks}
-          markers={markers}
-        />
-      </MapContainer>
-    </Container>
+    </>
   );
 }
 

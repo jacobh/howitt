@@ -1,17 +1,12 @@
 import { DEFAULT_INITIAL_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "../__generated__/gql";
-import {
-  Container,
-  MapContainer,
-  SidebarContainer,
-  Nav,
-} from "~/components/layout";
+import { SidebarContainer } from "~/components/layout";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { Link } from "react-router";
 import { FragmentType, useFragment } from "~/__generated__";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 
 const PublicUsersQuery = gql(`
@@ -61,9 +56,10 @@ function UserItem(props: {
 export default function Users(): React.ReactElement {
   const { data, loading } = useQuery(PublicUsersQuery, {});
 
+  usePrimaryMapContent({ initialView: DEFAULT_INITIAL_VIEW });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer titleSegments={[{ name: "Riders", linkTo: "/riders" }]}>
         {loading ? (
           <LoadingSpinnerSidebarContent />
@@ -73,9 +69,6 @@ export default function Users(): React.ReactElement {
           ))
         )}
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap initialView={DEFAULT_INITIAL_VIEW} />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

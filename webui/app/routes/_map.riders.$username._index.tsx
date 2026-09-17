@@ -1,17 +1,12 @@
 import { DEFAULT_INITIAL_VIEW } from "../components/map";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "../__generated__/gql";
-import {
-  Container,
-  MapContainer,
-  SidebarContainer,
-  Nav,
-} from "~/components/layout";
+import { SidebarContainer } from "~/components/layout";
 import { useParams } from "react-router";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { buildRideTrack } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { PointsDetail } from "~/__generated__/graphql";
@@ -86,9 +81,10 @@ export default function UserProfile(): React.ReactElement {
       .map((ride) => buildRideTrack(ride, "default"));
   }, [data2?.userWithUsername?.trips, data?.userWithUsername?.trips]);
 
+  usePrimaryMapContent({ tracks, initialView: DEFAULT_INITIAL_VIEW });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer
         titleSegments={[
           { name: "Riders", linkTo: "/riders" },
@@ -117,9 +113,6 @@ export default function UserProfile(): React.ReactElement {
           <h3>User not found</h3>
         )}
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap initialView={DEFAULT_INITIAL_VIEW} tracks={tracks} />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

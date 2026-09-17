@@ -2,7 +2,6 @@ import React, { useRef } from "react";
 import { ViewOptions } from "ol/View";
 import { Style, Stroke, Circle } from "ol/style";
 import Fill from "ol/style/Fill";
-import OlMap from "ol/Map";
 import { css } from "@emotion/react";
 import { useMap } from "./hooks/useMap";
 import { useTrackLayers } from "./hooks/useTrackLayers";
@@ -14,8 +13,6 @@ import { useMapEvents, MapEvent } from "./hooks/useMapEvents";
 export { PrimaryMapContext } from "./context";
 
 export interface MapProps {
-  mapInstance?: OlMap | undefined;
-  onNewMapInstance?: (map: OlMap) => void;
   tracks?: Track[];
   markers?: Marker[];
   initialView?:
@@ -86,16 +83,12 @@ export function Map({
   tracks = [],
   markers = [],
   initialView,
-  mapInstance,
-  onNewMapInstance,
   interactive = true,
   onEvent,
 }: MapProps): React.ReactElement {
   const mapElementRef = useRef<HTMLDivElement>(null);
 
   const { map } = useMap({
-    mapInstance,
-    onNewMapInstance,
     mapElementRef,
     interactive,
   });

@@ -3,9 +3,9 @@ import { createContext } from "react";
 
 export interface PrimaryMapContext {
   map?: OlMap | undefined;
-  setMap: (map: OlMap) => void;
+  openMapOverlay: () => void;
 }
 
-export const PrimaryMapContext = createContext<PrimaryMapContext>({
-  setMap: () => {},
-});
+export const PrimaryMapContext = createContext<PrimaryMapContext | undefined>(
+  undefined,
+);

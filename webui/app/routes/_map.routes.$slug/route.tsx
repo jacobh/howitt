@@ -5,19 +5,14 @@ import { BikeSpecContent } from "./BikeSpec";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { isNotNil } from "~/services/isNotNil";
 import { NearbyRoutes } from "./NearbyRoutes";
-import {
-  Container,
-  MapContainer,
-  Nav,
-  SidebarContainer,
-} from "~/components/layout";
+import { SidebarContainer } from "~/components/layout";
 import { RouteVitals } from "~/components/routes/RouteVitals";
 import { makeMqs } from "~/styles/mediaQueries";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { DataTable } from "~/components/DataTable";
 import { capitalize } from "es-toolkit";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { buildRouteTrack, Marker } from "~/components/map/types";
 import { useMemo, useState } from "react";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
@@ -158,9 +153,10 @@ export default function Route(): React.ReactElement {
     .filter((item) => isNotNil(item))
     .map(({ name, value }) => ({ name, value: capitalize(value) }));
 
+  usePrimaryMapContent({ tracks, markers, initialView });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer
         titleSegments={[
           { name: "Routes", linkTo: "/routes" },
@@ -259,13 +255,6 @@ export default function Route(): React.ReactElement {
           )}
         </div>
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap
-          tracks={tracks}
-          markers={markers}
-          initialView={initialView}
-        />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

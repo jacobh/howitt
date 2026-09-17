@@ -1,14 +1,9 @@
 import { useQuery } from "@apollo/client/react";
 import { gql } from "../__generated__/gql";
-import {
-  Container,
-  MapContainer,
-  SidebarContainer,
-  Nav,
-} from "~/components/layout";
+import { SidebarContainer } from "~/components/layout";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { DEFAULT_INITIAL_VIEW } from "~/components/map";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { useMemo, useState } from "react";
@@ -94,9 +89,10 @@ export default function POIs(): React.ReactElement {
     [data?.pointsOfInterest],
   );
 
+  usePrimaryMapContent({ markers, initialView: DEFAULT_INITIAL_VIEW });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer
         titleSegments={[{ name: "Points of Interest", linkTo: "/pois" }]}
       >
@@ -117,9 +113,6 @@ export default function POIs(): React.ReactElement {
           </>
         )}
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap markers={markers} initialView={DEFAULT_INITIAL_VIEW} />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

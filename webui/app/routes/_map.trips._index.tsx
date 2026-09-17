@@ -1,15 +1,10 @@
 import { useQuery } from "@apollo/client/react";
 import { gql } from "../__generated__/gql";
-import {
-  Container,
-  MapContainer,
-  SidebarContainer,
-  Nav,
-} from "~/components/layout";
+import { SidebarContainer } from "~/components/layout";
 import { css } from "@emotion/react";
 import { tokens } from "~/styles/tokens";
 import { TripItem } from "~/components/trips/TripItem";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { DEFAULT_INITIAL_VIEW } from "~/components/map";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { useMemo } from "react";
@@ -69,9 +64,10 @@ export default function Trips(): React.ReactElement {
       .map((ride) => buildRideTrack(ride, "default"));
   }, [data?.publishedTrips, data2?.publishedTrips]);
 
+  usePrimaryMapContent({ tracks, initialView: DEFAULT_INITIAL_VIEW });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer titleSegments={[{ name: "Trips", linkTo: "/trips" }]}>
         {loading ? (
           <LoadingSpinnerSidebarContent />
@@ -85,9 +81,6 @@ export default function Trips(): React.ReactElement {
           </div>
         )}
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap tracks={tracks} initialView={DEFAULT_INITIAL_VIEW} />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

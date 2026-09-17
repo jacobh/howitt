@@ -1,18 +1,13 @@
 import { useParams } from "react-router";
-import {
-  Container,
-  MapContainer,
-  Nav,
-  SidebarContainer,
-  useViewer,
-} from "~/components/layout";
+import { SidebarContainer, useViewer } from "~/components/layout";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "~/__generated__";
 import { ElevationProfile } from "~/components/ElevationProfile";
 import { useCallback, useMemo, useState } from "react";
 import { EditTripModal } from "~/components/trips/EditTripModal";
 import { css } from "@emotion/react";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
+import { useMapOverlay } from "~/components/map/hooks/useMapOverlay";
 import { buildRideTrack, Marker } from "~/components/map/types";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { ContentBlock, ContentBlockEvent } from "./components/ContentBlock";
@@ -70,7 +65,7 @@ const editTripStyles = css(buttonStyles, css({ margin: "12px 0" }));
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
   const viewer = useViewer();
-  const [isOverlayActive, setOverlayActive] = useState(false);
+  const { openMapOverlay } = useMapOverlay();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const {
     visibleRouteIds,
@@ -180,7 +175,7 @@ export default function TripDetail(): React.ReactElement {
 
           const point = [media.point[0], media.point[1]];
 
-          setOverlayActive(true);
+          openMapOverlay();
           updateView((view) => {
             view.setCenter(point);
             view.setZoom(12);
@@ -197,7 +192,7 @@ export default function TripDetail(): React.ReactElement {
 
           const bounds = lineString.getExtent();
 
-          setOverlayActive(true);
+          openMapOverlay();
           updateView((view) => {
             view.fit(bounds, {
               padding: [100, 100, 100, 100],
@@ -209,17 +204,19 @@ export default function TripDetail(): React.ReactElement {
           // no-op
         });
     },
-    [handleVisibilityEvent, updateView, trip?.media, trip?.legs],
+    [
+      handleVisibilityEvent,
+      openMapOverlay,
+      updateView,
+      trip?.media,
+      trip?.legs,
+    ],
   );
 
-  const onDismissOverlay = useCallback(() => {
-    setOverlayActive(false);
-  }, []);
+  usePrimaryMapContent({ initialView, tracks, markers });
 
   return (
-    <Container>
-      <Nav />
-
+    <>
       <SidebarContainer
         titleSegments={[
           { name: "Riders", linkTo: "/riders" },
@@ -293,17 +290,6 @@ export default function TripDetail(): React.ReactElement {
           <h3>Trip not found</h3>
         )}
       </SidebarContainer>
-
-      <MapContainer
-        isOverlayActive={isOverlayActive}
-        onDismissOverlay={onDismissOverlay}
-      >
-        <PrimaryMap
-          initialView={initialView}
-          tracks={tracks}
-          markers={markers}
-        />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

@@ -1,13 +1,8 @@
 import { useParams } from "react-router";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "~/__generated__";
-import {
-  Container,
-  MapContainer,
-  Nav,
-  SidebarContainer,
-} from "~/components/layout";
-import { PrimaryMap } from "~/components/map/PrimaryMap";
+import { SidebarContainer } from "~/components/layout";
+import { usePrimaryMapContent } from "~/components/map/hooks/usePrimaryMapContent";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { useMemo, useState } from "react";
 import { buildMarker } from "~/components/map/types";
@@ -86,9 +81,10 @@ export default function POIDetail(): React.ReactElement {
   //   [poi],
   // );
 
+  usePrimaryMapContent({ markers, initialView: DEFAULT_INITIAL_VIEW });
+
   return (
-    <Container>
-      <Nav />
+    <>
       <SidebarContainer
         titleSegments={[
           { name: "Points of Interest", linkTo: "/pois" },
@@ -127,9 +123,6 @@ export default function POIDetail(): React.ReactElement {
           <div css={contentContainerCss}>Point of interest not found</div>
         )}
       </SidebarContainer>
-      <MapContainer>
-        <PrimaryMap markers={markers} initialView={DEFAULT_INITIAL_VIEW} />
-      </MapContainer>
-    </Container>
+    </>
   );
 }

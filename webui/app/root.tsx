@@ -8,12 +8,10 @@ import {
   type MetaDescriptor,
 } from "react-router";
 import { css, withEmotionCache } from "@emotion/react";
-import { useContext, useRef, useEffect, useState } from "react";
+import { useContext, useRef, useEffect } from "react";
 import { ClientStyleContext } from "./styles/client.context";
 import { ServerStyleContext } from "./styles/server.context";
 import stylesheet from "./styles/tailwind.css?url";
-import { PrimaryMapContext } from "./components/map";
-import OlMap from "ol/Map";
 import { ViewerProvider } from "./components/layout";
 
 export const meta = (): MetaDescriptor[] => [
@@ -124,16 +122,12 @@ const Document = withEmotionCache(
 );
 
 export default function App(): React.ReactNode {
-  const [map, setMap] = useState<OlMap | undefined>(undefined);
-
   return (
     <Document>
       <ViewerProvider>
-        <PrimaryMapContext.Provider value={{ map, setMap }}>
-          <main css={mainCss}>
-            <Outlet />
-          </main>
-        </PrimaryMapContext.Provider>
+        <main css={mainCss}>
+          <Outlet />
+        </main>
       </ViewerProvider>
     </Document>
   );

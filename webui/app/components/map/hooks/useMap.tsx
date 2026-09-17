@@ -1,52 +1,21 @@
 import { useEffect, useState } from "react";
 import { defaults as defaultInteractions } from "ol/interaction/defaults";
 import OlMap from "ol/Map";
-import { ViewOptions } from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
 import { useGeographic } from "ol/proj";
-import { MapProps } from "..";
 
-type UseMapProps = Pick<
-  MapProps,
-  "mapInstance" | "onNewMapInstance" | "interactive"
-> & { mapElementRef: React.RefObject<HTMLElement | null> };
+interface UseMapProps {
+  mapElementRef: React.RefObject<HTMLElement | null>;
+  interactive?: boolean;
+}
 
-export const DEFAULT_VIEW: ViewOptions = {
-  center: [146, -37],
-  zoom: 7.5,
-  enableRotation: false,
-};
-
-export function useMap({
-  mapInstance: existingMapInstance,
-  onNewMapInstance,
-  mapElementRef,
-  interactive = true,
-}: UseMapProps): { map: OlMap | undefined } {
-  const [createdMap, setCreatedMap] = useState<OlMap | undefined>(undefined);
-  const map = existingMapInstance ?? createdMap;
+export function useMap({ mapElementRef, interactive = true }: UseMapProps): {
+  map: OlMap | undefined;
+} {
+  const [map, setMap] = useState<OlMap>();
 
   useEffect(() => {
-    console.log("[useMap] useMap useEffect triggered", {
-      existingMapInstance,
-      currentMap: map,
-      mapElementRef: mapElementRef.current,
-    });
-
-    if (existingMapInstance) {
-      console.log("[useMap] Using existing map instance");
-      existingMapInstance.setTarget(mapElementRef.current ?? undefined);
-      return;
-    }
-
-    if (map) {
-      console.log("[useMap] Updating existing map target");
-      map.setTarget(mapElementRef.current ?? undefined);
-      return;
-    }
-
-    console.log("[useMap] Creating new map instance");
     // oxlint-disable-next-line react/rules-of-hooks
     useGeographic();
 
@@ -66,41 +35,23 @@ export function useMap({
       interactions: [],
     });
 
-    console.log("[useMap] New map created", newMap);
-    setCreatedMap(newMap);
-    onNewMapInstance?.(newMap);
+    setMap(newMap);
 
     return (): void => {
-      console.log("[useMap] cleaning up", newMap);
-      newMap.setTarget(undefined);
+      newMap.dispose();
     };
-  }, [existingMapInstance, mapElementRef, map, onNewMapInstance]);
+  }, [mapElementRef]);
 
   useEffect(() => {
     if (!map) return;
 
-    console.log("[useMap] Interaction effect triggered", {
-      interactive,
-      currentInteractions: map.getInteractions().getArray().length,
-    });
+    map.getInteractions().clear();
 
-    // always reset the map to zero
-    for (const interaction of map.getInteractions().getArray()) {
-      map.removeInteraction(interaction);
-    }
-
-    // then if interactive re-add controls
     if (interactive) {
-      console.log("[useMap] Adding default interactions");
       for (const interaction of defaultInteractions().getArray()) {
         map.addInteraction(interaction);
       }
     }
-
-    console.log(
-      "[useMap] Final interaction count:",
-      map.getInteractions().getArray().length,
-    );
   }, [map, interactive]);
 
   return { map };
