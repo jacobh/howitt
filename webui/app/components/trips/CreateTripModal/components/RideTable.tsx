@@ -5,6 +5,7 @@ import { useQuery } from "@apollo/client/react";
 import { orderBy } from "es-toolkit";
 import { tableContainerCss, tableCss } from "~/components/ui/Table";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
+import { formatDateTime } from "~/services/format";
 
 const AllRidesQuery = gql(`
   query AllRides($username: String!) {
@@ -77,7 +78,7 @@ export function RideTable({
         <tbody>
           {rides.map((ride) => (
             <tr key={ride.id} onClick={(): void => handleToggleRide(ride.id)}>
-              <td>{new Date(ride.startedAt).toLocaleString()}</td>
+              <td>{formatDateTime(new Date(ride.startedAt))}</td>
               <td>{ride.name}</td>
               <td>{(ride.distance / 1000).toFixed(1)}km</td>
               <td>

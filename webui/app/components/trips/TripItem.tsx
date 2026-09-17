@@ -4,6 +4,7 @@ import { FragmentType, gql, useFragment } from "~/__generated__";
 import { useMemo } from "react";
 import { tokens } from "~/styles/tokens";
 import { Temporal } from "@js-temporal/polyfill";
+import { formatMonthYear } from "~/services/format";
 
 export const TripItemFragment = gql(`
         fragment tripItem on Trip {
@@ -53,10 +54,7 @@ export function TripItem({ trip: tripFragment }: Props): React.ReactNode {
     const startTime = Temporal.Instant.from(firstRide.startedAt);
     const date = startTime.toZonedDateTimeISO("Australia/Melbourne");
 
-    return date.toLocaleString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
+    return formatMonthYear(date);
   }, [trip]);
 
   return (

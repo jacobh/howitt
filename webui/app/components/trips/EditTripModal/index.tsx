@@ -20,6 +20,7 @@ import {
 } from "~/components/ui/Tabs";
 import { tokens } from "~/styles/tokens";
 import { POITab } from "./components/POITab";
+import { formatDateTime } from "~/services/format";
 
 export const EditTripFragment = gql(`
     fragment editTrip on Trip {
@@ -359,9 +360,11 @@ export function EditTripModal({
                         css={contentBlockStyles}
                       >
                         <div css={contentMetaStyles}>
-                          {Temporal.Instant.from(block.contentAt)
-                            .toZonedDateTimeISO(Temporal.Now.timeZoneId())
-                            .toLocaleString()}
+                          {formatDateTime(
+                            Temporal.Instant.from(
+                              block.contentAt,
+                            ).toZonedDateTimeISO(Temporal.Now.timeZoneId()),
+                          )}
                           {" - "}
                           {block.__typename}
                         </div>

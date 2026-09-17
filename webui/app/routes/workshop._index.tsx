@@ -18,6 +18,7 @@ import { RouteList } from "../components/settings/RouteList";
 import { TripList } from "../components/settings/TripList";
 import { CreateTripModal } from "~/components/trips/CreateTripModal";
 import { POIList } from "~/components/settings/POIList";
+import { formatDate } from "~/services/format";
 
 const SettingsQuery = gql(`
   query settings {
@@ -201,11 +202,9 @@ export default function Settings(): React.ReactElement {
                 <span css={labelCss}>RWGPS User ID</span>
                 <div css={valueCss}>{rwgpsConnection.rwgpsUserId}</div>
                 <div css={connectionDatesCss}>
-                  Connected on{" "}
-                  {new Date(rwgpsConnection.createdAt).toLocaleDateString()}
+                  Connected on {formatDate(new Date(rwgpsConnection.createdAt))}
                   <br />
-                  Last updated{" "}
-                  {new Date(rwgpsConnection.updatedAt).toLocaleDateString()}
+                  Last updated {formatDate(new Date(rwgpsConnection.updatedAt))}
                 </div>
                 <p>
                   New rides and routes sync automatically. Your past data has

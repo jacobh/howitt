@@ -4,6 +4,7 @@ import { orderBy } from "es-toolkit";
 import { gql } from "~/__generated__";
 import { LoadingSpinnerSidebarContent } from "../ui/LoadingSpinner";
 import { tableContainerCss, tableCss } from "../ui/Table";
+import { formatDateTime } from "~/services/format";
 
 const AllRidesQuery = gql(`
   query SettingsRideList($username: String!) {
@@ -54,7 +55,7 @@ export function RideList({ username }: RideListProps): React.ReactElement {
             <tr key={ride.id}>
               <td>
                 <Link to={`/riders/${username}/${ride.date}/`}>
-                  {new Date(ride.startedAt).toLocaleString()}
+                  {formatDateTime(new Date(ride.startedAt))}
                 </Link>
               </td>
               <td>

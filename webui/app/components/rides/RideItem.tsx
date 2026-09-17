@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import { Link } from "react-router";
 import { FragmentType, gql, useFragment } from "~/__generated__";
-import { formatDistance, formatDuration } from "~/services/format";
+import { formatDate, formatDistance, formatDuration } from "~/services/format";
 import { Temporal } from "@js-temporal/polyfill";
 import { useMemo } from "react";
 
@@ -51,11 +51,7 @@ export function RideItem({ ride: rideFragment }: Props): React.ReactNode {
       const timeZone = ride.tz ?? "Australia/Melbourne";
       const zonedDateTime = startTime.toZonedDateTimeISO(timeZone);
 
-      const formattedDate = zonedDateTime.toLocaleString("en-US", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
+      const formattedDate = formatDate(zonedDateTime);
 
       return {
         formattedDate,

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { tableContainerCss, tableCss } from "~/components/ui/Table";
 import { tokens } from "~/styles/tokens";
 import { orderBy } from "es-toolkit";
+import { formatDate } from "~/services/format";
 
 export const TripMediaFragment = gql(`
   fragment tripMedia on Trip {
@@ -120,7 +121,7 @@ export function MediaTable({
                 <ThumbnailImage url={media.imageSizes.fill600.webpUrl} />
               </td>
               <td>{getFileName(media.path)}</td>
-              <td>{new Date(media.createdAt).toLocaleDateString("en-US")}</td>
+              <td>{formatDate(new Date(media.createdAt))}</td>
               <td>
                 <button
                   type="button"

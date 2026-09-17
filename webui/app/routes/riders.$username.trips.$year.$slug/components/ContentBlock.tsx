@@ -12,6 +12,7 @@ import { map as mapIcon } from "ionicons/icons";
 import { SvgIcon } from "~/components/ui/SvgIcon";
 import { Temporal } from "@js-temporal/polyfill";
 import { tokens } from "~/styles/tokens";
+import { formatTime } from "~/services/format";
 
 const contentBlockStyles = css({
   position: "relative", // This ensures the overlay positions relative to this container
@@ -213,12 +214,11 @@ export function ContentBlock({
       <div>
         <img src={media.imageSizes.fit1600.webpUrl} css={mediaStyles} alt="" />
         <div css={mediaCaptionStyles}>
-          {Temporal.Instant.from(media.capturedAt ?? media.contentAt)
-            .toZonedDateTimeISO(media.tz ?? "Australia/Melbourne")
-            .toLocaleString(undefined, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+          {formatTime(
+            Temporal.Instant.from(
+              media.capturedAt ?? media.contentAt,
+            ).toZonedDateTimeISO(media.tz ?? "Australia/Melbourne"),
+          )}
         </div>
       </div>
     ))

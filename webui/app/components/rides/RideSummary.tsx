@@ -2,7 +2,7 @@ import { Temporal } from "@js-temporal/polyfill";
 import { css } from "@emotion/react";
 import { FragmentType, gql, useFragment } from "~/__generated__";
 import { DataTable } from "../DataTable";
-import { formatDistance, formatDuration } from "~/services/format";
+import { formatDistance, formatDuration, formatTime } from "~/services/format";
 import { useMemo } from "react";
 
 export const RideSummaryFragment = gql(`
@@ -45,17 +45,11 @@ export function RideSummary({ ride: rideFragment }: Props): React.ReactNode {
     return [
       {
         name: "Start Time",
-        value: startTime.toLocaleString("en-US", {
-          hour: "numeric",
-          minute: "numeric",
-        }),
+        value: formatTime(startTime),
       },
       {
         name: "End Time",
-        value: endTime.toLocaleString("en-US", {
-          hour: "numeric",
-          minute: "numeric",
-        }),
+        value: formatTime(endTime),
       },
       {
         name: "Duration",

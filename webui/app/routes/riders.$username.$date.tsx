@@ -15,6 +15,7 @@ import { buildRideTrack, Marker } from "~/components/map/types";
 import { useMemo, useState } from "react";
 import { LoadingSpinnerSidebarContent } from "~/components/ui/LoadingSpinner";
 import { PointsDetail } from "~/__generated__/graphql";
+import { formatLongDate } from "~/services/format";
 
 const RidesWithDateQuery = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {
@@ -99,15 +100,7 @@ function UserProfileDate(): React.ReactElement {
       return;
     }
 
-    const timeZone = firstRide.tz ?? "Australia/Melbourne";
-
-    return Temporal.PlainDate.from(params.date).toLocaleString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone,
-    });
+    return formatLongDate(Temporal.PlainDate.from(params.date));
   }, [params.date, data]);
 
   return (
