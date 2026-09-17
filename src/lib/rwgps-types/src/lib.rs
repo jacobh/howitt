@@ -28,7 +28,7 @@ pub struct ListResponse<T> {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TripSummary {
     pub id: usize,
-    pub group_membership_id: usize,
+    pub group_membership_id: Option<usize>,
     pub route_id: Value,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub gear_id: Option<usize>,
@@ -106,7 +106,7 @@ pub struct RouteSummary {
     pub elevation_loss: Option<f64>,
     pub first_lat: Option<f64>,
     pub first_lng: Option<f64>,
-    pub group_membership_id: usize,
+    pub group_membership_id: Option<usize>,
     pub has_course_points: bool,
     pub highlighted_photo_checksum: Value,
     pub highlighted_photo_id: usize,
