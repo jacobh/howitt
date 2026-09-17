@@ -170,7 +170,8 @@ pub struct Route {
     pub first_point: Option<Point>,
     pub last_lat: Option<f64>,
     pub last_lng: Option<f64>,
-    pub bounding_box: Vec<Point>,
+    #[serde(deserialize_with = "deserialize_bounding_box")]
+    pub bounding_box: Vec<Option<Point>>,
     pub locality: Option<String>,
     pub postal_code: Option<String>,
     pub administrative_area: Option<String>,
@@ -284,7 +285,8 @@ pub struct Trip {
         deserialize_with = "deserialize_last_point"
     )]
     pub last_point: Option<Point>,
-    pub bounding_box: Vec<Point>,
+    #[serde(deserialize_with = "deserialize_bounding_box")]
+    pub bounding_box: Vec<Option<Point>>,
     pub locality: Value,
     pub postal_code: Value,
     pub administrative_area: Value,
@@ -334,11 +336,14 @@ struct NullablePoint {
 serde_with::with_prefix!(first_point "first_");
 serde_with::with_prefix!(last_point "last_");
 
-fn deserialize_first_point<'de, D>(deserializer: D) -> Result<Option<Point>, D::Error>
+fn into_optional_point<E>(
+    point: Option<NullablePoint>,
+    partial_pair_message: &'static str,
+) -> Result<Option<Point>, E>
 where
-    D: Deserializer<'de>,
+    E: serde::de::Error,
 {
-    match first_point::deserialize::<Option<NullablePoint>, D>(deserializer)? {
+    match point {
         Some(NullablePoint {
             lat: Some(lat),
             lng: Some(lng),
@@ -348,30 +353,43 @@ where
             lat: None,
             lng: None,
         }) => Ok(None),
-        _ => Err(serde::de::Error::custom(
-            "first_lat and first_lng must both be present or absent",
-        )),
+        _ => Err(E::custom(partial_pair_message)),
     }
+}
+
+fn deserialize_first_point<'de, D>(deserializer: D) -> Result<Option<Point>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    into_optional_point(
+        first_point::deserialize::<Option<NullablePoint>, D>(deserializer)?,
+        "first_lat and first_lng must both be present or absent",
+    )
 }
 
 fn deserialize_last_point<'de, D>(deserializer: D) -> Result<Option<Point>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    match last_point::deserialize::<Option<NullablePoint>, D>(deserializer)? {
-        Some(NullablePoint {
-            lat: Some(lat),
-            lng: Some(lng),
-        }) => Ok(Some(Point { lat, lng })),
-        None
-        | Some(NullablePoint {
-            lat: None,
-            lng: None,
-        }) => Ok(None),
-        _ => Err(serde::de::Error::custom(
-            "last_lat and last_lng must both be present or absent",
-        )),
-    }
+    into_optional_point(
+        last_point::deserialize::<Option<NullablePoint>, D>(deserializer)?,
+        "last_lat and last_lng must both be present or absent",
+    )
+}
+
+fn deserialize_bounding_box<'de, D>(deserializer: D) -> Result<Vec<Option<Point>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Vec::<Option<NullablePoint>>::deserialize(deserializer)?
+        .into_iter()
+        .map(|point| {
+            into_optional_point(
+                point,
+                "bounding box lat and lng must both be present or absent",
+            )
+        })
+        .collect()
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

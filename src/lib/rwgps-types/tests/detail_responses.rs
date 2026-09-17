@@ -21,6 +21,48 @@ fn route_detail_accepts_current_activity_and_sparse_course_point_shapes() {
 }
 
 #[test]
+fn route_detail_accepts_null_or_omitted_bounding_box_coordinate_pairs() {
+    let mut fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/route-detail.json")).unwrap();
+    fixture["route"]["bounding_box"][0]["lat"] = serde_json::Value::Null;
+    fixture["route"]["bounding_box"][0]["lng"] = serde_json::Value::Null;
+    fixture["route"]["bounding_box"][1]
+        .as_object_mut()
+        .unwrap()
+        .remove("lat");
+    fixture["route"]["bounding_box"][1]
+        .as_object_mut()
+        .unwrap()
+        .remove("lng");
+
+    let response: RouteResponse = serde_json::from_value(fixture).unwrap();
+
+    assert_eq!(response.route.bounding_box, [None, None]);
+}
+
+#[test]
+fn route_detail_rejects_partial_bounding_box_coordinate_pairs() {
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/route-detail.json")).unwrap();
+    let mut null_latitude = fixture.clone();
+    null_latitude["route"]["bounding_box"][0]["lat"] = serde_json::Value::Null;
+    let mut omitted_longitude = fixture;
+    omitted_longitude["route"]["bounding_box"][1]
+        .as_object_mut()
+        .unwrap()
+        .remove("lng");
+
+    for partial_pair in [null_latitude, omitted_longitude] {
+        let error = serde_json::from_value::<RouteResponse>(partial_pair).unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("bounding box lat and lng must both be present or absent")
+        );
+    }
+}
+
+#[test]
 fn trip_detail_accepts_omitted_last_coordinates() {
     let response: TripResponse =
         serde_json::from_str(include_str!("fixtures/trip-detail.json")).unwrap();
