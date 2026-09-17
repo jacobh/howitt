@@ -12,6 +12,42 @@ use tracing;
 
 use super::persistence::{DynRwgpsSyncStore, RwgpsSyncPersistenceError};
 
+#[derive(Debug, thiserror::Error)]
+#[error("RWGPS trip has fewer than two usable temporal/elevation points")]
+pub struct InsufficientUsableTripPoints {
+    pub usable_points: usize,
+}
+
+fn usable_trip_points(
+    track_points: Vec<rwgps_types::TrackPoint>,
+) -> Result<Vec<TemporalElevationPoint>, InsufficientUsableTripPoints> {
+    let points = track_points
+        .into_iter()
+        .filter_map(|track_point| {
+            match (
+                geo::Point::try_from(track_point.clone()),
+                track_point.elevation,
+                track_point.datetime,
+            ) {
+                (Ok(point), Some(elevation), Some(datetime)) => Some(TemporalElevationPoint {
+                    point,
+                    elevation,
+                    datetime,
+                }),
+                _ => None,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    if points.len() < 2 {
+        return Err(InsufficientUsableTripPoints {
+            usable_points: points.len(),
+        });
+    }
+
+    Ok(points)
+}
+
 pub struct SyncTripParams<RwgpsClient> {
     pub client: RwgpsClient,
     pub ride_repo: RideRepo,
@@ -60,24 +96,7 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
     let rwgps_trip = client.trip(rwgps_trip_id).await?;
 
     // Convert track points to TemporalElevationPoints
-    let points = rwgps_trip
-        .track_points
-        .into_iter()
-        .filter_map(|track_point| {
-            match (
-                geo::Point::try_from(track_point.clone()),
-                track_point.elevation,
-                track_point.datetime,
-            ) {
-                (Ok(point), Some(elevation), Some(datetime)) => Some(TemporalElevationPoint {
-                    point,
-                    elevation,
-                    datetime,
-                }),
-                _ => None,
-            }
-        })
-        .collect::<Vec<_>>();
+    let points = usable_trip_points(rwgps_trip.track_points)?;
 
     tracing::info!(
         total_points = points.len(),
@@ -89,13 +108,13 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
         .iter()
         .map(|point| point.datetime)
         .min()
-        .ok_or_else(|| anyhow::anyhow!("No points found in trip"))?;
+        .expect("usable trips have at least two points");
 
     let finished_at = points
         .iter()
         .map(|point| point.datetime)
         .max()
-        .ok_or_else(|| anyhow::anyhow!("No points found in trip"))?;
+        .expect("usable trips have at least two points");
 
     match existing_ride {
         Some(mut existing_ride) => {
@@ -148,4 +167,48 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
 
     tracing::info!(rwgps_trip_id, "Trip sync completed successfully");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::{TimeDelta, Utc};
+    use rwgps_types::TrackPoint;
+
+    fn usable_point(seconds: i64) -> TrackPoint {
+        TrackPoint {
+            lng: Some(115.8 + seconds as f64 / 1000.0),
+            lat: Some(-31.9),
+            elevation: Some(23.0),
+            datetime: Some(Utc::now() + TimeDelta::seconds(seconds)),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn zero_usable_points_are_rejected() {
+        let error = super::usable_trip_points(vec![]).unwrap_err();
+        assert_eq!(error.usable_points, 0);
+    }
+
+    #[test]
+    fn one_usable_point_is_rejected_even_with_other_incomplete_points() {
+        let error = super::usable_trip_points(vec![
+            usable_point(0),
+            TrackPoint {
+                lng: Some(115.9),
+                lat: Some(-32.0),
+                elevation: Some(47.0),
+                datetime: None,
+                ..Default::default()
+            },
+        ])
+        .unwrap_err();
+        assert_eq!(error.usable_points, 1);
+    }
+
+    #[test]
+    fn two_usable_points_are_accepted() {
+        let points = super::usable_trip_points(vec![usable_point(0), usable_point(60)]).unwrap();
+        assert_eq!(points.len(), 2);
+    }
 }

@@ -36,7 +36,10 @@ fn failure_diagnostic(error: &anyhow::Error, operation: &'static str) -> String 
         "RWGPS route belongs to another user" | "RWGPS trip belongs to another user"
     ) {
         "rwgps_ownership_conflict"
-    } else if error.to_string() == "No points found in trip" {
+    } else if error
+        .downcast_ref::<howitt::services::sync::rwgps_v2::sync_trip::InsufficientUsableTripPoints>()
+        .is_some()
+    {
         "rwgps_trip_no_usable_points"
     } else if error
         .downcast_ref::<howitt::services::sync::rwgps_v2::persistence::RwgpsSyncPersistenceError>()
@@ -60,6 +63,13 @@ fn failure_diagnostic(error: &anyhow::Error, operation: &'static str) -> String 
     format!("kind={kind} operation={operation}")
 }
 
+#[cfg(any(target_arch = "wasm32", test))]
+fn is_permanent_failure(error: &anyhow::Error) -> bool {
+    error
+        .downcast_ref::<howitt::services::sync::rwgps_v2::sync_trip::InsufficientUsableTripPoints>()
+        .is_some()
+}
+
 #[cfg(target_arch = "wasm32")]
 mod runtime {
     use howitt::{jobs::QueueMessage, repos::Repos};
@@ -81,6 +91,7 @@ mod runtime {
             };
             let operation = super::job_operation(&job);
             let mut phase = "initialize";
+            let mut permanent_failure = false;
             let result = async {
                 // Connections belong to this invocation, never isolate globals.
                 let pool =
@@ -97,6 +108,7 @@ mod runtime {
                 )
                 .await
                 .map_err(|error| {
+                    permanent_failure = super::is_permanent_failure(&error);
                     worker::console_error!(
                         "job.failure_kind message_id={} {}",
                         message.id(),
@@ -118,12 +130,21 @@ mod runtime {
                 }
                 Err(_) => {
                     // Avoid recording credentials, upstream bodies, or SQL values.
-                    worker::console_error!(
-                        "job.failed message_id={} phase={}",
-                        message.id(),
-                        phase
-                    );
-                    message.retry();
+                    if permanent_failure {
+                        message.ack();
+                        worker::console_log!(
+                            "job.permanent_failure_acknowledged message_id={} phase={}",
+                            message.id(),
+                            phase
+                        );
+                    } else {
+                        worker::console_error!(
+                            "job.failed message_id={} phase={}",
+                            message.id(),
+                            phase
+                        );
+                        message.retry();
+                    }
                 }
             }
         }
@@ -163,7 +184,11 @@ mod tests {
         );
         assert_eq!(
             super::failure_diagnostic(
-                &anyhow::anyhow!("No points found in trip"),
+                &anyhow::Error::new(
+                    howitt::services::sync::rwgps_v2::sync_trip::InsufficientUsableTripPoints {
+                        usable_points: 1,
+                    }
+                ),
                 "rwgps_sync_trip"
             ),
             "kind=rwgps_trip_no_usable_points operation=rwgps_sync_trip"
@@ -180,6 +205,23 @@ mod tests {
             super::failure_diagnostic(&anyhow::Error::new(error), "rwgps_sync_history"),
             "kind=database operation=rwgps_sync_history"
         );
+    }
+
+    #[test]
+    fn only_insufficient_trip_points_are_permanent() {
+        let insufficient = anyhow::Error::new(
+            howitt::services::sync::rwgps_v2::sync_trip::InsufficientUsableTripPoints {
+                usable_points: 0,
+            },
+        );
+        assert!(super::is_permanent_failure(&insufficient));
+        assert!(!super::is_permanent_failure(&anyhow::anyhow!(
+            "unrelated trip processing failure"
+        )));
+        assert!(!super::is_permanent_failure(&anyhow::Error::new(
+            RwgpsSyncPersistenceError::from(Box::new(std::io::Error::other("database failure"))
+                as Box<dyn std::error::Error + Send + Sync>)
+        )));
     }
 
     #[test]

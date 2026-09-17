@@ -82,6 +82,15 @@ const upstream = {
 let expectedToken = "synthetic-old-token";
 let requests = 0;
 let upstreamFails = false;
+let tripPoints = [
+  { x: 115.8, y: -31.9, e: 23, t: Date.parse(now) / 1000 },
+  {
+    x: 115.9,
+    y: -32,
+    e: 47,
+    t: Date.parse(now) / 1000 + 600,
+  },
+];
 const children: unknown[] = [];
 const options = {
   workers: [
@@ -162,15 +171,7 @@ const options = {
                   live_logging: false,
                   live_log: null,
                   metrics: { grade: {} },
-                  track_points: [
-                    { x: 115.8, y: -31.9, e: 23, t: Date.parse(now) / 1000 },
-                    {
-                      x: 115.9,
-                      y: -32,
-                      e: 47,
-                      t: Date.parse(now) / 1000 + 600,
-                    },
-                  ],
+                  track_points: tripPoints,
                 },
               });
             }
@@ -276,6 +277,22 @@ try {
     [Date.parse(now) / 1000, 115.8, -31.9, 23],
     [Date.parse(now) / 1000 + 600, 115.9, -32, 47],
   ]);
+  tripPoints = [];
+  const emptyTrip = await deliver("empty-trip", tripJob);
+  assert.deepEqual(emptyTrip.explicitAcks, ["empty-trip"]);
+  assert.deepEqual(emptyTrip.retryMessages, []);
+  tripPoints = [{ x: 115.7, y: -31.8, e: 9, t: Date.parse(now) / 1000 }];
+  const onePointTrip = await deliver("one-point-trip", tripJob);
+  assert.deepEqual(onePointTrip.explicitAcks, ["one-point-trip"]);
+  assert.deepEqual(onePointTrip.retryMessages, []);
+  const [preservedRide] =
+    await sql`select r.id, p.points from rides r join ride_points p on p.ride_id=r.id where external_ref->'id'->'Rwgps'->>'Trip'='315'`;
+  assert.equal(preservedRide.id, ride.id);
+  assert.deepEqual(preservedRide.points, ride.points);
+  tripPoints = [
+    { x: 115.8, y: -31.9, e: 23, t: Date.parse(now) / 1000 },
+    { x: 115.9, y: -32, e: 47, t: Date.parse(now) / 1000 + 600 },
+  ];
   const mediaId = "00000000-0000-0000-0000-000000000082";
   const capturedAt = new Date(Date.parse(now) + 500_000);
   await sql`insert into media (id, user_id, path, captured_at) values (${mediaId}, ${userId}, 'synthetic.jpg', ${capturedAt})`;
@@ -368,7 +385,7 @@ try {
     "publication-failure",
   );
   console.log(
-    "PASS: Wasm queue → mocked RWGPS → local Hyperdrive/Postgres, credential rotation, duplicate delivery, per-message retry, webhook fan-out and publication failure",
+    "PASS: Wasm queue → mocked RWGPS → local Hyperdrive/Postgres, sparse-trip permanent acknowledgements and preservation, credential rotation, duplicate delivery, per-message retry, webhook fan-out and publication failure",
   );
 } finally {
   await missingProducer?.dispose();

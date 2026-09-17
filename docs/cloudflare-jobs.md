@@ -97,6 +97,10 @@ code exchange; it must never be committed or exposed in logs.
   cannot overwrite newer ones. Equal timestamps can repair missing points.
 - Cross-user ownership collisions fail rather than overwrite another user's data.
   Existing route descriptions/tags/name/slug and ride name/distance are preserved.
+- RWGPS trips with fewer than two usable points containing coordinates, elevation
+  and time are permanent failures. They are acknowledged without writing, logged
+  as `rwgps_trip_no_usable_points`, and therefore do not enter the dead-letter
+  queue. This also preserves an existing valid trip when a later snapshot is sparse.
 - Invalid versions, malformed jobs and processing errors retry into
   `howitt-jobs-dead`. Logs include message IDs, stable failure categories and job
   operations, not bodies, job fields, error text, URLs, response values, SQL or
