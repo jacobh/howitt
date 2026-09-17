@@ -7,7 +7,7 @@ use howitt::{
         route::{Route, RouteId},
         user::UserId,
     },
-    services::sync::rwgps_v2::persistence::RwgpsSyncStore,
+    services::sync::rwgps_v2::persistence::{RwgpsSyncPersistenceErrorKind, RwgpsSyncStore},
 };
 use howitt_postgresql::{PostgresPool, PostgresRwgpsSyncStore};
 use tokio_postgres::types::Type;
@@ -105,18 +105,21 @@ async fn route_deliveries_are_atomic_concurrent_and_stale_safe()
         .await?
         .get(0);
     assert_eq!(persisted_points, serde_json::json!([[115.8, -31.9, 47.0]]));
-    assert!(
-        a.save_route(
+    let ownership_error = a
+        .save_route(
             route(
                 14,
                 UserId::from(Uuid::from_u128(999)),
                 987_654,
-                now + Duration::seconds(2)
+                now + Duration::seconds(2),
             ),
-            vec![]
+            vec![],
         )
         .await
-        .is_err()
+        .unwrap_err();
+    assert_eq!(
+        ownership_error.kind(),
+        RwgpsSyncPersistenceErrorKind::OwnershipConflict
     );
     a.save_route(
         route(12, user_id, 987_654, now - Duration::seconds(1)),
@@ -150,8 +153,9 @@ async fn route_deliveries_are_atomic_concurrent_and_stale_safe()
                 elevation: 3.0,
             }],
         )
-        .await;
-    assert!(failed.is_err());
+        .await
+        .unwrap_err();
+    assert_eq!(failed.kind(), RwgpsSyncPersistenceErrorKind::Database);
     assert_eq!(
         conn.query_typed_one(
             "select distance_m from routes where id=$1",
@@ -161,10 +165,12 @@ async fn route_deliveries_are_atomic_concurrent_and_stale_safe()
         .get::<_, i32>(0),
         persisted_distance
     );
-    assert!(
+    assert_eq!(
         a.save_route(route(15, user_id, 987_655, now), vec![point])
             .await
-            .is_err()
+            .unwrap_err()
+            .kind(),
+        RwgpsSyncPersistenceErrorKind::Database
     );
     assert!(
         conn.query_typed_opt(
@@ -279,10 +285,24 @@ async fn trip_deliveries_preserve_identity_and_rollback_points()
     );
     let mut wrong_user = make_ride(104, 3);
     wrong_user.user_id = UserId::from(Uuid::from_u128(999));
-    assert!(store.save_trip(wrong_user, vec![]).await.is_err());
+    assert_eq!(
+        store
+            .save_trip(wrong_user, vec![])
+            .await
+            .unwrap_err()
+            .kind(),
+        RwgpsSyncPersistenceErrorKind::OwnershipConflict
+    );
     conn.execute_typed("create function fail_rwgps_trip_points() returns trigger language plpgsql as $$ begin raise exception 'forced trip point failure'; end $$", &[]).await?;
     conn.execute_typed("create trigger fail_rwgps_trip_points before insert or update on ride_points for each row execute function fail_rwgps_trip_points()", &[]).await?;
-    assert!(store.save_trip(make_ride(105, 4), vec![]).await.is_err());
+    assert_eq!(
+        store
+            .save_trip(make_ride(105, 4), vec![])
+            .await
+            .unwrap_err()
+            .kind(),
+        RwgpsSyncPersistenceErrorKind::Database
+    );
     let after = conn.query_typed_one("select started_at, p.points from rides r join ride_points p on p.ride_id=r.id where r.id=$1", &[(&id, Type::UUID)]).await?;
     assert_eq!(
         after.get::<_, chrono::DateTime<Utc>>(0),

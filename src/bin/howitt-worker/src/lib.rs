@@ -41,11 +41,18 @@ fn failure_diagnostic(error: &anyhow::Error, operation: &'static str) -> String 
         .is_some()
     {
         "rwgps_trip_no_usable_points"
-    } else if error
+    } else if let Some(error) = error
         .downcast_ref::<howitt::services::sync::rwgps_v2::persistence::RwgpsSyncPersistenceError>()
-        .is_some()
     {
-        "rwgps_persistence"
+        use howitt::services::sync::rwgps_v2::persistence::RwgpsSyncPersistenceErrorKind;
+
+        match error.kind() {
+            RwgpsSyncPersistenceErrorKind::Database => "rwgps_persistence_database",
+            RwgpsSyncPersistenceErrorKind::SerializationConversion => {
+                "rwgps_persistence_serialization_conversion"
+            }
+            RwgpsSyncPersistenceErrorKind::OwnershipConflict => "rwgps_ownership_conflict",
+        }
     } else if error
         .downcast_ref::<howitt::services::media::MediaGeoInferrerError>()
         .is_some()
@@ -219,29 +226,44 @@ mod tests {
             "unrelated trip processing failure"
         )));
         assert!(!super::is_permanent_failure(&anyhow::Error::new(
-            RwgpsSyncPersistenceError::from(Box::new(std::io::Error::other("database failure"))
-                as Box<dyn std::error::Error + Send + Sync>)
+            RwgpsSyncPersistenceError::database(std::io::Error::other("database failure"))
         )));
     }
 
     #[test]
-    fn failure_diagnostic_reports_operation_without_error_or_job_values() {
-        let source = std::io::Error::other(
-            "secret-token private response value select * from users \
-             https://private.example/users/42 \
-             USER#00000000-0000-0000-0000-000000000042 987654",
-        );
-        let persistence = RwgpsSyncPersistenceError::from(
-            Box::new(source) as Box<dyn std::error::Error + Send + Sync>
-        );
-        let diagnostic =
-            super::failure_diagnostic(&anyhow::Error::new(persistence), "rwgps_sync_route");
-        assert_eq!(
-            diagnostic,
-            "kind=rwgps_persistence operation=rwgps_sync_route"
-        );
-        assert_redacted(&diagnostic);
+    fn failure_diagnostic_classifies_persistence_causes_without_source_values() {
+        let hostile_source = || {
+            std::io::Error::other(
+                "secret-token private response value select * from users \
+                 https://private.example/users/42 \
+                 USER#00000000-0000-0000-0000-000000000042 987654",
+            )
+        };
+        let cases = [
+            (
+                RwgpsSyncPersistenceError::database(hostile_source()),
+                "kind=rwgps_persistence_database operation=rwgps_sync_route",
+            ),
+            (
+                RwgpsSyncPersistenceError::serialization_conversion(hostile_source()),
+                "kind=rwgps_persistence_serialization_conversion operation=rwgps_sync_route",
+            ),
+            (
+                RwgpsSyncPersistenceError::ownership_conflict(hostile_source()),
+                "kind=rwgps_ownership_conflict operation=rwgps_sync_route",
+            ),
+        ];
 
+        for (error, expected) in cases {
+            let diagnostic =
+                super::failure_diagnostic(&anyhow::Error::new(error), "rwgps_sync_route");
+            assert_eq!(diagnostic, expected);
+            assert_redacted(&diagnostic);
+        }
+    }
+
+    #[test]
+    fn failure_diagnostic_reports_operation_without_unknown_error_or_job_values() {
         let diagnostic = super::failure_diagnostic(
             &anyhow::anyhow!(
                 "secret-token private response value select * from users \

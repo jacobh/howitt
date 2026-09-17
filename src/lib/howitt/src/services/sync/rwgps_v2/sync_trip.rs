@@ -10,7 +10,7 @@ use howitt::{
 use rwgps_types::{client::AuthenticatedRwgpsClient, credentials::Credentials};
 use tracing;
 
-use super::persistence::{DynRwgpsSyncStore, RwgpsSyncPersistenceError};
+use super::persistence::DynRwgpsSyncStore;
 
 #[derive(Debug, thiserror::Error)]
 #[error("RWGPS trip has fewer than two usable temporal/elevation points")]
@@ -132,10 +132,7 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
             existing_ride.started_at = started_at;
             existing_ride.finished_at = finished_at;
 
-            store
-                .save_trip(existing_ride, points)
-                .await
-                .map_err(RwgpsSyncPersistenceError::from)?;
+            store.save_trip(existing_ride, points).await?;
             tracing::info!("Successfully updated ride and points");
         }
         None => {
@@ -157,10 +154,7 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
             };
 
             // Save new ride and points
-            store
-                .save_trip(ride, points)
-                .await
-                .map_err(RwgpsSyncPersistenceError::from)?;
+            store.save_trip(ride, points).await?;
             tracing::info!(ride_id = %id, "Successfully created new ride");
         }
     }
