@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_aux::prelude::deserialize_default_from_empty_object;
 use serde_json::Value;
 
@@ -270,8 +270,12 @@ pub struct Trip {
     pub description: Option<String>,
     pub first_lng: f64,
     pub first_lat: f64,
-    pub last_lat: Option<f64>,
-    pub last_lng: Option<f64>,
+    #[serde(
+        flatten,
+        serialize_with = "last_point::serialize",
+        deserialize_with = "deserialize_last_point"
+    )]
+    pub last_point: Option<Point>,
     pub bounding_box: Vec<Point>,
     pub locality: Value,
     pub postal_code: Value,
@@ -311,6 +315,34 @@ impl From<Trip> for geo::LineString<f64> {
 pub struct Point {
     pub lat: f64,
     pub lng: f64,
+}
+
+#[derive(Deserialize)]
+struct NullablePoint {
+    lat: Option<f64>,
+    lng: Option<f64>,
+}
+
+serde_with::with_prefix!(last_point "last_");
+
+fn deserialize_last_point<'de, D>(deserializer: D) -> Result<Option<Point>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match last_point::deserialize::<Option<NullablePoint>, D>(deserializer)? {
+        Some(NullablePoint {
+            lat: Some(lat),
+            lng: Some(lng),
+        }) => Ok(Some(Point { lat, lng })),
+        None
+        | Some(NullablePoint {
+            lat: None,
+            lng: None,
+        }) => Ok(None),
+        _ => Err(serde::de::Error::custom(
+            "last_lat and last_lng must both be present or absent",
+        )),
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
