@@ -1,0 +1,81 @@
+{
+  "type": "route",
+  "route": {
+    "id": 7365,
+    "highlighted_photo_id": 0,
+    "highlighted_photo_checksum": null,
+    "distance": 84482.9,
+    "elevation_gain": 800.0,
+    "elevation_loss": 800.0,
+    "track_id": "public-route",
+    "user_id": 1,
+    "pavement_type": null,
+    "pavement_type_id": null,
+    "activity_types": ["cycling"],
+    "visibility": 0,
+    "created_at": "2026-09-01T00:00:00Z",
+    "updated_at": "2026-09-02T00:00:00Z",
+    "name": "Public route shape",
+    "description": null,
+    "first_lng": -122.1,
+    "first_lat": 45.1,
+    "bounding_box": [
+      { "lat": 45.0, "lng": -122.2 },
+      { "lat": 45.2, "lng": -122.0 }
+    ],
+    "locality": "Portland",
+    "postal_code": null,
+    "administrative_area": "Oregon",
+    "country_code": "US",
+    "privacy_code": null,
+    "user": {
+      "id": 1,
+      "created_at": "2020-01-01T00:00:00Z",
+      "description": null,
+      "interests": null,
+      "locality": "Portland",
+      "administrative_area": "Oregon",
+      "account_level": 1,
+      "total_trip_distance": 1000.0,
+      "total_trip_duration": 100,
+      "total_trip_elevation_gain": null,
+      "name": "Public rider",
+      "highlighted_photo_id": 0,
+      "highlighted_photo_checksum": null
+    },
+    "has_course_points": true,
+    "tag_names": [],
+    "track_type": "point_to_point",
+    "terrain": "rolling",
+    "difficulty": "moderate",
+    "unpaved_pct": 0.0,
+    "surface": "paved",
+    "nav_enabled": true,
+    "rememberable": true,
+    "metrics": {},
+    "photos": [
+      {
+        "id": 10,
+        "caption": null,
+        "created_at": "2026-09-01T00:00:00Z",
+        "visibility": 0,
+        "lat": null,
+        "lng": null,
+        "user_id": 1,
+        "updated_at": "2026-09-01T00:00:00Z",
+        "width": 800,
+        "height": 600,
+        "optional_uuid": null,
+        "checksum": "photo"
+      }
+    ],
+    "segment_matches": null,
+    "track_points": [
+      { "x": -122.1, "y": 45.1, "e": 10.0 }
+    ],
+    "course_points": [
+      { "x": -122.56022, "y": 45.47736, "d": 84482.9, "i": 844 }
+    ],
+    "points_of_interest": []
+  }
+}

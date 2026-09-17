@@ -156,7 +156,7 @@ pub struct Route {
     pub pavement_type: Value,
     pub pavement_type_id: Value,
     #[serde(default)]
-    pub recreation_type_ids: Vec<Value>,
+    pub activity_types: Vec<String>,
     pub visibility: i64,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
@@ -270,8 +270,8 @@ pub struct Trip {
     pub description: Option<String>,
     pub first_lng: f64,
     pub first_lat: f64,
-    pub last_lat: f64,
-    pub last_lng: f64,
+    pub last_lat: Option<f64>,
+    pub last_lng: Option<f64>,
     pub bounding_box: Vec<Point>,
     pub locality: Value,
     pub postal_code: Value,
@@ -338,7 +338,7 @@ pub struct Metrics {
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
     pub ele: Option<Elevation>,
-    #[serde(deserialize_with = "deserialize_default_from_empty_object")]
+    #[serde(default, deserialize_with = "deserialize_default_from_empty_object")]
     pub grade: Option<Grade>,
     pub distance: Option<f64>,
     #[serde(rename = "startElevation")]
@@ -482,9 +482,9 @@ pub struct CoursePoint {
     pub distance: Option<f64>,
     pub i: i64,
     #[serde(rename = "n")]
-    pub note: String,
+    pub note: Option<String>,
     #[serde(rename = "t")]
-    pub point_type: String,
+    pub point_type: Option<String>,
     #[serde(rename = "x")]
     pub lng: f64,
     #[serde(rename = "y")]
