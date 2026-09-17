@@ -14,6 +14,7 @@ import { ServerStyleContext } from "./styles/server.context";
 import stylesheet from "./styles/tailwind.css?url";
 import { PrimaryMapContext } from "./components/map";
 import OlMap from "ol/Map";
+import { ViewerProvider } from "./components/layout";
 
 export const meta = (): MetaDescriptor[] => [
   {
@@ -127,11 +128,13 @@ export default function App(): React.ReactNode {
 
   return (
     <Document>
-      <PrimaryMapContext.Provider value={{ map, setMap }}>
-        <main css={mainCss}>
-          <Outlet />
-        </main>
-      </PrimaryMapContext.Provider>
+      <ViewerProvider>
+        <PrimaryMapContext.Provider value={{ map, setMap }}>
+          <main css={mainCss}>
+            <Outlet />
+          </main>
+        </PrimaryMapContext.Provider>
+      </ViewerProvider>
     </Document>
   );
 }

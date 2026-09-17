@@ -69,9 +69,6 @@ query RouteQuery($slug: String!) {
     ...elevationPath
     ...routeVitals
   }
-  viewer {
-    ...viewerInfo
-  }
 }
 `);
 
@@ -123,9 +120,7 @@ export default function Route(): React.ReactElement {
         route ? buildRouteTrack(route) : undefined,
         ...(route?.termini ?? []).flatMap((terminus) =>
           terminus.nearbyRoutes
-            .filter(
-              (nearby) => nearby.closestTerminus.route.id !== route?.id,
-            )
+            .filter((nearby) => nearby.closestTerminus.route.id !== route?.id)
             .map((nearby) =>
               buildRouteTrack(nearby.closestTerminus.route, "muted"),
             ),
@@ -165,7 +160,7 @@ export default function Route(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer
         titleSegments={[
           { name: "Routes", linkTo: "/routes" },

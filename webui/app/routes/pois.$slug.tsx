@@ -31,9 +31,6 @@ const POIQuery = gql(`
       }
       ...editPOI
     }
-    viewer {
-      ...viewerInfo
-    }
   }
 `);
 
@@ -91,7 +88,7 @@ export default function POIDetail(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer
         titleSegments={[
           { name: "Points of Interest", linkTo: "/pois" },

@@ -1,16 +1,15 @@
-import { useQuery } from "@apollo/client/react";
 import { css } from "@emotion/react";
 import { useNavigate } from "react-router";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
-import { gql } from "~/__generated__";
 import { getApiBaseUrl } from "~/env.client";
 import * as Tabs from "@radix-ui/react-tabs";
 import { tokens } from "~/styles/tokens";
 import { tabsListStyles, tabTriggerStyles } from "~/components/ui/Tabs";
 import { buttonStyles } from "~/components/ui/Button";
+import { useViewer } from "~/components/layout";
 
 const containerCss = css`
   display: grid;
@@ -52,18 +51,6 @@ const errorCss = css`
   font-size: 0.9em;
 `;
 
-const LoginQuery = gql(`
-  query LoginViewerInfo {
-    viewer {
-      id
-      profile {
-        username
-      }
-    ...viewerInfo
-    }
-  }  
-`);
-
 interface LoginFormInputs {
   username: string;
   password: string;
@@ -78,7 +65,7 @@ interface SignupFormInputs {
 
 export default function Login(): React.ReactElement {
   const navigate = useNavigate();
-  const { refetch } = useQuery(LoginQuery);
+  const { refresh: refreshViewer } = useViewer();
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string>();
   const [signupError, setSignupError] = useState<string>();
@@ -110,7 +97,7 @@ export default function Login(): React.ReactElement {
 
         if (typeof res.data?.token === "string") {
           Cookies.set("token", res.data.token);
-          await refetch();
+          await refreshViewer();
           navigate("/workshop");
         } else {
           setLoginError("Something went wrong, try again");
@@ -123,7 +110,7 @@ export default function Login(): React.ReactElement {
         setIsLoading(false);
       }
     },
-    [navigate, refetch, resetLoginForm],
+    [navigate, refreshViewer, resetLoginForm],
   );
 
   const onSignupSubmit = useCallback(
@@ -140,7 +127,7 @@ export default function Login(): React.ReactElement {
 
         if (res.data?.token) {
           Cookies.set("token", res.data.token);
-          await refetch();
+          await refreshViewer();
           navigate("/workshop");
         } else if (res.data?.error) {
           setSignupError(res.data.error);
@@ -153,7 +140,7 @@ export default function Login(): React.ReactElement {
         setIsLoading(false);
       }
     },
-    [navigate, refetch],
+    [navigate, refreshViewer],
   );
 
   return (

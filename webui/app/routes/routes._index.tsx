@@ -26,9 +26,6 @@ const HomeQueryNoPoints = gql(`
       samplePoints
       ...routeItem
     }
-    viewer {
-      ...viewerInfo
-    }
   }
 `);
 
@@ -134,7 +131,7 @@ export default function Routes(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer
         titleSegments={
           isNotNil(tags)

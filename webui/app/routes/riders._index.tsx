@@ -20,9 +20,6 @@ const PublicUsersQuery = gql(`
         id
         ...userItem
     }
-    viewer {
-      ...viewerInfo
-    }
   }
 `);
 
@@ -66,7 +63,7 @@ export default function Users(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer titleSegments={[{ name: "Riders", linkTo: "/riders" }]}>
         {loading ? (
           <LoadingSpinnerSidebarContent />

@@ -4,6 +4,7 @@ import {
   MapContainer,
   Nav,
   SidebarContainer,
+  useViewer,
 } from "~/components/layout";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "~/__generated__";
@@ -27,11 +28,6 @@ import { isNotNil } from "~/services/isNotNil";
 
 const TripQuery = gql(`
   query TripQuery($username: String!, $slug: String!, $detailLevel: PointsDetail!) {
-    viewer {
-      id
-      ...viewerInfo
-    }
-
     userWithUsername(username: $username) {
       username
       tripWithSlug(slug: $slug) {
@@ -73,6 +69,7 @@ const editTripStyles = css(buttonStyles, css({ margin: "12px 0" }));
 
 export default function TripDetail(): React.ReactElement {
   const params = useParams();
+  const viewer = useViewer();
   const [isOverlayActive, setOverlayActive] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const {
@@ -166,7 +163,8 @@ export default function TripDetail(): React.ReactElement {
   }, [trip, visibleMediaIds, hoveredMediaIds]);
 
   const isOwnTrip =
-    data?.viewer?.id === data?.userWithUsername?.tripWithSlug?.user?.id;
+    viewer.status === "authenticated" &&
+    viewer.viewer.id === data?.userWithUsername?.tripWithSlug?.user?.id;
 
   const onContentBlockEvent = useCallback(
     (event: ContentBlockEvent) => {
@@ -220,7 +218,7 @@ export default function TripDetail(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
 
       <SidebarContainer
         titleSegments={[

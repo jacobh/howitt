@@ -1,6 +1,4 @@
 import { DEFAULT_INITIAL_VIEW } from "../../components/map";
-import { useQuery as useGqlQuery } from "@apollo/client/react";
-import { gql } from "../../__generated__/gql";
 import {
   Container,
   MapContainer,
@@ -19,16 +17,7 @@ import { isNotNil } from "~/services/isNotNil";
 import { MapEvent, MapEventCoords } from "~/components/map/hooks/useMapEvents";
 import { DataTable } from "~/components/DataTable";
 
-const ViewerQuery = gql(`
-  query viewerQuery {
-    viewer {
-      ...viewerInfo
-    }
-  }
-`);
-
 export default function Water(): React.ReactElement {
-  const { data: viewerData, loading: viewerLoading } = useGqlQuery(ViewerQuery);
   const [clickedPoint, setClickedPoint] = useState<MapEventCoords | undefined>(
     undefined,
   );
@@ -111,9 +100,9 @@ export default function Water(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={viewerData?.viewer} />
+      <Nav />
       <SidebarContainer titleSegments={[{ name: "Water", linkTo: "/water" }]}>
-        {indexLoading || nearbyLoading || viewerLoading ? (
+        {indexLoading || nearbyLoading ? (
           <LoadingSpinnerSidebarContent />
         ) : (
           <div css={{ marginTop: "16px" }}>

@@ -1,21 +1,8 @@
 import { css } from "@emotion/react";
 import { Link } from "react-router";
 
-import { FragmentType, gql, useFragment } from "~/__generated__";
 import { makeMqs } from "~/styles/mediaQueries";
-
-export const ViewerInfoFragment = gql(`
-    fragment viewerInfo on Viewer {
-        id
-        profile {
-          username
-        }
-    }
-  `);
-
-type NavProps = {
-  viewer?: FragmentType<typeof ViewerInfoFragment> | null;
-};
+import { useViewer } from "./Viewer";
 
 const navCss = makeMqs([
   css`
@@ -77,8 +64,8 @@ const userInfoCss = css`
   height: 100%;
 `;
 
-export function Nav(props: NavProps): React.ReactNode {
-  const viewer = useFragment(ViewerInfoFragment, props.viewer);
+export function Nav(): React.ReactNode {
+  const viewer = useViewer();
 
   return (
     <nav css={navCss}>
@@ -92,11 +79,11 @@ export function Nav(props: NavProps): React.ReactNode {
         <Link to="/routes">Routes</Link>
       </h3>
       <div css={userInfoCss}>
-        {viewer ? (
-          <Link to={`/workshop`}>{viewer.profile.username}</Link>
-        ) : (
+        {viewer.status === "authenticated" ? (
+          <Link to="/workshop">{viewer.viewer.profile.username}</Link>
+        ) : viewer.status === "anonymous" ? (
           <Link to="/login">Login</Link>
-        )}
+        ) : undefined}
       </div>
     </nav>
   );

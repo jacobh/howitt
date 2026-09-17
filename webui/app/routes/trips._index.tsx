@@ -28,13 +28,6 @@ const TripsQueryNoPoints = gql(`
       }
       ...tripItem
     }
-    viewer {
-      profile {
-        id
-        username
-      }
-      ...viewerInfo
-    }
   }
 `);
 
@@ -78,7 +71,7 @@ export default function Trips(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer titleSegments={[{ name: "Trips", linkTo: "/trips" }]}>
         {loading ? (
           <LoadingSpinnerSidebarContent />

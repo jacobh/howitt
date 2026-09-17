@@ -6,6 +6,7 @@ import { makeMqs } from "~/styles/mediaQueries";
 import { tokens } from "~/styles/tokens";
 
 export { Nav } from "./Nav";
+export { ViewerProvider, useViewer } from "./Viewer";
 
 const containerCss = makeMqs([
   css`

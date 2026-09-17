@@ -40,10 +40,6 @@ const UserProfileQuery = gql(`
           ...tripItem
         }
     }
-    viewer {
-      id
-      ...viewerInfo
-    }
   }
 `);
 
@@ -92,7 +88,7 @@ export default function UserProfile(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer
         titleSegments={[
           { name: "Riders", linkTo: "/riders" },

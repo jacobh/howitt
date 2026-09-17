@@ -25,9 +25,6 @@ const POIsQuery = gql(`
       pointOfInterestType
       ...poiItem
     }
-    viewer {
-      ...viewerInfo
-    }
   }
 `);
 
@@ -99,7 +96,7 @@ export default function POIs(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer
         titleSegments={[{ name: "Points of Interest", linkTo: "/pois" }]}
       >

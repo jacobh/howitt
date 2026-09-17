@@ -19,9 +19,6 @@ import { formatLongDate } from "~/services/format";
 
 const RidesWithDateQuery = gql(`
   query ridesWithDate($username: String!, $date: IsoDate!, $detailLevel: PointsDetail!) {
-    viewer {
-      ...viewerInfo
-    }
     userWithUsername(username: $username) {
       username
       ridesWithDate(date: $date) {
@@ -105,7 +102,7 @@ function UserProfileDate(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <SidebarContainer
         titleSegments={[
           { name: "Riders", linkTo: "/riders" },

@@ -23,7 +23,6 @@ import { formatDate } from "~/services/format";
 const SettingsQuery = gql(`
   query settings {
     viewer {
-      ...viewerInfo
         profile {
             id
             username
@@ -43,7 +42,10 @@ const SettingsQuery = gql(`
 const InitiateRwgpsHistorySyncMutation = gql(`
   mutation initiateRwgpsHistorySync {
     initiateRwgpsHistorySync {
-      ...viewerInfo
+      id
+      profile {
+        username
+      }
     }
   }
 `);
@@ -149,7 +151,7 @@ export default function Settings(): React.ReactElement {
 
   return (
     <Container>
-      <Nav viewer={data?.viewer} />
+      <Nav />
       <div css={pageContainerCss}>
         <h2>Workshop</h2>
         <InfoBox>
