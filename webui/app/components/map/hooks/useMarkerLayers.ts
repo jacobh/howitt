@@ -46,14 +46,25 @@ const MARKER_STYLES = {
 
 export function useMarkerLayers({ map, markers }: UseMarkerLayersProps): void {
   useEffect(() => {
+    return (): void => {
+      // Removing layers mutates the collection, so iterate over a snapshot.
+      const layers = [...(map?.getLayers().getArray() ?? [])];
+      for (const layer of layers) {
+        if (isNotNil(layer.get("markerId"))) map?.removeLayer(layer);
+      }
+    };
+  }, [map]);
+
+  useEffect(() => {
     if (!map) {
       return;
     }
 
     const layers = map.getLayers().getArray();
+    const previousLayers = [...layers];
 
     // cleanup any markers that have been dropped
-    for (const layer of layers) {
+    for (const layer of previousLayers) {
       if (layer instanceof VectorLayer) {
         const vectorLayer = layer as VectorLayer;
         const layerMarkerId = vectorLayer.getProperties().markerId;
@@ -64,9 +75,7 @@ export function useMarkerLayers({ map, markers }: UseMarkerLayersProps): void {
           );
 
           if (!isLayerMarkerInCurrentRender) {
-            setInterval(() => {
-              map.removeLayer(layer);
-            }, 1);
+            map.removeLayer(layer);
           }
         }
       }

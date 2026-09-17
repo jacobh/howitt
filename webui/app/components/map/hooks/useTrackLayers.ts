@@ -16,14 +16,25 @@ interface UseTrackLayersProps {
 
 export function useTrackLayers({ map, tracks }: UseTrackLayersProps): void {
   useEffect(() => {
+    return (): void => {
+      // Removing layers mutates the collection, so iterate over a snapshot.
+      const layers = [...(map?.getLayers().getArray() ?? [])];
+      for (const layer of layers) {
+        if (isNotNil(layer.get("trackId"))) map?.removeLayer(layer);
+      }
+    };
+  }, [map]);
+
+  useEffect(() => {
     if (!map) {
       return;
     }
 
     const layers = map.getLayers().getArray();
+    const previousLayers = [...layers];
 
     // cleanup any tracks that have been dropped
-    for (const layer of layers) {
+    for (const layer of previousLayers) {
       if (layer instanceof VectorLayer) {
         const vectorLayer = layer as VectorLayer;
         const layerTrackId = vectorLayer.getProperties().trackId;
@@ -34,9 +45,7 @@ export function useTrackLayers({ map, tracks }: UseTrackLayersProps): void {
           );
 
           if (!isLayerTrackInCurrentRender) {
-            setInterval(() => {
-              map.removeLayer(layer);
-            }, 1);
+            map.removeLayer(layer);
           }
         }
       }
