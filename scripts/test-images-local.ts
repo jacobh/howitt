@@ -134,8 +134,28 @@ const options = {
             assert.equal(form.get("creator"), `USER#${userId}`);
             assert.equal(form.get("requireSignedURLs"), "false");
             const id = String(form.get("id"));
+            // Images reserves bare UUIDs; the original implementation failed with 5411.
+            if (
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+                id,
+              )
+            ) {
+              return Response.json(
+                {
+                  success: false,
+                  errors: [
+                    {
+                      code: 5411,
+                      message: "Custom ID is not valid: Must not be UUID",
+                    },
+                  ],
+                },
+                { status: 400 },
+              );
+            }
+            assert.match(id, /^howitt-[0-9a-f-]{36}$/);
             assert.deepEqual(JSON.parse(String(form.get("metadata"))), {
-              media_id: `MEDIA#${id}`,
+              media_id: `MEDIA#${id.slice("howitt-".length)}`,
             });
             const file = form.get("file") as File;
             assert.equal(file.name, "test.jpg");
@@ -149,6 +169,10 @@ const options = {
             return Response.json(
               {
                 success: failure !== "envelope",
+                errors:
+                  failure === "envelope"
+                    ? [{ code: 5411, message: "upstream-sensitive-message" }]
+                    : [],
                 result: { id: failure === "id" ? "wrong-id" : id },
               },
               { status: failure === "status" ? 503 : 200 },
@@ -241,7 +265,7 @@ try {
   const mediaId = id.replace("MEDIA#", "");
   const [row] =
     await sql`select path, user_id, captured_at, point from media where id=${mediaId}`;
-  assert.equal(row.path, `cloudflare-images://test-hash/${mediaId}`);
+  assert.equal(row.path, `cloudflare-images://test-hash/howitt-${mediaId}`);
   assert.equal(row.user_id, userId);
   assert.equal(row.captured_at, null);
   assert.equal(row.point, null);
@@ -277,12 +301,12 @@ try {
     width: 300,
     height: 300,
     mode: "FILL",
-    jpegUrl: `https://imagedelivery.net/test-hash/${mediaId}/width=300,height=300,fit=cover,format=jpeg,quality=85,metadata=none`,
-    webpUrl: `https://imagedelivery.net/test-hash/${mediaId}/width=300,height=300,fit=cover,format=webp,quality=85,metadata=none`,
+    jpegUrl: `https://imagedelivery.net/test-hash/howitt-${mediaId}/width=300,height=300,fit=cover,format=jpeg,quality=85,metadata=none`,
+    webpUrl: `https://imagedelivery.net/test-hash/howitt-${mediaId}/width=300,height=300,fit=cover,format=webp,quality=85,metadata=none`,
   });
   assert.equal(
     fresh.imageSizes.fit1200.jpegUrl,
-    `https://imagedelivery.net/test-hash/${mediaId}/width=1200,height=1200,fit=scale-down,format=jpeg,quality=85,metadata=none`,
+    `https://imagedelivery.net/test-hash/howitt-${mediaId}/width=1200,height=1200,fit=scale-down,format=jpeg,quality=85,metadata=none`,
   );
 
   const rideId = "00000000-0000-0000-0000-000000000096";

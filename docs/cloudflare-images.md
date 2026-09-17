@@ -33,7 +33,8 @@ following confirmation that the Images token and flexible variants are configure
   EXIF GPS is not overwritten. This synchronous metadata lookup avoids a new
   DB-to-queue dual write; the queue/CLI remains available for later inference.
 - A new `media.path` is a provider-qualified locator:
-  `cloudflare-images://<public-delivery-hash>/<media-uuid>`. This fits the existing
+  `cloudflare-images://<public-delivery-hash>/howitt-<media-uuid>`. The prefix avoids
+  Cloudflare's reserved bare-UUID custom IDs (error 5411). This fits the existing
   column, so new uploads need no schema migration. It is not a browser URL or
   an S3 key. GraphQL `path` exposes the locator; frontend image rendering already
   uses `imageSizes`, not `path`. The account API ID and token are not stored here.
@@ -85,12 +86,13 @@ rollback mechanism.
 ## Failure and reconciliation
 
 A 201 is sent only after Images confirms HTTP success, `success=true`, the exact
-requested UUID, and PostgreSQL commits the media and relations transaction.
+requested image ID, and PostgreSQL commits the media and relations transaction.
 There is no distributed transaction between Images and PostgreSQL. Timeouts,
 ambiguous provider responses or a DB failure can leave an unlinked original.
 No automated cleanup deletes that original. Images stores `creator` and
-`metadata.media_id`; logs record media ID and failure stage without credentials,
-provider response bodies or image metadata. Reconcile by that ID before retrying
+`metadata.media_id`; logs record media ID, failure stage, HTTP status and numeric
+provider error codes without credentials, provider messages, response bodies or
+image metadata. Reconcile by that ID before retrying
 an uncertain request. A manual retry currently receives a new media UUID and
 can create a duplicate. The frontend does not automatically retry uploads.
 

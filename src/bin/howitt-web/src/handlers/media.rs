@@ -52,13 +52,13 @@ impl ImagesConfig {
     async fn upload(
         &self,
         media: &Media,
+        image_id: &str,
         bytes: Vec<u8>,
         name: String,
         mime: &str,
     ) -> anyhow::Result<()> {
-        let id = media.id.as_uuid().to_string();
         let form = reqwest::multipart::Form::new()
-            .text("id", id.clone())
+            .text("id", image_id.to_owned())
             .text("creator", media.user_id.to_string())
             .text("requireSignedURLs", "false")
             .text(
@@ -76,12 +76,32 @@ impl ImagesConfig {
             .bearer_auth(&self.token)
             .multipart(form)
             .send()
-            .await?
-            .error_for_status()?;
-        let response: serde_json::Value = response.json().await?;
+            .await
+            .map_err(|_| anyhow::anyhow!("Images request failed"))?;
+        let status = response.status();
+        let response: serde_json::Value = response.json().await.map_err(|_| {
+            anyhow::anyhow!(
+                "Images returned non-JSON response: HTTP {}",
+                status.as_u16()
+            )
+        })?;
+        // Log only status and numeric error codes, never provider messages, bodies or credentials.
+        let codes: Vec<u64> = response["errors"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|error| error["code"].as_u64())
+            .take(10)
+            .collect();
         anyhow::ensure!(
-            response["success"] == true && response["result"]["id"] == id,
-            "Images did not confirm upload"
+            status.is_success() && response["success"] == true,
+            "Images rejected upload: HTTP {}, codes {:?}",
+            status.as_u16(),
+            codes
+        );
+        anyhow::ensure!(
+            response["result"]["id"] == image_id,
+            "Images returned unexpected image ID"
         );
         Ok(())
     }
@@ -208,12 +228,13 @@ async fn upload(
     authorize_relations(&state.repos, &upload.relations, user_id).await?;
     let exif = exif::parse_exif(&upload.bytes);
     let id = MediaId::new();
+    // Cloudflare reserves bare UUIDs for its own generated IDs (error 5411).
+    let image_id = format!("howitt-{}", id.as_uuid());
     let mut media = Media {
         id,
         user_id,
         created_at: Utc::now(),
-        path: cloudflare_image_path(&images.delivery_hash, &id.as_uuid().to_string())
-            .ok_or(INTERNAL)?,
+        path: cloudflare_image_path(&images.delivery_hash, &image_id).ok_or(INTERNAL)?,
         relation_ids: upload.relations,
         point: exif.point.filter(|p| {
             p.x().is_finite()
@@ -242,16 +263,16 @@ async fn upload(
     // A failed/ambiguous upload or DB save is never reported as success. Retain
     // provider originals on DB failure; the media_id metadata permits reconciliation.
     images
-        .upload(&media, upload.bytes, upload.name, &upload.mime)
+        .upload(&media, &image_id, upload.bytes, upload.name, &upload.mime)
         .await
-        .map_err(|_| {
+        .map_err(|error| {
             #[cfg(target_arch = "wasm32")]
             worker::console_error!(
-                "Images upload unconfirmed media_id={}; reconcile before retry",
-                id
+                "Images upload unconfirmed media_id={}: {}; reconcile before retry",
+                id, error
             );
             #[cfg(not(target_arch = "wasm32"))]
-            tracing::error!(media_id = %id, "Images upload unconfirmed; reconcile before retry");
+            tracing::error!(media_id = %id, error = %error, "Images upload unconfirmed; reconcile before retry");
             (StatusCode::BAD_GATEWAY, "Images upload was not confirmed")
         })?;
     state.repos.media_repo.put(media).await.map_err(|_| {
