@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
 import { parse } from "graphql";
+import { test } from "vitest";
 import { createApolloClient } from "~/services/apollo";
 
 test("SSR uses the supplied backend fetch and forwards the viewer token", async () => {
