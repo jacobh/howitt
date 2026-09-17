@@ -98,8 +98,9 @@ code exchange; it must never be committed or exposed in logs.
 - Cross-user ownership collisions fail rather than overwrite another user's data.
   Existing route descriptions/tags/name/slug and ride name/distance are preserved.
 - Invalid versions, malformed jobs and processing errors retry into
-  `howitt-jobs-dead`. Logs include message IDs and completion/failure, not bodies
-  or credentials. Inspect the dead-letter payload and upstream/database state to
+  `howitt-jobs-dead`. Logs include message IDs, stable failure categories and job
+  operations, not bodies, job fields, error text, URLs, response values, SQL or
+  credentials. Inspect the dead-letter payload and upstream/database state to
   diagnose the failure before replaying.
 - Replay a route/trip/history/inference job with the corresponding CLI command.
   A webhook can be replayed as its individual route/trip sync. Confirm success,

@@ -14,7 +14,7 @@ use howitt::{
 use rwgps_types::{client::AuthenticatedRwgpsClient, credentials::Credentials};
 use tracing;
 
-use super::persistence::DynRwgpsSyncStore;
+use super::persistence::{DynRwgpsSyncStore, RwgpsSyncPersistenceError};
 
 pub struct SyncRouteParams<RwgpsClient> {
     pub client: RwgpsClient,
@@ -110,7 +110,7 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
             store
                 .save_route(existing_route, points)
                 .await
-                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+                .map_err(RwgpsSyncPersistenceError::from)?;
             tracing::info!("Successfully updated route and points");
         }
         None => {
@@ -137,7 +137,7 @@ pub async fn sync_route<RwgpsClient: rwgps_types::client::RwgpsClient>(
             store
                 .save_route(route, points)
                 .await
-                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+                .map_err(RwgpsSyncPersistenceError::from)?;
             tracing::info!(route_id = %id, "Successfully created new route");
         }
     }

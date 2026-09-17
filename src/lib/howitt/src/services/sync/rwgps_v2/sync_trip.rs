@@ -10,7 +10,7 @@ use howitt::{
 use rwgps_types::{client::AuthenticatedRwgpsClient, credentials::Credentials};
 use tracing;
 
-use super::persistence::DynRwgpsSyncStore;
+use super::persistence::{DynRwgpsSyncStore, RwgpsSyncPersistenceError};
 
 pub struct SyncTripParams<RwgpsClient> {
     pub client: RwgpsClient,
@@ -116,7 +116,7 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
             store
                 .save_trip(existing_ride, points)
                 .await
-                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+                .map_err(RwgpsSyncPersistenceError::from)?;
             tracing::info!("Successfully updated ride and points");
         }
         None => {
@@ -141,7 +141,7 @@ pub async fn sync_trip<RwgpsClient: rwgps_types::client::RwgpsClient>(
             store
                 .save_trip(ride, points)
                 .await
-                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+                .map_err(RwgpsSyncPersistenceError::from)?;
             tracing::info!(ride_id = %id, "Successfully created new ride");
         }
     }
