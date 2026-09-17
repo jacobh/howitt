@@ -60,6 +60,14 @@ impl<C: Deref> TracedClient<C>
 where
     C::Target: GenericClient,
 {
+    pub async fn batch_execute(&self, statement: &str) -> Result<(), Error> {
+        self.check_connection(
+            db_span("batch_execute", operation(statement))
+                .trace(self.inner.batch_execute(statement))
+                .await,
+        )
+    }
+
     pub async fn query_typed(
         &self,
         statement: &str,

@@ -1,0 +1,19 @@
+name = "howitt-migrations"
+main = "src/bin/howitt-migrations/build/worker/shim.mjs"
+compatibility_date = "2026-09-12"
+compatibility_flags = ["nodejs_als"]
+workers_dev = true
+preview_urls = false
+
+[observability]
+enabled = true
+
+[build]
+command = "bash scripts/build-worker.sh howitt-migrations"
+
+[limits]
+cpu_ms = 300000
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "324c2bb0ba3d4ac9b1fce0618ccbae4d"

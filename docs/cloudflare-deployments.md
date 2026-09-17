@@ -10,11 +10,13 @@ Validation has no deployment credentials. It installs Bun from `.bun-version`,
 Node 22 (Wrangler's runtime), the Rust nightly used by `.agents/setup`, the Wasm
 target, LLVM/Clang and worker-build 0.8.5. Both Bun installs use frozen lockfiles;
 the Rust build uses `--locked`. It runs observability tests, frontend typecheck,
-lint and tests, then all three package-script Wrangler dry-runs. Wrangler invokes
+lint and tests, then all four package-script Wrangler dry-runs. Wrangler invokes
 each configuration's custom build, including API timezone assets and Remix SSR
-and static assets. No native image libraries or live database are needed.
+and static assets. No native image libraries or live production database are needed.
 The Vite Cloudflare development proxy is enabled only for `serve`; production
 builds must not open authenticated remote-binding sessions against the live API.
+Validation also runs the migration unit/integration tests against an isolated
+PostgreSQL 15 service and dry-runs the dedicated migration Worker.
 
 The deployment job checks out the same event commit and rebuilds using the same
 toolchain and lockfiles, reusing the Rust cache. It uses the existing deployment
@@ -23,6 +25,10 @@ scripts unchanged (Wrangler runs their custom builds), in this order:
 1. `howitt-worker` via `wrangler.jobs.toml`: update the queue consumer first.
 2. `howitt-web` via `wrangler.toml`: API and timezone assets.
 3. `howitt-webui` via `webui/wrangler.toml`: frontend with its API service binding.
+
+`howitt-migrations` is deliberately excluded from this automatic deployment
+sequence. Deploying it and invoking a database migration are separate approved
+administrative actions; see [cloudflare-migrations.md](cloudflare-migrations.md).
 
 Failure stops later deployments. This is not an atomic three-Worker rollout:
 earlier successful updates remain live. Keep changes backwards-compatible across
@@ -92,6 +98,7 @@ With the toolchain above installed:
 bun install --frozen-lockfile
 bun install --frozen-lockfile --cwd webui
 bun run test:observability
+bun run check:migrations
 bun run check:jobs
 bun run check:worker
 (cd webui && bun run typecheck && bun run lint && bun run test && bun run check:worker)

@@ -21,6 +21,18 @@ jobs:
   validate:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    services:
+      postgres:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,6 +62,13 @@ jobs:
           bun install --frozen-lockfile --cwd webui
       - name: Test observability
         run: bun run test:observability
+      - name: Test migration safety
+        env:
+          HOWITT_MIGRATION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+        run: |
+          cargo test --locked -p howitt-postgresql --lib
+          cargo test --locked -p howitt-migrations --lib
+          cargo test --locked -p howitt-postgresql --test migrations -- --ignored --test-threads=1
       - name: Check frontend
         working-directory: webui
         run: |
@@ -58,6 +77,7 @@ jobs:
           bun run test
       - name: Build and dry-run all Workers
         run: |
+          bun run check:migrations
           bun run check:jobs
           bun run check:worker
           (cd webui && bun run check:worker)

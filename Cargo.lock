@@ -2030,6 +2030,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "howitt-migrations"
+version = "0.1.0"
+dependencies = [
+ "howitt-postgresql",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "subtle",
+ "tokio",
+ "worker",
+]
+
+[[package]]
 name = "howitt-observability"
 version = "0.1.0"
 dependencies = [
@@ -2056,6 +2069,7 @@ dependencies = [
  "native-tls",
  "postgres-native-tls",
  "serde_json",
+ "sha2 0.10.9",
  "test-case",
  "thiserror 2.0.20",
  "tokio",

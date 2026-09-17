@@ -1,9 +1,14 @@
 #[cfg(target_arch = "wasm32")]
 mod hyperdrive;
+mod migrations;
 mod pool;
 mod repos;
 mod rwgps_sync;
 mod traced_client;
+pub use migrations::{
+    BaselineResult, Migration, MigrationError, MigrationResult, baseline_migrations,
+    bundled_migrations, run_migrations,
+};
 pub use pool::{ConnectionFactory, PostgresPool};
 pub use repos::*;
 pub use rwgps_sync::PostgresRwgpsSyncStore;

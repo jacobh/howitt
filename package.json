@@ -14,6 +14,10 @@
     "dev:jobs": "wrangler dev --config wrangler.jobs.toml",
     "check:jobs": "wrangler deploy --config wrangler.jobs.toml --dry-run",
     "deploy:jobs": "wrangler deploy --config wrangler.jobs.toml",
+    "build:migrations": "bash scripts/build-worker.sh howitt-migrations",
+    "dev:migrations": "wrangler dev --config wrangler.migrations.toml",
+    "check:migrations": "wrangler deploy --config wrangler.migrations.toml --dry-run",
+    "deploy:migrations": "wrangler deploy --config wrangler.migrations.toml",
     "test:observability": "bun test scripts/tests/resolver-tracing.test.ts"
   }
 }
